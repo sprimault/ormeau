@@ -59,12 +59,19 @@ jobs:
         env:
           CGO_ENABLED: '1'
 
-      # Le calque est un contrat public : un schéma invalide passerait
-      # inaperçu jusqu'au premier intégrateur.
+      # Le calque est un contrat public : un schéma invalide passerait inaperçu
+      # jusqu'au premier intégrateur.
+      #
+      # Le second contrôle est celui qui compte vraiment : il valide un calque
+      # produit par les structures Go contre le schéma publié. C'est ce qui
+      # empêche les deux de diverger — un champ ajouté d'un côté seulement se
+      # voit ici, et non chez celui qui écrit un générateur.
       - name: Valider les JSON Schema
         run: |
           python -m pip install --quiet check-jsonschema
           check-jsonschema --check-metaschema schemas/*.json
+          check-jsonschema --schemafile schemas/calque-physique.v1.json \
+            tests/reference/*.calque.json
 
   # Job distinct des tests : une CVE publiée en amont n'a rien à voir avec la PR
   # en cours, et son échec ne doit pas se lire comme « ta contribution est

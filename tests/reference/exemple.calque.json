@@ -1,0 +1,177 @@
+{
+  "version_ri": 1,
+  "source": {
+    "sgbd": "postgres",
+    "version": "16.2",
+    "catalogue": "gescom",
+    "schema": "public",
+    "extrait_le": "2026-01-01T00:00:00Z",
+    "empreinte": "sha256:d8c2b15dbf61d8c6180e061f4c3035f7ae38aa41c7e6f1e78a3dd7efe07a7ea4"
+  },
+  "tables": [
+    {
+      "nom": "audit",
+      "schema": "archive",
+      "colonnes": [
+        {
+          "nom": "id",
+          "position": 1,
+          "type_brut": "bigint",
+          "type_normalise": "entier",
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "nom": "client",
+      "schema": "public",
+      "colonnes": [
+        {
+          "nom": "id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true
+        },
+        {
+          "nom": "actif",
+          "position": 2,
+          "type_brut": "char(1)",
+          "type_normalise": "texte",
+          "longueur": 1,
+          "nullable": false,
+          "defaut": {
+            "genre": "litteral",
+            "valeur": "O"
+          }
+        }
+      ],
+      "cle_primaire": {
+        "nom": "client_pkey",
+        "colonnes": [
+          "id"
+        ]
+      }
+    },
+    {
+      "nom": "commande",
+      "schema": "public",
+      "colonnes": [
+        {
+          "nom": "id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false
+        },
+        {
+          "nom": "client_id",
+          "position": 2,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false
+        },
+        {
+          "nom": "total",
+          "position": 3,
+          "type_brut": "numeric(10,0)",
+          "type_normalise": "decimal",
+          "precision": 10,
+          "echelle": 0,
+          "nullable": false
+        }
+      ],
+      "cle_primaire": {
+        "nom": "commande_pkey",
+        "colonnes": [
+          "id"
+        ]
+      },
+      "cles_etrangeres": [
+        {
+          "nom": "fk_commande_client",
+          "colonnes": [
+            "client_id"
+          ],
+          "table_cible": "client",
+          "schema_cible": "public",
+          "colonnes_cibles": [
+            "id"
+          ],
+          "a_la_suppression": "restrict"
+        }
+      ],
+      "index": [
+        {
+          "nom": "idx_client",
+          "colonnes": [
+            "client_id"
+          ],
+          "unique": false
+        },
+        {
+          "nom": "idx_total",
+          "colonnes": [
+            "total"
+          ],
+          "unique": false
+        }
+      ],
+      "verifications": [
+        {
+          "nom": "ck_client",
+          "expression": "client_id <> 0"
+        },
+        {
+          "nom": "ck_total_positif",
+          "expression": "total > 0 AND total < 1000000"
+        }
+      ]
+    }
+  ],
+  "sequences": [
+    {
+      "nom": "audit_id_seq",
+      "schema": "archive",
+      "increment": 1
+    },
+    {
+      "nom": "client_id_seq",
+      "schema": "public",
+      "increment": 1
+    }
+  ],
+  "types_enumeres": [
+    {
+      "nom": "canal",
+      "schema": "public",
+      "valeurs": [
+        "web",
+        "magasin"
+      ]
+    },
+    {
+      "nom": "statut",
+      "schema": "public",
+      "valeurs": [
+        "ouvert",
+        "ferme"
+      ]
+    }
+  ],
+  "vues": [
+    {
+      "nom": "v_clients",
+      "schema": "public",
+      "definition": "SELECT * FROM client",
+      "materialisee": false
+    },
+    {
+      "nom": "v_commandes",
+      "schema": "public",
+      "definition": "SELECT * FROM commande WHERE total > 0",
+      "materialisee": false
+    }
+  ]
+}
