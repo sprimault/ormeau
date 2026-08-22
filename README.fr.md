@@ -158,6 +158,13 @@ Bogues, demandes ou questions : ouvrir une issue sur
 https://github.com/sprimault/ormeau/issues (français de préférence, anglais
 bienvenu).
 
+Vous comptez envoyer un correctif ? [`CONTRIBUTING.fr.md`](CONTRIBUTING.fr.md)
+énonce les règles sur lesquelles une pull request est jugée — elles ne se
+devinent pas à la lecture du code.
+
+Les failles de sécurité passent par le canal privé décrit dans
+[`SECURITY.fr.md`](SECURITY.fr.md), jamais par une issue publique.
+
 ## Licence
 
 Apache 2.0 — voir [`LICENSE`](LICENSE).
