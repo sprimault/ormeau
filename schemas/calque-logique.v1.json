@@ -1,0 +1,205 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/sprimault/ormeau/schemas/calque-logique.v1.json",
+  "title": "Calque logique",
+  "description": "Modèle objet inféré à partir d'un calque physique et d'un fichier de décisions. Parle le vocabulaire de la famille Hibernate : entités, associations avec côté propriétaire, héritage. Ce biais est assumé.",
+  "type": "object",
+  "required": ["version_ri", "empreinte_physique", "espace_de_noms", "entites"],
+  "additionalProperties": false,
+  "properties": {
+    "version_ri": { "type": "integer", "const": 1 },
+    "empreinte_physique": {
+      "description": "Empreinte du calque physique dont découle ce jugement. Permet de détecter que la base a bougé sans relire les entités.",
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "espace_de_noms": { "type": "string" },
+    "entites": { "type": "array", "items": { "$ref": "#/$defs/entite" } },
+    "enumerations": { "type": "array", "items": { "$ref": "#/$defs/enumeration" } },
+    "traits": { "type": "array", "items": { "$ref": "#/$defs/trait" } },
+    "avertissements": { "type": "array", "items": { "$ref": "#/$defs/avertissement" } }
+  },
+  "$defs": {
+    "origine": {
+      "description": "D'où vient la décision. Sans ce champ, l'outil n'est pas auditable.",
+      "enum": ["contrainte", "verification", "cardinalite", "nommage", "decision"]
+    },
+    "entite": {
+      "type": "object",
+      "required": ["nom", "table", "proprietes"],
+      "additionalProperties": false,
+      "properties": {
+        "nom": { "type": "string" },
+        "table": { "$ref": "#/$defs/referenceTable" },
+        "heritage": { "$ref": "#/$defs/heritage" },
+        "traits": { "type": "array", "items": { "type": "string" } },
+        "identifiant": { "$ref": "#/$defs/identifiant" },
+        "proprietes": { "type": "array", "items": { "$ref": "#/$defs/propriete" } },
+        "associations": { "type": "array", "items": { "$ref": "#/$defs/association" } },
+        "index": {
+          "description": "Reporté depuis le physique pour que la régénération du schéma soit fidèle.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/indexEntite" }
+        }
+      }
+    },
+    "referenceTable": {
+      "type": "object",
+      "required": ["nom", "schema"],
+      "additionalProperties": false,
+      "properties": {
+        "nom": { "type": "string" },
+        "schema": { "type": "string" }
+      }
+    },
+    "heritage": {
+      "type": "object",
+      "required": ["strategie", "parent"],
+      "additionalProperties": false,
+      "properties": {
+        "strategie": { "enum": ["jointe", "table_unique"] },
+        "parent": { "type": "string" },
+        "colonne_discriminante": { "type": "string" },
+        "origine": { "$ref": "#/$defs/origine" }
+      }
+    },
+    "identifiant": {
+      "type": "object",
+      "required": ["proprietes", "strategie"],
+      "additionalProperties": false,
+      "properties": {
+        "proprietes": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "strategie": { "enum": ["identite", "sequence", "aucune", "assignee"] },
+        "sequence": { "type": "string" }
+      }
+    },
+    "propriete": {
+      "type": "object",
+      "required": ["nom", "colonne", "type_php", "type_doctrine", "nullable"],
+      "additionalProperties": false,
+      "properties": {
+        "nom": { "type": "string" },
+        "colonne": { "type": "string" },
+        "type_php": { "type": "string" },
+        "type_doctrine": { "type": "string" },
+        "nullable": { "type": "boolean" },
+        "longueur": { "type": "integer", "minimum": 0 },
+        "precision": { "type": "integer", "minimum": 0 },
+        "echelle": { "type": "integer" },
+        "enumeration": { "type": "string" },
+        "defaut": { "type": "string" },
+        "insertable": { "type": "boolean", "default": true },
+        "modifiable": { "type": "boolean", "default": true },
+        "unique": { "type": "boolean" },
+        "commentaire": { "type": "string" },
+        "origine": { "$ref": "#/$defs/origine" }
+      }
+    },
+    "association": {
+      "type": "object",
+      "required": ["nom", "genre", "cible", "proprietaire", "origine"],
+      "additionalProperties": false,
+      "properties": {
+        "nom": { "type": "string" },
+        "genre": {
+          "enum": ["un_vers_un", "plusieurs_vers_un", "un_vers_plusieurs", "plusieurs_vers_plusieurs"]
+        },
+        "cible": { "type": "string" },
+        "proprietaire": { "type": "boolean" },
+        "inversee_par": {
+          "description": "Nom de la propriété inverse. Présent sur le côté propriétaire.",
+          "type": "string"
+        },
+        "mappee_par": {
+          "description": "Nom de la propriété propriétaire. Présent sur le côté inverse.",
+          "type": "string"
+        },
+        "jointure": { "type": "array", "items": { "$ref": "#/$defs/colonneJointure" } },
+        "table_jointure": { "$ref": "#/$defs/tableJointure" },
+        "orphelins_supprimes": { "type": "boolean" },
+        "origine": { "$ref": "#/$defs/origine" }
+      }
+    },
+    "colonneJointure": {
+      "type": "object",
+      "required": ["colonne", "colonne_referencee", "nullable"],
+      "additionalProperties": false,
+      "properties": {
+        "colonne": { "type": "string" },
+        "colonne_referencee": { "type": "string" },
+        "nullable": { "type": "boolean" },
+        "a_la_suppression": { "enum": ["aucune", "cascade", "set_null", "set_default", "restrict"] }
+      }
+    },
+    "tableJointure": {
+      "type": "object",
+      "required": ["nom", "schema", "jointure", "jointure_inverse"],
+      "additionalProperties": false,
+      "properties": {
+        "nom": { "type": "string" },
+        "schema": { "type": "string" },
+        "jointure": { "type": "array", "items": { "$ref": "#/$defs/colonneJointure" } },
+        "jointure_inverse": { "type": "array", "items": { "$ref": "#/$defs/colonneJointure" } }
+      }
+    },
+    "indexEntite": {
+      "type": "object",
+      "required": ["colonnes", "unique"],
+      "additionalProperties": false,
+      "properties": {
+        "nom": { "type": "string" },
+        "colonnes": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "unique": { "type": "boolean" }
+      }
+    },
+    "enumeration": {
+      "type": "object",
+      "required": ["nom", "type_support", "cas", "origine"],
+      "additionalProperties": false,
+      "properties": {
+        "nom": { "type": "string" },
+        "type_support": { "enum": ["string", "int"] },
+        "cas": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["nom", "valeur"],
+            "additionalProperties": false,
+            "properties": {
+              "nom": { "type": "string" },
+              "valeur": { "type": ["string", "integer"] }
+            }
+          }
+        },
+        "origine": { "$ref": "#/$defs/origine" }
+      }
+    },
+    "trait": {
+      "type": "object",
+      "required": ["nom", "proprietes"],
+      "additionalProperties": false,
+      "properties": {
+        "nom": { "type": "string" },
+        "proprietes": { "type": "array", "items": { "$ref": "#/$defs/propriete" } }
+      }
+    },
+    "avertissement": {
+      "description": "Sortie de premier ordre, pas un journal. Ce qui n'est pas résolu n'est jamais inventé.",
+      "type": "object",
+      "required": ["code", "cible", "message", "resolution", "confiance"],
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "description": "Stable entre versions : sert de filtre en CI.",
+          "type": "string",
+          "pattern": "^[a-z0-9_]+$"
+        },
+        "cible": { "type": "string" },
+        "message": { "type": "string" },
+        "resolution": { "enum": ["ignoree", "aucune", "par_defaut", "forcee_par_decision"] },
+        "confiance": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    }
+  }
+}

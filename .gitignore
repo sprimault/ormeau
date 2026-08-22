@@ -1,0 +1,38 @@
+# Binaires
+/ormeau
+/dist/
+*.exe
+
+# Go
+*.test
+*.out
+/coverage.*
+
+# Front
+/web/node_modules/
+/web/dist/
+/internal/interface/embarque/
+
+# PHP
+/php/vendor/
+/php/.phpunit.cache/
+/php/.php-cs-fixer.cache
+/php/var/
+
+# Environnement local
+.env
+.env.local
+*.dsn
+
+# Sorties de travail
+*.calque.json
+*.logique.json
+!tests/**/*.calque.json
+!tests/**/*.logique.json
+decisions.yaml
+!tests/**/decisions.yaml
+
+# Éditeurs
+.idea/
+*.iml
+.DS_Store

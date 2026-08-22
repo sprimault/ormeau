@@ -1,0 +1,256 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/sprimault/ormeau/schemas/calque-physique.v1.json",
+  "title": "Calque physique",
+  "description": "Décalque fidèle du catalogue d'une base relationnelle. Aucune interprétation, aucun renommage. Doit contenir tout ce qui est nécessaire pour reconstruire un DDL équivalent.",
+  "type": "object",
+  "required": ["version_ri", "source", "tables"],
+  "additionalProperties": false,
+  "properties": {
+    "version_ri": { "type": "integer", "const": 1 },
+    "source": { "$ref": "#/$defs/source" },
+    "tables": { "type": "array", "items": { "$ref": "#/$defs/table" } },
+    "sequences": { "type": "array", "items": { "$ref": "#/$defs/sequence" } },
+    "types_enumeres": { "type": "array", "items": { "$ref": "#/$defs/typeEnumere" } },
+    "vues": { "type": "array", "items": { "$ref": "#/$defs/vue" } },
+    "statistiques": {
+      "description": "Optionnel, produit uniquement avec --echantillonner. Clé : schema.table.",
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/statistiquesTable" }
+    }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["sgbd", "version", "catalogue", "schema", "extrait_le", "empreinte"],
+      "additionalProperties": false,
+      "properties": {
+        "sgbd": { "enum": ["postgres", "mysql", "mariadb", "sqlserver", "sqlite", "oracle"] },
+        "version": { "type": "string" },
+        "catalogue": { "type": "string" },
+        "schema": { "type": "string" },
+        "extrait_le": {
+          "description": "Isolé ici et exclu de l'empreinte, pour que deux extractions identiques produisent la même empreinte.",
+          "type": "string",
+          "format": "date-time"
+        },
+        "empreinte": {
+          "description": "sha256 du document sérialisé, source.extrait_le et source.empreinte exclus.",
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      }
+    },
+    "table": {
+      "type": "object",
+      "required": ["nom", "schema", "colonnes"],
+      "additionalProperties": false,
+      "properties": {
+        "nom": { "type": "string" },
+        "schema": { "type": "string" },
+        "commentaire": { "type": "string" },
+        "colonnes": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/colonne" } },
+        "cle_primaire": { "$ref": "#/$defs/clePrimaire" },
+        "cles_etrangeres": { "type": "array", "items": { "$ref": "#/$defs/cleEtrangere" } },
+        "unicites": { "type": "array", "items": { "$ref": "#/$defs/contrainteColonnes" } },
+        "index": { "type": "array", "items": { "$ref": "#/$defs/index" } },
+        "verifications": { "type": "array", "items": { "$ref": "#/$defs/verification" } },
+        "options": { "$ref": "#/$defs/optionsTable" }
+      }
+    },
+    "colonne": {
+      "type": "object",
+      "required": ["nom", "position", "type_brut", "type_normalise", "nullable"],
+      "additionalProperties": false,
+      "properties": {
+        "nom": { "type": "string" },
+        "position": { "type": "integer", "minimum": 1 },
+        "type_brut": {
+          "description": "Verbatim du catalogue, jamais reconstruit à partir des composants.",
+          "type": "string"
+        },
+        "type_normalise": { "$ref": "#/$defs/typeNormalise" },
+        "longueur": { "type": "integer", "minimum": 0 },
+        "precision": { "type": "integer", "minimum": 0 },
+        "echelle": { "type": "integer" },
+        "nullable": { "type": "boolean" },
+        "auto_increment": { "type": "boolean" },
+        "defaut": { "$ref": "#/$defs/defaut" },
+        "generee": { "$ref": "#/$defs/generee" },
+        "collation": { "type": "string" },
+        "type_enumere": {
+          "description": "Nom d'une entrée de types_enumeres, pour les SGBD à types énumérés natifs.",
+          "type": "string"
+        },
+        "commentaire": { "type": "string" }
+      }
+    },
+    "typeNormalise": {
+      "description": "Vocabulaire fermé. Toute valeur ajoutée incrémente version_ri.",
+      "enum": [
+        "entier",
+        "decimal",
+        "flottant",
+        "texte",
+        "binaire",
+        "booleen",
+        "date",
+        "heure",
+        "horodatage",
+        "intervalle",
+        "uuid",
+        "json",
+        "xml",
+        "geometrie",
+        "enumere",
+        "reseau",
+        "inconnu"
+      ]
+    },
+    "defaut": {
+      "description": "Structuré, jamais une chaîne nue : sinon DEFAULT 'now()' et DEFAULT now() sont indistinguables.",
+      "type": "object",
+      "required": ["genre", "valeur"],
+      "additionalProperties": false,
+      "properties": {
+        "genre": { "enum": ["litteral", "expression", "sequence"] },
+        "valeur": { "type": "string" }
+      }
+    },
+    "generee": {
+      "type": "object",
+      "required": ["expression", "stockee"],
+      "additionalProperties": false,
+      "properties": {
+        "expression": { "type": "string" },
+        "stockee": { "type": "boolean" }
+      }
+    },
+    "clePrimaire": {
+      "type": "object",
+      "required": ["colonnes"],
+      "additionalProperties": false,
+      "properties": {
+        "nom": { "type": "string" },
+        "colonnes": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+      }
+    },
+    "cleEtrangere": {
+      "type": "object",
+      "required": ["colonnes", "table_cible", "schema_cible", "colonnes_cibles"],
+      "additionalProperties": false,
+      "properties": {
+        "nom": { "type": "string" },
+        "colonnes": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "table_cible": { "type": "string" },
+        "schema_cible": { "type": "string" },
+        "colonnes_cibles": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "a_la_suppression": { "$ref": "#/$defs/actionReferentielle" },
+        "a_la_mise_a_jour": { "$ref": "#/$defs/actionReferentielle" }
+      }
+    },
+    "actionReferentielle": {
+      "enum": ["aucune", "cascade", "set_null", "set_default", "restrict"]
+    },
+    "contrainteColonnes": {
+      "type": "object",
+      "required": ["colonnes"],
+      "additionalProperties": false,
+      "properties": {
+        "nom": { "type": "string" },
+        "colonnes": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+      }
+    },
+    "index": {
+      "type": "object",
+      "required": ["colonnes", "unique"],
+      "additionalProperties": false,
+      "properties": {
+        "nom": { "type": "string" },
+        "colonnes": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "unique": { "type": "boolean" },
+        "predicat": {
+          "description": "Index partiel. Verbatim.",
+          "type": "string"
+        },
+        "methode": { "type": "string" }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "required": ["expression"],
+      "additionalProperties": false,
+      "properties": {
+        "nom": { "type": "string" },
+        "expression": { "type": "string" }
+      }
+    },
+    "optionsTable": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "moteur": { "type": "string" },
+        "collation": { "type": "string" }
+      }
+    },
+    "sequence": {
+      "type": "object",
+      "required": ["nom", "schema"],
+      "additionalProperties": false,
+      "properties": {
+        "nom": { "type": "string" },
+        "schema": { "type": "string" },
+        "increment": { "type": "integer" },
+        "minimum": { "type": "integer" },
+        "maximum": { "type": "integer" },
+        "cyclique": { "type": "boolean" }
+      }
+    },
+    "typeEnumere": {
+      "type": "object",
+      "required": ["nom", "schema", "valeurs"],
+      "additionalProperties": false,
+      "properties": {
+        "nom": { "type": "string" },
+        "schema": { "type": "string" },
+        "valeurs": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "vue": {
+      "type": "object",
+      "required": ["nom", "schema", "definition", "materialisee"],
+      "additionalProperties": false,
+      "properties": {
+        "nom": { "type": "string" },
+        "schema": { "type": "string" },
+        "definition": { "type": "string" },
+        "materialisee": { "type": "boolean" },
+        "colonnes": { "type": "array", "items": { "$ref": "#/$defs/colonne" } }
+      }
+    },
+    "statistiquesTable": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "lignes_estimees": { "type": "integer", "minimum": 0 },
+        "colonnes": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/statistiquesColonne" }
+        }
+      }
+    },
+    "statistiquesColonne": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "distinctes": { "type": "integer", "minimum": 0 },
+        "nuls": { "type": "integer", "minimum": 0 },
+        "echantillon": {
+          "description": "Valeurs distinctes, uniquement sous le plafond de cardinalité configuré. Jamais de donnée métier au-delà.",
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  }
+}
