@@ -8,6 +8,9 @@
 *.out
 /coverage.*
 
+# Répertoire de travail local
+/.tmp/
+
 # Front
 /web/node_modules/
 /web/dist/

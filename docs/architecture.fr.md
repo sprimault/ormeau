@@ -1,3 +1,5 @@
+> [🇬🇧 English](architecture.md) · [🇫🇷 Français](architecture.fr.md)
+
 # Architecture
 
 ## Le problème
@@ -118,7 +120,3 @@ On peut extraire une base chez un client, repartir avec un calque de quelques
 mégaoctets, et faire toute la génération et les itérations d'heuristiques
 ailleurs, sans accès réseau à cette base. Le calque se versionne dans Git, se
 rejoue et se compare entre deux interventions.
-
----
-
-*An English version of this document is due before the first public release.*

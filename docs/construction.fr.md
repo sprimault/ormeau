@@ -1,3 +1,5 @@
+> [🇬🇧 English](construction.md) · [🇫🇷 Français](construction.fr.md)
+
 # Construction et distribution
 
 ## Une seule machine produit tout
@@ -6,7 +8,7 @@ Go croise nativement. Une machine Linux suffit à produire les binaires Windows,
 macOS et Linux, pour amd64 comme pour arm64 :
 
 ```bash
-make binaires
+make binaries
 ```
 
 Cela ne tient qu'à une condition : **aucun cgo**. Tous les pilotes retenus sont
@@ -33,7 +35,7 @@ moment de la compilation, `embed` produit un système de fichiers vide et la
 compilation réussit quand même : on publie alors des binaires avec une interface
 blanche, sans qu'aucun avertissement ne le signale.
 
-La cible `binaires` dépend de `front` pour cette raison, et un test vérifie que
+La cible `binaries` dépend de `web-build` pour cette raison, et un test vérifie que
 le système de fichiers embarqué n'est pas vide.
 
 ## Images Docker
@@ -82,7 +84,3 @@ compte développeur Apple payant.
 Dans les deux cas, le README explique le contournement. Un avertissement de
 sécurité inexpliqué sur un outil qui réclame un mot de passe de base de données
 arrête net un utilisateur prudent — et il a raison de s'arrêter.
-
----
-
-*An English version of this document is due before the first public release.*

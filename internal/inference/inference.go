@@ -1,77 +1,54 @@
+// Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
+// SPDX-License-Identifier: Apache-2.0
+
 // Package inference transforme un calque physique en calque logique.
 //
 // C'est le cœur de la valeur du projet : tout ce qui distingue Ormeau d'un
 // générateur naïf est ici.
-package inference
-
-import (
-	"github.com/sprimault/ormeau/internal/calque"
-)
-
-// Inferer est une fonction pure : pas de réseau, pas d'effet de bord, pas
-// d'horloge, pas d'aléa. Toute heuristique qui aurait besoin d'interroger la
-// base est mal placée — ce qu'elle cherche doit être capturé à l'extraction.
 //
-// Cette pureté est ce qui permet de corriger une inférence hors ligne, de la
-// rejouer, et de tester sans base de données.
-func Inferer(p *calque.Physique, d *Decisions) (*calque.Logique, []calque.Avertissement) {
-	panic("à implémenter")
-}
-
-// Les heuristiques ci-dessous sont déclarées dans l'ordre où elles s'appliquent.
-// Chacune produit soit un élément avec son origine, soit un avertissement —
+// Le point d'entrée est arrêté, et sa signature ne bougera pas :
+//
+//	func Inferer(p *calque.Physique, d *Decisions) (*calque.Logique, []calque.Avertissement)
+//
+// Aucun autre paramètre, aucune variable globale, aucun accès au monde
+// extérieur. Cette pureté est ce qui permet de corriger une inférence hors
+// ligne, de la rejouer, et de tester sans base de données.
+//
+// Elle n'est pas déclarée tant qu'elle n'est pas écrite (phase 3) : ne pouvant
+// pas signaler son inachèvement par son type de retour, une ébauche rendrait un
+// calque logique nul que l'appelant déréférencerait plus loin.
+//
+// # Heuristiques à écrire, dans l'ordre où elles s'appliquent
+//
+// Chacune produit soit un élément portant son origine, soit un avertissement —
 // jamais une invention.
-
-// estTableDeJointurePure reconnaît une table à deux clés étrangères dont la clé
-// primaire est exactement l'union des colonnes portantes, et qui ne porte
-// aucune autre colonne. Elle devient une association plusieurs-vers-plusieurs,
-// pas une entité.
 //
-// Une colonne supplémentaire, même un simple created_at, disqualifie : la table
-// porte alors des données propres et mérite son entité.
-func estTableDeJointurePure(t *calque.Table) bool {
-	panic("à implémenter")
-}
-
-// heriteParClePrimaire reconnaît le cas où la clé primaire est aussi une clé
-// étrangère vers une autre table : héritage à tables jointes.
-func heriteParClePrimaire(t *calque.Table) (parent string, ok bool) {
-	panic("à implémenter")
-}
-
-// enumerationDepuisVerification extrait les valeurs d'un CHECK ... IN (...).
-// L'expression est verbatim et dépend du dialecte, d'où l'analyse par SGBD.
-func enumerationDepuisVerification(v calque.Verification, sgbd string) ([]string, bool) {
-	panic("à implémenter")
-}
-
-// nomEntite retire les préfixes déclarés, singularise en français comme en
-// anglais, et passe en PascalCase. Un nom non singularisable produit un
-// avertissement plutôt qu'une transformation approximative.
-func nomEntite(nomTable string, prefixes []string) (string, bool) {
-	panic("à implémenter")
-}
-
-// nomPropriete transforme client_id en client quand la colonne porte une clé
-// étrangère, et en clientId sinon.
-func nomPropriete(nomColonne string, porteFK bool) string {
-	panic("à implémenter")
-}
-
-// traitsCommuns reconnaît les groupes de colonnes qui méritent un trait plutôt
-// que des propriétés recopiées dans chaque entité : created_at/updated_at,
-// deleted_at.
-func traitsCommuns(t *calque.Table) []string {
-	panic("à implémenter")
-}
-
-// fkImplicites cherche les colonnes qui se comportent comme des clés étrangères
-// sans contrainte déclarée : nommage compatible, type compatible, et toutes les
-// valeurs présentes dans la table cible d'après les statistiques.
+// Table de jointure pure : deux clés étrangères dont la clé primaire est
+// exactement l'union des colonnes portantes, et aucune autre colonne. Elle
+// devient une association plusieurs-vers-plusieurs, pas une entité. Une colonne
+// supplémentaire, même un simple created_at, disqualifie : la table porte alors
+// des données propres et mérite son entité.
 //
-// Cas majoritaire sur du legacy. Ne produit jamais d'association d'office :
-// seulement un avertissement avec sa confiance, que l'utilisateur convertit en
-// décision s'il valide.
-func fkImplicites(p *calque.Physique) []calque.Avertissement {
-	panic("à implémenter")
-}
+// Héritage par clé primaire : la clé primaire est aussi une clé étrangère vers
+// une autre table, d'où un héritage à tables jointes.
+//
+// Énumération depuis une vérification : les valeurs d'un CHECK ... IN (...).
+// L'expression est verbatim et dépend du dialecte, d'où une analyse par SGBD.
+//
+// Nom d'entité : retrait des préfixes déclarés, singularisation française comme
+// anglaise, PascalCase. Un nom non singularisable produit un avertissement
+// plutôt qu'une transformation approximative.
+//
+// Nom de propriété : client_id devient client quand la colonne porte une clé
+// étrangère, clientId sinon.
+//
+// Traits communs : les groupes de colonnes qui méritent un trait plutôt que des
+// propriétés recopiées dans chaque entité — created_at/updated_at, deleted_at.
+//
+// Clés étrangères implicites : les colonnes qui se comportent comme des clés
+// étrangères sans contrainte déclarée — nommage compatible, type compatible, et
+// toutes les valeurs présentes dans la table cible d'après les statistiques.
+// Cas majoritaire sur du legacy. Jamais d'association d'office : un
+// avertissement avec sa confiance, que l'utilisateur convertit en décision s'il
+// le valide.
+package inference

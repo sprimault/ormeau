@@ -1,3 +1,6 @@
+// Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
+// SPDX-License-Identifier: Apache-2.0
+
 // Package calque définit le format pivot d'Ormeau et sa sérialisation.
 package calque
 
@@ -12,6 +15,7 @@ type Physique struct {
 	Statistiques  map[string]StatistiquesTable `json:"statistiques,omitempty"`
 }
 
+// Source identifie la base d'origine. Jamais le DSN : un calque se versionne.
 type Source struct {
 	SGBD      string `json:"sgbd"`
 	Version   string `json:"version"`
@@ -23,6 +27,7 @@ type Source struct {
 	Empreinte string `json:"empreinte"`
 }
 
+// Table porte le nom du catalogue, préfixes compris. Le renommage est ailleurs.
 type Table struct {
 	Nom            string         `json:"nom"`
 	Schema         string         `json:"schema"`
@@ -36,6 +41,7 @@ type Table struct {
 	Options        *OptionsTable  `json:"options,omitempty"`
 }
 
+// Colonne garde le type verbatim et sa réduction au vocabulaire fermé.
 type Colonne struct {
 	Nom      string `json:"nom"`
 	Position int    `json:"position"`
@@ -60,24 +66,26 @@ type Colonne struct {
 // TypeNorm est un vocabulaire fermé. Toute valeur ajoutée incrémente VersionRI.
 type TypeNorm string
 
+// Types normalisés. TypeInconnu est l'issue honnête devant un type non reconnu ;
+// TypeBrut reste exploitable dans ce cas.
 const (
-	TypeEntier     TypeNorm = "entier"
-	TypeDecimal    TypeNorm = "decimal"
-	TypeFlottant   TypeNorm = "flottant"
-	TypeTexte      TypeNorm = "texte"
-	TypeBinaire    TypeNorm = "binaire"
-	TypeBooleen    TypeNorm = "booleen"
-	TypeDate       TypeNorm = "date"
-	TypeHeure      TypeNorm = "heure"
-	TypeHorodatage TypeNorm = "horodatage"
-	TypeIntervalle TypeNorm = "intervalle"
-	TypeUUID       TypeNorm = "uuid"
-	TypeJSON       TypeNorm = "json"
-	TypeXML        TypeNorm = "xml"
-	TypeGeometrie  TypeNorm = "geometrie"
+	TypeEntier      TypeNorm = "entier"
+	TypeDecimal     TypeNorm = "decimal"
+	TypeFlottant    TypeNorm = "flottant"
+	TypeTexte       TypeNorm = "texte"
+	TypeBinaire     TypeNorm = "binaire"
+	TypeBooleen     TypeNorm = "booleen"
+	TypeDate        TypeNorm = "date"
+	TypeHeure       TypeNorm = "heure"
+	TypeHorodatage  TypeNorm = "horodatage"
+	TypeIntervalle  TypeNorm = "intervalle"
+	TypeUUID        TypeNorm = "uuid"
+	TypeJSON        TypeNorm = "json"
+	TypeXML         TypeNorm = "xml"
+	TypeGeometrie   TypeNorm = "geometrie"
 	TypeEnumereNorm TypeNorm = "enumere"
-	TypeReseau     TypeNorm = "reseau"
-	TypeInconnu    TypeNorm = "inconnu"
+	TypeReseau      TypeNorm = "reseau"
+	TypeInconnu     TypeNorm = "inconnu"
 )
 
 // Defaut est structuré : une chaîne nue rendrait DEFAULT 'now()' et
@@ -87,36 +95,46 @@ type Defaut struct {
 	Valeur string      `json:"valeur"`
 }
 
+// GenreDefaut dit comment lire la valeur d'un défaut.
 type GenreDefaut string
 
+// Genres de valeur par défaut.
 const (
 	DefautLitteral   GenreDefaut = "litteral"
 	DefautExpression GenreDefaut = "expression"
 	DefautSequence   GenreDefaut = "sequence"
 )
 
+// Generee décrit une colonne calculée. Stockee distingue le calcul matérialisé
+// du calcul à la lecture.
 type Generee struct {
 	Expression string `json:"expression"`
 	Stockee    bool   `json:"stockee"`
 }
 
+// ClePrimaire garde les colonnes dans l'ordre de la contrainte, qui n'est pas
+// toujours celui de la table. Son absence est courante sur du legacy.
 type ClePrimaire struct {
 	Nom      string   `json:"nom,omitempty"`
 	Colonnes []string `json:"colonnes"`
 }
 
+// CleEtrangere est une contrainte réellement déclarée. Une clé seulement
+// probable est inférée plus loin, et signalée.
 type CleEtrangere struct {
-	Nom             string   `json:"nom,omitempty"`
-	Colonnes        []string `json:"colonnes"`
-	TableCible      string   `json:"table_cible"`
-	SchemaCible     string   `json:"schema_cible"`
-	ColonnesCibles  []string `json:"colonnes_cibles"`
-	ALaSuppression  Action   `json:"a_la_suppression,omitempty"`
-	ALaMiseAJour    Action   `json:"a_la_mise_a_jour,omitempty"`
+	Nom            string   `json:"nom,omitempty"`
+	Colonnes       []string `json:"colonnes"`
+	TableCible     string   `json:"table_cible"`
+	SchemaCible    string   `json:"schema_cible"`
+	ColonnesCibles []string `json:"colonnes_cibles"`
+	ALaSuppression Action   `json:"a_la_suppression,omitempty"`
+	ALaMiseAJour   Action   `json:"a_la_mise_a_jour,omitempty"`
 }
 
+// Action est le comportement référentiel d'une clé étrangère.
 type Action string
 
+// Actions référentielles.
 const (
 	ActionAucune     Action = "aucune"
 	ActionCascade    Action = "cascade"
@@ -125,11 +143,14 @@ const (
 	ActionRestrict   Action = "restrict"
 )
 
+// Contrainte est un groupe de colonnes nommé, pour les unicités. L'ordre des
+// colonnes est significatif.
 type Contrainte struct {
 	Nom      string   `json:"nom,omitempty"`
 	Colonnes []string `json:"colonnes"`
 }
 
+// Index ne sert pas au modèle objet, mais à régénérer un schéma fidèle.
 type Index struct {
 	Nom      string   `json:"nom,omitempty"`
 	Colonnes []string `json:"colonnes"`
@@ -138,16 +159,22 @@ type Index struct {
 	Methode  string   `json:"methode,omitempty"`
 }
 
+// Verification est un CHECK, verbatim parce que sa syntaxe dépend du dialecte.
+// C'est la source d'énumération la plus fiable, avant tout échantillonnage.
 type Verification struct {
 	Nom        string `json:"nom,omitempty"`
 	Expression string `json:"expression"`
 }
 
+// OptionsTable regroupe ce qui n'existe pas partout : moteur et collation de
+// table sont des notions MySQL.
 type OptionsTable struct {
 	Moteur    string `json:"moteur,omitempty"`
 	Collation string `json:"collation,omitempty"`
 }
 
+// Sequence est un générateur du catalogue, distinct d'une colonne IDENTITY. La
+// distinction décide de la stratégie d'identifiant.
 type Sequence struct {
 	Nom       string `json:"nom"`
 	Schema    string `json:"schema"`
@@ -157,12 +184,15 @@ type Sequence struct {
 	Cyclique  bool   `json:"cyclique,omitempty"`
 }
 
+// TypeEnumere est un type énuméré natif du SGBD, référencé par Colonne.
+// Sans rapport avec les énumérations déduites d'un CHECK.
 type TypeEnumere struct {
 	Nom     string   `json:"nom"`
 	Schema  string   `json:"schema"`
 	Valeurs []string `json:"valeurs"`
 }
 
+// Vue ne produit pas d'entité, mais sans elle le DDL n'est plus reconstructible.
 type Vue struct {
 	Nom          string    `json:"nom"`
 	Schema       string    `json:"schema"`
@@ -171,11 +201,16 @@ type Vue struct {
 	Colonnes     []Colonne `json:"colonnes,omitempty"`
 }
 
+// StatistiquesTable n'est renseignée qu'avec --echantillonner. LignesEstimees
+// vient du planificateur, jamais d'un COUNT.
 type StatistiquesTable struct {
 	LignesEstimees int64                          `json:"lignes_estimees,omitempty"`
 	Colonnes       map[string]StatistiquesColonne `json:"colonnes,omitempty"`
 }
 
+// StatistiquesColonne alimente la détection d'énumérations et des clés
+// étrangères implicites. Echantillon reste sous le plafond de cardinalité :
+// c'est ce qui empêche le calque de dériver vers le dump.
 type StatistiquesColonne struct {
 	Distinctes  *int64   `json:"distinctes,omitempty"`
 	Nuls        *int64   `json:"nuls,omitempty"`
@@ -184,6 +219,9 @@ type StatistiquesColonne struct {
 
 // TableParNom retrouve une table qualifiée. Utilisé par l'inférence pour
 // résoudre les cibles de clés étrangères.
+//
+// Sensible à la casse : sur les SGBD qui l'autorisent, deux tables ne différant
+// que par la casse sont deux tables.
 func (p *Physique) TableParNom(schema, nom string) *Table {
 	for i := range p.Tables {
 		if p.Tables[i].Schema == schema && p.Tables[i].Nom == nom {
@@ -193,6 +231,7 @@ func (p *Physique) TableParNom(schema, nom string) *Table {
 	return nil
 }
 
+// ColonneParNom retrouve une colonne, sensible à la casse comme TableParNom.
 func (t *Table) ColonneParNom(nom string) *Colonne {
 	for i := range t.Colonnes {
 		if t.Colonnes[i].Nom == nom {
