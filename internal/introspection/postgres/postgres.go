@@ -1,3 +1,6 @@
+// Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
+// SPDX-License-Identifier: Apache-2.0
+
 // Package postgres introspecte PostgreSQL via pg_catalog.
 //
 // information_schema serait portable mais perd trop : IDENTITY contre séquence,
@@ -8,38 +11,54 @@ package postgres
 
 import (
 	"context"
+	"errors"
 
 	"github.com/sprimault/ormeau/internal/calque"
 	"github.com/sprimault/ormeau/internal/introspection"
 )
 
+// Importer ce paquet suffit à rendre « postgres » utilisable.
 func init() {
 	introspection.Enregistrer("postgres", Ouvrir)
 }
 
+// errNonImplemente couvre tout le pilote tant que la phase 2 n'est pas écrite.
+// Les requêtes de catalogue ci-dessous sont, elles, déjà arrêtées.
+var errNonImplemente = errors.New("introspection postgres non implementee, phase 2 de la feuille de route")
+
+// Pilote détient la connexion et n'expose que l'interface Introspecteur.
 type Pilote struct {
 	// conn *pgx.Conn
 }
 
+// Ouvrir devra imposer une session en lecture seule et un délai maximal par
+// requête. Le DSN ne doit jamais ressortir dans une erreur ni dans un journal.
 func Ouvrir(ctx context.Context, dsn string) (introspection.Introspecteur, error) {
-	panic("à implémenter : connexion en lecture seule, délai maximal par requête")
+	return nil, errNonImplemente
 }
 
+// Inventorier alimente l'arbre de sélection sans introspecter : une requête,
+// aucune lecture de données.
 func (p *Pilote) Inventorier(ctx context.Context, schemas []string) ([]introspection.TableSommaire, error) {
-	panic("à implémenter")
+	return nil, errNonImplemente
 }
 
+// Extraire rend un calque trié. Ce qu'elle ne capture pas est perdu : aucune
+// couche en aval ne peut le retrouver.
 func (p *Pilote) Extraire(ctx context.Context, portee introspection.Portee) (*calque.Physique, error) {
-	panic("à implémenter")
+	return nil, errNonImplemente
 }
 
+// Fermer libère la connexion.
 func (p *Pilote) Fermer() error {
-	panic("à implémenter")
+	return nil
 }
 
 // Requêtes de catalogue. Gardées ici, littérales, plutôt que construites : une
 // requête lisible telle qu'elle sera envoyée vaut mieux qu'un constructeur.
 
+// pg_attribute donne l'identité, les colonnes générées, la collation et
+// l'ordre réel des colonnes. information_schema, non.
 const requeteColonnes = `
 SELECT c.relname                                            AS table_nom,
        n.nspname                                            AS table_schema,
@@ -66,6 +85,8 @@ WHERE c.relkind IN ('r', 'p')
 ORDER BY n.nspname, c.relname, a.attnum
 `
 
+// Clés primaires, étrangères, unicités et CHECK en une passe.
+// pg_get_constraintdef rend la définition verbatim.
 const requeteContraintes = `
 SELECT n.nspname                       AS table_schema,
        c.relname                       AS table_nom,
@@ -87,6 +108,8 @@ WHERE n.nspname = ANY ($1)
 ORDER BY n.nspname, c.relname, con.conname
 `
 
+// L'index de clé primaire est exclu, les contraintes le rendent déjà. Prédicat
+// et méthode d'accès n'existent que dans le catalogue natif.
 const requeteIndex = `
 SELECT n.nspname                                   AS table_schema,
        c.relname                                   AS table_nom,
@@ -105,6 +128,7 @@ WHERE NOT ix.indisprimary
 ORDER BY n.nspname, c.relname, i.relname
 `
 
+// enumsortorder, pas l'ordre alphabétique : c'est l'ordre de déclaration.
 const requeteTypesEnumeres = `
 SELECT n.nspname AS schema,
        t.typname AS nom,
