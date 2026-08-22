@@ -92,13 +92,18 @@ func (p *Physique) Ecrire(chemin string) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(chemin, donnees, 0o644)
+	// 0600 : un calque porte le schéma de la base d'un client, et avec
+	// --echantillonner des valeurs réelles. Pas un fichier à laisser lisible par
+	// tous les comptes d'un serveur partagé.
+	return os.WriteFile(chemin, donnees, 0o600)
 }
 
 // LirePhysique refuse une version plus récente que celle qu'il connaît : mieux
 // vaut un échec net qu'un champ ignoré en silence. Plus ancienne : accepté.
 func LirePhysique(chemin string) (*Physique, error) {
-	donnees, err := os.ReadFile(chemin)
+	// Le chemin vient de la ligne de commande : lire le fichier que
+	// l'utilisateur désigne est la fonction même de l'outil.
+	donnees, err := os.ReadFile(chemin) // #nosec G304
 	if err != nil {
 		return nil, err
 	}

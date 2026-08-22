@@ -52,7 +52,8 @@ func LireDecisions(chemin string) (*Decisions, error) {
 		return &Decisions{}, nil
 	}
 
-	donnees, err := os.ReadFile(chemin)
+	// Chemin fourni par --decisions : le lire est la fonction de l'option.
+	donnees, err := os.ReadFile(chemin) // #nosec G304
 	if err != nil {
 		return nil, err
 	}
