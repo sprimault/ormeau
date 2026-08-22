@@ -1,3 +1,6 @@
+// Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
+// SPDX-License-Identifier: Apache-2.0
+
 // Package introspection lit les catalogues natifs des SGBD et produit un calque
 // physique. Aucun paquet d'ici ne connaît le moindre ORM.
 package introspection
@@ -39,6 +42,8 @@ type TableSommaire struct {
 	ReferenceVers []string `json:"reference_vers,omitempty"`
 }
 
+// Portee délimite ce qu'une extraction lit. Valeurs zéro : aucune lecture de
+// données.
 type Portee struct {
 	Schemas        []string
 	TablesIncluses []string
@@ -52,8 +57,11 @@ type Portee struct {
 	CardinaliteMax int
 }
 
+// Fabrique ouvre une connexion et rend l'introspecteur d'un dialecte.
 type Fabrique func(ctx context.Context, dsn string) (Introspecteur, error)
 
+// Registre plutôt que switch : un SGBD s'ajoute sans toucher au code commun,
+// et seuls les pilotes importés sont liés.
 var fabriques = map[string]Fabrique{}
 
 // Enregistrer est appelé par l'init de chaque pilote.
@@ -61,6 +69,8 @@ func Enregistrer(sgbd string, f Fabrique) {
 	fabriques[sgbd] = f
 }
 
+// Ouvrir rend l'introspecteur du SGBD demandé. L'erreur ne nomme que le SGBD,
+// jamais le DSN.
 func Ouvrir(ctx context.Context, sgbd, dsn string) (Introspecteur, error) {
 	f, ok := fabriques[sgbd]
 	if !ok {

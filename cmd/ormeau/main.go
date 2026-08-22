@@ -1,3 +1,6 @@
+// Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
+// SPDX-License-Identifier: Apache-2.0
+
 // Commande ormeau : introspecte une base, produit un calque, et le compare.
 //
 // La génération d'entités n'est pas ici : elle vit dans le paquet PHP, parce que
@@ -10,6 +13,7 @@ import (
 	"os"
 )
 
+// usage est ce que voit quelqu'un qui lance le binaire sans argument.
 const usage = `ormeau — rétro-ingénierie de bases de données vers des entités ORM
 
 Usage :
@@ -23,6 +27,8 @@ Commandes :
   diff       compare un calque enregistré à l'état actuel de la base
 `
 
+// main route la sous-commande et traduit l'erreur en code de retour. Seul
+// endroit du projet où os.Exit est acceptable.
 func main() {
 	if len(os.Args) < 2 {
 		fmt.Fprint(os.Stderr, usage)
@@ -51,6 +57,10 @@ func main() {
 	}
 }
 
+// extraire lit le catalogue d'une base et écrit un calque physique.
+//
+// La validation des drapeaux est ici : aucun paquet interne ne lit flag ni
+// os.Getenv, les dépendances y sont injectées.
 func extraire(args []string) error {
 	jeu := flag.NewFlagSet("extraire", flag.ExitOnError)
 	dsn := jeu.String("dsn", "", "chaîne de connexion, préfixée par le SGBD")
@@ -72,6 +82,8 @@ func extraire(args []string) error {
 	return fmt.Errorf("à implémenter : phase 2 de la feuille de route")
 }
 
+// inferer applique heuristiques et décisions à un calque physique. Aucun accès
+// à la base : une inférence se corrige hors ligne.
 func inferer(args []string) error {
 	jeu := flag.NewFlagSet("inferer", flag.ExitOnError)
 	decisions := jeu.String("decisions", "", "fichier de décisions YAML")
@@ -91,6 +103,8 @@ func inferer(args []string) error {
 	return fmt.Errorf("à implémenter : phase 3 de la feuille de route")
 }
 
+// diffuser compare un calque enregistré à la base, ou à un second calque.
+// N'écrit rien, et rend un code non nul en cas de divergence.
 func diffuser(args []string) error {
 	jeu := flag.NewFlagSet("diff", flag.ExitOnError)
 	dsn := jeu.String("dsn", "", "base à comparer ; à défaut, un second calque est attendu en argument")
