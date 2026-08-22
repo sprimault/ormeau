@@ -71,7 +71,12 @@ lint: web-build web-types-check
 #
 # golangci-lint est épinglé, et la CI installe la même version : deux versions
 # différentes rendraient un verdict différent sur un code identique.
-GOLANGCI_VERSION ?= v2.12.2
+#
+# Pas en deçà de v2.13.0 : les versions antérieures embarquent staticcheck
+# v0.7.0, qui panique en analysant internal/poll de la stdlib Go 1.27. Sous
+# Linux seulement — le code de ce paquet diffère sous Windows, où le défaut ne
+# se manifeste pas.
+GOLANGCI_VERSION ?= v2.13.0
 
 outils:
 	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_VERSION)
