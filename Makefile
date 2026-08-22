@@ -1,4 +1,4 @@
-.PHONY: dev test lint vulncheck sec build binaries web-build web-types web-types-check web-lint web-test php-test php-lint image image-push clean
+.PHONY: dev test lint outils vulncheck sec build binaries web-build web-types web-types-check web-lint web-test php-test php-lint image image-push clean
 
 # Toute la chaîne Go travaille dans .tmp/, à l'intérieur du dépôt, plutôt
 # que dans %TEMP%. `go build` et `go test` y écrivent des exécutables
@@ -61,15 +61,28 @@ test-integration: containers
 # installer, alors que lint exige déjà golangci-lint et échoue sans lui.
 # C'est aussi la cible qu'on lance avant chaque publication.
 lint: web-build web-types-check
-	@command -v golangci-lint >/dev/null 2>&1 || { echo "golangci-lint absent"; exit 1; }
+	@command -v golangci-lint >/dev/null 2>&1 || { echo "golangci-lint absent : make outils"; exit 1; }
 	golangci-lint run
 	gofmt -l .
+
+# outils installe l'outillage de développement. À relancer après un changement
+# de version de Go : golangci-lint refuse d'analyser du code plus récent que la
+# toolchain qui l'a construit, et le message d'erreur ne dit pas quoi faire.
+#
+# golangci-lint est épinglé, et la CI installe la même version : deux versions
+# différentes rendraient un verdict différent sur un code identique.
+GOLANGCI_VERSION ?= v2.12.2
+
+outils:
+	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_VERSION)
+	go install golang.org/x/vuln/cmd/govulncheck@latest
+	go install github.com/securego/gosec/v2/cmd/gosec@latest
 
 # vulncheck utilise l'outil officiel de la Go Team. Il ne signale une CVE
 # que si le code appelle effectivement la fonction affectée — beaucoup
 # moins bruyant qu'un scan de dépendances brut.
 vulncheck: web-build
-	@command -v govulncheck >/dev/null 2>&1 || { echo "govulncheck absent : go install golang.org/x/vuln/cmd/govulncheck@latest"; exit 1; }
+	@command -v govulncheck >/dev/null 2>&1 || { echo "govulncheck absent : make outils"; exit 1; }
 	govulncheck ./...
 
 # sec exécute gosec. Sur ce projet, deux familles comptent plus que les
@@ -77,7 +90,7 @@ vulncheck: web-build
 # Les requêtes de catalogue sont des constantes, aucune ne doit être
 # assemblée à partir d'une entrée.
 sec: web-build
-	@command -v gosec >/dev/null 2>&1 || { echo "gosec absent : go install github.com/securego/gosec/v2/cmd/gosec@latest"; exit 1; }
+	@command -v gosec >/dev/null 2>&1 || { echo "gosec absent : make outils"; exit 1; }
 	gosec ./...
 
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
