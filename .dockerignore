@@ -1,0 +1,5 @@
+# Le Dockerfile ne copie que dist/ : tout le reste est du contexte envoyé au
+# démon pour rien. Un calque de travail y transiterait aussi, alors qu'il n'a
+# rien à faire dans une image.
+*
+!dist/ormeau_*

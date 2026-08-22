@@ -224,12 +224,12 @@ REVISION   ?= $(shell git rev-parse HEAD 2>/dev/null || echo unknown)
 
 image: binaries
 	docker buildx build --platform $(PLATFORMS) \
-		--build-arg REVISION=$(REVISION) \
+		--build-arg VERSION=$(VERSION) --build-arg REVISION=$(REVISION) \
 		$(TAG_FLAGS) -f deploy/Dockerfile .
 
 image-push: binaries
 	docker buildx build --platform $(PLATFORMS) --push \
-		--build-arg REVISION=$(REVISION) \
+		--build-arg VERSION=$(VERSION) --build-arg REVISION=$(REVISION) \
 		$(TAG_FLAGS) -f deploy/Dockerfile .
 
 clean:
