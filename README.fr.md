@@ -142,7 +142,7 @@ Rien n'est installable pour l'instant. La feuille de route est dans
 | Phase | État |
 |---|---|
 | 1 — Calque physique : structures, sérialisation déterministe, empreinte, JSON Schema | Terminée |
-| 2 — Introspection PostgreSQL | Connexion en lecture seule et inventaire ; extraction à écrire |
+| 2 — Introspection PostgreSQL | Extraction complète ; commande `ormeau extraire` à brancher |
 | 3 — Inférence et calque logique | Structures seulement |
 | 4 — Génération Doctrine | Squelette seulement |
 | 5 à 11 | Non commencées |
