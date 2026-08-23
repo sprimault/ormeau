@@ -86,6 +86,9 @@ make lint     # golangci-lint, gofmt
 un SGBD portent l'étiquette `integration` et passent par
 `make test-integration`.
 
+Le conteneur peut tourner ailleurs que sur le poste : `ORMEAU_TEST_DSN`
+surcharge le DSN visé par les tests d'intégration.
+
 Avant d'ouvrir une pull request, lancer au moins `make lint` et `make test`. La
 CI les exécute aussi, mais après coup, quand la branche est déjà poussée.
 
