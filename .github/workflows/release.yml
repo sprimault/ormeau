@@ -1,0 +1,152 @@
+# Publication d'une version, déclenchée par un tag.
+#
+# Une seule machine produit les cinq cibles : Go croise nativement, et c'est
+# vrai tant qu'aucun pilote n'exige cgo. Jamais le poste de travail, qui n'offre
+# aucune garantie de reproductibilité.
+#
+# La release est créée en brouillon : les notes disent ce que le numéro ne dit
+# pas — un changement de version_ri, ce qu'un intégrateur doit reprendre — et ça
+# demande un jugement qu'aucun générateur ne remplace. Relire, compléter,
+# publier.
+#
+# Actions épinglées au SHA, pour la même raison que dans ci.yml : un tag de
+# majeure est mobile, et celles-ci s'exécutent avec les droits d'écriture du
+# dépôt.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  binaires:
+    name: Binaires
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      # L'attestation lie l'archive au commit et au workflow qui l'a produite,
+      # et se vérifie avec `gh attestation verify`. C'est le seul contrepoids
+      # crédible à des binaires non signés, sur un outil qui réclame un mot de
+      # passe de base de données.
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      # ci.yml n'écoute que les branches et les PR : sans ce garde-fou, un tag
+      # posé sur un commit rouge publierait quand même.
+      - name: Tests
+        run: make test
+        env:
+          CGO_ENABLED: '1'
+
+      # La même cible qu'en local : deux définitions de la matrice de
+      # compilation finiraient par diverger, et c'est celle du workflow qu'on
+      # ne peut pas essayer avant de poser le tag.
+      - name: Construire les cinq cibles
+        run: make binaries VERSION=${{ github.ref_name }}
+
+      - name: Vérifier la version injectée
+        run: |
+          obtenue=$(./dist/ormeau_linux_amd64 version)
+          attendue="ormeau ${{ github.ref_name }}"
+          if [ "$obtenue" != "$attendue" ]; then
+            echo "version « $obtenue », attendue « $attendue »"
+            exit 1
+          fi
+          echo "$obtenue"
+
+      # Zip sous Windows, tar.gz ailleurs : c'est ce que chaque système sait
+      # ouvrir sans rien installer. LICENSE et NOTICE voyagent avec le binaire,
+      # Apache 2.0 l'exige à la redistribution.
+      - name: Empaqueter
+        run: |
+          mkdir -p publication
+          cd dist
+          for binaire in ormeau_*; do
+            case "$binaire" in
+              *.exe) zip -q "../publication/${binaire%.exe}.zip" "$binaire" ;;
+              *)     tar -czf "../publication/$binaire.tar.gz" "$binaire" ;;
+            esac
+          done
+          cd ../publication
+          cp ../LICENSE ../NOTICE .
+          # Sur les archives et non sur les binaires : c'est l'archive que la
+          # personne télécharge, donc ce qu'elle peut vérifier.
+          sha256sum ormeau_* > SHA256SUMS
+          ls -la
+
+      - name: Attester la provenance
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: 'publication/ormeau_*'
+
+      # gh est préinstallé sur le runner : pas d'action tierce à épingler pour
+      # une opération que la ligne de commande fait aussi bien.
+      - name: Créer la release en brouillon
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            --draft \
+            --title "${{ github.ref_name }}" \
+            --notes "Notes à rédiger avant publication." \
+            publication/*
+
+  image:
+    name: Image multi-arch
+    runs-on: ubuntu-latest
+    needs: binaires
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      # Les binaires sont reconstruits ici plutôt que transportés depuis le job
+      # précédent : un artefact d'échange coûte plus cher que deux minutes de
+      # compilation, et le Dockerfile attend dist/ en place.
+      - name: Construire les binaires
+        run: make binaries VERSION=${{ github.ref_name }}
+
+      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+
+      - name: Se connecter au registre
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Les binaires étant déjà croisés, buildx n'a pas besoin d'émulation QEMU :
+      # chaque plateforme reçoit l'artefact correspondant à TARGETOS/TARGETARCH.
+      #
+      # Pas de :latest tant qu'on est en 0.x. La clause du zéro dit que rien
+      # n'est imposé sur ces versions : un docker pull sans étiquette
+      # rapporterait une préversion sans que personne l'ait demandé. À poser
+      # quand la 1.0.0 sortira.
+      - name: Construire et publier
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: .
+          file: deploy/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+          build-args: |
+            VERSION=${{ github.ref_name }}
+            REVISION=${{ github.sha }}
