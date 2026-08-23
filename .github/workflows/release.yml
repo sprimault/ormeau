@@ -76,24 +76,34 @@ jobs:
       # LICENSE et NOTICE vont dans l'archive et non à côté : Apache 2.0 les
       # exige à la redistribution, et personne ne télécharge un asset séparé
       # pour accompagner un binaire.
+      #
+      # Le nom de l'archive porte version, système et architecture : c'est ce
+      # qui permet de choisir son fichier, et de garder deux versions dans le
+      # même répertoire sans les confondre. Le binaire qu'elle contient
+      # s'appelle « ormeau » tout court : une fois extrait, on sait sur quelle
+      # machine on est, et personne ne veut taper ./ormeau_linux_amd64.
       - name: Empaqueter
         run: |
           mkdir -p publication
+          version="${{ github.ref_name }}"
+
           for binaire in dist/ormeau_*; do
             nom=$(basename "$binaire")
             case "$nom" in
-              *.exe) cible="${nom%.exe}" ;;
-              *)     cible="$nom" ;;
+              *.exe) cible="${nom%.exe}" ; executable="ormeau.exe" ;;
+              *)     cible="$nom"        ; executable="ormeau" ;;
             esac
+            # ormeau_linux_amd64 -> ormeau_v0.2.0_linux_amd64
+            paquet="ormeau_${version}_${cible#ormeau_}"
 
-            dossier="paquets/${cible}"
+            dossier="paquets/${paquet}"
             mkdir -p "$dossier"
-            cp "$binaire" "$dossier/"
+            cp "$binaire" "$dossier/$executable"
             cp LICENSE NOTICE "$dossier/"
 
             case "$nom" in
-              *.exe) (cd paquets && zip -qr "../publication/${cible}.zip" "$cible") ;;
-              *)     tar -czf "publication/${cible}.tar.gz" -C paquets "$cible" ;;
+              *.exe) (cd paquets && zip -qr "../publication/${paquet}.zip" "$paquet") ;;
+              *)     tar -czf "publication/${paquet}.tar.gz" -C paquets "$paquet" ;;
             esac
           done
           cd publication
