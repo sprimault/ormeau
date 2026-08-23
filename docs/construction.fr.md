@@ -65,6 +65,21 @@ docker buildx build --platform linux/amd64,linux/arm64 \
 connexion TLS vers une base échoue avec une erreur de vérification difficile à
 diagnostiquer. C'est le piège classique de `scratch`.
 
+L'image tourne sous un utilisateur non privilégié, ce qui a une conséquence à
+l'usage : elle n'écrit pas dans un volume appartenant à quelqu'un d'autre.
+Extraire un calque demande donc de lui donner l'identité de l'appelant, faute de
+quoi l'écriture est refusée sans que le message ne dise pourquoi :
+
+```bash
+docker run --rm --user "$(id -u):$(id -g)" \
+  -e ORMEAU_DSN -v "$PWD:/sortie" \
+  ghcr.io/sprimault/ormeau:VERSION extraire --sortie /sortie/gescom.calque.json
+```
+
+Abaisser l'utilisateur de l'image réglerait le symptôme et créerait un défaut :
+un outil qui manipule des identifiants de production n'a aucune raison de
+tourner en root.
+
 Le conteneur reste un repli : il doit encore atteindre la base, ce que le binaire
 natif fait sans configuration réseau.
 
