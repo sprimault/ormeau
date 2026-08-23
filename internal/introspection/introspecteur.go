@@ -57,6 +57,19 @@ type Portee struct {
 	CardinaliteMax int
 }
 
+// ListeurDeBases est implémenté par les pilotes qui savent énumérer les bases
+// d'un serveur.
+//
+// Volontairement hors d'Introspecteur, que trois méthodes suffisent à décrire :
+// énumérer les bases n'est pas introspecter, et un dialecte où la notion n'a
+// pas de sens ne doit pas être forcé de la porter. L'appelant fait une
+// assertion de type et se passe de la fonctionnalité si elle manque.
+type ListeurDeBases interface {
+	// ListerBases rend les bases exploitables du serveur, celles du système
+	// exclues : elles ne produiraient que des calques sans intérêt.
+	ListerBases(ctx context.Context) ([]string, error)
+}
+
 // Fabrique ouvre une connexion et rend l'introspecteur d'un dialecte.
 type Fabrique func(ctx context.Context, dsn string) (Introspecteur, error)
 

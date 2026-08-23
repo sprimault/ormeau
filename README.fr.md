@@ -116,6 +116,17 @@ bin/console ormeau:generer      gescom.logique.json
 bin/console ormeau:synchroniser gescom.calque.json
 ```
 
+La connexion s'exprime aussi par composants, ce qui évite d'échapper un mot de
+passe dans une URL. Sans `--base`, toutes les bases du serveur sont extraites et
+`--sortie` désigne un répertoire :
+
+```
+ORMEAU_MDP=... ormeau extraire --sgbd postgres --hote srv --utilisateur app --sortie calques/
+```
+
+Le mot de passe n'a pas de drapeau : il serait visible dans `ps` et dans
+l'historique du shell.
+
 `ormeau:synchroniser` répond à « qu'est-ce qui a changé en base depuis mes
 entités » — l'inverse de `doctrine:schema:update`, et ce qui sert vraiment au
 quotidien sur du legacy où le schéma bouge sans passer par les migrations.

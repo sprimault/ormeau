@@ -50,6 +50,109 @@ func SGBDDepuisDSN(dsn string) (string, error) {
 	return sgbd, nil
 }
 
+// Connexion décrit une connexion par ses composants plutôt que par une URL.
+//
+// Composer une URL à la main est une source d'erreurs : un mot de passe
+// contenant « @ » ou « / » casse la chaîne sans que le message le dise. Et
+// personne ne connaît par cœur le DSN d'une base qu'il découvre.
+//
+// MotDePasse ne vient jamais d'un drapeau : il serait visible dans ps et dans
+// l'historique du shell.
+type Connexion struct {
+	SGBD        string
+	Hote        string
+	Port        int
+	Utilisateur string
+	MotDePasse  string
+	// Base vide signifie « toutes les bases du serveur ». Un calque décrivant
+	// une base et une seule, l'appelant en produira alors plusieurs.
+	Base string
+}
+
+// portsParDefaut évite d'imposer un port que tout le monde connaît.
+var portsParDefaut = map[string]int{
+	"postgres":  5432,
+	"mysql":     3306,
+	"mariadb":   3306,
+	"sqlserver": 1433,
+	"oracle":    1521,
+}
+
+// DSN compose une URL à partir des composants. L'encodage est fait par
+// net/url : un mot de passe contenant « @ », « / » ou « : » passe sans que
+// l'utilisateur ait à s'en soucier.
+func (c Connexion) DSN() (string, error) {
+	if c.SGBD == "" {
+		return "", errors.New("--sgbd est requis avec les drapeaux de connexion")
+	}
+	if _, connu := prefixes[strings.ToLower(c.SGBD)]; !connu {
+		return "", fmt.Errorf("sgbd inconnu: %q", c.SGBD)
+	}
+	if c.Hote == "" {
+		return "", errors.New("--hote est requis avec les drapeaux de connexion")
+	}
+
+	port := c.Port
+	if port == 0 {
+		port = portsParDefaut[strings.ToLower(c.SGBD)]
+	}
+
+	u := url.URL{
+		Scheme: strings.ToLower(c.SGBD),
+		Host:   fmt.Sprintf("%s:%d", c.Hote, port),
+		Path:   "/" + c.Base,
+	}
+	if c.Utilisateur != "" {
+		if c.MotDePasse != "" {
+			u.User = url.UserPassword(c.Utilisateur, c.MotDePasse)
+		} else {
+			u.User = url.User(c.Utilisateur)
+		}
+	}
+	return u.String(), nil
+}
+
+// BaseDuDSN rend la base désignée par un DSN, ou une chaîne vide s'il n'en
+// nomme aucune — auquel cas l'appelant a affaire à un serveur entier.
+func BaseDuDSN(dsn string) string {
+	if estCleValeur(dsn) {
+		for _, champ := range strings.Fields(dsn) {
+			if cle, valeur, trouve := strings.Cut(champ, "="); trouve && strings.EqualFold(cle, "dbname") {
+				return valeur
+			}
+		}
+		return ""
+	}
+
+	u, err := url.Parse(dsn)
+	if err != nil {
+		return ""
+	}
+	return strings.TrimPrefix(u.Path, "/")
+}
+
+// AvecBase rend le même DSN pointant sur une autre base. Sert à réutiliser les
+// identifiants d'une connexion pour parcourir les bases d'un serveur.
+func AvecBase(dsn, base string) string {
+	if estCleValeur(dsn) {
+		champs := strings.Fields(dsn)
+		for i, champ := range champs {
+			if cle, _, trouve := strings.Cut(champ, "="); trouve && strings.EqualFold(cle, "dbname") {
+				champs[i] = cle + "=" + base
+				return strings.Join(champs, " ")
+			}
+		}
+		return dsn + " dbname=" + base
+	}
+
+	u, err := url.Parse(dsn)
+	if err != nil {
+		return dsn
+	}
+	u.Path = "/" + base
+	return u.String()
+}
+
 // parametresDoctrine sont les paramètres que Doctrine DBAL ajoute à un
 // DATABASE_URL et qu'aucun SGBD ne connaît.
 //

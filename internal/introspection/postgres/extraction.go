@@ -5,6 +5,7 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/sprimault/ormeau/internal/calque"
@@ -21,13 +22,21 @@ import (
 //
 // Ce qui n'est pas capturé ici est perdu : aucune couche en aval ne peut le
 // retrouver.
-func (p *pilote) Extraire(ctx context.Context, portee introspection.Portee) (*calque.Physique, error) {
+func (p *pilote) Extraire(ctx context.Context, portee introspection.Portee) (physique *calque.Physique, err error) {
 	schemas := portee.Schemas
 	if len(schemas) == 0 {
-		schemas = []string{"public"}
+		// Tous les schémas de la base, et non « public » seul : une base
+		// legacy range rarement dans public, et un balayage de serveur ne peut
+		// pas deviner les schémas de chacune.
+		if schemas, err = p.lireSchemas(ctx); err != nil {
+			return nil, err
+		}
+	}
+	if len(schemas) == 0 {
+		return nil, errors.New("aucun schema exploitable dans cette base")
 	}
 
-	physique := &calque.Physique{VersionRI: calque.VersionCourante}
+	physique = &calque.Physique{VersionRI: calque.VersionCourante}
 
 	source, err := p.lireSource(ctx, schemas)
 	if err != nil {
@@ -62,6 +71,54 @@ func (p *pilote) Extraire(ctx context.Context, portee introspection.Portee) (*ca
 	physique.Tables = tables.retenues(portee)
 	physique.Trier()
 	return physique, nil
+}
+
+// lireSchemas rend les schémas de la base, ceux du système exclus.
+func (p *pilote) lireSchemas(ctx context.Context) ([]string, error) {
+	ctx, annuler := context.WithTimeout(ctx, delaiRequete)
+	defer annuler()
+
+	lignes, err := p.conn.Query(ctx, requeteSchemas)
+	if err != nil {
+		return nil, fmt.Errorf("liste des schemas: %w", err)
+	}
+	defer lignes.Close()
+
+	var schemas []string
+	for lignes.Next() {
+		var nom string
+		if err := lignes.Scan(&nom); err != nil {
+			return nil, fmt.Errorf("lecture d'un schema: %w", err)
+		}
+		schemas = append(schemas, nom)
+	}
+	return schemas, lignes.Err()
+}
+
+// ListerBases rend les bases exploitables du serveur.
+//
+// La base système postgres est écartée comme les modèles : elle existe sur
+// toute installation et ne porte rien de métier. Quelqu'un qui l'introspecte
+// vraiment la nomme.
+func (p *pilote) ListerBases(ctx context.Context) ([]string, error) {
+	ctx, annuler := context.WithTimeout(ctx, delaiRequete)
+	defer annuler()
+
+	lignes, err := p.conn.Query(ctx, requeteBases)
+	if err != nil {
+		return nil, fmt.Errorf("liste des bases: %w", err)
+	}
+	defer lignes.Close()
+
+	bases := []string{}
+	for lignes.Next() {
+		var nom string
+		if err := lignes.Scan(&nom); err != nil {
+			return nil, fmt.Errorf("lecture d'une base: %w", err)
+		}
+		bases = append(bases, nom)
+	}
+	return bases, lignes.Err()
 }
 
 // jeuDeTables indexe les tables par leur nom qualifié pendant la collecte. Les

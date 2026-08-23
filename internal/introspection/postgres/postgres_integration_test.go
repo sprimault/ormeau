@@ -169,6 +169,36 @@ func TestInventorierEstDeterministe(t *testing.T) {
 	}
 }
 
+// Énumérer les bases est ce qui permet d'extraire un serveur entier sans
+// redemander les identifiants pour chacune.
+func TestListerBases(t *testing.T) {
+	p := ouvrirOuEchouer(t)
+
+	listeur, ok := p.(introspection.ListeurDeBases)
+	if !ok {
+		t.Fatal("le pilote postgres n'implemente pas ListeurDeBases")
+	}
+
+	ctx, annuler := context.WithTimeout(context.Background(), 10*time.Second)
+	defer annuler()
+
+	bases, err := listeur.ListerBases(ctx)
+	if err != nil {
+		t.Fatalf("liste des bases : %v", err)
+	}
+	if !contient(bases, "gescom") {
+		t.Errorf("gescom absente : %v", bases)
+	}
+
+	// Les bases système ne produiraient que des calques sans intérêt, et
+	// template0 refuse même la connexion.
+	for _, systeme := range []string{"postgres", "template0", "template1"} {
+		if contient(bases, systeme) {
+			t.Errorf("la base systeme %s est listee", systeme)
+		}
+	}
+}
+
 // Un schéma qui n'existe pas rend une liste vide, pas une erreur : c'est une
 // portée sans table, pas une panne.
 func TestInventorierSchemaInexistant(t *testing.T) {

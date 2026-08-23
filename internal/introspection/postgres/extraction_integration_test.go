@@ -345,6 +345,27 @@ func TestExtraireLesCasTordus(t *testing.T) {
 	})
 }
 
+// Une portée sans schéma prend toute la base, et non « public » seul : les
+// tables de référence vivent dans gescom, et s'en tenir à public rendrait un
+// calque vide.
+func TestExtrairePorteeSansSchema(t *testing.T) {
+	p := ouvrirOuEchouer(t)
+
+	ctx, annuler := context.WithTimeout(context.Background(), 30*time.Second)
+	defer annuler()
+
+	physique, err := p.Extraire(ctx, introspection.Portee{})
+	if err != nil {
+		t.Fatalf("extraction : %v", err)
+	}
+	if len(physique.Tables) == 0 {
+		t.Fatal("aucune table : la portee par defaut ne couvre pas la base")
+	}
+	if physique.TableParNom("gescom", "t_client") == nil {
+		t.Error("gescom.t_client absente d'une extraction sans schema demande")
+	}
+}
+
 // La portée doit filtrer, et une table exclue ne doit pas revenir par une autre
 // passe de collecte.
 func TestExtrairePorteeFiltrante(t *testing.T) {
