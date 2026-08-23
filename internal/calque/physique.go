@@ -157,6 +157,14 @@ type Index struct {
 	Unique   bool     `json:"unique"`
 	Predicat string   `json:"predicat,omitempty"`
 	Methode  string   `json:"methode,omitempty"`
+	// Operateurs porte la classe d'opérateurs de chaque colonne, dans le même
+	// ordre. Absent quand toutes sont celles par défaut ; complet sinon, une
+	// entrée par colonne.
+	//
+	// Sans lui, deux index HNSW mesurant l'un une distance cosinus et l'autre
+	// une distance euclidienne sont indistinguables, et le DDL n'est plus
+	// reconstructible. Même chose pour un btree en text_pattern_ops.
+	Operateurs []string `json:"operateurs,omitempty"`
 }
 
 // Verification est un CHECK, verbatim parce que sa syntaxe dépend du dialecte.

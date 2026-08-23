@@ -37,6 +37,9 @@ COMMENT ON COLUMN t_client.cli_siret IS 'Nul tant que la fiche n''est pas valid�
 CREATE INDEX ix_cli_nom ON t_client (cli_nom);
 -- index partiel : information perdue par information_schema
 CREATE INDEX ix_cli_actifs ON t_client (cli_com_id) WHERE cli_statut = 'ACTIF';
+-- classe d'opérateurs explicite : sans elle, le DDL n'est pas reconstructible,
+-- et deux index de comportements différents deviennent indistinguables.
+CREATE INDEX ix_cli_nom_prefixe ON t_client (cli_nom text_pattern_ops);
 
 -- Table de jointure pure : doit produire une association, pas une entité.
 CREATE TABLE t_client_tag (

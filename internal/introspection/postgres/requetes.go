@@ -67,11 +67,17 @@ ORDER BY n.nspname, c.relname
 //
 // Les index d'expression ont un attnum à zéro : la colonne est alors nulle, et
 // l'index n'est pas exploitable comme liste de colonnes.
+// La classe d'opérateurs vient de indclass, apparié par ordinalité au même
+// rang que la colonne. opcdefault dit si elle est implicite : ne remonter que
+// les classes explicites évite de charger le calque d'un int4_ops par index
+// trivial, et c'est ce que fait pg_get_indexdef lui-même.
 const requeteColonnesIndex = `
-SELECT n.nspname   AS schema,
-       c.relname   AS table_nom,
-       i.relname   AS index_nom,
-       a.attname   AS colonne,
+SELECT n.nspname     AS schema,
+       c.relname     AS table_nom,
+       i.relname     AS index_nom,
+       a.attname     AS colonne,
+       o.opcname     AS classe_operateurs,
+       o.opcdefault  AS classe_par_defaut,
        k.ordinalite
 FROM pg_index ix
          JOIN pg_class c ON c.oid = ix.indrelid
@@ -79,6 +85,7 @@ FROM pg_index ix
          JOIN pg_namespace n ON n.oid = c.relnamespace
          CROSS JOIN LATERAL unnest(ix.indkey) WITH ORDINALITY AS k(attnum, ordinalite)
          LEFT JOIN pg_attribute a ON a.attrelid = ix.indrelid AND a.attnum = k.attnum
+         LEFT JOIN pg_opclass o ON o.oid = ix.indclass[k.ordinalite - 1]
 WHERE NOT ix.indisprimary
   AND n.nspname = ANY ($1)
 ORDER BY n.nspname, c.relname, i.relname, k.ordinalite

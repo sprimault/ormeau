@@ -235,6 +235,36 @@ func TestExtraireLesCasTordus(t *testing.T) {
 		}
 	})
 
+	t.Run("classe d'operateurs explicite", func(t *testing.T) {
+		tbl := tableOuEchouer(t, p, "t_client")
+
+		var explicite, implicite *calque.Index
+		for i := range tbl.Index {
+			switch tbl.Index[i].Nom {
+			case "ix_cli_nom_prefixe":
+				explicite = &tbl.Index[i]
+			case "ix_cli_nom":
+				implicite = &tbl.Index[i]
+			}
+		}
+
+		if explicite == nil {
+			t.Fatal("index a classe d'operateurs explicite absent")
+		}
+		if len(explicite.Operateurs) != 1 || explicite.Operateurs[0] != "text_pattern_ops" {
+			t.Errorf("operateurs %v, attendu [text_pattern_ops]", explicite.Operateurs)
+		}
+
+		// Un index sans classe explicite ne doit rien porter : sinon chaque
+		// btree trivial chargerait le calque de sa classe implicite.
+		if implicite == nil {
+			t.Fatal("index a classe implicite absent")
+		}
+		if len(implicite.Operateurs) != 0 {
+			t.Errorf("operateurs %v sur un index sans classe explicite", implicite.Operateurs)
+		}
+	})
+
 	t.Run("type enumere natif", func(t *testing.T) {
 		c := colonneOuEchouer(t, p, "t_commande", "cmd_canal")
 		if c.TypeNormalise != calque.TypeEnumereNorm {
