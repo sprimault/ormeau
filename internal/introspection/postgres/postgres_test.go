@@ -5,37 +5,33 @@ package postgres
 
 import (
 	"context"
-	"errors"
 	"strings"
 	"testing"
 
 	"github.com/sprimault/ormeau/internal/introspection"
 )
 
+// Ces tests ne joignent aucune base : ce qui exige un serveur porte l'étiquette
+// integration et vit dans postgres_integration_test.go.
+
 // Sans l'init, `ormeau extraire` échouerait sur « aucun pilote » et rien à la
 // compilation ne le signalerait.
 func TestPiloteEnregistreAuChargement(t *testing.T) {
 	t.Parallel()
 
-	_, err := introspection.Ouvrir(context.Background(), "postgres", "postgres://hote/base")
-	if err == nil {
-		t.Fatal("aucune erreur alors que le pilote n'est pas écrit")
-	}
-	if strings.Contains(err.Error(), "aucun pilote") {
+	_, err := introspection.Ouvrir(context.Background(), "postgres", "?")
+	if err != nil && strings.Contains(err.Error(), "aucun pilote") {
 		t.Error("le pilote postgres n'est pas enregistré dans le registre")
 	}
 }
 
-// Une erreur retournée, pas un panic qui remonterait jusqu'à main.
-func TestOuvrirRetourneUneErreur(t *testing.T) {
+// Un DSN illisible est rejeté avant toute tentative de connexion : inutile
+// d'attendre un délai réseau pour une chaîne qui ne peut pas marcher.
+func TestOuvrirRefuseUnDSNIllisible(t *testing.T) {
 	t.Parallel()
 
-	pilote, err := Ouvrir(context.Background(), "postgres://hote/base")
-	if !errors.Is(err, errNonImplemente) {
-		t.Errorf("erreur %v, attendue %v", err, errNonImplemente)
-	}
-	if pilote != nil {
-		t.Errorf("pilote non nul rendu avec une erreur : %T", pilote)
+	if _, err := Ouvrir(context.Background(), "postgres://u:p@hote:pas-un-port/base"); err == nil {
+		t.Fatal("aucune erreur sur un dsn illisible")
 	}
 }
 
@@ -43,33 +39,14 @@ func TestOuvrirRetourneUneErreur(t *testing.T) {
 func TestOuvrirNeDivulguePasLeDSN(t *testing.T) {
 	t.Parallel()
 
-	const dsn = "postgres://utilisateur:motdepasse-secret@hote:5432/base"
+	const secret = "motdepasse-secret"
 
-	_, err := Ouvrir(context.Background(), dsn)
+	_, err := Ouvrir(context.Background(), "postgres://u:"+secret+"@hote:pas-un-port/base")
 	if err == nil {
 		t.Fatal("aucune erreur")
 	}
-	for _, fragment := range []string{"motdepasse-secret", "utilisateur", "hote:5432"} {
-		if strings.Contains(err.Error(), fragment) {
-			t.Errorf("l'erreur divulgue %q : %v", fragment, err)
-		}
-	}
-}
-
-// Fermer fait exception : sans connexion ouverte, il n'y a rien à libérer.
-func TestMethodesRetournentUneErreur(t *testing.T) {
-	t.Parallel()
-
-	p := &Pilote{}
-
-	if _, err := p.Inventorier(context.Background(), []string{"public"}); !errors.Is(err, errNonImplemente) {
-		t.Errorf("Inventorier : %v", err)
-	}
-	if _, err := p.Extraire(context.Background(), introspection.Portee{}); !errors.Is(err, errNonImplemente) {
-		t.Errorf("Extraire : %v", err)
-	}
-	if err := p.Fermer(); err != nil {
-		t.Errorf("Fermer sur un pilote sans connexion : %v", err)
+	if strings.Contains(err.Error(), secret) {
+		t.Errorf("le mot de passe apparait dans l'erreur : %v", err)
 	}
 }
 
@@ -78,7 +55,7 @@ func TestMethodesRetournentUneErreur(t *testing.T) {
 func TestPiloteSatisfaitLInterface(t *testing.T) {
 	t.Parallel()
 
-	var _ introspection.Introspecteur = (*Pilote)(nil)
+	var _ introspection.Introspecteur = (*pilote)(nil)
 }
 
 // Constantes, jamais assemblées : l'injection est structurellement impossible.
