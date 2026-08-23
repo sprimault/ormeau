@@ -136,7 +136,7 @@ Nothing is installable yet. The roadmap is in [`ROADMAP.md`](ROADMAP.md).
 | Phase | State |
 |---|---|
 | 1 — Physical layer: structures, deterministic serialization, fingerprint, JSON Schema | Done |
-| 2 — PostgreSQL introspection | Catalogue queries written, driver not implemented |
+| 2 — PostgreSQL introspection | Read-only connection and inventory done; extraction still to write |
 | 3 — Inference and logical layer | Structures only |
 | 4 — Doctrine generation | Skeleton only |
 | 5 to 11 | Not started |

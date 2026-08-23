@@ -81,6 +81,9 @@ make lint     # golangci-lint, gofmt
 `make test` must pass on a fresh clone without Docker: tests that need a DBMS
 carry the `integration` build tag and run through `make test-integration`.
 
+The container may run elsewhere than on your workstation: `ORMEAU_TEST_DSN`
+overrides the DSN the integration tests target.
+
 Before opening a pull request, run at least `make lint` and `make test`. CI
 runs them too, but it does so after the branch is already pushed.
 
