@@ -53,8 +53,12 @@ test: web-build
 
 # Les tests d'intégration exigent les conteneurs SGBD et portent
 # l'étiquette `integration` : `make test` doit passer sans docker.
+#
+# -count=1 désactive le cache : Go le réutilise tant que le code ne bouge pas,
+# alors que le résultat dépend ici de l'état de la base. Un « ok (cached) »
+# devant un conteneur recréé ne prouve rien.
 test-integration: containers
-	go test -race -tags integration ./...
+	go test -race -count=1 -tags integration ./...
 
 # La vérification des types générés est accrochée à lint, pas à test :
 # `make test` doit rester exécutable sur un clone frais sans rien
