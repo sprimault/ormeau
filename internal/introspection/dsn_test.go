@@ -204,3 +204,92 @@ func TestSGBDRenduAppartientAuVocabulaire(t *testing.T) {
 		}
 	}
 }
+
+// Un DATABASE_URL de Symfony porte des paramètres que Doctrine comprend et
+// qu'aucun SGBD ne connaît. Les laisser passer fait rejeter la connexion.
+func TestNettoyerDSNRetireLesParametresDoctrine(t *testing.T) {
+	t.Parallel()
+
+	cas := []struct {
+		nom     string
+		dsn     string
+		absents []string
+	}{
+		{
+			"serverVersion",
+			"postgresql://u:p@h:5432/base?serverVersion=16&sslmode=require",
+			[]string{"serverVersion"},
+		},
+		{
+			"charset",
+			"postgresql://u:p@h/base?charset=utf8",
+			[]string{"charset"},
+		},
+		{
+			"les deux, casse melangee",
+			"postgresql://u:p@h/base?serverVersion=16.2&charset=UTF8",
+			[]string{"serverVersion", "charset", "UTF8"},
+		},
+	}
+
+	for _, c := range cas {
+		t.Run(c.nom, func(t *testing.T) {
+			t.Parallel()
+
+			nettoye := NettoyerDSN(c.dsn)
+			for _, absent := range c.absents {
+				if strings.Contains(nettoye, absent) {
+					t.Errorf("%q subsiste dans %q", absent, nettoye)
+				}
+			}
+		})
+	}
+}
+
+// Les options légitimes doivent atteindre le serveur : un filtrage par liste
+// blanche casserait celles que ce code ne connaît pas encore.
+func TestNettoyerDSNConserveLesOptionsLegitimes(t *testing.T) {
+	t.Parallel()
+
+	nettoye := NettoyerDSN("postgresql://u:p@h:5432/base?serverVersion=16&sslmode=verify-full&application_name=x&search_path=gescom")
+
+	for _, attendu := range []string{
+		"postgresql://", "h:5432", "/base",
+		"sslmode=verify-full", "application_name=x", "search_path=gescom",
+	} {
+		if !strings.Contains(nettoye, attendu) {
+			t.Errorf("%q absent de %q", attendu, nettoye)
+		}
+	}
+}
+
+// Sans paramètre Doctrine, le DSN doit ressortir tel quel : le réencoder
+// changerait une chaîne qui fonctionnait.
+func TestNettoyerDSNNeTouchePasAuReste(t *testing.T) {
+	t.Parallel()
+
+	cas := []string{
+		"postgres://u:p@h:5432/base",
+		"postgres://u:p@h:5432/base?sslmode=disable",
+		"host=hote user=u password=p dbname=base",
+		"",
+	}
+
+	for _, dsn := range cas {
+		if obtenu := NettoyerDSN(dsn); obtenu != dsn {
+			t.Errorf("NettoyerDSN(%q) = %q, attendu inchange", dsn, obtenu)
+		}
+	}
+}
+
+// Le nettoyage ne doit pas devenir une voie de fuite du mot de passe.
+func TestNettoyerDSNNeDivulguePasLeSecret(t *testing.T) {
+	t.Parallel()
+
+	const secret = "S3cr3t-Tr0p-Long"
+	nettoye := NettoyerDSN("postgresql://u:" + secret + "@h/base?serverVersion=16")
+
+	if strings.Contains(Masquer(nettoye), secret) {
+		t.Error("le masquage ne couvre plus le dsn nettoye")
+	}
+}

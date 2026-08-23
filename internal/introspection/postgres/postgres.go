@@ -41,7 +41,7 @@ type pilote struct {
 //
 // Le DSN ne ressort jamais tel quel d'une erreur, seulement masqué.
 func Ouvrir(ctx context.Context, dsn string) (introspection.Introspecteur, error) {
-	config, err := pgx.ParseConfig(dsn)
+	config, err := pgx.ParseConfig(introspection.NettoyerDSN(dsn))
 	if err != nil {
 		return nil, fmt.Errorf("dsn illisible (%s): %w", introspection.Masquer(dsn), err)
 	}
