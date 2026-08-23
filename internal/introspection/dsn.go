@@ -139,7 +139,12 @@ func Masquer(dsn string) string {
 			u.RawQuery = requete.Encode()
 		}
 	}
-	return u.String()
+
+	// url.String() encode les astérisques de la partie identifiants, ce qui
+	// donne un %2A%2A%2A illisible dans un message d'erreur. Le remplacement
+	// porte sur une séquence que l'encodage vient de produire, jamais sur le
+	// secret lui-même — celui-ci a déjà disparu.
+	return strings.ReplaceAll(u.String(), "%2A%2A%2A", "***")
 }
 
 // estCleValeur reconnaît la forme « host=serveur password=secret » de libpq,

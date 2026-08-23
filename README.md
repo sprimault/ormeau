@@ -9,10 +9,10 @@
 > again six months later without discarding the work done in between.
 
 > [!WARNING]
-> **Not usable yet.** The pivot format and its serialization are implemented and
-> tested; the PostgreSQL driver, the inference engine and the Doctrine generator
-> are not. Every command currently returns an error naming the roadmap phase that
-> will bring it. See [Status](#status).
+> **Extraction only.** `ormeau extraire` produces a valid PostgreSQL layer, and
+> that is all that works today: the inference engine and the Doctrine generator
+> are not written, and their commands return an error naming the phase that will
+> bring them. See [Status](#status).
 
 ## What Ormeau is
 
@@ -136,7 +136,7 @@ Nothing is installable yet. The roadmap is in [`ROADMAP.md`](ROADMAP.md).
 | Phase | State |
 |---|---|
 | 1 — Physical layer: structures, deterministic serialization, fingerprint, JSON Schema | Done |
-| 2 — PostgreSQL introspection | Extraction done; `ormeau extraire` still to be wired |
+| 2 — PostgreSQL introspection | Done — `ormeau extraire` produces a layer |
 | 3 — Inference and logical layer | Structures only |
 | 4 — Doctrine generation | Skeleton only |
 | 5 to 11 | Not started |

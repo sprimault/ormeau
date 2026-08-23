@@ -9,10 +9,11 @@
 > recommence six mois plus tard sans écraser le travail fait entre-temps.
 
 > [!WARNING]
-> **Pas encore utilisable.** Le format pivot et sa sérialisation sont écrits et
-> testés ; le pilote PostgreSQL, l'inférence et le générateur Doctrine, non.
-> Chaque commande retourne aujourd'hui une erreur nommant la phase de la feuille
-> de route qui l'apportera. Voir [État d'avancement](#état-davancement).
+> **Extraction seulement.** `ormeau extraire` produit un calque PostgreSQL
+> valide, et c'est tout ce qui fonctionne à ce jour : l'inférence et le
+> générateur Doctrine ne sont pas écrits, et leurs commandes retournent une
+> erreur nommant la phase qui les apportera. Voir
+> [État d'avancement](#état-davancement).
 
 ## Ce qu'est Ormeau
 
@@ -142,7 +143,7 @@ Rien n'est installable pour l'instant. La feuille de route est dans
 | Phase | État |
 |---|---|
 | 1 — Calque physique : structures, sérialisation déterministe, empreinte, JSON Schema | Terminée |
-| 2 — Introspection PostgreSQL | Extraction complète ; commande `ormeau extraire` à brancher |
+| 2 — Introspection PostgreSQL | Terminée — `ormeau extraire` produit un calque |
 | 3 — Inférence et calque logique | Structures seulement |
 | 4 — Génération Doctrine | Squelette seulement |
 | 5 à 11 | Non commencées |

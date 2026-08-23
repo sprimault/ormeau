@@ -10,22 +10,29 @@ import (
 
 // La validation des drapeaux vit ici : aucun paquet interne ne lit flag.
 
-// Le refus doit tomber avant toute tentative de connexion.
-func TestExtraireExigeDSNEtSortie(t *testing.T) {
+// Le refus doit tomber avant toute tentative de connexion : ces cas ne
+// joignent aucun serveur, et un DSN de préfixe inconnu s'arrête à la
+// résolution du pilote.
+func TestExtraireRefuseAvantDeSeConnecter(t *testing.T) {
 	t.Parallel()
 
 	cas := []struct {
-		nom      string
-		args     []string
-		manquant bool
+		nom     string
+		args    []string
+		attendu string
 	}{
-		{"sans rien", nil, true},
-		{"sans sortie", []string{"--dsn", "postgres://hote/base"}, true},
-		{"sans dsn", []string{"--sortie", "gescom.calque.json"}, true},
+		{"sans rien", nil, "--dsn"},
+		{"sans sortie", []string{"--dsn", "postgres://hote/base"}, "--sortie"},
+		{"sans dsn", []string{"--sortie", "gescom.calque.json"}, "--dsn"},
 		{
-			"complet",
-			[]string{"--dsn", "postgres://hote/base", "--sortie", "gescom.calque.json"},
-			false,
+			"sgbd inconnu",
+			[]string{"--dsn", "db2://hote/base", "--sortie", "gescom.calque.json"},
+			"prefixe",
+		},
+		{
+			"dsn sans prefixe",
+			[]string{"--dsn", "hote:5432/base", "--sortie", "gescom.calque.json"},
+			"prefixe",
 		},
 	}
 
@@ -35,30 +42,77 @@ func TestExtraireExigeDSNEtSortie(t *testing.T) {
 
 			err := extraire(c.args)
 			if err == nil {
-				t.Fatal("aucune erreur : la commande n'est pourtant pas écrite")
+				t.Fatal("aucune erreur")
 			}
-
-			exigeUnDrapeau := strings.Contains(err.Error(), "--dsn") ||
-				strings.Contains(err.Error(), "--sortie")
-			if exigeUnDrapeau != c.manquant {
-				t.Errorf("erreur inattendue pour ce jeu de drapeaux : %v", err)
+			if !strings.Contains(err.Error(), c.attendu) {
+				t.Errorf("erreur %q, attendu qu'elle mentionne %q", err, c.attendu)
 			}
 		})
 	}
 }
 
-// Y compris dans l'erreur d'une commande non écrite.
-func TestExtraireNeDivulguePasLeDSN(t *testing.T) {
-	t.Parallel()
+// ORMEAU_DSN évite de laisser le mot de passe dans l'historique du shell et
+// dans ps. Le drapeau reste prioritaire quand les deux sont donnés.
+func TestExtraireLitLEnvironnement(t *testing.T) {
+	t.Setenv("ORMEAU_DSN", "db2://hote/base")
 
-	const dsn = "postgres://utilisateur:motdepasse-secret@hote:5432/base"
-
-	err := extraire([]string{"--dsn", dsn, "--sortie", "sortie.json"})
+	err := extraire([]string{"--sortie", "gescom.calque.json"})
 	if err == nil {
 		t.Fatal("aucune erreur")
 	}
-	if strings.Contains(err.Error(), "motdepasse-secret") {
+	if strings.Contains(err.Error(), "--dsn") {
+		t.Errorf("ORMEAU_DSN n'a pas ete lu : %v", err)
+	}
+	if !strings.Contains(err.Error(), "prefixe") {
+		t.Errorf("erreur inattendue : %v", err)
+	}
+}
+
+// Le DSN ne ressort d'aucune erreur, y compris de celles qui le citent en
+// partie pour situer la panne.
+func TestExtraireNeDivulguePasLeDSN(t *testing.T) {
+	t.Parallel()
+
+	const secret = "motdepasse-secret"
+
+	err := extraire([]string{"--dsn", "db2://utilisateur:" + secret + "@hote:5432/base", "--sortie", "s.json"})
+	if err == nil {
+		t.Fatal("aucune erreur")
+	}
+	if strings.Contains(err.Error(), secret) {
 		t.Errorf("le mot de passe apparaît dans l'erreur : %v", err)
+	}
+}
+
+// Une entrée vide n'est pas un schéma : « public, » n'en demande pas deux.
+func TestDecouperLesSchemas(t *testing.T) {
+	t.Parallel()
+
+	cas := []struct {
+		liste   string
+		attendu []string
+	}{
+		{"", nil},
+		{"   ", nil},
+		{"public", []string{"public"}},
+		{"public,gescom", []string{"public", "gescom"}},
+		{" public , gescom ", []string{"public", "gescom"}},
+		{"public,", []string{"public"}},
+		{",public,,gescom,", []string{"public", "gescom"}},
+	}
+
+	for _, c := range cas {
+		obtenu := decouper(c.liste)
+		if len(obtenu) != len(c.attendu) {
+			t.Errorf("decouper(%q) = %v, attendu %v", c.liste, obtenu, c.attendu)
+			continue
+		}
+		for i := range c.attendu {
+			if obtenu[i] != c.attendu[i] {
+				t.Errorf("decouper(%q) = %v, attendu %v", c.liste, obtenu, c.attendu)
+				break
+			}
+		}
 	}
 }
 
@@ -106,9 +160,6 @@ func TestCommandesNonEcritesNommentLeurPhase(t *testing.T) {
 		nom     string
 		appeler func() error
 	}{
-		{"extraire", func() error {
-			return extraire([]string{"--dsn", "postgres://hote/base", "--sortie", "s.json"})
-		}},
 		{"inferer", func() error { return inferer([]string{"gescom.calque.json"}) }},
 		{"diff", func() error { return diffuser(nil) }},
 	}

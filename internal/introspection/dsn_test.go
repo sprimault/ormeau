@@ -110,6 +110,21 @@ func TestMasquerNeLaissePasserAucunSecret(t *testing.T) {
 	}
 }
 
+// Le masque doit rester lisible tel quel : url.String() encode les astérisques
+// de la partie identifiants, et un %2A%2A%2A dans un message d'erreur
+// n'apprend rien à personne.
+func TestMasquerRendUnMasqueLisible(t *testing.T) {
+	t.Parallel()
+
+	masque := Masquer("postgres://utilisateur:secret@hote:5432/base")
+	if strings.Contains(masque, "%2A") {
+		t.Errorf("masque encode : %q", masque)
+	}
+	if !strings.Contains(masque, "***") {
+		t.Errorf("masque absent : %q", masque)
+	}
+}
+
 // Masquer doit rester lisible : un DSN illisible n'aide personne à diagnostiquer
 // une connexion qui échoue.
 func TestMasquerConserveLeReste(t *testing.T) {

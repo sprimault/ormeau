@@ -57,31 +57,6 @@ func main() {
 	}
 }
 
-// extraire lit le catalogue d'une base et écrit un calque physique.
-//
-// La validation des drapeaux est ici : aucun paquet interne ne lit flag ni
-// os.Getenv, les dépendances y sont injectées.
-func extraire(args []string) error {
-	jeu := flag.NewFlagSet("extraire", flag.ExitOnError)
-	dsn := jeu.String("dsn", "", "chaîne de connexion, préfixée par le SGBD")
-	sortie := jeu.String("sortie", "", "fichier de sortie")
-	schemas := jeu.String("schemas", "", "schémas à introspecter, séparés par des virgules")
-	echantillonner := jeu.Bool("echantillonner", false, "lire des données pour détecter énumérations et clés étrangères implicites")
-	cardinalite := jeu.Int("cardinalite-max", 64, "plafond au-delà duquel une colonne ne produit plus d'échantillon")
-	if err := jeu.Parse(args); err != nil {
-		return err
-	}
-
-	if *dsn == "" || *sortie == "" {
-		return fmt.Errorf("--dsn et --sortie sont requis")
-	}
-	_ = schemas
-	_ = echantillonner
-	_ = cardinalite
-
-	return fmt.Errorf("à implémenter : phase 2 de la feuille de route")
-}
-
 // inferer applique heuristiques et décisions à un calque physique. Aucun accès
 // à la base : une inférence se corrige hors ligne.
 func inferer(args []string) error {
