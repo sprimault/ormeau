@@ -6,7 +6,7 @@
     "catalogue": "gescom",
     "schema": "public",
     "extrait_le": "2026-01-01T00:00:00Z",
-    "empreinte": "sha256:d8c2b15dbf61d8c6180e061f4c3035f7ae38aa41c7e6f1e78a3dd7efe07a7ea4"
+    "empreinte": "sha256:55ad5aa008e4120a43ffe4f73da4be532468063af80b0fd20ca0e6606432cff4"
   },
   "tables": [
     {
@@ -80,6 +80,13 @@
           "precision": 10,
           "echelle": 0,
           "nullable": false
+        },
+        {
+          "nom": "reference",
+          "position": 4,
+          "type_brut": "text",
+          "type_normalise": "texte",
+          "nullable": false
         }
       ],
       "cle_primaire": {
@@ -109,6 +116,17 @@
             "client_id"
           ],
           "unique": false
+        },
+        {
+          "nom": "idx_reference",
+          "colonnes": [
+            "reference"
+          ],
+          "unique": false,
+          "methode": "btree",
+          "operateurs": [
+            "text_pattern_ops"
+          ]
         },
         {
           "nom": "idx_total",

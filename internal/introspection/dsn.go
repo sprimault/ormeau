@@ -50,6 +50,54 @@ func SGBDDepuisDSN(dsn string) (string, error) {
 	return sgbd, nil
 }
 
+// parametresDoctrine sont les paramètres que Doctrine DBAL ajoute à un
+// DATABASE_URL et qu'aucun SGBD ne connaît.
+//
+// L'utilisateur d'Ormeau est un développeur Symfony : il colle son
+// DATABASE_URL. Les laisser passer fait rejeter la connexion par le serveur —
+// « unrecognized configuration parameter » —, message sans rapport visible avec
+// ce qu'il vient de faire.
+var parametresDoctrine = map[string]bool{
+	"serverversion": true,
+	"charset":       true,
+	"driveroptions": true,
+	"defaultdbname": true,
+}
+
+// NettoyerDSN retire les paramètres propres à Doctrine et rend le DSN tel
+// qu'un pilote l'attend.
+//
+// Retire seulement ceux-là : sslmode, search_path ou application_name sont
+// légitimes et doivent atteindre le serveur. Un filtrage par liste blanche
+// casserait les options que ce code ne connaît pas encore.
+func NettoyerDSN(dsn string) string {
+	if !strings.Contains(dsn, "://") || !strings.Contains(dsn, "?") {
+		return dsn
+	}
+
+	u, err := url.Parse(dsn)
+	if err != nil {
+		// Illisible ici, il le sera aussi pour le pilote, dont le message sera
+		// plus précis que ce que nous pourrions dire.
+		return dsn
+	}
+
+	requete := u.Query()
+	var retire bool
+	for cle := range requete {
+		if parametresDoctrine[strings.ToLower(cle)] {
+			requete.Del(cle)
+			retire = true
+		}
+	}
+	if !retire {
+		return dsn
+	}
+
+	u.RawQuery = requete.Encode()
+	return u.String()
+}
+
 // Masquer rend un DSN affichable dans un journal ou un message d'erreur.
 //
 // En cas de doute, masque tout plutôt que de laisser passer : un DSN qu'on ne

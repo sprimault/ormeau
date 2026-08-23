@@ -38,6 +38,7 @@ func physiqueDeReference() *Physique {
 						Nom: "total", Position: 3, TypeBrut: "numeric(10,0)",
 						TypeNormalise: TypeDecimal, Precision: ptrInt(10), Echelle: ptrInt(0),
 					},
+					{Nom: "reference", Position: 4, TypeBrut: "text", TypeNormalise: TypeTexte},
 				},
 				ClePrimaire: &ClePrimaire{Nom: "commande_pkey", Colonnes: []string{"id"}},
 				ClesEtrangeres: []CleEtrangere{
@@ -54,6 +55,10 @@ func physiqueDeReference() *Physique {
 				Index: []Index{
 					{Nom: "idx_total", Colonnes: []string{"total"}, Unique: false},
 					{Nom: "idx_client", Colonnes: []string{"client_id"}, Unique: false},
+					{
+						Nom: "idx_reference", Colonnes: []string{"reference"}, Unique: false,
+						Methode: "btree", Operateurs: []string{"text_pattern_ops"},
+					},
 				},
 			},
 			{
@@ -188,7 +193,7 @@ func TestTrierOrdonneToutesLesCollections(t *testing.T) {
 	comparerChaines(t, "vérifications",
 		nomsVerifications(commande.Verifications), []string{"ck_client", "ck_total_positif"})
 	comparerChaines(t, "index",
-		nomsIndex(commande.Index), []string{"idx_client", "idx_total"})
+		nomsIndex(commande.Index), []string{"idx_client", "idx_reference", "idx_total"})
 
 	sequences := make([]string, 0, len(p.Sequences))
 	for _, s := range p.Sequences {

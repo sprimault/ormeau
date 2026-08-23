@@ -336,7 +336,7 @@ type cleIndex struct {
 }
 
 func (p *pilote) lireIndex(ctx context.Context, schemas []string, jeu *jeuDeTables) error {
-	colonnes, err := p.lireColonnesIndex(ctx, schemas)
+	colonnes, operateurs, err := p.lireColonnesIndex(ctx, schemas)
 	if err != nil {
 		return err
 	}
@@ -364,15 +364,17 @@ func (p *pilote) lireIndex(ctx context.Context, schemas []string, jeu *jeuDeTabl
 			continue
 		}
 
+		cle := cleIndex{schema, table, nom}
 		idx := calque.Index{
 			Nom:      nom,
-			Colonnes: colonnes[cleIndex{schema, table, nom}],
+			Colonnes: colonnes[cle],
 			Unique:   unique,
 			Methode:  methode,
 		}
 		if predicat != nil {
 			idx.Predicat = *predicat
 		}
+		idx.Operateurs = operateurs[cle]
 		// Un index d'expression n'a aucune colonne exploitable. Le garder sans
 		// colonne produirait une contrainte vide, que la validation refuserait.
 		if len(idx.Colonnes) == 0 {
@@ -383,32 +385,61 @@ func (p *pilote) lireIndex(ctx context.Context, schemas []string, jeu *jeuDeTabl
 	return lignes.Err()
 }
 
-func (p *pilote) lireColonnesIndex(ctx context.Context, schemas []string) (map[cleIndex][]string, error) {
+// lireColonnesIndex rend les colonnes de chaque index et, séparément, leurs
+// classes d'opérateurs.
+//
+// Les classes ne sont rendues que si l'index en porte au moins une explicite ;
+// elles le sont alors toutes, y compris les implicites, pour rester appariées
+// aux colonnes rang par rang.
+func (p *pilote) lireColonnesIndex(ctx context.Context, schemas []string) (map[cleIndex][]string, map[cleIndex][]string, error) {
 	ctx, annuler := context.WithTimeout(ctx, delaiRequete)
 	defer annuler()
 
 	lignes, err := p.conn.Query(ctx, requeteColonnesIndex, schemas)
 	if err != nil {
-		return nil, fmt.Errorf("lecture des colonnes d'index: %w", err)
+		return nil, nil, fmt.Errorf("lecture des colonnes d'index: %w", err)
 	}
 	defer lignes.Close()
 
-	parIndex := map[cleIndex][]string{}
+	colonnes := map[cleIndex][]string{}
+	classes := map[cleIndex][]string{}
+	explicite := map[cleIndex]bool{}
+
 	for lignes.Next() {
 		var schema, table, index string
-		var colonne *string
+		var colonne, classe *string
+		var parDefaut *bool
 		var ordinalite int64
 
-		if err := lignes.Scan(&schema, &table, &index, &colonne, &ordinalite); err != nil {
-			return nil, fmt.Errorf("lecture d'une colonne d'index: %w", err)
+		if err := lignes.Scan(&schema, &table, &index, &colonne, &classe, &parDefaut, &ordinalite); err != nil {
+			return nil, nil, fmt.Errorf("lecture d'une colonne d'index: %w", err)
 		}
 		if colonne == nil {
 			continue
 		}
+
 		cle := cleIndex{schema, table, index}
-		parIndex[cle] = append(parIndex[cle], *colonne)
+		colonnes[cle] = append(colonnes[cle], *colonne)
+
+		nom := ""
+		if classe != nil {
+			nom = *classe
+		}
+		classes[cle] = append(classes[cle], nom)
+		if parDefaut != nil && !*parDefaut {
+			explicite[cle] = true
+		}
 	}
-	return parIndex, lignes.Err()
+	if err := lignes.Err(); err != nil {
+		return nil, nil, err
+	}
+
+	for cle := range classes {
+		if !explicite[cle] {
+			delete(classes, cle)
+		}
+	}
+	return colonnes, classes, nil
 }
 
 func (p *pilote) lireSequences(ctx context.Context, schemas []string) ([]calque.Sequence, error) {

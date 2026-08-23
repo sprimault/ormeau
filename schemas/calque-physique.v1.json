@@ -173,7 +173,12 @@
           "description": "Index partiel. Verbatim.",
           "type": "string"
         },
-        "methode": { "type": "string" }
+        "methode": { "type": "string" },
+        "operateurs": {
+          "description": "Classe d'opérateurs de chaque colonne, dans le même ordre. Absent quand toutes sont celles par défaut, complet sinon. Sans lui, deux index HNSW de distances différentes sont indistinguables.",
+          "type": "array",
+          "items": { "type": "string" }
+        }
       }
     },
     "verification": {
