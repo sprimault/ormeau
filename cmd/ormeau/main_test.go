@@ -215,6 +215,23 @@ func TestCommandesNonEcritesNommentLeurPhase(t *testing.T) {
 	}
 }
 
+// La version doit exister comme variable, sans quoi le -X du Makefile ne
+// désigne rien : le linker ne signale pas une cible absente, et tous les
+// binaires publiés porteraient « dev ».
+func TestVersionAffichee(t *testing.T) {
+	t.Parallel()
+
+	if version == "" {
+		t.Fatal("version vide")
+	}
+	if affichee := versionAffichee(); !strings.HasPrefix(affichee, "ormeau ") {
+		t.Errorf("version affichee %q", affichee)
+	}
+	if !strings.Contains(versionAffichee(), version) {
+		t.Errorf("la version %q n'apparait pas dans %q", version, versionAffichee())
+	}
+}
+
 // Une commande absente de l'usage est une commande que personne ne trouvera.
 func TestUsageDecritLesCommandes(t *testing.T) {
 	t.Parallel()

@@ -13,6 +13,13 @@ import (
 	"os"
 )
 
+// version est posée à l'édition de liens par -ldflags -X. Sa valeur par défaut
+// vaut pour un binaire construit sans, par go run ou go build direct.
+//
+// Elle doit exister : le linker ne signale pas une cible -X absente, et la
+// version serait silencieusement perdue sur tous les binaires publiés.
+var version = "dev"
+
 // usage est ce que voit quelqu'un qui lance le binaire sans argument.
 const usage = `ormeau — rétro-ingénierie de bases de données vers des entités ORM
 
@@ -26,6 +33,7 @@ Commandes :
   extraire   lit le catalogue et écrit un calque physique
   inferer    applique les heuristiques et écrit un calque logique
   diff       compare un calque enregistré à l'état actuel de la base
+  version    affiche la version du binaire
 
 Sans --base, toutes les bases du serveur sont extraites et --sortie désigne
 alors un répertoire.
@@ -34,6 +42,12 @@ Variables d'environnement :
   ORMEAU_DSN   chaîne de connexion, à défaut de --dsn
   ORMEAU_MDP   mot de passe ; il n'existe pas de drapeau, qui l'exposerait dans ps
 `
+
+// versionAffichee rend la ligne que voit l'utilisateur. Ce qu'il recopiera
+// dans une issue : le nom seul ne dirait pas de quel binaire il parle.
+func versionAffichee() string {
+	return "ormeau " + version
+}
 
 // main route la sous-commande et traduit l'erreur en code de retour. Seul
 // endroit du projet où os.Exit est acceptable.
@@ -53,6 +67,9 @@ func main() {
 		err = diffuser(os.Args[2:])
 	case "-h", "--help", "aide":
 		fmt.Print(usage)
+		return
+	case "version", "--version":
+		fmt.Println(versionAffichee())
 		return
 	default:
 		fmt.Fprintf(os.Stderr, "commande inconnue : %s\n\n%s", os.Args[1], usage)
