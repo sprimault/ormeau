@@ -72,6 +72,20 @@ root certificates**. Without copying `ca-certificates.crt`, every TLS connection
 to a database fails with an error that is hard to diagnose. That is the classic
 `scratch` trap.
 
+The image runs as an unprivileged user, which has a practical consequence: it
+cannot write into a volume owned by somebody else. Extracting a layer therefore
+requires giving it the caller's identity, otherwise the write is denied without
+the message saying why:
+
+```bash
+docker run --rm --user "$(id -u):$(id -g)" \
+  -e ORMEAU_DSN -v "$PWD:/sortie" \
+  ghcr.io/sprimault/ormeau:VERSION extraire --sortie /sortie/gescom.calque.json
+```
+
+Lowering the image's user would fix the symptom and introduce a flaw: a tool
+handling production credentials has no business running as root.
+
 The container remains a fallback: it still has to reach the database, which the
 native binary does with no network configuration.
 

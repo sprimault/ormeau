@@ -70,20 +70,33 @@ jobs:
           echo "$obtenue"
 
       # Zip sous Windows, tar.gz ailleurs : c'est ce que chaque système sait
-      # ouvrir sans rien installer. LICENSE et NOTICE voyagent avec le binaire,
-      # Apache 2.0 l'exige à la redistribution.
+      # ouvrir sans rien installer, et le tar préserve le bit exécutable qu'un
+      # binaire téléchargé nu perdrait.
+      #
+      # LICENSE et NOTICE vont dans l'archive et non à côté : Apache 2.0 les
+      # exige à la redistribution, et personne ne télécharge un asset séparé
+      # pour accompagner un binaire.
       - name: Empaqueter
         run: |
           mkdir -p publication
-          cd dist
-          for binaire in ormeau_*; do
-            case "$binaire" in
-              *.exe) zip -q "../publication/${binaire%.exe}.zip" "$binaire" ;;
-              *)     tar -czf "../publication/$binaire.tar.gz" "$binaire" ;;
+          for binaire in dist/ormeau_*; do
+            nom=$(basename "$binaire")
+            case "$nom" in
+              *.exe) cible="${nom%.exe}" ;;
+              *)     cible="$nom" ;;
+            esac
+
+            dossier="paquets/${cible}"
+            mkdir -p "$dossier"
+            cp "$binaire" "$dossier/"
+            cp LICENSE NOTICE "$dossier/"
+
+            case "$nom" in
+              *.exe) (cd paquets && zip -qr "../publication/${cible}.zip" "$cible") ;;
+              *)     tar -czf "publication/${cible}.tar.gz" -C paquets "$cible" ;;
             esac
           done
-          cd ../publication
-          cp ../LICENSE ../NOTICE .
+          cd publication
           # Sur les archives et non sur les binaires : c'est l'archive que la
           # personne télécharge, donc ce qu'elle peut vérifier.
           sha256sum ormeau_* > SHA256SUMS
