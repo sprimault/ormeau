@@ -33,11 +33,16 @@ PHP 8, énumérations, traits d'horodatage.
 valide tout ce qui précède, et probablement celle qui fera remonter le plus de
 manques dans le format.
 
-## Phase 6 — Introspection MySQL et SQL Server
+## Phase 6 — Introspection MySQL, MariaDB et SQL Server
 
 Deuxième et troisième dialectes. C'est là qu'on découvre ce que le calque v1 ne
 capture pas ; incrémenter `version_ri` si nécessaire, une seule fois de
 préférence.
+
+MariaDB partage le protocole de MySQL et se traite dans le même paquet, la
+variante étant détectée à la connexion. Elle en diverge assez pour compter comme
+un SGBD à part entière dans le calque : elle a de vraies séquences là où MySQL
+n'a qu'`AUTO_INCREMENT`, et son type `JSON` n'est qu'un alias de `LONGTEXT`.
 
 ## Phase 7 — Échantillonnage
 
