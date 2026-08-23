@@ -141,7 +141,7 @@ Rien n'est installable pour l'instant. La feuille de route est dans
 
 | Phase | État |
 |---|---|
-| 1 — Calque physique : structures, sérialisation déterministe, empreinte, JSON Schema | Structures, sérialisation et empreinte écrites et testées ; validation par le schéma encore absente |
+| 1 — Calque physique : structures, sérialisation déterministe, empreinte, JSON Schema | Terminée |
 | 2 — Introspection PostgreSQL | Requêtes de catalogue écrites, pilote non implémenté |
 | 3 — Inférence et calque logique | Structures seulement |
 | 4 — Génération Doctrine | Squelette seulement |
