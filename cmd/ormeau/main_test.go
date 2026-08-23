@@ -84,6 +84,42 @@ func TestExtraireNeDivulguePasLeDSN(t *testing.T) {
 	}
 }
 
+// Les drapeaux séparés évitent de composer une URL à la main, ce qui casse dès
+// que le mot de passe porte un caractère réservé.
+func TestExtraireAccepteLesDrapeauxSepares(t *testing.T) {
+	t.Setenv("ORMEAU_DSN", "")
+	t.Setenv("ORMEAU_MDP", "mot@de:passe/complique")
+
+	// Le sgbd est volontairement inconnu : la composition doit aboutir, et
+	// l'échec tomber ensuite, à la résolution du pilote.
+	err := extraire([]string{
+		"--sgbd", "db2", "--hote", "serveur", "--utilisateur", "u",
+		"--base", "gescom", "--sortie", "s.json",
+	})
+	if err == nil {
+		t.Fatal("aucune erreur")
+	}
+	if strings.Contains(err.Error(), "--dsn") {
+		t.Errorf("les drapeaux separes n'ont pas ete pris en compte : %v", err)
+	}
+	if strings.Contains(err.Error(), "mot@de:passe") {
+		t.Errorf("le mot de passe apparait dans l'erreur : %v", err)
+	}
+}
+
+// Le mot de passe ne doit exister nulle part comme drapeau : le poser en
+// ligne de commande le rendrait visible dans ps.
+func TestExtraireNAPasDeDrapeauMotDePasse(t *testing.T) {
+	t.Parallel()
+
+	for _, interdit := range []string{"--mdp", "--motdepasse", "--password"} {
+		err := extraire([]string{interdit, "secret", "--sortie", "s.json"})
+		if err == nil {
+			t.Errorf("%s accepte", interdit)
+		}
+	}
+}
+
 // Une entrée vide n'est pas un schéma : « public, » n'en demande pas deux.
 func TestDecouperLesSchemas(t *testing.T) {
 	t.Parallel()

@@ -14,6 +14,29 @@ SELECT current_setting('server_version') AS version,
        current_database()                AS catalogue
 `
 
+// requeteSchemas sert quand la portée n'en nomme aucun. Retenir « public »
+// seul rendrait un calque vide pour toute base qui n'y range rien — et une
+// base legacy range rarement dans public.
+const requeteSchemas = `
+SELECT nspname
+FROM pg_namespace
+WHERE nspname NOT LIKE 'pg\_%'
+  AND nspname <> 'information_schema'
+ORDER BY nspname
+`
+
+// datallowconn écarte template0, sur laquelle aucune connexion n'est possible.
+// datistemplate écarte template1 et les autres modèles : ils ne portent que le
+// squelette d'une base, et en produire un calque n'apprendrait rien.
+const requeteBases = `
+SELECT datname
+FROM pg_database
+WHERE datallowconn
+  AND NOT datistemplate
+  AND datname <> 'postgres'
+ORDER BY datname
+`
+
 // Les séquences autonomes comme celles qui appartiennent à une colonne : la
 // distinction se fait plus loin, sur le défaut de la colonne. Une séquence
 // possédée reste un objet du catalogue, et l'omettre rendrait le DDL

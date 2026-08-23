@@ -112,6 +112,16 @@ bin/console ormeau:generer      gescom.logique.json
 bin/console ormeau:synchroniser gescom.calque.json
 ```
 
+A connection can also be given as components, which avoids escaping a password
+inside a URL. Without `--base`, every database on the server is extracted and
+`--sortie` designates a directory:
+
+```
+ORMEAU_MDP=... ormeau extraire --sgbd postgres --hote srv --utilisateur app --sortie calques/
+```
+
+The password has no flag: it would be visible in `ps` and in the shell history.
+
 `ormeau:synchroniser` answers "what changed in the database since my entities" —
 the inverse of `doctrine:schema:update`, and what actually serves day to day on
 legacy where the schema moves without migrations.

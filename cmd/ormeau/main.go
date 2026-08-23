@@ -18,6 +18,7 @@ const usage = `ormeau — rétro-ingénierie de bases de données vers des entit
 
 Usage :
   ormeau extraire --dsn <dsn> --sortie <fichier.calque.json>
+  ormeau extraire --sgbd <sgbd> --hote <hote> --utilisateur <nom> [--base <base>] --sortie <chemin>
   ormeau inferer  <fichier.calque.json> [--decisions <fichier.yaml>] --sortie <fichier.logique.json>
   ormeau diff     <fichier.calque.json> [--dsn <dsn>]
 
@@ -25,6 +26,13 @@ Commandes :
   extraire   lit le catalogue et écrit un calque physique
   inferer    applique les heuristiques et écrit un calque logique
   diff       compare un calque enregistré à l'état actuel de la base
+
+Sans --base, toutes les bases du serveur sont extraites et --sortie désigne
+alors un répertoire.
+
+Variables d'environnement :
+  ORMEAU_DSN   chaîne de connexion, à défaut de --dsn
+  ORMEAU_MDP   mot de passe ; il n'existe pas de drapeau, qui l'exposerait dans ps
 `
 
 // main route la sous-commande et traduit l'erreur en code de retour. Seul
