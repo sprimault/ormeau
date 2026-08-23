@@ -146,9 +146,35 @@ commentaires métier, et avec `--echantillonner`, des valeurs réelles. Un calqu
 extrait d'une base de production ne rentre jamais dans un dépôt, ni en pièce
 jointe d'une issue.
 
+## Installation
+
+Télécharger l'archive de sa plateforme depuis la
+[dernière version](https://github.com/sprimault/ormeau/releases/latest), la
+décompresser, exécuter le binaire. Rien à installer d'autre : aucun runtime,
+aucun pilote système.
+
+```bash
+gh attestation verify ormeau_v0.2.0_linux_amd64.tar.gz --repo sprimault/ormeau
+```
+
+L'attestation lie l'archive au commit et au workflow qui l'a produite. Elle
+compte ici : les binaires ne sont ni signés ni notariés, SmartScreen et
+Gatekeeper protesteront au premier lancement.
+
+Par conteneur, en lui donnant l'identité de l'appelant — l'image tourne sous un
+utilisateur non privilégié et n'écrirait pas dans le volume sans cela :
+
+```bash
+docker run --rm --user "$(id -u):$(id -g)" \
+  -e ORMEAU_DSN -v "$PWD:/sortie" \
+  ghcr.io/sprimault/ormeau:v0.2.0 extraire --sortie /sortie/gescom.calque.json
+```
+
+Entre deux versions, `go install github.com/sprimault/ormeau/cmd/ormeau@master`.
+
 ## État d'avancement
 
-Rien n'est installable pour l'instant. La feuille de route est dans
+La feuille de route est dans
 [`ROADMAP.md`](ROADMAP.md).
 
 | Phase | État |

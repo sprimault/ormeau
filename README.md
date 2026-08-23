@@ -139,9 +139,34 @@ or in the layer file.
 comments, and with `--echantillonner`, real values. Never commit a layer extracted
 from a production database, not even as an issue attachment.
 
+## Installation
+
+Download the archive for your platform from the
+[latest release](https://github.com/sprimault/ormeau/releases/latest), unpack it,
+run the binary. Nothing else to install: no runtime, no system driver.
+
+```bash
+gh attestation verify ormeau_v0.2.0_linux_amd64.tar.gz --repo sprimault/ormeau
+```
+
+The attestation ties the archive to the commit and workflow that produced it. It
+matters here: the binaries are neither signed nor notarized, so SmartScreen and
+Gatekeeper will complain on first launch.
+
+Through a container, giving it the caller's identity — the image runs as an
+unprivileged user and would not write to the volume otherwise:
+
+```bash
+docker run --rm --user "$(id -u):$(id -g)" \
+  -e ORMEAU_DSN -v "$PWD:/sortie" \
+  ghcr.io/sprimault/ormeau:v0.2.0 extraire --sortie /sortie/gescom.calque.json
+```
+
+Between releases, `go install github.com/sprimault/ormeau/cmd/ormeau@master`.
+
 ## Status
 
-Nothing is installable yet. The roadmap is in [`ROADMAP.md`](ROADMAP.md).
+The roadmap is in [`ROADMAP.md`](ROADMAP.md).
 
 | Phase | State |
 |---|---|
