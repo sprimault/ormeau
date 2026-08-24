@@ -1,0 +1,140 @@
+{
+  "version_ri": 1,
+  "source": {
+    "sgbd": "postgres",
+    "version": "16.2",
+    "catalogue": "gescom",
+    "schema": "public",
+    "extrait_le": "2026-01-01T00:00:00Z",
+    "empreinte": "sha256:0000000000000000000000000000000000000000000000000000000000000009"
+  },
+  "tables": [
+    {
+      "nom": "client",
+      "schema": "public",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false, "auto_increment": true },
+        { "nom": "raison_sociale", "position": 2, "type_brut": "character varying(120)", "type_normalise": "texte", "longueur": 120, "nullable": false }
+      ],
+      "cle_primaire": { "nom": "client_pkey", "colonnes": ["id"] }
+    },
+    {
+      "nom": "adresse_facturation",
+      "schema": "public",
+      "commentaire": "Un vers un : la FK porte une contrainte d'unicité",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false, "auto_increment": true },
+        { "nom": "client_id", "position": 2, "type_brut": "integer", "type_normalise": "entier", "nullable": false },
+        { "nom": "rue", "position": 3, "type_brut": "character varying(200)", "type_normalise": "texte", "longueur": 200, "nullable": false }
+      ],
+      "cle_primaire": { "nom": "adresse_facturation_pkey", "colonnes": ["id"] },
+      "unicites": [
+        { "nom": "adresse_facturation_client_id_key", "colonnes": ["client_id"] }
+      ],
+      "cles_etrangeres": [
+        {
+          "nom": "adresse_facturation_client_id_fkey",
+          "colonnes": ["client_id"],
+          "table_cible": "client",
+          "schema_cible": "public",
+          "colonnes_cibles": ["id"],
+          "a_la_suppression": "cascade"
+        }
+      ]
+    },
+    {
+      "nom": "commande",
+      "schema": "public",
+      "commentaire": "Plusieurs vers un, plus une FK auto-référencée facultative",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false, "auto_increment": true },
+        { "nom": "client_id", "position": 2, "type_brut": "integer", "type_normalise": "entier", "nullable": false },
+        { "nom": "commande_remplacee_id", "position": 3, "type_brut": "integer", "type_normalise": "entier", "nullable": true },
+        { "nom": "total_ht", "position": 4, "type_brut": "numeric(12,2)", "type_normalise": "decimal", "precision": 12, "echelle": 2, "nullable": false }
+      ],
+      "cle_primaire": { "nom": "commande_pkey", "colonnes": ["id"] },
+      "cles_etrangeres": [
+        {
+          "nom": "commande_client_id_fkey",
+          "colonnes": ["client_id"],
+          "table_cible": "client",
+          "schema_cible": "public",
+          "colonnes_cibles": ["id"],
+          "a_la_suppression": "restrict"
+        },
+        {
+          "nom": "commande_remplacee_fkey",
+          "colonnes": ["commande_remplacee_id"],
+          "table_cible": "commande",
+          "schema_cible": "public",
+          "colonnes_cibles": ["id"],
+          "a_la_suppression": "set_null"
+        }
+      ]
+    },
+    {
+      "nom": "article",
+      "schema": "public",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false, "auto_increment": true },
+        { "nom": "libelle", "position": 2, "type_brut": "character varying(120)", "type_normalise": "texte", "longueur": 120, "nullable": false }
+      ],
+      "cle_primaire": { "nom": "article_pkey", "colonnes": ["id"] }
+    },
+    {
+      "nom": "commande_article",
+      "schema": "public",
+      "commentaire": "Table de jointure pure : deux FK, PK composite, rien d'autre",
+      "colonnes": [
+        { "nom": "commande_id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false },
+        { "nom": "article_id", "position": 2, "type_brut": "integer", "type_normalise": "entier", "nullable": false }
+      ],
+      "cle_primaire": { "nom": "commande_article_pkey", "colonnes": ["commande_id", "article_id"] },
+      "cles_etrangeres": [
+        {
+          "nom": "commande_article_commande_fkey",
+          "colonnes": ["commande_id"],
+          "table_cible": "commande",
+          "schema_cible": "public",
+          "colonnes_cibles": ["id"],
+          "a_la_suppression": "cascade"
+        },
+        {
+          "nom": "commande_article_article_fkey",
+          "colonnes": ["article_id"],
+          "table_cible": "article",
+          "schema_cible": "public",
+          "colonnes_cibles": ["id"],
+          "a_la_suppression": "cascade"
+        }
+      ]
+    },
+    {
+      "nom": "ligne_commande",
+      "schema": "public",
+      "commentaire": "Deux FK et une PK composite, mais une colonne en plus : ce n'est pas une jointure pure",
+      "colonnes": [
+        { "nom": "commande_id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false },
+        { "nom": "article_id", "position": 2, "type_brut": "integer", "type_normalise": "entier", "nullable": false },
+        { "nom": "quantite", "position": 3, "type_brut": "integer", "type_normalise": "entier", "nullable": false }
+      ],
+      "cle_primaire": { "nom": "ligne_commande_pkey", "colonnes": ["commande_id", "article_id"] },
+      "cles_etrangeres": [
+        {
+          "nom": "ligne_commande_commande_fkey",
+          "colonnes": ["commande_id"],
+          "table_cible": "commande",
+          "schema_cible": "public",
+          "colonnes_cibles": ["id"]
+        },
+        {
+          "nom": "ligne_commande_article_fkey",
+          "colonnes": ["article_id"],
+          "table_cible": "article",
+          "schema_cible": "public",
+          "colonnes_cibles": ["id"]
+        }
+      ]
+    }
+  ]
+}

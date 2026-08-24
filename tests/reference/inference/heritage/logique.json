@@ -1,0 +1,208 @@
+{
+  "version_ri": 1,
+  "empreinte_physique": "sha256:000000000000000000000000000000000000000000000000000000000000000a",
+  "espace_de_noms": "App\\Entity",
+  "entites": [
+    {
+      "nom": "Personne",
+      "table": {
+        "nom": "personne",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "nom",
+          "colonne": "nom",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 80,
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "Salarie",
+      "table": {
+        "nom": "salarie",
+        "schema": "public"
+      },
+      "heritage": {
+        "strategie": "jointe",
+        "parent": "Personne",
+        "origine": "contrainte"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "assignee"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "matricule",
+          "colonne": "matricule",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 20,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "affectation",
+          "genre": "un_vers_plusieurs",
+          "cible": "Affectation",
+          "proprietaire": false,
+          "mappee_par": "salarie",
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "Prestataire",
+      "table": {
+        "nom": "prestataire",
+        "schema": "public"
+      },
+      "heritage": {
+        "strategie": "jointe",
+        "parent": "Personne",
+        "origine": "contrainte"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "assignee"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "societe",
+          "colonne": "societe",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 120,
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "Affectation",
+      "table": {
+        "nom": "affectation",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "salarieId",
+          "debut"
+        ],
+        "strategie": "assignee"
+      },
+      "proprietes": [
+        {
+          "nom": "salarieId",
+          "colonne": "salarie_id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "debut",
+          "colonne": "debut",
+          "type_php": "\\DateTimeImmutable",
+          "type_doctrine": "date_immutable",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "service",
+          "colonne": "service",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 60,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "salarie",
+          "genre": "plusieurs_vers_un",
+          "cible": "Salarie",
+          "proprietaire": true,
+          "inversee_par": "affectation",
+          "jointure": [
+            {
+              "colonne": "salarie_id",
+              "colonne_referencee": "id",
+              "nullable": false
+            }
+          ],
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    }
+  ],
+  "avertissements": [
+    {
+      "code": "cle_primaire_composite",
+      "cible": "public.affectation",
+      "message": "clé primaire sur salarieId, debut",
+      "resolution": "par_defaut",
+      "confiance": 1
+    },
+    {
+      "code": "heritage_deduit",
+      "cible": "public.prestataire",
+      "message": "clé primaire portant une clé étrangère vers Personne : héritage par jointure",
+      "resolution": "par_defaut",
+      "confiance": 0.7
+    },
+    {
+      "code": "heritage_deduit",
+      "cible": "public.salarie",
+      "message": "clé primaire portant une clé étrangère vers Personne : héritage par jointure",
+      "resolution": "par_defaut",
+      "confiance": 0.7
+    }
+  ]
+}

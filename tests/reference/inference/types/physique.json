@@ -1,0 +1,120 @@
+{
+  "version_ri": 1,
+  "source": {
+    "sgbd": "postgres",
+    "version": "16.2",
+    "catalogue": "gescom",
+    "schema": "public",
+    "extrait_le": "2026-01-01T00:00:00Z",
+    "empreinte": "sha256:0000000000000000000000000000000000000000000000000000000000000002"
+  },
+  "tables": [
+    {
+      "nom": "eventail",
+      "schema": "public",
+      "colonnes": [
+        {
+          "nom": "cle",
+          "position": 1,
+          "type_brut": "uuid",
+          "type_normalise": "uuid",
+          "nullable": false
+        },
+        {
+          "nom": "compteur_court",
+          "position": 2,
+          "type_brut": "smallint",
+          "type_normalise": "entier",
+          "nullable": false
+        },
+        {
+          "nom": "compteur_long",
+          "position": 3,
+          "type_brut": "bigint",
+          "type_normalise": "entier",
+          "nullable": false
+        },
+        {
+          "nom": "note_libre",
+          "position": 4,
+          "type_brut": "text",
+          "type_normalise": "texte",
+          "nullable": true
+        },
+        {
+          "nom": "instant_local",
+          "position": 5,
+          "type_brut": "timestamp without time zone",
+          "type_normalise": "horodatage",
+          "nullable": true
+        },
+        {
+          "nom": "instant_absolu",
+          "position": 6,
+          "type_brut": "timestamp with time zone",
+          "type_normalise": "horodatage",
+          "nullable": true
+        },
+        {
+          "nom": "jour",
+          "position": 7,
+          "type_brut": "date",
+          "type_normalise": "date",
+          "nullable": true
+        },
+        {
+          "nom": "duree",
+          "position": 8,
+          "type_brut": "interval",
+          "type_normalise": "intervalle",
+          "nullable": true
+        },
+        {
+          "nom": "charge_utile",
+          "position": 9,
+          "type_brut": "jsonb",
+          "type_normalise": "json",
+          "nullable": true
+        },
+        {
+          "nom": "empreinte",
+          "position": 10,
+          "type_brut": "bytea",
+          "type_normalise": "binaire",
+          "nullable": true
+        },
+        {
+          "nom": "adresse_ip",
+          "position": 11,
+          "type_brut": "inet",
+          "type_normalise": "reseau",
+          "nullable": true
+        },
+        {
+          "nom": "type_maison",
+          "position": 12,
+          "type_brut": "hierarchyid",
+          "type_normalise": "inconnu",
+          "nullable": true
+        },
+        {
+          "nom": "total_ligne",
+          "position": 13,
+          "type_brut": "numeric(14,4)",
+          "type_normalise": "decimal",
+          "precision": 14,
+          "echelle": 4,
+          "nullable": false,
+          "generee": {
+            "expression": "(compteur_long * 1.0)",
+            "stockee": true
+          }
+        }
+      ],
+      "cle_primaire": {
+        "nom": "eventail_pkey",
+        "colonnes": ["cle"]
+      }
+    }
+  ]
+}

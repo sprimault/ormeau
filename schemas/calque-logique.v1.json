@@ -40,6 +40,10 @@
           "description": "Reporté depuis le physique pour que la régénération du schéma soit fidèle.",
           "type": "array",
           "items": { "$ref": "#/$defs/indexEntite" }
+        },
+        "origine": {
+          "description": "Origine du nom de classe, seule inférence que l'entité porte en propre : son existence est un constat, son héritage et ses associations portent la leur.",
+          "$ref": "#/$defs/origine"
         }
       }
     },
@@ -92,7 +96,10 @@
         "modifiable": { "type": "boolean", "default": true },
         "unique": { "type": "boolean" },
         "commentaire": { "type": "string" },
-        "origine": { "$ref": "#/$defs/origine" }
+        "origine": {
+          "description": "Origine du type, pas du nom : la colonne existe, seule sa traduction en type PHP et Doctrine est un jugement.",
+          "$ref": "#/$defs/origine"
+        }
       }
     },
     "association": {

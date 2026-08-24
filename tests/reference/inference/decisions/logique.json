@@ -1,0 +1,64 @@
+{
+  "version_ri": 1,
+  "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000004",
+  "espace_de_noms": "Gescom\\Domaine\\Entity",
+  "entites": [
+    {
+      "nom": "Client",
+      "table": {
+        "nom": "T_CLIENTS",
+        "schema": "dbo"
+      },
+      "identifiant": {
+        "proprietes": [
+          "cliId"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "cliId",
+          "colonne": "CLI_ID",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "cliNom",
+          "colonne": "CLI_NOM",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 80,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "cliActif",
+          "colonne": "CLI_ACTIF",
+          "type_php": "bool",
+          "type_doctrine": "boolean",
+          "nullable": false,
+          "origine": "decision"
+        }
+      ],
+      "origine": "decision"
+    }
+  ],
+  "avertissements": [
+    {
+      "code": "table_ignoree",
+      "cible": "dbo.T_AUDIT_TECHNIQUE",
+      "message": "table écartée par une décision",
+      "resolution": "ignoree",
+      "confiance": 1
+    },
+    {
+      "code": "defaut_incompatible",
+      "cible": "dbo.T_CLIENTS.CLI_ACTIF",
+      "message": "défaut O écarté, incompatible avec le type boolean décidé",
+      "resolution": "forcee_par_decision",
+      "confiance": 1
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "version_ri": 1,
+  "source": {
+    "sgbd": "sqlserver",
+    "version": "16.0",
+    "catalogue": "GESCOM",
+    "schema": "dbo",
+    "extrait_le": "2026-01-01T00:00:00Z",
+    "empreinte": "sha256:0000000000000000000000000000000000000000000000000000000000000004"
+  },
+  "tables": [
+    {
+      "nom": "T_CLIENTS",
+      "schema": "dbo",
+      "colonnes": [
+        {
+          "nom": "CLI_ID",
+          "position": 1,
+          "type_brut": "int",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true
+        },
+        {
+          "nom": "CLI_NOM",
+          "position": 2,
+          "type_brut": "varchar(80)",
+          "type_normalise": "texte",
+          "longueur": 80,
+          "nullable": false
+        },
+        {
+          "nom": "CLI_ACTIF",
+          "position": 3,
+          "type_brut": "char(1)",
+          "type_normalise": "texte",
+          "longueur": 1,
+          "nullable": false,
+          "defaut": {
+            "genre": "litteral",
+            "valeur": "O"
+          }
+        }
+      ],
+      "cle_primaire": {
+        "nom": "PK_T_CLIENTS",
+        "colonnes": ["CLI_ID"]
+      }
+    },
+    {
+      "nom": "T_AUDIT_TECHNIQUE",
+      "schema": "dbo",
+      "colonnes": [
+        {
+          "nom": "AUD_ID",
+          "position": 1,
+          "type_brut": "bigint",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true
+        }
+      ],
+      "cle_primaire": {
+        "nom": "PK_T_AUDIT",
+        "colonnes": ["AUD_ID"]
+      }
+    }
+  ]
+}

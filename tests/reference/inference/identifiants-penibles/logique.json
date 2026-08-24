@@ -1,0 +1,116 @@
+{
+  "version_ri": 1,
+  "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000008",
+  "espace_de_noms": "App\\Entity",
+  "entites": [
+    {
+      "nom": "CommandesClients",
+      "table": {
+        "nom": "Commandes Clients",
+        "schema": "dbo"
+      },
+      "identifiant": {
+        "proprietes": [
+          "nCommande"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "nCommande",
+          "colonne": "N° Commande",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "dateDeCréation",
+          "colonne": "Date de création",
+          "type_php": "\\DateTimeImmutable",
+          "type_doctrine": "datetime_immutable",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "caTtc",
+          "colonne": "CA TTC",
+          "type_php": "?string",
+          "type_doctrine": "decimal",
+          "nullable": true,
+          "precision": 12,
+          "echelle": 2,
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "CatégoriesDesNoms",
+      "table": {
+        "nom": "catégories des noms",
+        "schema": "dbo"
+      },
+      "identifiant": {
+        "proprietes": [
+          "libellé"
+        ],
+        "strategie": "assignee"
+      },
+      "proprietes": [
+        {
+          "nom": "libellé",
+          "colonne": "Libellé",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 120,
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "LignesDeCommande",
+      "table": {
+        "nom": "Lignes de commande",
+        "schema": "dbo"
+      },
+      "identifiant": {
+        "proprietes": [
+          "nCommande",
+          "quantité"
+        ],
+        "strategie": "assignee"
+      },
+      "proprietes": [
+        {
+          "nom": "nCommande",
+          "colonne": "N° Commande",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "quantité",
+          "colonne": "Quantité",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    }
+  ],
+  "avertissements": [
+    {
+      "code": "cle_primaire_composite",
+      "cible": "dbo.Lignes de commande",
+      "message": "clé primaire sur nCommande, quantité",
+      "resolution": "par_defaut",
+      "confiance": 1
+    }
+  ]
+}

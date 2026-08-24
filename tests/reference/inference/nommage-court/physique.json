@@ -1,0 +1,64 @@
+{
+  "version_ri": 1,
+  "source": {
+    "sgbd": "mariadb",
+    "version": "11.4.2",
+    "catalogue": "achats",
+    "schema": "achats",
+    "extrait_le": "2026-01-01T00:00:00Z",
+    "empreinte": "sha256:0000000000000000000000000000000000000000000000000000000000000005"
+  },
+  "tables": [
+    {
+      "nom": "tbl_fournisseur",
+      "schema": "achats",
+      "colonnes": [
+        {
+          "nom": "code_pays",
+          "position": 1,
+          "type_brut": "char(2)",
+          "type_normalise": "texte",
+          "longueur": 2,
+          "nullable": false
+        },
+        {
+          "nom": "code_interne",
+          "position": 2,
+          "type_brut": "varchar(20)",
+          "type_normalise": "texte",
+          "longueur": 20,
+          "nullable": false
+        },
+        {
+          "nom": "libelle",
+          "position": 3,
+          "type_brut": "varchar(120)",
+          "type_normalise": "texte",
+          "longueur": 120,
+          "nullable": false
+        },
+        {
+          "nom": "heure_livraison",
+          "position": 4,
+          "type_brut": "time with time zone",
+          "type_normalise": "heure",
+          "nullable": true
+        }
+      ],
+      "cle_primaire": {
+        "nom": "PRIMARY",
+        "colonnes": ["code_pays", "code_interne"]
+      },
+      "unicites": [
+        {
+          "nom": "uq_fournisseur_pays_libelle",
+          "colonnes": ["code_pays", "libelle"]
+        },
+        {
+          "nom": "uq_fournisseur_libelle",
+          "colonnes": ["libelle"]
+        }
+      ]
+    }
+  ]
+}

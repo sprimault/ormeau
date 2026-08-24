@@ -1,0 +1,94 @@
+{
+  "version_ri": 1,
+  "source": {
+    "sgbd": "postgres",
+    "version": "16.2",
+    "catalogue": "gescom",
+    "schema": "public",
+    "extrait_le": "2026-01-01T00:00:00Z",
+    "empreinte": "sha256:0000000000000000000000000000000000000000000000000000000000000001"
+  },
+  "tables": [
+    {
+      "nom": "client",
+      "schema": "public",
+      "commentaire": "Fiche client",
+      "colonnes": [
+        {
+          "nom": "id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true
+        },
+        {
+          "nom": "raison_sociale",
+          "position": 2,
+          "type_brut": "character varying(120)",
+          "type_normalise": "texte",
+          "longueur": 120,
+          "nullable": false,
+          "commentaire": "Dénomination légale"
+        },
+        {
+          "nom": "siret",
+          "position": 3,
+          "type_brut": "character(14)",
+          "type_normalise": "texte",
+          "longueur": 14,
+          "nullable": true
+        },
+        {
+          "nom": "chiffre_affaires",
+          "position": 4,
+          "type_brut": "numeric(12,2)",
+          "type_normalise": "decimal",
+          "precision": 12,
+          "echelle": 2,
+          "nullable": true
+        },
+        {
+          "nom": "actif",
+          "position": 5,
+          "type_brut": "boolean",
+          "type_normalise": "booleen",
+          "nullable": false,
+          "defaut": {
+            "genre": "litteral",
+            "valeur": "true"
+          }
+        },
+        {
+          "nom": "cree_le",
+          "position": 6,
+          "type_brut": "timestamp with time zone",
+          "type_normalise": "horodatage",
+          "nullable": false,
+          "defaut": {
+            "genre": "expression",
+            "valeur": "now()"
+          }
+        }
+      ],
+      "cle_primaire": {
+        "nom": "client_pkey",
+        "colonnes": ["id"]
+      },
+      "unicites": [
+        {
+          "nom": "client_siret_key",
+          "colonnes": ["siret"]
+        }
+      ],
+      "index": [
+        {
+          "nom": "client_raison_sociale_idx",
+          "colonnes": ["raison_sociale"],
+          "unique": false,
+          "methode": "btree"
+        }
+      ]
+    }
+  ]
+}

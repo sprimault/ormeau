@@ -1,0 +1,79 @@
+{
+  "version_ri": 1,
+  "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000005",
+  "espace_de_noms": "App\\Entity",
+  "entites": [
+    {
+      "nom": "Fournisseur",
+      "table": {
+        "nom": "tbl_fournisseur",
+        "schema": "achats"
+      },
+      "identifiant": {
+        "proprietes": [
+          "codePays",
+          "codeInterne"
+        ],
+        "strategie": "assignee"
+      },
+      "proprietes": [
+        {
+          "nom": "codePays",
+          "colonne": "code_pays",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 2,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "codeInterne",
+          "colonne": "code_interne",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 20,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "libelle",
+          "colonne": "libelle",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 120,
+          "unique": true,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "heureLivraison",
+          "colonne": "heure_livraison",
+          "type_php": "?\\DateTimeImmutable",
+          "type_doctrine": "time_immutable",
+          "nullable": true,
+          "origine": "contrainte"
+        }
+      ],
+      "index": [
+        {
+          "nom": "uq_fournisseur_pays_libelle",
+          "colonnes": [
+            "code_pays",
+            "libelle"
+          ],
+          "unique": true
+        }
+      ],
+      "origine": "decision"
+    }
+  ],
+  "avertissements": [
+    {
+      "code": "cle_primaire_composite",
+      "cible": "achats.tbl_fournisseur",
+      "message": "clé primaire sur codePays, codeInterne",
+      "resolution": "par_defaut",
+      "confiance": 1
+    }
+  ]
+}

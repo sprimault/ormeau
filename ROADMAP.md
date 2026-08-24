@@ -29,15 +29,19 @@ Conteneur de test et DDL de référence couvrant les cas difficiles.
 ## Phase 3 — Inférence et calque logique
 
 Entités, propriétés, associations. Heuristiques de base : table de jointure pure,
-suffixe `_id`, préfixes, singularisation. Avertissements avec code, cible,
-confiance et origine. Fichier de décisions lu et prioritaire.
+suffixe `_id`, héritage par clé primaire étrangère. Avertissements avec code,
+cible, confiance et origine. Fichier de décisions lu et prioritaire.
+
+Préfixes et singularisation sont **proposés, pas appliqués** : ils changent ce
+qu'un nom désigne, et une base ne dit pas sa langue. Ils alimentent le fichier de
+décisions prérempli, où l'utilisateur décommente ce qui lui convient.
 
 ## Phase 4 — Interface de sélection et d'arbitrage
 
 `ormeau interface` : front local embarqué. Saisie de connexion, arbre des tables
 alimenté par `Inventorier`, sélection avec propagation des dépendances par clé
-étrangère, puis écran d'arbitrage des avertissements produisant un
-`decisions.yaml`.
+étrangère, puis écran d'arbitrage des avertissements et des propositions de
+renommage, produisant un `<base>.decisions.yaml`.
 
 Ici et pas plus tard, pour deux raisons. L'écran de connexion et l'arbre ne
 dépendent que d'`Inventorier`, écrit depuis la phase 2 : les repousser était un

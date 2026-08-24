@@ -1,0 +1,101 @@
+{
+  "version_ri": 1,
+  "source": {
+    "sgbd": "postgres",
+    "version": "16.2",
+    "catalogue": "melange",
+    "schema": "public",
+    "extrait_le": "2026-01-01T00:00:00Z",
+    "empreinte": "sha256:0000000000000000000000000000000000000000000000000000000000000007"
+  },
+  "tables": [
+    {
+      "nom": "categories",
+      "schema": "public",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false }
+      ],
+      "cle_primaire": { "nom": "categories_pkey", "colonnes": ["id"] }
+    },
+    {
+      "nom": "journaux",
+      "schema": "public",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false }
+      ],
+      "cle_primaire": { "nom": "journaux_pkey", "colonnes": ["id"] }
+    },
+    {
+      "nom": "bureaux",
+      "schema": "public",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false }
+      ],
+      "cle_primaire": { "nom": "bureaux_pkey", "colonnes": ["id"] }
+    },
+    {
+      "nom": "boites_aux_lettres",
+      "schema": "public",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false }
+      ],
+      "cle_primaire": { "nom": "boites_pkey", "colonnes": ["id"] }
+    },
+    {
+      "nom": "adresses",
+      "schema": "public",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false }
+      ],
+      "cle_primaire": { "nom": "adresses_pkey", "colonnes": ["id"] }
+    },
+    {
+      "nom": "pays",
+      "schema": "public",
+      "colonnes": [
+        { "nom": "code", "position": 1, "type_brut": "character(2)", "type_normalise": "texte", "longueur": 2, "nullable": false }
+      ],
+      "cle_primaire": { "nom": "pays_pkey", "colonnes": ["code"] }
+    },
+    {
+      "nom": "status",
+      "schema": "public",
+      "colonnes": [
+        { "nom": "code", "position": 1, "type_brut": "character varying(16)", "type_normalise": "texte", "longueur": 16, "nullable": false }
+      ],
+      "cle_primaire": { "nom": "status_pkey", "colonnes": ["code"] }
+    },
+    {
+      "nom": "people",
+      "schema": "public",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false }
+      ],
+      "cle_primaire": { "nom": "people_pkey", "colonnes": ["id"] }
+    },
+    {
+      "nom": "boxes",
+      "schema": "public",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false }
+      ],
+      "cle_primaire": { "nom": "boxes_pkey", "colonnes": ["id"] }
+    },
+    {
+      "nom": "acces",
+      "schema": "public",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false }
+      ],
+      "cle_primaire": { "nom": "acces_pkey", "colonnes": ["id"] }
+    },
+    {
+      "nom": "client",
+      "schema": "public",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false }
+      ],
+      "cle_primaire": { "nom": "client_pkey", "colonnes": ["id"] }
+    }
+  ]
+}

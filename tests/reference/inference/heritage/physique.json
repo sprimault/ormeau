@@ -1,0 +1,81 @@
+{
+  "version_ri": 1,
+  "source": {
+    "sgbd": "postgres",
+    "version": "16.2",
+    "catalogue": "rh",
+    "schema": "public",
+    "extrait_le": "2026-01-01T00:00:00Z",
+    "empreinte": "sha256:000000000000000000000000000000000000000000000000000000000000000a"
+  },
+  "tables": [
+    {
+      "nom": "personne",
+      "schema": "public",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false, "auto_increment": true },
+        { "nom": "nom", "position": 2, "type_brut": "character varying(80)", "type_normalise": "texte", "longueur": 80, "nullable": false }
+      ],
+      "cle_primaire": { "nom": "personne_pkey", "colonnes": ["id"] }
+    },
+    {
+      "nom": "salarie",
+      "schema": "public",
+      "commentaire": "La clé primaire est aussi une clé étrangère : héritage par jointure",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false },
+        { "nom": "matricule", "position": 2, "type_brut": "character varying(20)", "type_normalise": "texte", "longueur": 20, "nullable": false }
+      ],
+      "cle_primaire": { "nom": "salarie_pkey", "colonnes": ["id"] },
+      "cles_etrangeres": [
+        {
+          "nom": "salarie_id_fkey",
+          "colonnes": ["id"],
+          "table_cible": "personne",
+          "schema_cible": "public",
+          "colonnes_cibles": ["id"],
+          "a_la_suppression": "cascade"
+        }
+      ]
+    },
+    {
+      "nom": "prestataire",
+      "schema": "public",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false },
+        { "nom": "societe", "position": 2, "type_brut": "character varying(120)", "type_normalise": "texte", "longueur": 120, "nullable": false }
+      ],
+      "cle_primaire": { "nom": "prestataire_pkey", "colonnes": ["id"] },
+      "cles_etrangeres": [
+        {
+          "nom": "prestataire_id_fkey",
+          "colonnes": ["id"],
+          "table_cible": "personne",
+          "schema_cible": "public",
+          "colonnes_cibles": ["id"],
+          "a_la_suppression": "cascade"
+        }
+      ]
+    },
+    {
+      "nom": "affectation",
+      "schema": "public",
+      "commentaire": "La FK est dans la PK composite sans la couvrir : ce n'est pas de l'héritage",
+      "colonnes": [
+        { "nom": "salarie_id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false },
+        { "nom": "debut", "position": 2, "type_brut": "date", "type_normalise": "date", "nullable": false },
+        { "nom": "service", "position": 3, "type_brut": "character varying(60)", "type_normalise": "texte", "longueur": 60, "nullable": false }
+      ],
+      "cle_primaire": { "nom": "affectation_pkey", "colonnes": ["salarie_id", "debut"] },
+      "cles_etrangeres": [
+        {
+          "nom": "affectation_salarie_fkey",
+          "colonnes": ["salarie_id"],
+          "table_cible": "salarie",
+          "schema_cible": "public",
+          "colonnes_cibles": ["id"]
+        }
+      ]
+    }
+  ]
+}

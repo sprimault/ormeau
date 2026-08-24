@@ -1,0 +1,87 @@
+{
+  "version_ri": 1,
+  "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000001",
+  "espace_de_noms": "App\\Entity",
+  "entites": [
+    {
+      "nom": "Client",
+      "table": {
+        "nom": "client",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "raisonSociale",
+          "colonne": "raison_sociale",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 120,
+          "commentaire": "Dénomination légale",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "siret",
+          "colonne": "siret",
+          "type_php": "?string",
+          "type_doctrine": "string",
+          "nullable": true,
+          "longueur": 14,
+          "unique": true,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "chiffreAffaires",
+          "colonne": "chiffre_affaires",
+          "type_php": "?string",
+          "type_doctrine": "decimal",
+          "nullable": true,
+          "precision": 12,
+          "echelle": 2,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "actif",
+          "colonne": "actif",
+          "type_php": "bool",
+          "type_doctrine": "boolean",
+          "nullable": false,
+          "defaut": "true",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "creeLe",
+          "colonne": "cree_le",
+          "type_php": "\\DateTimeImmutable",
+          "type_doctrine": "datetimetz_immutable",
+          "nullable": false,
+          "origine": "contrainte"
+        }
+      ],
+      "index": [
+        {
+          "nom": "client_raison_sociale_idx",
+          "colonnes": [
+            "raison_sociale"
+          ],
+          "unique": false
+        }
+      ],
+      "origine": "nommage"
+    }
+  ]
+}

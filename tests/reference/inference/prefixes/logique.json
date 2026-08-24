@@ -1,0 +1,108 @@
+{
+  "version_ri": 1,
+  "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000006",
+  "espace_de_noms": "App\\Entity",
+  "entites": [
+    {
+      "nom": "TClients",
+      "table": {
+        "nom": "T_CLIENTS",
+        "schema": "dbo"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "ID",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "nom",
+          "colonne": "NOM",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 80,
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "TCommandes",
+      "table": {
+        "nom": "T_COMMANDES",
+        "schema": "dbo"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "ID",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "totalHt",
+          "colonne": "TOTAL_HT",
+          "type_php": "string",
+          "type_doctrine": "decimal",
+          "nullable": false,
+          "precision": 12,
+          "echelle": 2,
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "TPays",
+      "table": {
+        "nom": "T_PAYS",
+        "schema": "dbo"
+      },
+      "identifiant": {
+        "proprietes": [
+          "code"
+        ],
+        "strategie": "assignee"
+      },
+      "proprietes": [
+        {
+          "nom": "code",
+          "colonne": "CODE",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 2,
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    }
+  ],
+  "avertissements": [
+    {
+      "code": "prefixe_detecte",
+      "cible": "dbo",
+      "message": "préfixe T_ commun aux 3 tables, conservé ; prefixes_a_retirer le retirerait des noms de classes",
+      "resolution": "aucune",
+      "confiance": 0.8
+    }
+  ]
+}
