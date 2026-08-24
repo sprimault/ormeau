@@ -82,6 +82,25 @@ $ docker run --rm --user "$(id -u):$(id -g)" \
     ghcr.io/sprimault/ormeau:v0.2.0 extraire --sortie /sortie/gescom.calque.json
 ```
 
+With the layer in hand, inference runs offline — the database is no longer
+needed:
+
+```console
+$ ormeau inferer gescom.calque.json
+gescom.decisions.yaml écrit, entièrement en commentaire : rien n'est appliqué tant que
+vous n'avez pas décommenté. Il porte les renommages que l'outil propose.
+
+gescom.logique.json : 12 entité(s), 31 association(s), 2 énumération(s), 1 trait(s)
+
+3 avertissement(s) :
+  table_sans_cle_primaire  public.t_log_import   aucune clé primaire : Doctrine refusera cette entité en l'état
+  prefixe_detecte          public                préfixe T_ commun aux 12 tables, conservé ; prefixes_a_retirer le retirerait
+  singulier_ambigu         public.categories     categories rendu Category par la règle anglaise ; le français donnerait Categorie
+```
+
+You uncomment what suits you in `gescom.decisions.yaml`, run it again, and the
+file is never rewritten: your rulings replay on every pass.
+
 Between releases, `go install github.com/sprimault/ormeau/cmd/ormeau@master`.
 
 ### On Windows
@@ -174,15 +193,20 @@ rather than by the code's discipline, with a per-query timeout.
 The DSN is the only secret handled: it appears neither in logs, nor in error
 messages, nor in the layer.
 
+Ormeau opens two connections and no others: your database, and `127.0.0.1` for
+the local interface. No telemetry, no outbound call, not even an update check —
+the code is public, and `netstat` confirms it during an extraction.
+
 **A layer is a customer's database schema** — table names, column names,
 business comments, and with `--echantillonner`, real values. A layer extracted
 from a production database never enters a repository, nor an issue attachment.
 
 ## Status
 
-PostgreSQL extraction works. Inference and entity generation are not written:
-their commands return an error naming the phase that will bring them. The state
-per phase is in [`ROADMAP.md`](ROADMAP.md).
+PostgreSQL extraction and inference both work: `ormeau extraire` then `ormeau
+inferer` produce the three files. Entity generation is not written, and its
+command returns an error naming the phase that will bring it. The state per
+phase is in [`ROADMAP.md`](ROADMAP.md).
 
 CI runs the test suite with the race detector, `golangci-lint`, `gofmt`,
 `govulncheck`, `gosec` and a JSON Schema validity check on every push and pull

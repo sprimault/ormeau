@@ -83,6 +83,24 @@ $ docker run --rm --user "$(id -u):$(id -g)" \
     ghcr.io/sprimault/ormeau:v0.2.0 extraire --sortie /sortie/gescom.calque.json
 ```
 
+Le calque en main, l'inférence tourne hors ligne — plus besoin de la base :
+
+```console
+$ ormeau inferer gescom.calque.json
+gescom.decisions.yaml écrit, entièrement en commentaire : rien n'est appliqué tant que
+vous n'avez pas décommenté. Il porte les renommages que l'outil propose.
+
+gescom.logique.json : 12 entité(s), 31 association(s), 2 énumération(s), 1 trait(s)
+
+3 avertissement(s) :
+  table_sans_cle_primaire  public.t_log_import   aucune clé primaire : Doctrine refusera cette entité en l'état
+  prefixe_detecte          public                préfixe T_ commun aux 12 tables, conservé ; prefixes_a_retirer le retirerait
+  singulier_ambigu         public.categories     categories rendu Category par la règle anglaise ; le français donnerait Categorie
+```
+
+On décommente ce qui convient dans `gescom.decisions.yaml`, on relance, et le
+fichier n'est jamais réécrit : les arbitrages se rejouent à chaque passage.
+
 Entre deux versions, `go install github.com/sprimault/ormeau/cmd/ormeau@master`.
 
 ### Sous Windows
@@ -176,6 +194,11 @@ serveur et non par la discipline du code, avec un délai maximal par requête.
 Le DSN est le seul secret manipulé : il n'apparaît ni dans les journaux, ni dans
 les messages d'erreur, ni dans le calque.
 
+Ormeau n'ouvre que deux connexions : votre base, et `127.0.0.1` pour l'interface
+locale. Aucune télémétrie, aucun appel sortant, pas même une vérification de
+version — le code est public, et `netstat` le confirme le temps d'une
+extraction.
+
 **Un calque est le schéma de la base d'un client** — noms de tables, de
 colonnes, commentaires métier, et avec `--echantillonner`, des valeurs réelles.
 Un calque extrait d'une base de production ne rentre jamais dans un dépôt, ni en
@@ -183,9 +206,10 @@ pièce jointe d'une issue.
 
 ## État d'avancement
 
-L'extraction PostgreSQL fonctionne. L'inférence et la génération d'entités ne
-sont pas écrites : leurs commandes retournent une erreur nommant la phase qui
-les apportera. L'état par phase est dans [`ROADMAP.md`](ROADMAP.md).
+L'extraction PostgreSQL et l'inférence fonctionnent : `ormeau extraire` puis
+`ormeau inferer` produisent les trois fichiers. La génération d'entités n'est
+pas écrite, et sa commande retourne une erreur nommant la phase qui l'apportera.
+L'état par phase est dans [`ROADMAP.md`](ROADMAP.md).
 
 La CI exécute la suite de tests avec le détecteur de courses, `golangci-lint`,
 `gofmt`, `govulncheck`, `gosec` et un contrôle de validité des JSON Schema à
