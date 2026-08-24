@@ -52,6 +52,8 @@ func TestDSNEncodeLesCaracteresReserves(t *testing.T) {
 	}
 }
 
+// TestDSNPortParDefaut vérifie le port implicite de chaque SGBD. Se tromper ici
+// produit un refus de connexion que rien dans le message n'explique.
 func TestDSNPortParDefaut(t *testing.T) {
 	t.Parallel()
 
@@ -78,6 +80,7 @@ func TestDSNPortParDefaut(t *testing.T) {
 	}
 }
 
+// TestDSNPortExplicite vérifie qu'un port donné l'emporte sur le défaut.
 func TestDSNPortExplicite(t *testing.T) {
 	t.Parallel()
 
@@ -90,6 +93,8 @@ func TestDSNPortExplicite(t *testing.T) {
 	}
 }
 
+// TestDSNRefuseLIncomplet vérifie qu'une connexion sans SGBD, sans hôte ou sans
+// base est refusée à la construction plutôt qu'au premier aller-retour réseau.
 func TestDSNRefuseLIncomplet(t *testing.T) {
 	t.Parallel()
 
@@ -141,6 +146,8 @@ func TestDSNSansMotDePasse(t *testing.T) {
 	}
 }
 
+// TestBaseDuDSN couvre l'extraction du nom de base, dont dépend le balayage de
+// serveur pour nommer les fichiers qu'il produit.
 func TestBaseDuDSN(t *testing.T) {
 	t.Parallel()
 

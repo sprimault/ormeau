@@ -21,6 +21,8 @@ import (
 // hôte en dur ne tourne que chez celui qui l'a écrit.
 const dsnParDefaut = "postgres://postgres:ormeau@127.0.0.1:35432/gescom"
 
+// dsnDeTest rend le DSN du conteneur, qu'ORMEAU_TEST_DSN permet de remplacer :
+// la même suite doit pouvoir viser un serveur distant sans être recompilée.
 func dsnDeTest() string {
 	if dsn := os.Getenv("ORMEAU_TEST_DSN"); dsn != "" {
 		return dsn
@@ -28,6 +30,7 @@ func dsnDeTest() string {
 	return dsnParDefaut
 }
 
+// ouvrirOuEchouer ouvre une connexion et l'inscrit au nettoyage du test.
 func ouvrirOuEchouer(t *testing.T) introspection.Introspecteur {
 	t.Helper()
 
@@ -46,6 +49,7 @@ func ouvrirOuEchouer(t *testing.T) introspection.Introspecteur {
 	return p
 }
 
+// TestOuvrirEtFermer vérifie le cycle de vie de la connexion, nettoyage compris.
 func TestOuvrirEtFermer(t *testing.T) {
 	ouvrirOuEchouer(t)
 }
@@ -77,6 +81,8 @@ func TestConnexionEnLectureSeule(t *testing.T) {
 	}
 }
 
+// TestInventorier vérifie l'arbre servant à l'interface : les tables du schéma
+// de test y figurent, celles des schémas système non.
 func TestInventorier(t *testing.T) {
 	p := ouvrirOuEchouer(t)
 
@@ -216,6 +222,7 @@ func TestInventorierSchemaInexistant(t *testing.T) {
 	}
 }
 
+// contient dit si la liste porte la valeur.
 func contient(liste []string, valeur string) bool {
 	for _, v := range liste {
 		if v == valeur {

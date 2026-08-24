@@ -39,6 +39,7 @@ const (
 	CodeStatistiquesOrphelines = "statistiques_orphelines"
 )
 
+// Forme attendue d'une empreinte, telle qu'Ecrire la pose.
 var motifEmpreinte = regexp.MustCompile(`^sha256:[0-9a-f]{64}$`)
 
 // Valider contrôle la cohérence du calque et rend toutes les anomalies plutôt
@@ -78,6 +79,8 @@ func (p *Physique) Valider() []Anomalie {
 	return a
 }
 
+// validerSource contrôle l'en-tête du calque. Le DSN n'y figure jamais : ce qui
+// est attendu, c'est le SGBD, sa version, le catalogue et le schéma.
 func validerSource(s *Source) []Anomalie {
 	var a []Anomalie
 
@@ -107,6 +110,9 @@ func validerSource(s *Source) []Anomalie {
 	return a
 }
 
+// validerTable contrôle une table et tout ce qu'elle porte. Les contraintes sont
+// vérifiées contre les colonnes réellement déclarées : une clé primaire qui
+// désigne une colonne absente produit une entité aux propriétés fantômes.
 func (p *Physique) validerTable(t *Table) []Anomalie {
 	var a []Anomalie
 	cible := t.Schema + "." + t.Nom
@@ -145,6 +151,9 @@ func (p *Physique) validerTable(t *Table) []Anomalie {
 	return a
 }
 
+// validerColonne contrôle une colonne contre les vocabulaires fermés du format.
+// Le type brut n'est pas jugé — il est verbatim par construction — mais le type
+// normalisé qui l'accompagne doit appartenir au vocabulaire.
 func (p *Physique) validerColonne(c *Colonne, cible string) []Anomalie {
 	var a []Anomalie
 
@@ -172,6 +181,9 @@ func (p *Physique) validerColonne(c *Colonne, cible string) []Anomalie {
 	return a
 }
 
+// validerCleEtrangere contrôle les deux côtés de la relation. L'arité est
+// vérifiée avant la cible : une clé composite mal appariée est un défaut de
+// l'extraction, pas une portée trop étroite.
 func (p *Physique) validerCleEtrangere(fk *CleEtrangere, colonnes map[string]bool, cible string) []Anomalie {
 	var a []Anomalie
 	quoi := "clé étrangère " + fk.Nom
@@ -209,6 +221,8 @@ func (p *Physique) validerCleEtrangere(fk *CleEtrangere, colonnes map[string]boo
 	return a
 }
 
+// validerTypesEnumeres refuse les déclarations vides : un type énuméré sans
+// valeur ne produit aucun cas PHP exploitable.
 func (p *Physique) validerTypesEnumeres() []Anomalie {
 	var a []Anomalie
 	for i := range p.TypesEnumeres {
@@ -268,6 +282,8 @@ func (p *Physique) VerifierEmpreinte() error {
 	return nil
 }
 
+// typeEnumereDeclare dit si le type est présent dans types_enumeres. Le parcours
+// est linéaire : une base en compte quelques dizaines, jamais des milliers.
 func (p *Physique) typeEnumereDeclare(nom string) bool {
 	for i := range p.TypesEnumeres {
 		if p.TypesEnumeres[i].Nom == nom {
@@ -291,10 +307,14 @@ func colonnesConnues(reference []string, connues map[string]bool, cible, quoi st
 	return a
 }
 
+// anomalie assemble le triplet code, cible, message.
 func anomalie(code, cible, format string, args ...any) Anomalie {
 	return Anomalie{Code: code, Cible: cible, Message: fmt.Sprintf(format, args...)}
 }
 
+// trierParCible impose un ordre stable là où les anomalies viennent du parcours
+// d'une map. Ailleurs l'ordre du document suffit, et vaut mieux : il place les
+// anomalies dans l'ordre où on les lira.
 func trierParCible(a []Anomalie) {
 	sort.SliceStable(a, func(i, j int) bool {
 		if a[i].Cible != a[j].Cible {
@@ -304,6 +324,8 @@ func trierParCible(a []Anomalie) {
 	})
 }
 
+// Les trois vocabulaires fermés du format, sous forme interrogeable. Une valeur
+// ajoutée ici incrémente version_ri.
 var typesNormalises = map[TypeNorm]bool{
 	TypeEntier: true, TypeDecimal: true, TypeFlottant: true, TypeTexte: true,
 	TypeBinaire: true, TypeBooleen: true, TypeDate: true, TypeHeure: true,
@@ -312,10 +334,12 @@ var typesNormalises = map[TypeNorm]bool{
 	TypeInconnu: true,
 }
 
+// Genres de défaut reconnus.
 var genresDefaut = map[GenreDefaut]bool{
 	DefautLitteral: true, DefautExpression: true, DefautSequence: true,
 }
 
+// Actions référentielles reconnues.
 var actions = map[Action]bool{
 	ActionAucune: true, ActionCascade: true, ActionSetNull: true,
 	ActionSetDefault: true, ActionRestrict: true,
