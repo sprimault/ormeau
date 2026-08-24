@@ -149,6 +149,9 @@ func litteral(expression string) (string, bool) {
 	return "", false
 }
 
+// estNombre reconnaît un littéral numérique non quoté. Volontairement laxiste :
+// le catalogue ne rend que des littéraux valides, et le rôle de cette fonction
+// est de les distinguer d'une expression, pas de les valider.
 func estNombre(s string) bool {
 	if s == "" {
 		return false

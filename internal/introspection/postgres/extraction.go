@@ -129,16 +129,22 @@ type jeuDeTables struct {
 	ordre  []string
 }
 
+// nouveauJeu rend un jeu vide, prêt pour la passe des tables.
 func nouveauJeu() *jeuDeTables {
 	return &jeuDeTables{parCle: map[string]*calque.Table{}}
 }
 
+// ajouter enregistre une table et retient son rang d'arrivée. L'ordre n'est pas
+// celui du calque final — Trier s'en charge — mais il rend la collecte
+// reproductible, ce qui aide au diagnostic.
 func (j *jeuDeTables) ajouter(t *calque.Table) {
 	cle := t.Schema + "." + t.Nom
 	j.parCle[cle] = t
 	j.ordre = append(j.ordre, cle)
 }
 
+// trouver rend la table à compléter, ou nil si le catalogue rend une ligne pour
+// une table qu'on n'a pas collectée.
 func (j *jeuDeTables) trouver(schema, nom string) *calque.Table {
 	return j.parCle[schema+"."+nom]
 }
@@ -163,6 +169,7 @@ func (j *jeuDeTables) retenues(portee introspection.Portee) []calque.Table {
 	return tables
 }
 
+// ensemble indexe une liste de portée pour l'interroger par appartenance.
 func ensemble(valeurs []string) map[string]bool {
 	if len(valeurs) == 0 {
 		return nil
@@ -174,6 +181,8 @@ func ensemble(valeurs []string) map[string]bool {
 	return e
 }
 
+// lireSource renseigne l'en-tête du calque. Ni empreinte ni horodatage ici :
+// l'une se calcule à l'écriture, l'autre est posé par la commande.
 func (p *pilote) lireSource(ctx context.Context, schemas []string) (calque.Source, error) {
 	ctx, annuler := context.WithTimeout(ctx, delaiRequete)
 	defer annuler()
@@ -190,6 +199,8 @@ func (p *pilote) lireSource(ctx context.Context, schemas []string) (calque.Sourc
 	return s, nil
 }
 
+// lireTables collecte les tables ordinaires et partitionnées. Les vues sont
+// lues à part : elles n'ont ni contrainte ni index à compléter.
 func (p *pilote) lireTables(ctx context.Context, schemas []string) (*jeuDeTables, error) {
 	ctx, annuler := context.WithTimeout(ctx, delaiRequete)
 	defer annuler()
@@ -219,6 +230,10 @@ func (p *pilote) lireTables(ctx context.Context, schemas []string) (*jeuDeTables
 	return jeu, nil
 }
 
+// lireColonnes complète les tables collectées. C'est la passe la plus dense du
+// pilote : type verbatim, type normalisé, longueur, précision, échelle,
+// nullabilité, identité, défaut structuré, expression de génération, collation
+// et commentaire y sont tous décidés.
 func (p *pilote) lireColonnes(ctx context.Context, schemas []string, jeu *jeuDeTables) error {
 	ctx, annuler := context.WithTimeout(ctx, delaiRequete)
 	defer annuler()
@@ -288,6 +303,10 @@ type cleContrainte struct {
 	schema, table, nom string
 }
 
+// lireContraintes répartit clés primaires, unicités, clés étrangères et
+// vérifications. Les colonnes sont chargées d'abord, en une requête : les
+// demander contrainte par contrainte multiplierait les aller-retours sur une
+// base qui en compte des milliers.
 func (p *pilote) lireContraintes(ctx context.Context, schemas []string, jeu *jeuDeTables) error {
 	colonnes, err := p.lireColonnesContraintes(ctx, schemas)
 	if err != nil {
@@ -388,10 +407,15 @@ func (p *pilote) lireColonnesContraintes(ctx context.Context, schemas []string) 
 	return parContrainte, lignes.Err()
 }
 
+// cleIndex identifie un index pendant la collecte de ses colonnes. Le nom seul
+// ne suffit pas : deux schémas peuvent porter le même.
 type cleIndex struct {
 	schema, table, nom string
 }
 
+// lireIndex collecte les index et leurs classes d'opérateurs. Un index
+// d'expression est écarté : il n'a aucune colonne exploitable, et le garder
+// produirait une contrainte vide que la validation refuserait.
 func (p *pilote) lireIndex(ctx context.Context, schemas []string, jeu *jeuDeTables) error {
 	colonnes, operateurs, err := p.lireColonnesIndex(ctx, schemas)
 	if err != nil {
@@ -499,6 +523,9 @@ func (p *pilote) lireColonnesIndex(ctx context.Context, schemas []string) (map[c
 	return colonnes, classes, nil
 }
 
+// lireSequences collecte les séquences du schéma, y compris celles qu'un SERIAL
+// a créées implicitement : c'est ce qui permet à l'inférence de reconnaître une
+// stratégie d'identifiant.
 func (p *pilote) lireSequences(ctx context.Context, schemas []string) ([]calque.Sequence, error) {
 	ctx, annuler := context.WithTimeout(ctx, delaiRequete)
 	defer annuler()
@@ -523,6 +550,9 @@ func (p *pilote) lireSequences(ctx context.Context, schemas []string) ([]calque.
 	return sequences, lignes.Err()
 }
 
+// lireTypesEnumeres collecte les types énumérés natifs. Ce sont les seules
+// énumérations certaines : les autres se déduisent d'un CHECK ou d'un
+// échantillon, et relèvent de l'inférence.
 func (p *pilote) lireTypesEnumeres(ctx context.Context, schemas []string) ([]calque.TypeEnumere, error) {
 	ctx, annuler := context.WithTimeout(ctx, delaiRequete)
 	defer annuler()
@@ -556,6 +586,8 @@ func (p *pilote) lireTypesEnumeres(ctx context.Context, schemas []string) ([]cal
 	return types, lignes.Err()
 }
 
+// lireVues collecte les vues et vues matérialisées. La définition est reprise
+// telle que le catalogue la rend, sans reformatage.
 func (p *pilote) lireVues(ctx context.Context, schemas []string) ([]calque.Vue, error) {
 	ctx, annuler := context.WithTimeout(ctx, delaiRequete)
 	defer annuler()

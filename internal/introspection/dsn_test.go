@@ -8,6 +8,8 @@ import (
 	"testing"
 )
 
+// TestSGBDDepuisDSN couvre les schémas d'URL de chaque dialecte, y compris les
+// alias : postgresql vaut postgres, sqlserver vaut mssql.
 func TestSGBDDepuisDSN(t *testing.T) {
 	t.Parallel()
 
@@ -43,6 +45,8 @@ func TestSGBDDepuisDSN(t *testing.T) {
 	}
 }
 
+// TestSGBDDepuisDSNRefuse vérifie qu'un schéma inconnu est refusé plutôt que
+// deviné : choisir un pilote au hasard produirait une erreur de protocole.
 func TestSGBDDepuisDSNRefuse(t *testing.T) {
 	t.Parallel()
 
@@ -190,6 +194,9 @@ func TestMasquerParDefautNeMontreRien(t *testing.T) {
 	}
 }
 
+// TestMasquerChaineVide vérifie que le masquage laisse la chaîne vide intacte :
+// elle apparaît quand aucun DSN n'a été fourni, et la décorer brouillerait le
+// message d'erreur.
 func TestMasquerChaineVide(t *testing.T) {
 	t.Parallel()
 

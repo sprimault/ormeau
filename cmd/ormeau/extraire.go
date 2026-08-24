@@ -103,6 +103,7 @@ func resoudreDSN(dsn string, c introspection.Connexion) (string, error) {
 	return "", errors.New("--dsn, ORMEAU_DSN ou les drapeaux --sgbd et --hote sont requis")
 }
 
+// extraireUneBase ouvre, extrait, écrit et referme. Une base, un fichier.
 func extraireUneBase(ctx context.Context, sgbd, dsn, sortie string, portee introspection.Portee) error {
 	pilote, err := introspection.Ouvrir(ctx, sgbd, dsn)
 	if err != nil {
@@ -167,6 +168,9 @@ func extraireLeServeur(ctx context.Context, sgbd, dsn, repertoire string, portee
 	return nil
 }
 
+// ecrire valide, horodate et sérialise. Les anomalies sont rapportées mais
+// n'empêchent pas l'écriture : un calque partiel reste exploitable, et le
+// refuser priverait de la seule trace de ce qui cloche.
 func ecrire(physique *calque.Physique, chemin string) error {
 	// Les anomalies vont sur la sortie d'erreur : la sortie standard peut
 	// porter autre chose, et elles ne sont pas fatales.
@@ -188,6 +192,8 @@ func ecrire(physique *calque.Physique, chemin string) error {
 	return nil
 }
 
+// fermer signale l'échec sans le propager : la fermeture arrive après que le
+// calque est écrit, l'échouer perdrait un travail déjà fait.
 func fermer(pilote introspection.Introspecteur) {
 	if err := pilote.Fermer(); err != nil {
 		fmt.Fprintf(os.Stderr, "fermeture de la connexion : %v\n", err)
@@ -223,6 +229,7 @@ func decouper(liste string) []string {
 	return schemas
 }
 
+// compterColonnes totalise les colonnes du calque, pour le compte rendu.
 func compterColonnes(p *calque.Physique) int {
 	var n int
 	for i := range p.Tables {

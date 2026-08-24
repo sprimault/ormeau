@@ -227,6 +227,9 @@ func TestValiderSignaleUneCibleHorsPerimetre(t *testing.T) {
 	}
 }
 
+// TestVerifierEmpreinte couvre les trois issues : conforme, absente, altérée.
+// Le cas altéré est celui qui compte — c'est lui qui détecte un calque retouché
+// après écriture.
 func TestVerifierEmpreinte(t *testing.T) {
 	t.Parallel()
 

@@ -256,6 +256,8 @@ func estCleValeur(dsn string) bool {
 	return !strings.Contains(dsn, "://") && strings.Contains(dsn, "=")
 }
 
+// masquerCleValeur remplace la valeur des clés secrètes et laisse le reste
+// intact : un DSN masqué doit rester assez lisible pour diagnostiquer.
 func masquerCleValeur(dsn string) string {
 	champs := strings.Fields(dsn)
 	for i, champ := range champs {
@@ -267,6 +269,9 @@ func masquerCleValeur(dsn string) string {
 	return strings.Join(champs, " ")
 }
 
+// estCleSecrete reconnaît les clés portant un mot de passe. Les orthographes des
+// différents dialectes sont toutes listées : en manquer une laisse fuir un
+// secret dans un journal.
 func estCleSecrete(cle string) bool {
 	switch strings.ToLower(cle) {
 	case "password", "passwd", "pwd", "sslpassword":

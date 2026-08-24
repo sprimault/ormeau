@@ -15,6 +15,9 @@ import (
 	"github.com/sprimault/ormeau/internal/introspection"
 )
 
+// extraireOuEchouer rend le calque du schéma de test. Toutes les assertions du
+// fichier partent de là : une extraction en échec arrête le test au lieu de
+// produire une cascade d'erreurs sur un calque vide.
 func extraireOuEchouer(t *testing.T) *calque.Physique {
 	t.Helper()
 
@@ -402,6 +405,7 @@ func TestExtrairePorteeFiltrante(t *testing.T) {
 	}
 }
 
+// tableOuEchouer rend une table du schéma de test, ou arrête le test.
 func tableOuEchouer(t *testing.T, p *calque.Physique, nom string) *calque.Table {
 	t.Helper()
 
@@ -412,6 +416,7 @@ func tableOuEchouer(t *testing.T, p *calque.Physique, nom string) *calque.Table 
 	return tbl
 }
 
+// colonneOuEchouer rend une colonne du schéma de test, ou arrête le test.
 func colonneOuEchouer(t *testing.T, p *calque.Physique, table, colonne string) *calque.Colonne {
 	t.Helper()
 

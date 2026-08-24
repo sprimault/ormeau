@@ -16,6 +16,8 @@ import (
 //	go test ./internal/calque/ -maj-attendus
 var majAttendus = flag.Bool("maj-attendus", false, "réécrit les fichiers de référence")
 
+// Le calque de référence, seul exemple versionné : il vient de tests/ddl/, pas
+// d'une base réelle.
 const cheminReference = "../../tests/reference/exemple.calque.json"
 
 // Ce fichier est le pont entre les deux moitiés du projet : la CI le valide
