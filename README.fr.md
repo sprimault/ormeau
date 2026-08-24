@@ -71,7 +71,7 @@ $ gh attestation verify ormeau_v0.2.0_linux_amd64.tar.gz --repo sprimault/ormeau
 ```
 
 Par conteneur, en lui donnant l'identité de l'appelant : l'image tourne sous un
-utilisateur non privilégié et n'écrirait pas dans le volume sans cela.
+utilisateur non privilégié et n'écrirait pas dans un volume Linux sans cela.
 
 ```console
 $ docker run --rm --user "$(id -u):$(id -g)" \
@@ -80,6 +80,28 @@ $ docker run --rm --user "$(id -u):$(id -g)" \
 ```
 
 Entre deux versions, `go install github.com/sprimault/ormeau/cmd/ormeau@master`.
+
+### Sous Windows
+
+Les commandes sont les mêmes, à trois détails près : le binaire s'appelle
+`.\ormeau.exe`, les variables d'environnement se posent autrement, et `--user`
+est inutile — un volume Windows ne porte pas de permissions POSIX.
+
+```powershell
+$env:ORMEAU_MDP = "secret"
+.\ormeau.exe extraire --sgbd postgres --hote srv --utilisateur app --base gescom --sortie gescom.calque.json
+
+docker run --rm -e ORMEAU_DSN -v "${PWD}:/sortie" `
+    ghcr.io/sprimault/ormeau:v0.2.0 extraire --sortie /sortie/gescom.calque.json
+```
+
+Vérifier l'empreinte d'une archive téléchargée :
+
+```powershell
+$attendu = (Select-String -Path SHA256SUMS -Pattern windows).Line.Split(" ")[0]
+$obtenu  = (Get-FileHash ormeau_v0.2.0_windows_amd64.zip -Algorithm SHA256).Hash.ToLower()
+if ($attendu -eq $obtenu) { "empreinte OK" } else { "EMPREINTE DIFFERENTE" }
+```
 
 ## Ce que produit l'extraction
 

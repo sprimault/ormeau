@@ -70,7 +70,7 @@ $ gh attestation verify ormeau_v0.2.0_linux_amd64.tar.gz --repo sprimault/ormeau
 ```
 
 Through a container, giving it the caller's identity: the image runs as an
-unprivileged user and would not write to the volume otherwise.
+unprivileged user and would not write to a Linux volume otherwise.
 
 ```console
 $ docker run --rm --user "$(id -u):$(id -g)" \
@@ -79,6 +79,28 @@ $ docker run --rm --user "$(id -u):$(id -g)" \
 ```
 
 Between releases, `go install github.com/sprimault/ormeau/cmd/ormeau@master`.
+
+### On Windows
+
+The commands are the same, bar three details: the binary is called
+`.\ormeau.exe`, environment variables are set differently, and `--user` is
+pointless — a Windows volume carries no POSIX permissions.
+
+```powershell
+$env:ORMEAU_MDP = "secret"
+.\ormeau.exe extraire --sgbd postgres --hote srv --utilisateur app --base gescom --sortie gescom.calque.json
+
+docker run --rm -e ORMEAU_DSN -v "${PWD}:/sortie" `
+    ghcr.io/sprimault/ormeau:v0.2.0 extraire --sortie /sortie/gescom.calque.json
+```
+
+Verifying the checksum of a downloaded archive:
+
+```powershell
+$attendu = (Select-String -Path SHA256SUMS -Pattern windows).Line.Split(" ")[0]
+$obtenu  = (Get-FileHash ormeau_v0.2.0_windows_amd64.zip -Algorithm SHA256).Hash.ToLower()
+if ($attendu -eq $obtenu) { "empreinte OK" } else { "EMPREINTE DIFFERENTE" }
+```
 
 ## What extraction produces
 
