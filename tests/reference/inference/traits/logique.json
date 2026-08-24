@@ -1,0 +1,200 @@
+{
+  "version_ri": 1,
+  "empreinte_physique": "sha256:000000000000000000000000000000000000000000000000000000000000000d",
+  "espace_de_noms": "App\\Entity",
+  "entites": [
+    {
+      "nom": "Client",
+      "table": {
+        "nom": "client",
+        "schema": "public"
+      },
+      "traits": [
+        "Horodatage"
+      ],
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "nom",
+          "colonne": "nom",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 80,
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "Commande",
+      "table": {
+        "nom": "commande",
+        "schema": "public"
+      },
+      "traits": [
+        "Horodatage"
+      ],
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "total",
+          "colonne": "total",
+          "type_php": "string",
+          "type_doctrine": "decimal",
+          "nullable": false,
+          "precision": 12,
+          "echelle": 2,
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "Article",
+      "table": {
+        "nom": "article",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "libelle",
+          "colonne": "libelle",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 120,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "creeLe",
+          "colonne": "cree_le",
+          "type_php": "\\DateTimeImmutable",
+          "type_doctrine": "datetime_immutable",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "supprimeLe",
+          "colonne": "supprime_le",
+          "type_php": "?\\DateTimeImmutable",
+          "type_doctrine": "datetime_immutable",
+          "nullable": true,
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "Journal",
+      "table": {
+        "nom": "journal",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "createdAt",
+          "colonne": "created_at",
+          "type_php": "\\DateTimeImmutable",
+          "type_doctrine": "datetimetz_immutable",
+          "nullable": false,
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    }
+  ],
+  "traits": [
+    {
+      "nom": "Horodatage",
+      "proprietes": [
+        {
+          "nom": "createdAt",
+          "colonne": "created_at",
+          "type_php": "\\DateTimeImmutable",
+          "type_doctrine": "datetimetz_immutable",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "updatedAt",
+          "colonne": "updated_at",
+          "type_php": "?\\DateTimeImmutable",
+          "type_doctrine": "datetimetz_immutable",
+          "nullable": true,
+          "origine": "contrainte"
+        }
+      ]
+    }
+  ],
+  "avertissements": [
+    {
+      "code": "trait_deduit",
+      "cible": "public.client",
+      "message": "colonnes d'horodatage sorties dans le trait Horodatage, partagé par Client, Commande",
+      "resolution": "par_defaut",
+      "confiance": 0.8
+    },
+    {
+      "code": "trait_deduit",
+      "cible": "public.commande",
+      "message": "colonnes d'horodatage sorties dans le trait Horodatage, partagé par Client, Commande",
+      "resolution": "par_defaut",
+      "confiance": 0.8
+    }
+  ]
+}

@@ -35,6 +35,9 @@ type schemaLogique struct {
 	// parents donne, pour une table qui hérite, la clé étrangère qui porte
 	// l'héritage.
 	parents map[string]*calque.CleEtrangere
+
+	// enumerations donne, par colonne qualifiée, le type énuméré reconnu.
+	enumerations map[string]enumeree
 }
 
 // jointurePure décrit une table qui n'existe que pour relier deux autres.

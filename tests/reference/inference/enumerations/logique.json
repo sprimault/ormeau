@@ -1,0 +1,190 @@
+{
+  "version_ri": 1,
+  "empreinte_physique": "sha256:000000000000000000000000000000000000000000000000000000000000000c",
+  "espace_de_noms": "App\\Entity",
+  "entites": [
+    {
+      "nom": "Client",
+      "table": {
+        "nom": "client",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "statut",
+          "colonne": "statut",
+          "type_php": "StatutClient",
+          "type_doctrine": "string",
+          "nullable": false,
+          "enumeration": "StatutClient",
+          "commentaire": "Type énuméré natif : le cas le plus sûr",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "canal",
+          "colonne": "canal",
+          "type_php": "ClientCanal",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 20,
+          "enumeration": "ClientCanal",
+          "commentaire": "Valeurs fermées par un CHECK",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "actif",
+          "colonne": "actif",
+          "type_php": "ClientActif",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 1,
+          "enumeration": "ClientActif",
+          "commentaire": "O/N : des cas nommés O et N n'apprendraient rien",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "solde",
+          "colonne": "solde",
+          "type_php": "string",
+          "type_doctrine": "decimal",
+          "nullable": false,
+          "precision": 12,
+          "echelle": 2,
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "Commande",
+      "table": {
+        "nom": "commande",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "etat",
+          "colonne": "etat",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 20,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "motif",
+          "colonne": "motif",
+          "type_php": "?string",
+          "type_doctrine": "string",
+          "nullable": true,
+          "longueur": 60,
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    }
+  ],
+  "enumerations": [
+    {
+      "nom": "ClientActif",
+      "type_support": "string",
+      "cas": [
+        {
+          "nom": "O",
+          "valeur": "O"
+        },
+        {
+          "nom": "N",
+          "valeur": "N"
+        }
+      ],
+      "origine": "verification"
+    },
+    {
+      "nom": "ClientCanal",
+      "type_support": "string",
+      "cas": [
+        {
+          "nom": "Direct",
+          "valeur": "DIRECT"
+        },
+        {
+          "nom": "Partenaire",
+          "valeur": "PARTENAIRE"
+        },
+        {
+          "nom": "Web",
+          "valeur": "WEB"
+        }
+      ],
+      "origine": "verification"
+    },
+    {
+      "nom": "StatutClient",
+      "type_support": "string",
+      "cas": [
+        {
+          "nom": "Prospect",
+          "valeur": "PROSPECT"
+        },
+        {
+          "nom": "Actif",
+          "valeur": "ACTIF"
+        },
+        {
+          "nom": "Suspendu",
+          "valeur": "SUSPENDU"
+        },
+        {
+          "nom": "Radie",
+          "valeur": "RADIE"
+        }
+      ],
+      "origine": "contrainte"
+    }
+  ],
+  "avertissements": [
+    {
+      "code": "cas_enumeration_opaque",
+      "cible": "public.client.actif",
+      "message": "la valeur O donne un cas nommé O ; enumerations permet de l'apparier à un nom lisible",
+      "resolution": "par_defaut",
+      "confiance": 0.4
+    },
+    {
+      "code": "cas_enumeration_opaque",
+      "cible": "public.client.actif",
+      "message": "la valeur N donne un cas nommé N ; enumerations permet de l'apparier à un nom lisible",
+      "resolution": "par_defaut",
+      "confiance": 0.4
+    }
+  ]
+}

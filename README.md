@@ -26,6 +26,10 @@ declared, tables without a primary key, booleans stored as `char(1)`, generated
 columns. And to do it twice, six months apart, without overwriting the work done
 on the entities in between.
 
+This tool comes from field experience: taking over an existing database to
+derive Doctrine entities from it is a recurring task on client work, and nothing
+has covered it since `doctrine:mapping:import` was removed.
+
 Doctrine removed its reverse engineering: `doctrine:mapping:import` is gone from
 the bundle and `DatabaseDriver` left with ORM 3. Nothing official remains, and
 the ecosystem alternatives are either abandoned or stop at a literal

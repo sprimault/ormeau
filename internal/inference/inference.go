@@ -64,9 +64,10 @@ func Inferer(p *calque.Physique, d *Decisions) (*calque.Logique, []calque.Averti
 	}
 
 	// Ce qui se décide à l'échelle du schéma se calcule avant les entités :
-	// une table de jointure n'en produit pas, et un héritage se lit sur deux
-	// tables à la fois.
+	// une table de jointure n'en produit pas, un héritage se lit sur deux
+	// tables à la fois, et un type énuméré natif est déclaré à part.
 	schema := analyser(p, d, prefixes)
+	schema.enumerations = enumerationsDuSchema(p, d)
 
 	for i := range p.Tables {
 		t := &p.Tables[i]
@@ -93,6 +94,14 @@ func Inferer(p *calque.Physique, d *Decisions) (*calque.Logique, []calque.Averti
 
 	ajouterCotesInverses(logique)
 	avertissements = append(avertissements, posterJointures(logique, schema)...)
+
+	enumerations, avs := collecterEnumerations(schema, d)
+	logique.Enumerations = enumerations
+	avertissements = append(avertissements, avs...)
+
+	// En dernier : le trait retire des propriétés aux entités, et tout ce qui
+	// les lit — identifiant, associations, index — doit être passé avant.
+	avertissements = append(avertissements, extraireTraits(logique)...)
 
 	trierAvertissements(avertissements)
 	logique.Avertissements = avertissements
@@ -136,6 +145,14 @@ func inferrerEntite(t *calque.Table, d *Decisions, prefixes []string, schema *sc
 	for i := range t.Colonnes {
 		propriete, avs := inferrerPropriete(&t.Colonnes[i], cible, d)
 		avertissements = append(avertissements, avs...)
+
+		// Le type PHP d'une propriété énumérée est l'enum lui-même, pas la
+		// chaîne qu'elle stocke. Le type Doctrine reste string : c'est ce que
+		// la colonne contient, et Doctrine hydrate l'un vers l'autre.
+		if e, enumeree := schema.enumerations[cible+"."+t.Colonnes[i].Nom]; enumeree {
+			propriete.Enumeration = e.nom
+			propriete.TypePHP = typeNullable(e.nom, t.Colonnes[i].Nullable)
+		}
 		entite.Proprietes = append(entite.Proprietes, propriete)
 	}
 

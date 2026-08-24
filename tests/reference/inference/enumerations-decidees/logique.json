@@ -1,0 +1,174 @@
+{
+  "version_ri": 1,
+  "empreinte_physique": "sha256:000000000000000000000000000000000000000000000000000000000000000e",
+  "espace_de_noms": "App\\Entity",
+  "entites": [
+    {
+      "nom": "Client",
+      "table": {
+        "nom": "client",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "statut",
+          "colonne": "statut",
+          "type_php": "StatutClient",
+          "type_doctrine": "string",
+          "nullable": false,
+          "enumeration": "StatutClient",
+          "commentaire": "Type énuméré natif : le cas le plus sûr",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "canal",
+          "colonne": "canal",
+          "type_php": "CanalDeVente",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 20,
+          "enumeration": "CanalDeVente",
+          "commentaire": "Valeurs fermées par un CHECK",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "actif",
+          "colonne": "actif",
+          "type_php": "OuiNon",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 1,
+          "enumeration": "OuiNon",
+          "commentaire": "O/N : des cas nommés O et N n'apprendraient rien",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "solde",
+          "colonne": "solde",
+          "type_php": "string",
+          "type_doctrine": "decimal",
+          "nullable": false,
+          "precision": 12,
+          "echelle": 2,
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "Commande",
+      "table": {
+        "nom": "commande",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "etat",
+          "colonne": "etat",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 20,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "motif",
+          "colonne": "motif",
+          "type_php": "?string",
+          "type_doctrine": "string",
+          "nullable": true,
+          "longueur": 60,
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    }
+  ],
+  "enumerations": [
+    {
+      "nom": "CanalDeVente",
+      "type_support": "string",
+      "cas": [
+        {
+          "nom": "Direct",
+          "valeur": "DIRECT"
+        },
+        {
+          "nom": "Partenaire",
+          "valeur": "PARTENAIRE"
+        },
+        {
+          "nom": "Web",
+          "valeur": "WEB"
+        }
+      ],
+      "origine": "decision"
+    },
+    {
+      "nom": "OuiNon",
+      "type_support": "string",
+      "cas": [
+        {
+          "nom": "Non",
+          "valeur": "N"
+        },
+        {
+          "nom": "Oui",
+          "valeur": "O"
+        }
+      ],
+      "origine": "decision"
+    },
+    {
+      "nom": "StatutClient",
+      "type_support": "string",
+      "cas": [
+        {
+          "nom": "Prospect",
+          "valeur": "PROSPECT"
+        },
+        {
+          "nom": "Actif",
+          "valeur": "ACTIF"
+        },
+        {
+          "nom": "Suspendu",
+          "valeur": "SUSPENDU"
+        },
+        {
+          "nom": "Radie",
+          "valeur": "RADIE"
+        }
+      ],
+      "origine": "contrainte"
+    }
+  ]
+}

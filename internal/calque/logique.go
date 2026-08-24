@@ -227,6 +227,8 @@ const (
 	CodeDefautIncompatible   = "defaut_incompatible"
 	CodePrefixeDetecte       = "prefixe_detecte"
 	CodeCibleHorsPortee      = "cible_hors_portee"
+	CodeCasEnumerationOpaque = "cas_enumeration_opaque"
+	CodeTraitDeduit          = "trait_deduit"
 	CodeJointurePure         = "table_de_jointure"
 	CodeHeritageDeduit       = "heritage_deduit"
 )

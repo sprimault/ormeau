@@ -1,0 +1,95 @@
+{
+  "version_ri": 1,
+  "source": {
+    "sgbd": "postgres",
+    "version": "16.2",
+    "catalogue": "gescom",
+    "schema": "public",
+    "extrait_le": "2026-01-01T00:00:00Z",
+    "empreinte": "sha256:000000000000000000000000000000000000000000000000000000000000000c"
+  },
+  "tables": [
+    {
+      "nom": "client",
+      "schema": "public",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false, "auto_increment": true },
+        {
+          "nom": "statut",
+          "position": 2,
+          "type_brut": "statut_client",
+          "type_normalise": "enumere",
+          "type_enumere": "statut_client",
+          "nullable": false,
+          "commentaire": "Type énuméré natif : le cas le plus sûr"
+        },
+        {
+          "nom": "canal",
+          "position": 3,
+          "type_brut": "character varying(20)",
+          "type_normalise": "texte",
+          "longueur": 20,
+          "nullable": false,
+          "commentaire": "Valeurs fermées par un CHECK"
+        },
+        {
+          "nom": "actif",
+          "position": 4,
+          "type_brut": "character(1)",
+          "type_normalise": "texte",
+          "longueur": 1,
+          "nullable": false,
+          "commentaire": "O/N : des cas nommés O et N n'apprendraient rien"
+        },
+        {
+          "nom": "solde",
+          "position": 5,
+          "type_brut": "numeric(12,2)",
+          "type_normalise": "decimal",
+          "precision": 12,
+          "echelle": 2,
+          "nullable": false
+        }
+      ],
+      "cle_primaire": { "nom": "client_pkey", "colonnes": ["id"] },
+      "verifications": [
+        {
+          "nom": "ck_client_canal",
+          "expression": "CHECK ((((canal)::text = ANY ((ARRAY['DIRECT'::character varying, 'PARTENAIRE'::character varying, 'WEB'::character varying])::text[]))))"
+        },
+        {
+          "nom": "ck_client_actif",
+          "expression": "CHECK (((actif = 'O'::bpchar) OR (actif = 'N'::bpchar)))"
+        },
+        {
+          "nom": "ck_client_solde",
+          "expression": "CHECK ((solde >= (0)::numeric))"
+        }
+      ]
+    },
+    {
+      "nom": "commande",
+      "schema": "public",
+      "commentaire": "Un CHECK portant sur deux colonnes ne décrit pas une énumération",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false, "auto_increment": true },
+        { "nom": "etat", "position": 2, "type_brut": "character varying(20)", "type_normalise": "texte", "longueur": 20, "nullable": false },
+        { "nom": "motif", "position": 3, "type_brut": "character varying(60)", "type_normalise": "texte", "longueur": 60, "nullable": true }
+      ],
+      "cle_primaire": { "nom": "commande_pkey", "colonnes": ["id"] },
+      "verifications": [
+        {
+          "nom": "ck_commande_motif",
+          "expression": "CHECK ((((etat)::text <> 'ANNULEE'::text) OR (motif IS NOT NULL)))"
+        }
+      ]
+    }
+  ],
+  "types_enumeres": [
+    {
+      "nom": "statut_client",
+      "schema": "public",
+      "valeurs": ["PROSPECT", "ACTIF", "SUSPENDU", "RADIE"]
+    }
+  ]
+}

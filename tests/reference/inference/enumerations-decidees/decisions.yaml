@@ -1,0 +1,21 @@
+# Nommer les cas qu'aucune règle ne peut deviner.
+#
+# La base stocke O et N. L'outil en fait des cas nommés O et N, signale que ça
+# n'apprend rien, et s'arrête là : lui seul sait que O abrège Oui, et pas Ouvert.
+#
+# Le second bloc renomme un type dont les cas se lisent déjà : c'est le nom du
+# type PHP qu'on corrige, pas ses valeurs.
+
+enumerations:
+  - colonne: public.client.actif
+    nom: OuiNon
+    cas:
+      O: Oui
+      N: Non
+
+  - colonne: public.client.canal
+    nom: CanalDeVente
+    cas:
+      DIRECT: Direct
+      PARTENAIRE: Partenaire
+      WEB: Web
