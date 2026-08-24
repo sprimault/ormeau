@@ -10,6 +10,7 @@
 
 # Répertoire de travail local
 /.tmp/
+/makefile.local
 
 # Front
 /web/node_modules/
@@ -21,6 +22,12 @@
 /php/.phpunit.cache/
 /php/.php-cs-fixer.cache
 /php/var/
+
+# Surcharges locales des trois outils PHP : la version .dist est celle du
+# dépôt, celle sans suffixe appartient au poste et gagne quand elle existe.
+/php/phpstan.neon
+/php/phpunit.xml
+/php/.php-cs-fixer.php
 
 # Environnement local
 .env
