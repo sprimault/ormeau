@@ -9,8 +9,10 @@ générateur.
 | 1 — Calque physique | terminée |
 | 2 — Introspection PostgreSQL | terminée |
 | 3 — Inférence et calque logique | structures seulement |
-| 4 — Génération Doctrine | squelette seulement |
-| 5 à 11 | non commencées |
+| 4 — Interface | non commencée |
+| 5 — Génération Doctrine | squelette seulement |
+| 6 à 10 | non commencées |
+| 11 — Publication | faite pour l'essentiel, hors Packagist |
 
 ## Phase 1 — Le calque physique
 
@@ -30,18 +32,34 @@ Entités, propriétés, associations. Heuristiques de base : table de jointure p
 suffixe `_id`, préfixes, singularisation. Avertissements avec code, cible,
 confiance et origine. Fichier de décisions lu et prioritaire.
 
-## Phase 4 — Génération Doctrine
+## Phase 4 — Interface de sélection et d'arbitrage
+
+`ormeau interface` : front local embarqué. Saisie de connexion, arbre des tables
+alimenté par `Inventorier`, sélection avec propagation des dépendances par clé
+étrangère, puis écran d'arbitrage des avertissements produisant un
+`decisions.yaml`.
+
+Ici et pas plus tard, pour deux raisons. L'écran de connexion et l'arbre ne
+dépendent que d'`Inventorier`, écrit depuis la phase 2 : les repousser était un
+défaut de séquencement. Et voir les avertissements dans une interface, avec leur
+confiance et leur origine, est le meilleur moyen de juger des heuristiques de la
+phase 3 — bien mieux qu'un fichier de référence.
+
+Le prix, assumé : l'écran d'arbitrage suivra les évolutions de l'inférence dans
+les phases suivantes. L'écran de connexion, lui, ne bougera plus.
+
+## Phase 5 — Génération Doctrine
 
 Paquet PHP, commande `ormeau:generer`, mode classe de base séparée. Attributs
 PHP 8, énumérations, traits d'horodatage.
 
-## Phase 5 — Aller-retour
+## Phase 6 — Aller-retour
 
 `calque -> entités -> schema:create -> diff structurel`. C'est la phase qui
 valide tout ce qui précède, et probablement celle qui fera remonter le plus de
 manques dans le format.
 
-## Phase 6 — Introspection MySQL, MariaDB et SQL Server
+## Phase 7 — Introspection MySQL, MariaDB et SQL Server
 
 Deuxième et troisième dialectes. C'est là qu'on découvre ce que le calque v1 ne
 capture pas ; incrémenter `version_ri` si nécessaire, une seule fois de
@@ -52,27 +70,16 @@ variante étant détectée à la connexion. Elle en diverge assez pour compter c
 un SGBD à part entière dans le calque : elle a de vraies séquences là où MySQL
 n'a qu'`AUTO_INCREMENT`, et son type `JSON` n'est qu'un alias de `LONGTEXT`.
 
-## Phase 7 — Échantillonnage
+## Phase 8 — Échantillonnage
 
 Statistiques, détection d'énumérations par cardinalité, détection des clés
 étrangères implicites. Optionnel, plafonné, lecture seule.
 
-## Phase 8 — Diff
+## Phase 9 — Diff
 
 `ormeau diff` entre deux calques physiques, et `ormeau:synchroniser` entre calque
 et entités existantes. Sortie lisible, sortie JSON, code de retour exploitable en
 CI.
-
-## Phase 9 — Interface de sélection et d'arbitrage
-
-`ormeau interface` : front local embarqué. Saisie de connexion, arbre des tables
-alimenté par `Inventorier`, sélection avec propagation des dépendances par clé
-étrangère, puis écran d'arbitrage des avertissements produisant un
-`decisions.yaml`.
-
-Placée ici et pas avant : tant que l'inférence ne produit pas de vrais
-avertissements sur plusieurs dialectes, l'écran d'arbitrage n'aurait rien à
-afficher.
 
 ## Phase 10 — Régénération par AST
 
@@ -83,6 +90,10 @@ méthodes métier et du formatage. Tests de survie des modifications manuelles.
 
 README bilingue, documentation d'installation, avertissement d'usage, subtree
 split vers Packagist, image Docker multi-arch, binaires de version.
+
+Faite en avance, sauf le split : publier une version dès qu'il y avait un usage
+réel valait mieux que d'attendre la fin. Reste Packagist, qui suppose du code
+PHP à installer — donc la phase 5.
 
 ## Hors périmètre v1
 
