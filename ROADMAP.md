@@ -10,7 +10,7 @@ générateur.
 | 2 — Introspection PostgreSQL | terminée |
 | 3 — Inférence et calque logique | terminée, hors clés étrangères implicites |
 | 4 — Interface | non commencée |
-| 5 — Génération Doctrine | squelette seulement |
+| 5 — Génération Doctrine | bundle installable, génération à écrire |
 | 6 à 10 | non commencées |
 | 11 — Publication | faite pour l'essentiel, hors Packagist |
 
