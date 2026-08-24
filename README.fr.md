@@ -127,6 +127,26 @@ Deux extractions de la même base produisent deux fichiers **identiques octet
 pour octet** — l'horodatage est exclu de l'empreinte. C'est ce qui rend le mode
 diff exploitable, et ce qui permet de versionner un calque dans Git.
 
+### Trois fichiers par base
+
+```
+gescom.calque.json       le constat, extrait de la base
+gescom.decisions.yaml    vos arbitrages, écrits une fois
+gescom.logique.json      le modèle objet, consommé par le générateur
+```
+
+Ils vivent dans votre projet et s'y commitent. Seul le premier vient de la base ;
+les deux autres se recalculent hors ligne, ce qui permet de corriger une
+inférence sans rouvrir la connexion — et de le faire sur un calque rapporté de
+chez un client.
+
+`decisions.yaml` est la pièce qui rend la deuxième extraction supportable. Six
+mois plus tard, le schéma a bougé, mais vos arbitrages se rejouent dessus : ce
+que vous avez corrigé une fois ne se reperd pas.
+
+Un fichier par base, jamais un fichier commun : deux bases peuvent avoir une
+table `client` sans que le même renommage convienne aux deux.
+
 La conception derrière ce format — ses deux niveaux, ses trois propriétés, le
 partage entre Go et PHP — est dans
 [`docs/architecture.fr.md`](docs/architecture.fr.md).

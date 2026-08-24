@@ -1,0 +1,8 @@
+# Écarter une table encore désignée par des clés étrangères.
+#
+# Le cas se produit aussi sans décision, dès qu'une portée restreint
+# l'extraction : ce qui compte est que les colonnes portantes restent des
+# propriétés ordinaires. Perdre l'association est acceptable, perdre la donnée
+# ne l'est pas.
+tables_ignorees:
+  - public.audit

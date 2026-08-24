@@ -1,0 +1,5 @@
+# Renommage par nom de table seul, sans schéma. Accepté parce qu'une base à un
+# seul schéma est le cas courant, et qu'y écrire le schéma partout est du bruit.
+# Le nom qualifié reste prioritaire quand les deux existent.
+renommages:
+  tbl_fournisseur: Fournisseur

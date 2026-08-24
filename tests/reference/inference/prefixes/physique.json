@@ -1,0 +1,84 @@
+{
+  "version_ri": 1,
+  "source": {
+    "sgbd": "sqlserver",
+    "version": "15.0",
+    "catalogue": "GESCOM",
+    "schema": "dbo",
+    "extrait_le": "2026-01-01T00:00:00Z",
+    "empreinte": "sha256:0000000000000000000000000000000000000000000000000000000000000006"
+  },
+  "tables": [
+    {
+      "nom": "T_CLIENTS",
+      "schema": "dbo",
+      "colonnes": [
+        {
+          "nom": "ID",
+          "position": 1,
+          "type_brut": "int",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true
+        },
+        {
+          "nom": "NOM",
+          "position": 2,
+          "type_brut": "varchar(80)",
+          "type_normalise": "texte",
+          "longueur": 80,
+          "nullable": false
+        }
+      ],
+      "cle_primaire": {
+        "nom": "PK_T_CLIENTS",
+        "colonnes": ["ID"]
+      }
+    },
+    {
+      "nom": "T_COMMANDES",
+      "schema": "dbo",
+      "colonnes": [
+        {
+          "nom": "ID",
+          "position": 1,
+          "type_brut": "int",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true
+        },
+        {
+          "nom": "TOTAL_HT",
+          "position": 2,
+          "type_brut": "decimal(12,2)",
+          "type_normalise": "decimal",
+          "precision": 12,
+          "echelle": 2,
+          "nullable": false
+        }
+      ],
+      "cle_primaire": {
+        "nom": "PK_T_COMMANDES",
+        "colonnes": ["ID"]
+      }
+    },
+    {
+      "nom": "T_PAYS",
+      "schema": "dbo",
+      "colonnes": [
+        {
+          "nom": "CODE",
+          "position": 1,
+          "type_brut": "char(2)",
+          "type_normalise": "texte",
+          "longueur": 2,
+          "nullable": false
+        }
+      ],
+      "cle_primaire": {
+        "nom": "PK_T_PAYS",
+        "colonnes": ["CODE"]
+      }
+    }
+  ]
+}

@@ -16,8 +16,17 @@ import (
 // confiance moyenne figurent en commentaire. C'est ce qui rend la correction
 // humaine praticable sans partir d'une page blanche.
 type Decisions struct {
-	EspaceDeNoms     string              `yaml:"espace_de_noms"`
-	PrefixesARetirer []string            `yaml:"prefixes_a_retirer"`
+	EspaceDeNoms string `yaml:"espace_de_noms"`
+
+	// PrefixesARetirer enlève une convention de nommage des noms de classes :
+	// avec T_, la table T_CLIENTS donne Clients au lieu de TClients.
+	//
+	// Rien n'est retiré sans cette liste, même quand l'outil repère un préfixe
+	// commun à toutes les tables. Il le signale par un avertissement et
+	// l'inscrit en commentaire dans le fichier prérempli ; l'arbitrage revient
+	// à celui qui connaît la base.
+	PrefixesARetirer []string `yaml:"prefixes_a_retirer"`
+
 	TablesIgnorees   []string            `yaml:"tables_ignorees"`
 	Renommages       map[string]string   `yaml:"renommages"`
 	TypesForces      map[string]string   `yaml:"types_forces"`

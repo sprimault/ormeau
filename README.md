@@ -126,6 +126,26 @@ Two extractions of the same database produce **byte-for-byte identical** files �
 the timestamp is excluded from the fingerprint. That is what makes the diff mode
 usable, and what allows a layer to be versioned in Git.
 
+### Three files per database
+
+```
+gescom.calque.json       the observation, extracted from the database
+gescom.decisions.yaml    your rulings, written once
+gescom.logique.json      the object model, consumed by the generator
+```
+
+They live in your project and are committed with it. Only the first comes from
+the database; the other two are recomputed offline, so an inference can be
+corrected without reopening the connection — including on a layer brought back
+from a customer site.
+
+`decisions.yaml` is what makes the second extraction bearable. Six months later
+the schema has moved, but your rulings replay on top of it: what you corrected
+once is not lost again.
+
+One file per database, never a shared one: two databases may both have a
+`client` table without the same rename suiting either.
+
 The design behind this format — its two levels, its three properties, the split
 between Go and PHP — is in [`docs/architecture.md`](docs/architecture.md).
 

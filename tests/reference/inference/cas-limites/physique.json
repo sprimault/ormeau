@@ -1,0 +1,133 @@
+{
+  "version_ri": 1,
+  "source": {
+    "sgbd": "postgres",
+    "version": "16.2",
+    "catalogue": "legacy",
+    "schema": "public",
+    "extrait_le": "2026-01-01T00:00:00Z",
+    "empreinte": "sha256:0000000000000000000000000000000000000000000000000000000000000003"
+  },
+  "tables": [
+    {
+      "nom": "journal",
+      "schema": "public",
+      "commentaire": "Table de trace historique, jamais contrainte",
+      "colonnes": [
+        {
+          "nom": "horodatage",
+          "position": 1,
+          "type_brut": "timestamp without time zone",
+          "type_normalise": "horodatage",
+          "nullable": true
+        },
+        {
+          "nom": "message",
+          "position": 2,
+          "type_brut": "text",
+          "type_normalise": "texte",
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "nom": "ligne_commande",
+      "schema": "public",
+      "colonnes": [
+        {
+          "nom": "commande_id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false
+        },
+        {
+          "nom": "article_id",
+          "position": 2,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false
+        },
+        {
+          "nom": "quantite",
+          "position": 3,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false,
+          "defaut": {
+            "genre": "litteral",
+            "valeur": "1"
+          }
+        }
+      ],
+      "cle_primaire": {
+        "nom": "ligne_commande_pkey",
+        "colonnes": ["commande_id", "article_id"]
+      }
+    },
+    {
+      "nom": "facture",
+      "schema": "public",
+      "colonnes": [
+        {
+          "nom": "id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false,
+          "defaut": {
+            "genre": "sequence",
+            "valeur": "facture_id_seq"
+          }
+        },
+        {
+          "nom": "numero",
+          "position": 2,
+          "type_brut": "character varying(32)",
+          "type_normalise": "texte",
+          "longueur": 32,
+          "nullable": false
+        }
+      ],
+      "cle_primaire": {
+        "nom": "facture_pkey",
+        "colonnes": ["id"]
+      }
+    },
+    {
+      "nom": "facture",
+      "schema": "archive",
+      "colonnes": [
+        {
+          "nom": "id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false
+        },
+        {
+          "nom": "numero",
+          "position": 2,
+          "type_brut": "character varying(32)",
+          "type_normalise": "texte",
+          "longueur": 32,
+          "nullable": false
+        }
+      ],
+      "cle_primaire": {
+        "nom": "facture_archive_pkey",
+        "colonnes": ["id"]
+      }
+    }
+  ],
+  "sequences": [
+    {
+      "nom": "facture_id_seq",
+      "schema": "public",
+      "increment": 1,
+      "minimum": 1,
+      "maximum": 9223372036854775807,
+      "cyclique": false
+    }
+  ]
+}

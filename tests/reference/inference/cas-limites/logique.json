@@ -1,0 +1,165 @@
+{
+  "version_ri": 1,
+  "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000003",
+  "espace_de_noms": "App\\Entity",
+  "entites": [
+    {
+      "nom": "Journal",
+      "table": {
+        "nom": "journal",
+        "schema": "public"
+      },
+      "proprietes": [
+        {
+          "nom": "horodatage",
+          "colonne": "horodatage",
+          "type_php": "?\\DateTimeImmutable",
+          "type_doctrine": "datetime_immutable",
+          "nullable": true,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "message",
+          "colonne": "message",
+          "type_php": "?string",
+          "type_doctrine": "text",
+          "nullable": true,
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "LigneCommande",
+      "table": {
+        "nom": "ligne_commande",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "commandeId",
+          "articleId"
+        ],
+        "strategie": "assignee"
+      },
+      "proprietes": [
+        {
+          "nom": "commandeId",
+          "colonne": "commande_id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "articleId",
+          "colonne": "article_id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "quantite",
+          "colonne": "quantite",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "defaut": "1",
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "Facture",
+      "table": {
+        "nom": "facture",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "sequence",
+        "sequence": "facture_id_seq"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "numero",
+          "colonne": "numero",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 32,
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "Facture",
+      "table": {
+        "nom": "facture",
+        "schema": "archive"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "assignee"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "numero",
+          "colonne": "numero",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 32,
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    }
+  ],
+  "avertissements": [
+    {
+      "code": "collision_de_nom",
+      "cible": "archive.facture",
+      "message": "le nom de classe Facture est déjà pris par public.facture",
+      "resolution": "aucune",
+      "confiance": 1
+    },
+    {
+      "code": "table_sans_cle_primaire",
+      "cible": "public.journal",
+      "message": "aucune clé primaire : Doctrine refusera cette entité en l'état",
+      "resolution": "aucune",
+      "confiance": 1
+    },
+    {
+      "code": "cle_primaire_composite",
+      "cible": "public.ligne_commande",
+      "message": "clé primaire sur commandeId, articleId",
+      "resolution": "par_defaut",
+      "confiance": 1
+    }
+  ]
+}

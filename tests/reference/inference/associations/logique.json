@@ -1,0 +1,386 @@
+{
+  "version_ri": 1,
+  "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000009",
+  "espace_de_noms": "App\\Entity",
+  "entites": [
+    {
+      "nom": "Client",
+      "table": {
+        "nom": "client",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "raisonSociale",
+          "colonne": "raison_sociale",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 120,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "adresseFacturation",
+          "genre": "un_vers_un",
+          "cible": "AdresseFacturation",
+          "proprietaire": false,
+          "mappee_par": "client",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "commande",
+          "genre": "un_vers_plusieurs",
+          "cible": "Commande",
+          "proprietaire": false,
+          "mappee_par": "client",
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "AdresseFacturation",
+      "table": {
+        "nom": "adresse_facturation",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "clientId",
+          "colonne": "client_id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "unique": true,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "rue",
+          "colonne": "rue",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 200,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "client",
+          "genre": "un_vers_un",
+          "cible": "Client",
+          "proprietaire": true,
+          "inversee_par": "adresseFacturation",
+          "jointure": [
+            {
+              "colonne": "client_id",
+              "colonne_referencee": "id",
+              "nullable": false,
+              "a_la_suppression": "cascade"
+            }
+          ],
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "Commande",
+      "table": {
+        "nom": "commande",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "clientId",
+          "colonne": "client_id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "commandeRemplaceeId",
+          "colonne": "commande_remplacee_id",
+          "type_php": "?int",
+          "type_doctrine": "integer",
+          "nullable": true,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "totalHt",
+          "colonne": "total_ht",
+          "type_php": "string",
+          "type_doctrine": "decimal",
+          "nullable": false,
+          "precision": 12,
+          "echelle": 2,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "client",
+          "genre": "plusieurs_vers_un",
+          "cible": "Client",
+          "proprietaire": true,
+          "inversee_par": "commande",
+          "jointure": [
+            {
+              "colonne": "client_id",
+              "colonne_referencee": "id",
+              "nullable": false,
+              "a_la_suppression": "restrict"
+            }
+          ],
+          "origine": "contrainte"
+        },
+        {
+          "nom": "commandeRemplacee",
+          "genre": "plusieurs_vers_un",
+          "cible": "Commande",
+          "proprietaire": true,
+          "inversee_par": "commande",
+          "jointure": [
+            {
+              "colonne": "commande_remplacee_id",
+              "colonne_referencee": "id",
+              "nullable": true,
+              "a_la_suppression": "set_null"
+            }
+          ],
+          "origine": "contrainte"
+        },
+        {
+          "nom": "commande",
+          "genre": "un_vers_plusieurs",
+          "cible": "Commande",
+          "proprietaire": false,
+          "mappee_par": "commandeRemplacee",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "ligneCommande",
+          "genre": "un_vers_plusieurs",
+          "cible": "LigneCommande",
+          "proprietaire": false,
+          "mappee_par": "commande",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "article",
+          "genre": "plusieurs_vers_plusieurs",
+          "cible": "Article",
+          "proprietaire": true,
+          "inversee_par": "commande",
+          "table_jointure": {
+            "nom": "commande_article",
+            "schema": "public",
+            "jointure": [
+              {
+                "colonne": "commande_id",
+                "colonne_referencee": "id",
+                "nullable": false,
+                "a_la_suppression": "cascade"
+              }
+            ],
+            "jointure_inverse": [
+              {
+                "colonne": "article_id",
+                "colonne_referencee": "id",
+                "nullable": false,
+                "a_la_suppression": "cascade"
+              }
+            ]
+          },
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "Article",
+      "table": {
+        "nom": "article",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "libelle",
+          "colonne": "libelle",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 120,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "ligneCommande",
+          "genre": "un_vers_plusieurs",
+          "cible": "LigneCommande",
+          "proprietaire": false,
+          "mappee_par": "article",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "commande",
+          "genre": "plusieurs_vers_plusieurs",
+          "cible": "Commande",
+          "proprietaire": false,
+          "mappee_par": "article",
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "LigneCommande",
+      "table": {
+        "nom": "ligne_commande",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "commandeId",
+          "articleId"
+        ],
+        "strategie": "assignee"
+      },
+      "proprietes": [
+        {
+          "nom": "commandeId",
+          "colonne": "commande_id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "articleId",
+          "colonne": "article_id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "quantite",
+          "colonne": "quantite",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "commande",
+          "genre": "plusieurs_vers_un",
+          "cible": "Commande",
+          "proprietaire": true,
+          "inversee_par": "ligneCommande",
+          "jointure": [
+            {
+              "colonne": "commande_id",
+              "colonne_referencee": "id",
+              "nullable": false
+            }
+          ],
+          "origine": "contrainte"
+        },
+        {
+          "nom": "article",
+          "genre": "plusieurs_vers_un",
+          "cible": "Article",
+          "proprietaire": true,
+          "inversee_par": "ligneCommande",
+          "jointure": [
+            {
+              "colonne": "article_id",
+              "colonne_referencee": "id",
+              "nullable": false
+            }
+          ],
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    }
+  ],
+  "avertissements": [
+    {
+      "code": "table_de_jointure",
+      "cible": "public.commande_article",
+      "message": "deux clés étrangères et rien d'autre : rendue en association Commande vers Article, sans entité",
+      "resolution": "par_defaut",
+      "confiance": 0.9
+    },
+    {
+      "code": "cle_primaire_composite",
+      "cible": "public.ligne_commande",
+      "message": "clé primaire sur commandeId, articleId",
+      "resolution": "par_defaut",
+      "confiance": 1
+    }
+  ]
+}

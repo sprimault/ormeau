@@ -1,0 +1,17 @@
+# Le fichier de décisions gagne toujours contre l'heuristique, sans discussion.
+# Ce cas le vérifie sur les trois formes : renommage qualifié, type forcé,
+# table écartée.
+
+espace_de_noms: Gescom\Domaine\Entity
+
+renommages:
+  # Qualifié par le schéma : deux schémas peuvent porter la même table.
+  dbo.T_CLIENTS: Client
+
+tables_ignorees:
+  - dbo.T_AUDIT_TECHNIQUE
+
+types_forces:
+  # char(1) valant O/N : l'heuristique en fait une chaîne, l'humain sait que
+  # c'est un booléen.
+  dbo.T_CLIENTS.CLI_ACTIF: boolean

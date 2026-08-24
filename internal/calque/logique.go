@@ -31,6 +31,10 @@ const (
 
 // Entite est une classe à générer. Toutes les tables n'en produisent pas : une
 // table de jointure pure devient une association.
+//
+// Origine porte celle du nom de classe, et rien d'autre. L'existence de
+// l'entité est un constat — la table est là —, et l'héritage comme les
+// associations portent chacun la leur.
 type Entite struct {
 	Nom          string         `json:"nom"`
 	Table        ReferenceTable `json:"table"`
@@ -40,6 +44,7 @@ type Entite struct {
 	Proprietes   []Propriete    `json:"proprietes"`
 	Associations []Association  `json:"associations,omitempty"`
 	Index        []IndexEntite  `json:"index,omitempty"`
+	Origine      Origine        `json:"origine,omitempty"`
 }
 
 // ReferenceTable qualifie la table d'origine, sous son nom de catalogue.
@@ -88,6 +93,9 @@ const (
 
 // Propriete est une colonne devenue attribut. Le type Doctrine apparaît ici, et
 // pas dans le physique : il suppose la destination.
+//
+// Origine porte celle du type, pas celle du nom : la colonne existe, seule sa
+// traduction en couple type PHP / type Doctrine est un jugement.
 type Propriete struct {
 	Nom          string `json:"nom"`
 	Colonne      string `json:"colonne"`
@@ -215,4 +223,10 @@ const (
 	CodeNomNonSingularisable = "nom_non_singularisable"
 	CodeCollision            = "collision_de_nom"
 	CodeDecisionOrpheline    = "decision_sans_cible"
+	CodeTableIgnoree         = "table_ignoree"
+	CodeDefautIncompatible   = "defaut_incompatible"
+	CodePrefixeDetecte       = "prefixe_detecte"
+	CodeCibleHorsPortee      = "cible_hors_portee"
+	CodeJointurePure         = "table_de_jointure"
+	CodeHeritageDeduit       = "heritage_deduit"
 )

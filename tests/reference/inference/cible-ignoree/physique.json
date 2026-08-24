@@ -1,0 +1,74 @@
+{
+  "version_ri": 1,
+  "source": {
+    "sgbd": "postgres",
+    "version": "16.2",
+    "catalogue": "gescom",
+    "schema": "public",
+    "extrait_le": "2026-01-01T00:00:00Z",
+    "empreinte": "sha256:000000000000000000000000000000000000000000000000000000000000000b"
+  },
+  "tables": [
+    {
+      "nom": "audit",
+      "schema": "public",
+      "commentaire": "Écartée par décision, mais encore désignée par une clé étrangère",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false, "auto_increment": true }
+      ],
+      "cle_primaire": { "nom": "audit_pkey", "colonnes": ["id"] }
+    },
+    {
+      "nom": "etiquette",
+      "schema": "public",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false, "auto_increment": true }
+      ],
+      "cle_primaire": { "nom": "etiquette_pkey", "colonnes": ["id"] }
+    },
+    {
+      "nom": "commande",
+      "schema": "public",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false, "auto_increment": true },
+        { "nom": "audit_id", "position": 2, "type_brut": "integer", "type_normalise": "entier", "nullable": true }
+      ],
+      "cle_primaire": { "nom": "commande_pkey", "colonnes": ["id"] },
+      "cles_etrangeres": [
+        {
+          "nom": "commande_audit_fkey",
+          "colonnes": ["audit_id"],
+          "table_cible": "audit",
+          "schema_cible": "public",
+          "colonnes_cibles": ["id"]
+        }
+      ]
+    },
+    {
+      "nom": "commande_audit",
+      "schema": "public",
+      "commentaire": "Jointure pure dont une extrémité est écartée : l'association ne se génère pas",
+      "colonnes": [
+        { "nom": "commande_id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false },
+        { "nom": "audit_id", "position": 2, "type_brut": "integer", "type_normalise": "entier", "nullable": false }
+      ],
+      "cle_primaire": { "nom": "commande_audit_pkey", "colonnes": ["commande_id", "audit_id"] },
+      "cles_etrangeres": [
+        {
+          "nom": "ca_commande_fkey",
+          "colonnes": ["commande_id"],
+          "table_cible": "commande",
+          "schema_cible": "public",
+          "colonnes_cibles": ["id"]
+        },
+        {
+          "nom": "ca_audit_fkey",
+          "colonnes": ["audit_id"],
+          "table_cible": "audit",
+          "schema_cible": "public",
+          "colonnes_cibles": ["id"]
+        }
+      ]
+    }
+  ]
+}

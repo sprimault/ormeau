@@ -1,0 +1,91 @@
+{
+  "version_ri": 1,
+  "source": {
+    "sgbd": "sqlserver",
+    "version": "14.0",
+    "catalogue": "GestionCommerciale",
+    "schema": "dbo",
+    "extrait_le": "2026-01-01T00:00:00Z",
+    "empreinte": "sha256:0000000000000000000000000000000000000000000000000000000000000008"
+  },
+  "tables": [
+    {
+      "nom": "Commandes Clients",
+      "schema": "dbo",
+      "commentaire": "Nom avec espaces, tel que SQL Server l'accepte entre crochets",
+      "colonnes": [
+        {
+          "nom": "N° Commande",
+          "position": 1,
+          "type_brut": "int",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true
+        },
+        {
+          "nom": "Date de création",
+          "position": 2,
+          "type_brut": "datetime2",
+          "type_normalise": "horodatage",
+          "nullable": false
+        },
+        {
+          "nom": "CA TTC",
+          "position": 3,
+          "type_brut": "decimal(12,2)",
+          "type_normalise": "decimal",
+          "precision": 12,
+          "echelle": 2,
+          "nullable": true
+        }
+      ],
+      "cle_primaire": {
+        "nom": "PK_Commandes Clients",
+        "colonnes": ["N° Commande"]
+      }
+    },
+    {
+      "nom": "catégories des noms",
+      "schema": "dbo",
+      "commentaire": "Accent et espaces : l'accent suffit à désigner le français",
+      "colonnes": [
+        {
+          "nom": "Libellé",
+          "position": 1,
+          "type_brut": "nvarchar(120)",
+          "type_normalise": "texte",
+          "longueur": 120,
+          "nullable": false
+        }
+      ],
+      "cle_primaire": {
+        "nom": "PK_catégories",
+        "colonnes": ["Libellé"]
+      }
+    },
+    {
+      "nom": "Lignes de commande",
+      "schema": "dbo",
+      "colonnes": [
+        {
+          "nom": "N° Commande",
+          "position": 1,
+          "type_brut": "int",
+          "type_normalise": "entier",
+          "nullable": false
+        },
+        {
+          "nom": "Quantité",
+          "position": 2,
+          "type_brut": "int",
+          "type_normalise": "entier",
+          "nullable": false
+        }
+      ],
+      "cle_primaire": {
+        "nom": "PK_Lignes de commande",
+        "colonnes": ["N° Commande", "Quantité"]
+      }
+    }
+  ]
+}
