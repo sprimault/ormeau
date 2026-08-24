@@ -246,3 +246,7 @@ structure of a relational schema over into another language's type system.
 ## License
 
 Apache 2.0 — see [`LICENSE`](LICENSE).
+
+**The entities, layers and decision files Ormeau produces are yours.** The
+licence covers the tool, not its output: nothing it generates enters your
+project with an obligation attached.

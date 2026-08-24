@@ -249,3 +249,7 @@ relationnel dans le système de types d'un autre langage.
 ## Licence
 
 Apache 2.0 — voir [`LICENSE`](LICENSE).
+
+**Les entités, calques et fichiers de décisions produits par Ormeau vous
+appartiennent.** La licence couvre l'outil, pas sa sortie : rien de ce qu'il
+génère n'entre dans votre projet avec une obligation attachée.
