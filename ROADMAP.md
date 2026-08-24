@@ -8,7 +8,7 @@ générateur.
 |---|---|
 | 1 — Calque physique | terminée |
 | 2 — Introspection PostgreSQL | terminée |
-| 3 — Inférence et calque logique | structures seulement |
+| 3 — Inférence et calque logique | terminée, hors clés étrangères implicites |
 | 4 — Interface | non commencée |
 | 5 — Génération Doctrine | squelette seulement |
 | 6 à 10 | non commencées |

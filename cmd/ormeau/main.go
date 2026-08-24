@@ -26,7 +26,7 @@ const usage = `ormeau — rétro-ingénierie de bases de données vers des entit
 Usage :
   ormeau extraire --dsn <dsn> --sortie <fichier.calque.json>
   ormeau extraire --sgbd <sgbd> --hote <hote> --utilisateur <nom> [--base <base>] --sortie <chemin>
-  ormeau inferer  <fichier.calque.json> [--decisions <fichier.yaml>] --sortie <fichier.logique.json>
+  ormeau inferer  <fichier.calque.json> [--decisions <fichier.yaml>] [--sortie <fichier.logique.json>]
   ormeau diff     <fichier.calque.json> [--dsn <dsn>]
 
 Commandes :
@@ -37,6 +37,11 @@ Commandes :
 
 Sans --base, toutes les bases du serveur sont extraites et --sortie désigne
 alors un répertoire.
+
+Les trois fichiers d'une base partagent leur préfixe — gescom.calque.json,
+gescom.decisions.yaml, gescom.logique.json — et inferer déduit les deux autres
+du premier. Au premier passage, il écrit le fichier de décisions prérempli,
+entièrement en commentaire.
 
 Variables d'environnement :
   ORMEAU_DSN   chaîne de connexion, à défaut de --dsn
@@ -80,27 +85,6 @@ func main() {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-}
-
-// inferer applique heuristiques et décisions à un calque physique. Aucun accès
-// à la base : une inférence se corrige hors ligne.
-func inferer(args []string) error {
-	jeu := flag.NewFlagSet("inferer", flag.ExitOnError)
-	decisions := jeu.String("decisions", "", "fichier de décisions YAML")
-	sortie := jeu.String("sortie", "", "fichier de sortie")
-	espaceDeNoms := jeu.String("espace-de-noms", "App\\Entity", "espace de noms des entités générées")
-	if err := jeu.Parse(args); err != nil {
-		return err
-	}
-
-	if jeu.NArg() != 1 {
-		return fmt.Errorf("un calque physique est attendu en argument")
-	}
-	_ = decisions
-	_ = sortie
-	_ = espaceDeNoms
-
-	return fmt.Errorf("à implémenter : phase 3 de la feuille de route")
 }
 
 // diffuser compare un calque enregistré à la base, ou à un second calque.

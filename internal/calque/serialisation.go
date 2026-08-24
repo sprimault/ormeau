@@ -118,6 +118,41 @@ func LirePhysique(chemin string) (*Physique, error) {
 	return &p, nil
 }
 
+// Ecrire sérialise le calque logique.
+//
+// Pas d'empreinte à calculer, contrairement au physique : le logique porte
+// celle du physique dont il dérive, ce qui suffit à savoir s'il est à jour. En
+// calculer une seconde n'ajouterait qu'un champ à maintenir.
+//
+// Mêmes droits que le physique, et pour la même raison : les noms de tables et
+// de colonnes d'un client s'y retrouvent tels quels.
+func (l *Logique) Ecrire(chemin string) error {
+	donnees, err := Serialiser(l)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(chemin, donnees, 0o600)
+}
+
+// LireLogique charge un calque logique, en refusant une version plus récente
+// que celle qu'il connaît.
+func LireLogique(chemin string) (*Logique, error) {
+	// Le chemin vient de la ligne de commande, comme pour le physique.
+	donnees, err := os.ReadFile(chemin) // #nosec G304
+	if err != nil {
+		return nil, err
+	}
+
+	var l Logique
+	if err := json.Unmarshal(donnees, &l); err != nil {
+		return nil, err
+	}
+	if l.VersionRI > VersionCourante {
+		return nil, fmt.Errorf("calque logique en version %d, cet outil ne connaît que la version %d", l.VersionRI, VersionCourante)
+	}
+	return &l, nil
+}
+
 // VersionCourante est la version du format que cet outil produit et sait lire.
 // Sans rapport avec SemVer : un champ optionnel ajouté ne l'incrémente pas.
 //

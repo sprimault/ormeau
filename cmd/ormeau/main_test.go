@@ -196,7 +196,6 @@ func TestCommandesNonEcritesNommentLeurPhase(t *testing.T) {
 		nom     string
 		appeler func() error
 	}{
-		{"inferer", func() error { return inferer([]string{"gescom.calque.json"}) }},
 		{"diff", func() error { return diffuser(nil) }},
 	}
 
