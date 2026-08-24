@@ -70,7 +70,7 @@ Verifying a downloaded archive — the binaries being neither signed nor
 notarized, SmartScreen and Gatekeeper will complain on first launch:
 
 ```console
-$ gh attestation verify ormeau_v0.2.0_linux_amd64.tar.gz --repo sprimault/ormeau
+$ gh attestation verify ormeau_v0.3.0_linux_amd64.tar.gz --repo sprimault/ormeau
 ```
 
 Through a container, giving it the caller's identity: the image runs as an
@@ -79,7 +79,7 @@ unprivileged user and would not write to a Linux volume otherwise.
 ```console
 $ docker run --rm --user "$(id -u):$(id -g)" \
     -e ORMEAU_DSN -v "$PWD:/sortie" \
-    ghcr.io/sprimault/ormeau:v0.2.0 extraire --sortie /sortie/gescom.calque.json
+    ghcr.io/sprimault/ormeau:v0.3.0 extraire --sortie /sortie/gescom.calque.json
 ```
 
 With the layer in hand, inference runs offline — the database is no longer
@@ -114,14 +114,14 @@ $env:ORMEAU_MDP = "secret"
 .\ormeau.exe extraire --sgbd postgres --hote srv --utilisateur app --base gescom --sortie gescom.calque.json
 
 docker run --rm -e ORMEAU_DSN -v "${PWD}:/sortie" `
-    ghcr.io/sprimault/ormeau:v0.2.0 extraire --sortie /sortie/gescom.calque.json
+    ghcr.io/sprimault/ormeau:v0.3.0 extraire --sortie /sortie/gescom.calque.json
 ```
 
 Verifying the checksum of a downloaded archive:
 
 ```powershell
 $attendu = (Select-String -Path SHA256SUMS -Pattern windows).Line.Split(" ")[0]
-$obtenu  = (Get-FileHash ormeau_v0.2.0_windows_amd64.zip -Algorithm SHA256).Hash.ToLower()
+$obtenu  = (Get-FileHash ormeau_v0.3.0_windows_amd64.zip -Algorithm SHA256).Hash.ToLower()
 if ($attendu -eq $obtenu) { "empreinte OK" } else { "EMPREINTE DIFFERENTE" }
 ```
 
