@@ -1,17 +1,20 @@
-.PHONY: dev test lint outils vulncheck sec build binaries web-build web-types web-types-check web-lint web-test php-test php-lint image image-push clean
+.PHONY: dev test cover maj-attendus lint outils vulncheck sec build binaries web-build web-types web-types-check web-lint web-test php-test php-lint image image-push clean
 
-# Toute la chaîne Go travaille dans .tmp/, à l'intérieur du dépôt, plutôt
-# que dans %TEMP%. `go build` et `go test` y écrivent des exécutables
-# éphémères que l'antivirus du poste de développement met en quarantaine
-# au moment même où le linker les produit : la compilation échoue alors
-# sur un accès refusé, sans rapport apparent avec le code, et de façon
-# intermittente. Le répertoire est ignoré par git.
-#
-# Créé au parsing plutôt que par une dépendance de cible : GOTMPDIR doit
-# exister avant la première commande go, quelle que soit la cible.
+# Répertoire de travail local, ignoré par git : sorties de `make build`,
+# profils de couverture, tout ce qui ne se publie pas.
 TMP := $(CURDIR)/.tmp
-export GOTMPDIR := $(TMP)/gobuild
-_ := $(shell mkdir -p "$(GOTMPDIR)")
+_ := $(shell mkdir -p "$(TMP)")
+
+# Réglages propres au poste : chemins de cache Go, port de développement,
+# DSN de travail. Non versionné, et absent chez tout le monde sauf celui
+# qui en a besoin.
+#
+# C'est là que se pose GOTMPDIR sur une machine dont l'antivirus met en
+# quarantaine les exécutables au moment où le linker les produit. Rien
+# n'oblige les autres à s'en soucier, et rediriger GOCACHE par défaut
+# leur coûterait un cache de compilation froid à chaque clone — sans
+# parler de celui de la CI, qui vise ~/.cache/go-build.
+-include makefile.local
 
 # Variables de développement, surchargeables à l'appel :
 #   make dev ORMEAU_DEV_PORT=7777
@@ -50,6 +53,24 @@ dev: web-build
 # restent utilisables sur un clone frais.
 test: web-build
 	go test -race ./...
+
+# maj-attendus réécrit les calques logiques attendus des cas de
+# référence. Cible séparée, jamais appelée par `make test` : un attendu
+# régénéré sans être relu n'enregistre pas le comportement voulu mais le
+# comportement courant, bugs compris, et le déclare correct.
+#
+# Relire le diff avant de commiter fait partie de la manœuvre.
+maj-attendus:
+	go test ./internal/inference/ -run TestReference -maj-attendus
+	@echo "Attendus reecrits. Relire 'git diff tests/reference/' avant de commiter."
+
+# cover passe par le Makefile et pas par la main : `go tool cover` bâtit
+# son propre exécutable, et ne l'appeler qu'ici garantit qu'il atterrit
+# dans .tmp/ comme le reste.
+cover: web-build
+	go test -coverprofile="$(TMP)/cover.out" ./...
+	go tool cover -func="$(TMP)/cover.out"
+	@echo "Detail par ligne : go tool cover -html=$(TMP)/cover.out"
 
 # Les tests d'intégration exigent les conteneurs SGBD et portent
 # l'étiquette `integration` : `make test` doit passer sans docker.
@@ -142,10 +163,15 @@ web-build:
 	@if [ -f web/package.json ]; then cd web && npm run build; \
 	else echo "web/ absent, rien a construire"; fi
 
+# tsc avant eslint : `vite build` transpile sans contrôler les types, un
+# projet peut donc se construire en étant faux. Le typage se vérifie
+# séparément ou pas du tout.
 web-lint:
-	cd web && npm run lint && npx steiger ./src
+	@if [ ! -f web/package.json ]; then echo "web/ absent, rien a controler"; exit 0; fi; \
+	cd web && npx tsc -b && npm run lint && npx steiger ./src
 
 web-test:
+	@if [ ! -f web/package.json ]; then echo "web/ absent, rien a tester"; exit 0; fi; \
 	cd web && npm run audit:high && npm run test:run
 
 # web-types régénère les types TypeScript de l'API à partir des
@@ -196,8 +222,11 @@ web-types-check:
 php-test:
 	cd php && composer install --no-interaction && composer test
 
+# composer audit interroge la base d'avis en direct : un lint vert le matin
+# peut être rouge l'après-midi sur le même lock. C'est voulu, une faille
+# n'attend pas la prochaine contribution.
 php-lint:
-	cd php && composer analyse && vendor/bin/php-cs-fixer fix --dry-run --diff
+	cd php && composer analyse && vendor/bin/php-cs-fixer fix --dry-run --diff && composer audit
 
 # ── SGBD de test ────────────────────────────────────────────────────
 containers:

@@ -73,13 +73,28 @@ You need Go (the version pinned in `go.mod`) and Docker for the test
 containers. PHP 8.3 and Composer are only needed to work on `php/`.
 
 ```bash
-make outils   # golangci-lint, govulncheck, gosec
-make test     # go test -race ./...
-make lint     # golangci-lint, gofmt
+make outils        # golangci-lint, govulncheck, gosec
+make test          # go test -race ./...
+make lint          # golangci-lint, gofmt
+make cover         # coverage, per-function breakdown
+make maj-attendus  # rewrites the expected logical layers, review them after
 ```
 
 `make test` must pass on a fresh clone without Docker: tests that need a DBMS
 carry the `integration` build tag and run through `make test-integration`.
+
+The Makefile includes `makefile.local` when present, for machine-specific
+settings. If your antivirus quarantines binaries as the linker writes them —
+the build then fails on a permission error unrelated to the code — that is
+where you redirect `GOTMPDIR` and `GOCACHE` into `.tmp/`:
+
+```make
+export GOTMPDIR := $(TMP)/gobuild
+export GOCACHE := $(TMP)/gocache
+_ := $(shell mkdir -p "$(GOTMPDIR)" "$(GOCACHE)")
+```
+
+The file is not versioned, and nothing requires you to create it.
 
 The container may run elsewhere than on your workstation: `ORMEAU_TEST_DSN`
 overrides the DSN the integration tests target.

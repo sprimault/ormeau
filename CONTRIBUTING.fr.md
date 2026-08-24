@@ -77,14 +77,29 @@ Il faut Go (la version épinglée dans `go.mod`) et Docker pour les conteneurs d
 test. PHP 8.3 et Composer ne servent que pour travailler sur `php/`.
 
 ```bash
-make outils   # golangci-lint, govulncheck, gosec
-make test     # go test -race ./...
-make lint     # golangci-lint, gofmt
+make outils        # golangci-lint, govulncheck, gosec
+make test          # go test -race ./...
+make lint          # golangci-lint, gofmt
+make cover         # couverture, détail par fonction
+make maj-attendus  # réécrit les calques logiques attendus, à relire ensuite
 ```
 
 `make test` doit passer sur un clone frais sans Docker : les tests qui exigent
 un SGBD portent l'étiquette `integration` et passent par
 `make test-integration`.
+
+Le Makefile inclut `makefile.local` s'il existe, pour les réglages propres à une
+machine. Si votre antivirus met en quarantaine les binaires au moment du link —
+la compilation échoue alors sur un accès refusé sans rapport avec le code —,
+c'est là qu'on redirige `GOTMPDIR` et `GOCACHE` vers `.tmp/` :
+
+```make
+export GOTMPDIR := $(TMP)/gobuild
+export GOCACHE := $(TMP)/gocache
+_ := $(shell mkdir -p "$(GOTMPDIR)" "$(GOCACHE)")
+```
+
+Le fichier n'est pas versionné, et rien n'oblige à le créer.
 
 Le conteneur peut tourner ailleurs que sur le poste : `ORMEAU_TEST_DSN`
 surcharge le DSN visé par les tests d'intégration.
