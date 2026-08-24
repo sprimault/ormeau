@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace Ormeau\Doctrine\Generation;
 
+use LogicException;
 use Ormeau\Doctrine\Calque\CalqueLogique;
 
 /**
@@ -25,14 +26,26 @@ final class GenerateurEntite
 {
     public function __construct(
         private readonly ModeRegeneration $mode = ModeRegeneration::ClasseDeBase,
-    ) {
+    ) {}
+
+    /**
+     * Rend le mode retenu à la construction.
+     */
+    public function mode(): ModeRegeneration
+    {
+        return $this->mode;
     }
 
     /**
+     * Écrit les entités du calque dans le répertoire donné.
+     *
      * @return list<string> chemins des fichiers écrits
      */
     public function generer(CalqueLogique $calque, string $repertoire): array
     {
-        throw new \LogicException('À implémenter : phase 4 de la feuille de route.');
+        throw new LogicException(sprintf(
+            'Generation en mode %s : a implementer.',
+            $this->mode->value,
+        ));
     }
 }

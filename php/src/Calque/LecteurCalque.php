@@ -17,8 +17,25 @@ namespace Ormeau\Doctrine\Calque;
  */
 final class LecteurCalque
 {
+    /**
+     * Version de format que ce paquet sait lire.
+     *
+     * À tenir alignée sur les structures Go et le JSON Schema : les trois
+     * annoncent toujours la même, une divergence est un défaut et non un
+     * décalage temporaire.
+     */
     public const VERSION_CONNUE = 1;
 
+    /**
+     * Charge un calque logique depuis un fichier.
+     *
+     * Un calque de version supérieure est refusé plutôt que lu au mieux : il
+     * peut porter des champs dont l'absence de traitement produirait des
+     * entités silencieusement fausses. L'inverse est accepté — une version
+     * antérieure ne contient rien d'inconnu.
+     *
+     * @throws CalqueInvalide fichier illisible, JSON mal formé, ou version non gérée
+     */
     public function lire(string $chemin): CalqueLogique
     {
         $contenu = @file_get_contents($chemin);
