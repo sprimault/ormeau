@@ -46,8 +46,8 @@ dev: web-build
 	fi
 
 # Les cibles Go dépendent de web-build pour la même raison que dev.
-# Tant que web/ n'existe pas — avant la phase 9 — web-build ne fait
-# rien et les cibles Go restent utilisables sur un clone frais.
+# Tant que web/ n'existe pas, web-build ne fait rien et les cibles Go
+# restent utilisables sur un clone frais.
 test: web-build
 	go test -race ./...
 
@@ -132,16 +132,15 @@ binaries: web-build
 	CGO_ENABLED=0 GOOS=darwin  GOARCH=amd64 go build -trimpath -ldflags "$(LDFLAGS)" -o dist/ormeau_darwin_amd64      ./cmd/ormeau
 	cd dist && sha256sum ormeau_* > SHA256SUMS
 
-# ── Front (phase 9) ─────────────────────────────────────────────────
+# ── Front ───────────────────────────────────────────────────────────
 # Feature-Sliced Design obligatoire, vérifiée par steiger dans web-lint.
 #
 # Les cibles ci-dessous ne font rien tant que web/ n'existe pas : le
-# squelette doit rester utilisable avant la phase 9, et un `make test`
-# qui échoue sur un répertoire absent apprend surtout à ignorer le
-# Makefile.
+# dépôt doit rester utilisable avant l'interface, et un `make test` qui
+# échoue sur un répertoire absent apprend surtout à ignorer le Makefile.
 web-build:
 	@if [ -f web/package.json ]; then cd web && npm run build; \
-	else echo "web/ absent (phase 9), rien a construire"; fi
+	else echo "web/ absent, rien a construire"; fi
 
 web-lint:
 	cd web && npm run lint && npx steiger ./src
@@ -179,7 +178,7 @@ TYPES_GENERES = web/src/shared/model/calque.ts web/src/shared/model/api.ts
 # --strip-trailing-cr : sur un poste Windows, git repose les fichiers
 # en CRLF à chaque bascule de branche alors que tygo écrit en LF.
 web-types-check:
-	@if [ ! -f tools/tygo/tygo.yaml ]; then echo "tygo non configure (phase 9), controle ignore"; exit 0; fi; \
+	@if [ ! -f tools/tygo/tygo.yaml ]; then echo "tygo non configure, controle ignore"; exit 0; fi; \
 	command -v tygo >/dev/null 2>&1 || { echo "tygo absent : go install github.com/gzuidhof/tygo@$(TYGO_VERSION)"; exit 1; }; \
 	tmp=$$(mktemp -d) && cp $(TYPES_GENERES) "$$tmp/" && \
 	tygo generate --config tools/tygo/tygo.yaml >/dev/null && \
