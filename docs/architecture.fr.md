@@ -2,30 +2,23 @@
 
 # Architecture
 
-## Le problème
+Ce document explique la conception. Ce que fait l'outil et comment s'en servir
+est dans le [README](../README.fr.md).
 
-Doctrine a retiré son reverse engineering : `doctrine:mapping:import` a disparu
-du bundle et `DatabaseDriver` est parti avec ORM 3. Il ne reste rien d'officiel,
-et les alternatives de l'écosystème sont soit abandonnées, soit trop naïves pour
-du legacy réel — elles produisent `$clientId` en `integer` au lieu d'une
-association.
-
-## Trois couches, un format pivot
+## Un format pivot, et pourquoi
 
 ```
 introspection  ->  calque physique  ->  inférence  ->  calque logique  ->  génération
    (Go)                (JSON)           (Go, pure)         (JSON)            (PHP)
 ```
 
-Le **calque** est le format pivot : le modèle de données, sérialisé en JSON, qui
-décrit une base sans référence ni au SGBD d'origine ni au framework de
-destination. Le nom vient du décalque — une copie fidèle de la structure — et du
-sens linguistique : un calque est un emprunt structurel d'une langue vers une
-autre, ce qui est exactement l'opération.
-
 C'est une compilation. L'introspecteur est le frontal, un par SGBD ; le
 générateur est le back-end, un par ORM ; le calque est le langage intermédiaire.
 Sans lui, on écrit *n × m* traducteurs ; avec lui, *n + m*.
+
+Le nom vient du décalque — une copie fidèle de la structure — et du sens
+linguistique : un calque est un emprunt structurel d'une langue vers une autre,
+ce qui est exactement l'opération.
 
 ## Deux niveaux
 
@@ -48,7 +41,9 @@ D'où la relation qui porte tout :
 physique + décisions -> logique
 ```
 
-Fonction pure : pas de réseau, pas d'effet de bord, pas d'horloge.
+Fonction pure : pas de réseau, pas d'effet de bord, pas d'horloge. C'est elle
+qui permet de corriger une inférence sans accès à la base, de la rejouer, et de
+tester avec des fichiers de référence plutôt qu'un serveur.
 
 ## Les trois propriétés du calque physique
 
@@ -68,8 +63,8 @@ document. Sans ça, le mode diff produit du bruit et devient inutilisable.
 
 Il ne parle pas Doctrine, mais il parle le vocabulaire de la famille Hibernate :
 entités, associations avec côté propriétaire et côté inverse, stratégies
-d'héritage, identifiants composites. Doctrine, Hibernate, EF Core et TypeORM le
-partagent ; GORM et Prisma, non — eux consomment le calque physique.
+d'héritage, identifiants composites. Doctrine et EF Core le partagent ; un ORM
+bâti sur un autre modèle, comme GORM, consomme le calque physique.
 
 Ce biais est assumé. Un calque logique vraiment universel serait si pauvre qu'il
 ne porterait plus aucune décision, et chaque générateur réimplémenterait les
@@ -79,27 +74,29 @@ heuristiques : exactement ce que le découpage vise à éviter.
 
 **Go** pour l'introspection et l'inférence. Pilotes en Go pur (`pgx`,
 `go-sql-driver/mysql`, `microsoft/go-mssqldb`, `sijms/go-ora`), donc aucun cgo,
-aucune dépendance système : un binaire unique qu'on lance sur le serveur d'un
-client sans rien installer. L'équivalent PHP imposerait `pdo_sqlsrv` et Instant
-Client, et transformerait le projet en support d'installation.
+aucune dépendance système : un binaire qui tourne tel quel là où on le pose. Le
+plus souvent sur le poste du développeur, qui joint la base par le réseau ; sur
+le serveur du client quand elle n'est pas atteignable autrement. L'équivalent
+PHP imposerait `pdo_sqlsrv` et Instant Client, et transformerait le projet en
+support d'installation.
 
 **PHP** pour la génération Doctrine. La partie difficile n'est pas d'écrire des
 fichiers, c'est la régénération non destructive : relire une entité déjà
-retouchée avec `nikic/php-parser`, comparer au calque logique, ne réécrire que ce
-qui a bougé, conserver méthodes métier et formatage.
+retouchée avec `nikic/php-parser`, comparer au calque logique, ne réécrire que
+ce qui a bougé, conserver méthodes métier et formatage.
 
 Le contrat entre les deux est le calque, validé par un JSON Schema versionné et
-publié dans `schemas/`. Conséquence : les tests d'inférence sont des fichiers de
-référence sans base de données, n'importe qui peut écrire un générateur Eloquent
-ou EF Core sans toucher au cœur, et chaque moitié est réécrivable
-indépendamment.
+publié dans [`schemas/`](../schemas/). Conséquence : n'importe qui peut écrire
+un générateur Eloquent ou EF Core sans toucher au cœur, et chaque moitié est
+réécrivable indépendamment.
 
 ## Ce que le calque ne contient pas
 
 Les données des tables — seulement des statistiques agrégées, optionnelles —,
-les droits et rôles, les procédures stockées et triggers, le paramétrage serveur.
-Rien de ce qui ne sert pas à produire un modèle objet. Un calque qui dérive vers
-le dump complet cesse d'être stable, diffable et versionnable dans Git.
+les droits et rôles, les procédures stockées et triggers, le paramétrage
+serveur. Rien de ce qui ne sert pas à produire un modèle objet. Un calque qui
+dérive vers le dump complet cesse d'être stable, diffable et versionnable dans
+Git.
 
 ## Versionnement du format
 
@@ -109,10 +106,10 @@ change pas la version ; tout le reste l'incrémente — renommage, suppression,
 changement de sémantique, nouvelle valeur dans un vocabulaire fermé. Le
 générateur refuse une version supérieure à celle qu'il connaît.
 
-Le champ `empreinte` a deux rôles distincts : dans `source`, il identifie un état
-de base ; dans le calque logique, `empreinte_physique` indique de quel constat
-découle ce jugement — ce qui permet de détecter « la base a bougé depuis la
-dernière génération » sans relire les entités.
+Le champ `empreinte` a deux rôles distincts : dans `source`, il identifie un
+état de base ; dans le calque logique, `empreinte_physique` indique de quel
+constat découle ce jugement — ce qui permet de détecter « la base a bougé depuis
+la dernière génération » sans relire les entités.
 
 ## Conséquence pratique
 

@@ -34,8 +34,10 @@ The front end is built **before** the binaries. If `web/dist` does not exist at
 compile time, `embed` produces an empty filesystem and the build still succeeds:
 you then publish binaries with a blank interface, with no warning whatsoever.
 
-The `binaries` target depends on `web-build` for that reason, and a test checks
-that the embedded filesystem is not empty.
+The `binaries` target depends on `web-build` for that reason. A test will have
+to check that the embedded filesystem is not empty: it makes no sense before the
+interface exists, but it must land with it, otherwise the safeguard rests on the
+Makefile dependency alone.
 
 ## Local builds
 

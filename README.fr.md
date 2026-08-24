@@ -9,196 +9,157 @@
 > recommence six mois plus tard sans écraser le travail fait entre-temps.
 
 > [!WARNING]
-> **Extraction seulement.** `ormeau extraire` produit un calque PostgreSQL
-> valide, et c'est tout ce qui fonctionne à ce jour : l'inférence et le
-> générateur Doctrine ne sont pas écrits, et leurs commandes retournent une
-> erreur nommant la phase qui les apportera. Voir
-> [État d'avancement](#état-davancement).
+> Ormeau se connecte aux bases dont vous lui donnez les identifiants et écrit
+> des fichiers décrivant leur schéma. Il ne lit que le catalogue, en session de
+> lecture seule imposée par le serveur, mais la base visée et le compte employé
+> restent votre choix. Un calque décrit le schéma d'une base cliente : il ne se
+> versionne ni ne se transmet à la légère. Préversion fournie sans garantie, aux
+> termes de la licence Apache 2.0 — voir
+> [État d'avancement](#état-davancement) pour ce qui fonctionne.
 
 ## Ce qu'est Ormeau
 
-Ormeau introspecte un schéma relationnel et en génère des entités Doctrine.
-
 L'objectif n'est **pas** de générer des entités à partir d'une base propre — un
-script naïf y suffit, et Doctrine le faisait avant de retirer
+script y suffit, et Doctrine le faisait avant de retirer
 `doctrine:mapping:import`. C'est de reprendre une base legacy réelle : préfixes
 `T_`, clés étrangères jamais déclarées, tables sans clé primaire, booléens en
 `char(1)`, colonnes générées. Et de le faire deux fois, six mois plus tard, sans
 écraser le travail fait entre-temps sur les entités.
 
-Toute décision de conception s'arbitre en faveur de cette phrase.
+Doctrine a retiré son reverse engineering : `doctrine:mapping:import` a disparu
+du bundle et `DatabaseDriver` est parti avec ORM 3. Il ne reste rien d'officiel,
+et les alternatives de l'écosystème sont soit abandonnées, soit s'arrêtent à une
+transposition littérale : elles rendent `$clientId` en `integer` là où il
+faudrait une association vers `Client`.
 
-## Pourquoi il existe
-
-Doctrine a retiré son reverse engineering : `doctrine:mapping:import` a disparu du
-bundle et `DatabaseDriver` est parti avec ORM 3. Il ne reste rien d'officiel, et
-les alternatives de l'écosystème sont soit abandonnées, soit trop naïves pour du
-legacy réel — elles produisent `$clientId` en `integer` au lieu d'une association.
-
-## Le calque
-
-```
-introspection  ->  calque physique  ->  inférence  ->  calque logique  ->  génération
-   (Go)                (JSON)           (Go, pure)         (JSON)            (PHP)
-```
-
-Le **calque** est le format pivot : le modèle de données, sérialisé en JSON, qui
-décrit une base sans référence ni au SGBD d'origine ni au framework de
-destination. Sans lui, on écrit *n × m* traducteurs ; avec lui, *n + m*.
-
-Le nom vient du décalque — une copie fidèle de la structure — et du sens
-linguistique : un calque est un emprunt structurel d'une langue vers une autre,
-ce qui est exactement l'opération.
-
-Il a deux niveaux, et cette séparation porte toute la conception :
-
-|  | calque physique | calque logique |
-|---|---|---|
-| décrit | ce qui **est** en base | ce qu'on **décide** d'en faire |
-| produit par | introspection | inférence |
-| peut être faux | seulement par bug | c'est un jugement, il se discute |
-| perd de l'information | non | oui, volontairement |
-
-Le physique est un constat, le logique un jugement. Les séparer est ce qui permet
-de corriger une inférence hors ligne et de tester sans aucune base :
-
-```
-physique + décisions -> logique
-```
-
-Fonction pure : pas de réseau, pas d'horloge, pas d'aléa.
-
-Trois propriétés sont tenues sur le calque physique — **complétude** (un DDL
-équivalent doit pouvoir être reconstruit), **neutralité** (aucun champ ne suppose
-la destination), **déterminisme** (deux extractions identiques donnent deux
-fichiers identiques octet pour octet). La dernière est ce qui rend le mode diff
-exploitable plutôt que bruyant.
-
-Détails dans [`docs/architecture.fr.md`](docs/architecture.fr.md). Le contrat
-lui-même est dans [`schemas/`](schemas/), versionné à part du dépôt.
-
-## Deux langages, une frontière qui n'est pas arbitraire
-
-**Go** pour l'introspection et l'inférence. Les pilotes sont en Go pur, donc
-aucun cgo et aucune dépendance système : un binaire unique qu'on lance sur le
-serveur d'un client sans rien installer. L'équivalent PHP imposerait `pdo_sqlsrv`
-et Instant Client, et transformerait le projet en support d'installation.
-
-**PHP** pour la génération Doctrine. La partie difficile n'est pas d'écrire des
-fichiers, c'est la régénération non destructive : relire une entité déjà
-retouchée avec `nikic/php-parser`, comparer au calque logique, ne réécrire que ce
-qui a bougé, conserver méthodes métier et formatage.
-
-## Les cas dégueulasses sont le sujet
-
-Table sans clé primaire, clé primaire composite, clé étrangère non déclarée, date
-`0000-00-00`, colonne booléenne stockée en `char(1)` valant `O`/`N`, deux tables
-liées par des colonnes de types différents. C'est le quotidien d'une base
-reprise, et c'est ce que les outils existants gèrent le plus mal.
-
-La règle : produire un avertissement, jamais une exception, jamais une invention.
-Un calque logique partiel accompagné de vingt avertissements précis vaut
-infiniment mieux qu'une erreur fatale ou qu'un modèle silencieusement faux.
-
-Chaque élément inféré porte son `origine` — `contrainte`, `verification`,
-`cardinalite`, `nommage` ou `decision`. Sans ça, l'outil n'est pas auditable, et
-personne ne le lancera sur sa base.
-
-## Usage visé
-
-```
-ormeau extraire --dsn "postgres://..." --sortie gescom.calque.json
-ormeau inferer  gescom.calque.json --decisions decisions.yaml --sortie gescom.logique.json
-ormeau diff     gescom.calque.json
-ormeau interface
-
-bin/console ormeau:generer      gescom.logique.json
-bin/console ormeau:synchroniser gescom.calque.json
-```
-
-La connexion s'exprime aussi par composants, ce qui évite d'échapper un mot de
-passe dans une URL. Sans `--base`, toutes les bases du serveur sont extraites et
-`--sortie` désigne un répertoire :
-
-```
-ORMEAU_MDP=... ormeau extraire --sgbd postgres --hote srv --utilisateur app --sortie calques/
-```
-
-Le mot de passe n'a pas de drapeau : il serait visible dans `ps` et dans
-l'historique du shell.
-
-`ormeau:synchroniser` répond à « qu'est-ce qui a changé en base depuis mes
-entités » — l'inverse de `doctrine:schema:update`, et ce qui sert vraiment au
-quotidien sur du legacy où le schéma bouge sans passer par les migrations.
-
-## Sûreté
-
-L'outil ne fait que lire. Les connexions sont en lecture seule, y compris pendant
-l'échantillonnage, avec un délai maximal par requête. Aucune chaîne SQL ne
-transite depuis le navigateur : l'interface locale expose des points d'entrée
-fixes.
-
-Le DSN est le seul secret manipulé. Il n'apparaît ni dans les journaux, ni dans
-les messages d'erreur, ni dans le calque.
-
-**Un calque est le schéma de la base d'un client** — noms de tables, de colonnes,
-commentaires métier, et avec `--echantillonner`, des valeurs réelles. Un calque
-extrait d'une base de production ne rentre jamais dans un dépôt, ni en pièce
-jointe d'une issue.
-
-## Installation
+## Démarrage
 
 Télécharger l'archive de sa plateforme depuis la
 [dernière version](https://github.com/sprimault/ormeau/releases/latest), la
-décompresser, exécuter le binaire. Rien à installer d'autre : aucun runtime,
-aucun pilote système.
+décompresser, exécuter. Rien d'autre à installer : aucun runtime, aucun pilote
+système.
 
-```bash
-gh attestation verify ormeau_v0.2.0_linux_amd64.tar.gz --repo sprimault/ormeau
+```console
+$ ormeau extraire --dsn "postgres://app:secret@srv:5432/gescom" --sortie gescom.calque.json
+gescom.calque.json : 10 table(s), 32 colonne(s), 0 anomalie(s)
+empreinte sha256:f422f6d3e5eb455a91b096bd513bd5d8e595bd4e88aa588ef25d241993e201a1
 ```
 
-L'attestation lie l'archive au commit et au workflow qui l'a produite. Elle
-compte ici : les binaires ne sont ni signés ni notariés, SmartScreen et
-Gatekeeper protesteront au premier lancement.
+La connexion s'exprime aussi par composants, ce qui évite d'échapper un mot de
+passe dans une URL. Le mot de passe n'a pas de drapeau : il serait visible dans
+`ps` et dans l'historique du shell.
 
-Par conteneur, en lui donnant l'identité de l'appelant — l'image tourne sous un
-utilisateur non privilégié et n'écrirait pas dans le volume sans cela :
+```console
+$ export ORMEAU_MDP=secret
+$ ormeau extraire --sgbd postgres --hote srv --utilisateur app --base gescom --sortie gescom.calque.json
+```
 
-```bash
-docker run --rm --user "$(id -u):$(id -g)" \
-  -e ORMEAU_DSN -v "$PWD:/sortie" \
-  ghcr.io/sprimault/ormeau:v0.2.0 extraire --sortie /sortie/gescom.calque.json
+Sans `--base`, toutes les bases du serveur sont extraites et `--sortie` désigne
+un répertoire :
+
+```console
+$ ormeau extraire --sgbd postgres --hote srv --utilisateur app --sortie calques/
+calques/gescom.calque.json : 10 table(s), 32 colonne(s), 0 anomalie(s)
+calques/facturation.calque.json : 24 table(s), 187 colonne(s), 0 anomalie(s)
+```
+
+Vérifier une archive téléchargée — les binaires n'étant ni signés ni notariés,
+SmartScreen et Gatekeeper protesteront au premier lancement :
+
+```console
+$ gh attestation verify ormeau_v0.2.0_linux_amd64.tar.gz --repo sprimault/ormeau
+```
+
+Par conteneur, en lui donnant l'identité de l'appelant : l'image tourne sous un
+utilisateur non privilégié et n'écrirait pas dans le volume sans cela.
+
+```console
+$ docker run --rm --user "$(id -u):$(id -g)" \
+    -e ORMEAU_DSN -v "$PWD:/sortie" \
+    ghcr.io/sprimault/ormeau:v0.2.0 extraire --sortie /sortie/gescom.calque.json
 ```
 
 Entre deux versions, `go install github.com/sprimault/ormeau/cmd/ormeau@master`.
 
+## Ce que produit l'extraction
+
+Un **calque** : le décalque du catalogue, en JSON, qui ne juge rien et ne perd
+rien. Le nom du type est celui du serveur, jamais reconstruit ; la valeur par
+défaut est structurée, pour que `DEFAULT 'now()'` et `DEFAULT now()` restent
+distinguables ; longueur et précision sont absentes plutôt que nulles, pour que
+`decimal(10,0)` ne se confonde pas avec `int`.
+
+```json
+{
+  "nom": "cli_statut",
+  "position": 4,
+  "type_brut": "character varying(20)",
+  "type_normalise": "texte",
+  "longueur": 20,
+  "nullable": false,
+  "defaut": { "genre": "litteral", "valeur": "ACTIF" }
+}
+```
+
+Deux extractions de la même base produisent deux fichiers **identiques octet
+pour octet** — l'horodatage est exclu de l'empreinte. C'est ce qui rend le mode
+diff exploitable, et ce qui permet de versionner un calque dans Git.
+
+La conception derrière ce format — ses deux niveaux, ses trois propriétés, le
+partage entre Go et PHP — est dans
+[`docs/architecture.fr.md`](docs/architecture.fr.md).
+
+## Les cas tordus sont le sujet
+
+Table sans clé primaire, clé primaire composite, clé étrangère non déclarée,
+date `0000-00-00`, colonne booléenne stockée en `char(1)` valant `O`/`N`, deux
+tables liées par des colonnes de types différents. C'est le quotidien d'une base
+reprise, et ce que les outils existants gèrent le plus mal.
+
+La règle : produire un avertissement, jamais une exception, jamais une
+invention. Un calque logique partiel accompagné de vingt avertissements précis
+vaut mieux qu'une erreur fatale ou qu'un modèle silencieusement faux. Chaque
+élément inféré porte son `origine` — `contrainte`, `verification`,
+`cardinalite`, `nommage` ou `decision` — sans quoi l'outil n'est pas auditable.
+
+## Sûreté
+
+L'outil ne fait que lire. Les connexions sont en lecture seule, imposées par le
+serveur et non par la discipline du code, avec un délai maximal par requête.
+
+Le DSN est le seul secret manipulé : il n'apparaît ni dans les journaux, ni dans
+les messages d'erreur, ni dans le calque.
+
+**Un calque est le schéma de la base d'un client** — noms de tables, de
+colonnes, commentaires métier, et avec `--echantillonner`, des valeurs réelles.
+Un calque extrait d'une base de production ne rentre jamais dans un dépôt, ni en
+pièce jointe d'une issue.
+
 ## État d'avancement
 
-La feuille de route est dans
-[`ROADMAP.md`](ROADMAP.md).
-
-| Phase | État |
-|---|---|
-| 1 — Calque physique : structures, sérialisation déterministe, empreinte, JSON Schema | Terminée |
-| 2 — Introspection PostgreSQL | Terminée — `ormeau extraire` produit un calque |
-| 3 — Inférence et calque logique | Structures seulement |
-| 4 — Génération Doctrine | Squelette seulement |
-| 5 à 11 | Non commencées |
+L'extraction PostgreSQL fonctionne. L'inférence et la génération d'entités ne
+sont pas écrites : leurs commandes retournent une erreur nommant la phase qui
+les apportera. L'état par phase est dans [`ROADMAP.md`](ROADMAP.md).
 
 La CI exécute la suite de tests avec le détecteur de courses, `golangci-lint`,
 `gofmt`, `govulncheck`, `gosec` et un contrôle de validité des JSON Schema à
-chaque push et chaque pull request. Le workflow est public et ses exécutions sont
-dans l'onglet Actions.
+chaque push et chaque pull request.
+
+## Pour aller plus loin
+
+- [`docs/architecture.fr.md`](docs/architecture.fr.md) — le calque, ses deux
+  niveaux, pourquoi deux langages
+- [`docs/construction.fr.md`](docs/construction.fr.md) — compilation croisée,
+  images multi-arch, signature
+- [`schemas/`](schemas/) — le contrat public, versionné à part
+- [`CONTRIBUTING.fr.md`](CONTRIBUTING.fr.md) — les règles sur lesquelles une
+  pull request est jugée
 
 ## Retours
 
 Bogues, demandes ou questions : ouvrir une issue sur
 https://github.com/sprimault/ormeau/issues (français de préférence, anglais
 bienvenu).
-
-Vous comptez envoyer un correctif ? [`CONTRIBUTING.fr.md`](CONTRIBUTING.fr.md)
-énonce les règles sur lesquelles une pull request est jugée — elles ne se
-devinent pas à la lecture du code.
 
 Les failles de sécurité passent par le canal privé décrit dans
 [`SECURITY.fr.md`](SECURITY.fr.md), jamais par une issue publique.
