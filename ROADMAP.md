@@ -4,6 +4,14 @@ Ordre choisi pour qu'une chaîne bout en bout existe le plus tôt possible : mie
 vaut un PostgreSQL vers Doctrine qui marche vraiment que cinq pilotes sans
 générateur.
 
+| Phase | État |
+|---|---|
+| 1 — Calque physique | terminée |
+| 2 — Introspection PostgreSQL | terminée |
+| 3 — Inférence et calque logique | structures seulement |
+| 4 — Génération Doctrine | squelette seulement |
+| 5 à 11 | non commencées |
+
 ## Phase 1 — Le calque physique
 
 Structures Go, sérialisation déterministe, empreinte, JSON Schema v1 publié.
@@ -14,7 +22,7 @@ sur un exemple réel.
 
 Premier pilote, via `pg_catalog`. Tables, colonnes, PK, FK, unicités, index,
 `CHECK`, séquences, types énumérés, commentaires, colonnes générées.
-Conteneur de test et DDL de référence couvrant les cas tordus.
+Conteneur de test et DDL de référence couvrant les cas difficiles.
 
 ## Phase 3 — Inférence et calque logique
 

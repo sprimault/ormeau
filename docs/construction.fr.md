@@ -35,8 +35,10 @@ moment de la compilation, `embed` produit un système de fichiers vide et la
 compilation réussit quand même : on publie alors des binaires avec une interface
 blanche, sans qu'aucun avertissement ne le signale.
 
-La cible `binaries` dépend de `web-build` pour cette raison, et un test vérifie que
-le système de fichiers embarqué n'est pas vide.
+La cible `binaries` dépend de `web-build` pour cette raison. Un test devra
+vérifier que le système de fichiers embarqué n'est pas vide : il n'a pas de sens
+avant que l'interface existe, mais il devra arriver avec elle, sans quoi le
+garde-fou repose sur la seule dépendance du Makefile.
 
 ## Images Docker
 
