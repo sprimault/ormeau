@@ -202,6 +202,19 @@ https://github.com/sprimault/ormeau/issues (French preferred, English welcome).
 Security flaws go through the private channel described in
 [`SECURITY.md`](SECURITY.md), never through a public issue.
 
+## Where the name comes from
+
+*Ormeau* — pronounced roughly *or-MOH* — is French for a young elm, and for the
+abalone, a shellfish whose shell is built from stacked layers of nacre. It also
+happens to begin with ORM, which is convenient for a tool that produces ORM
+entities.
+
+The pivot format is called a **calque**, in the tracing-paper sense: a faithful
+copy of the catalogue, with no interpretation. In linguistics a calque is a
+structural borrowing from one language into another — English *skyscraper*
+becoming French *gratte-ciel*. That is precisely the operation: carrying the
+structure of a relational schema over into another language's type system.
+
 ## License
 
 Apache 2.0 — see [`LICENSE`](LICENSE).

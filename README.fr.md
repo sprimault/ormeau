@@ -206,6 +206,18 @@ bienvenu).
 Les failles de sécurité passent par le canal privé décrit dans
 [`SECURITY.fr.md`](SECURITY.fr.md), jamais par une issue publique.
 
+## D'où vient le nom
+
+Un ormeau, c'est un jeune orme — et un coquillage à la coquille nacrée, faite de
+couches superposées. Il commence aussi par ORM, ce qui tombe bien pour un outil
+qui produit des entités ORM.
+
+Le format pivot s'appelle un **calque**, au sens du décalque : une copie fidèle
+du catalogue, sans interprétation. En linguistique, un calque est aussi un
+emprunt structurel d'une langue vers une autre — « gratte-ciel » calqué sur
+*skyscraper*. C'est exactement l'opération : emprunter la structure d'un schéma
+relationnel dans le système de types d'un autre langage.
+
 ## Licence
 
 Apache 2.0 — voir [`LICENSE`](LICENSE).
