@@ -26,6 +26,10 @@ script y suffit, et Doctrine le faisait avant de retirer
 `char(1)`, colonnes générées. Et de le faire deux fois, six mois plus tard, sans
 écraser le travail fait entre-temps sur les entités.
 
+Cet outil vient d'un constat de terrain : reprendre une base existante pour en
+tirer des entités Doctrine est une tâche récurrente en mission, et plus rien ne
+la couvre depuis le retrait de `doctrine:mapping:import`.
+
 Doctrine a retiré son reverse engineering : `doctrine:mapping:import` a disparu
 du bundle et `DatabaseDriver` est parti avec ORM 3. Il ne reste rien d'officiel,
 et les alternatives de l'écosystème sont soit abandonnées, soit s'arrêtent à une

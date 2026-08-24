@@ -4,7 +4,7 @@
 package inference
 
 import (
-	"sort"
+	"strconv"
 
 	"github.com/sprimault/ormeau/internal/calque"
 )
@@ -113,8 +113,11 @@ func nomLibre(pris map[string]bool, souhaite, discriminant string) string {
 	// se réduisent au même : rare au point d'être suspect, mais un nom en
 	// double ne compile pas, alors qu'un nom numéroté se corrige par une
 	// décision.
+	//
+	// strconv et non une arithmétique sur rune : au-delà de neuf, '0'+n sort
+	// de la plage des chiffres et donnerait un identifiant invalide.
 	for n := 2; ; n++ {
-		numerote := variante + string(rune('0'+n))
+		numerote := variante + strconv.Itoa(n)
 		if !pris[numerote] {
 			return numerote
 		}
@@ -139,7 +142,7 @@ func posterJointures(logique *calque.Logique, s *schemaLogique) []calque.Avertis
 
 	var avertissements []calque.Avertissement
 
-	for _, cible := range clesJointures(s.jointures) {
+	for _, cible := range clesTriees(s.jointures) {
 		j := s.jointures[cible]
 
 		nomGauche, gaucheConnue := s.nomsParTable[j.gauche.SchemaCible+"."+j.gauche.TableCible]
@@ -229,14 +232,4 @@ func colonnesJointure(fk *calque.CleEtrangere) []calque.ColonneJointure {
 		colonnes = append(colonnes, jointure)
 	}
 	return colonnes
-}
-
-// clesJointures rend les tables de jointure dans un ordre stable.
-func clesJointures(m map[string]*jointurePure) []string {
-	cles := make([]string, 0, len(m))
-	for cle := range m {
-		cles = append(cles, cle)
-	}
-	sort.Strings(cles)
-	return cles
 }

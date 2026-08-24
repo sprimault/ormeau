@@ -29,8 +29,9 @@ Conteneur de test et DDL de référence couvrant les cas difficiles.
 ## Phase 3 — Inférence et calque logique
 
 Entités, propriétés, associations. Heuristiques de base : table de jointure pure,
-suffixe `_id`, héritage par clé primaire étrangère. Avertissements avec code,
-cible, confiance et origine. Fichier de décisions lu et prioritaire.
+suffixe `_id`, héritage par clé primaire étrangère, énumérations depuis un type
+natif ou un `CHECK`, traits d'horodatage. Avertissements avec code, cible,
+confiance et origine. Fichier de décisions lu et prioritaire.
 
 Préfixes et singularisation sont **proposés, pas appliqués** : ils changent ce
 qu'un nom désigne, et une base ne dit pas sa langue. Ils alimentent le fichier de

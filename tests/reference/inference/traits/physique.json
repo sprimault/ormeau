@@ -1,0 +1,58 @@
+{
+  "version_ri": 1,
+  "source": {
+    "sgbd": "postgres",
+    "version": "16.2",
+    "catalogue": "gescom",
+    "schema": "public",
+    "extrait_le": "2026-01-01T00:00:00Z",
+    "empreinte": "sha256:000000000000000000000000000000000000000000000000000000000000000d"
+  },
+  "tables": [
+    {
+      "nom": "client",
+      "schema": "public",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false, "auto_increment": true },
+        { "nom": "nom", "position": 2, "type_brut": "character varying(80)", "type_normalise": "texte", "longueur": 80, "nullable": false },
+        { "nom": "created_at", "position": 3, "type_brut": "timestamp with time zone", "type_normalise": "horodatage", "nullable": false },
+        { "nom": "updated_at", "position": 4, "type_brut": "timestamp with time zone", "type_normalise": "horodatage", "nullable": true }
+      ],
+      "cle_primaire": { "nom": "client_pkey", "colonnes": ["id"] }
+    },
+    {
+      "nom": "commande",
+      "schema": "public",
+      "commentaire": "Mêmes colonnes d'horodatage que client : le trait est partagé",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false, "auto_increment": true },
+        { "nom": "total", "position": 2, "type_brut": "numeric(12,2)", "type_normalise": "decimal", "precision": 12, "echelle": 2, "nullable": false },
+        { "nom": "created_at", "position": 3, "type_brut": "timestamp with time zone", "type_normalise": "horodatage", "nullable": false },
+        { "nom": "updated_at", "position": 4, "type_brut": "timestamp with time zone", "type_normalise": "horodatage", "nullable": true }
+      ],
+      "cle_primaire": { "nom": "commande_pkey", "colonnes": ["id"] }
+    },
+    {
+      "nom": "article",
+      "schema": "public",
+      "commentaire": "Colonnes françaises, et une suppression logique : autre signature",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false, "auto_increment": true },
+        { "nom": "libelle", "position": 2, "type_brut": "character varying(120)", "type_normalise": "texte", "longueur": 120, "nullable": false },
+        { "nom": "cree_le", "position": 3, "type_brut": "timestamp without time zone", "type_normalise": "horodatage", "nullable": false },
+        { "nom": "supprime_le", "position": 4, "type_brut": "timestamp without time zone", "type_normalise": "horodatage", "nullable": true }
+      ],
+      "cle_primaire": { "nom": "article_pkey", "colonnes": ["id"] }
+    },
+    {
+      "nom": "journal",
+      "schema": "public",
+      "commentaire": "Une seule colonne d'horodatage : rien à factoriser",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false, "auto_increment": true },
+        { "nom": "created_at", "position": 2, "type_brut": "timestamp with time zone", "type_normalise": "horodatage", "nullable": false }
+      ],
+      "cle_primaire": { "nom": "journal_pkey", "colonnes": ["id"] }
+    }
+  ]
+}

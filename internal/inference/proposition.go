@@ -4,6 +4,8 @@
 package inference
 
 import (
+	"maps"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -351,13 +353,11 @@ func sectionEnumerations(b *strings.Builder) {
 	b.WriteString("#\n#enumerations: []\n")
 }
 
-// clesTriees rend les clés d'une map dans un ordre stable : itérer une map
-// rendrait le fichier différent à chaque écriture.
-func clesTriees(m map[string]string) []string {
-	cles := make([]string, 0, len(m))
-	for cle := range m {
-		cles = append(cles, cle)
-	}
-	sort.Strings(cles)
-	return cles
+// clesTriees rend les clés d'une map dans un ordre stable.
+//
+// Le paquet en a besoin sur quatre types de valeurs différents, et l'ordre
+// d'itération d'une map Go est volontairement aléatoire : sans ce passage, deux
+// inférences du même calque rendraient des octets différents.
+func clesTriees[V any](m map[string]V) []string {
+	return slices.Sorted(maps.Keys(m))
 }
