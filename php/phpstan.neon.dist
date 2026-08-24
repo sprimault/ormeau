@@ -1,0 +1,10 @@
+parameters:
+    level: 8
+    paths:
+        - src
+        - tests
+
+    # Un docblock n'est pas une garantie, et ce paquet lit précisément les
+    # entités d'un client : @var string sur une propriété qui contient autre
+    # chose est le cas normal, pas l'exception.
+    treatPhpDocTypesAsCertain: false

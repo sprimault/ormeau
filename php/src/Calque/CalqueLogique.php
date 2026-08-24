@@ -17,6 +17,10 @@ namespace Ormeau\Doctrine\Calque;
 final class CalqueLogique
 {
     /**
+     * Privé : un calque se construit depuis un tableau décodé, jamais champ par
+     * champ. C'est ce qui garantit que les contrôles de depuisTableau ont eu
+     * lieu.
+     *
      * @param list<array<string, mixed>> $entites
      * @param list<array<string, mixed>> $enumerations
      * @param list<array<string, mixed>> $avertissements
@@ -28,11 +32,18 @@ final class CalqueLogique
         public readonly array $entites,
         public readonly array $enumerations,
         public readonly array $avertissements,
-    ) {
-    }
+    ) {}
 
     /**
+     * Construit un calque depuis le JSON décodé.
+     *
+     * Les champs optionnels du format — énumérations, avertissements — valent
+     * le tableau vide quand ils sont absents : leur absence est légitime, seuls
+     * les champs requis sont contrôlés.
+     *
      * @param array<string, mixed> $donnees
+     *
+     * @throws CalqueInvalide champ requis absent
      */
     public static function depuisTableau(array $donnees): self
     {
@@ -62,7 +73,7 @@ final class CalqueLogique
     {
         return array_values(array_filter(
             $this->avertissements,
-            static fn (array $a): bool => ($a['confiance'] ?? 0.0) >= $confiance,
+            static fn(array $a): bool => ($a['confiance'] ?? 0.0) >= $confiance,
         ));
     }
 }
