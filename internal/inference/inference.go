@@ -117,6 +117,68 @@ func espaceDeNoms(d *Decisions) string {
 	return `App\Entity`
 }
 
+// colonnesEcartees rend les colonnes que l'utilisateur a retirées de l'entité,
+// et les avertissements que cet arbitrage produit.
+//
+// Deux refus, tous deux signalés plutôt qu'appliqués en silence. Une colonne de
+// clé primaire reste : Doctrine refuse une entité sans identifiant, et la
+// retirer donnerait un modèle que rien ne peut charger. Une colonne inconnue
+// signale que la base a bougé sous le fichier de décisions — c'est précisément
+// ce qu'on veut apprendre en régénérant six mois plus tard.
+func colonnesEcartees(t *calque.Table, d *Decisions) (map[string]bool, []calque.Avertissement) {
+	demandees := d.ColonnesIgnorees[t.Schema+"."+t.Nom]
+	if len(demandees) == 0 {
+		return nil, nil
+	}
+
+	presentes := make(map[string]bool, len(t.Colonnes))
+	for i := range t.Colonnes {
+		presentes[t.Colonnes[i].Nom] = true
+	}
+
+	identifiantes := map[string]bool{}
+	if t.ClePrimaire != nil {
+		for _, colonne := range t.ClePrimaire.Colonnes {
+			identifiantes[colonne] = true
+		}
+	}
+
+	cible := t.Schema + "." + t.Nom
+	ecartees := make(map[string]bool, len(demandees))
+	var avertissements []calque.Avertissement
+
+	for _, colonne := range demandees {
+		switch {
+		case !presentes[colonne]:
+			avertissements = append(avertissements, calque.Avertissement{
+				Code:       calque.CodeDecisionOrpheline,
+				Cible:      cible + "." + colonne,
+				Message:    "colonnes_ignorees vise " + colonne + ", absente de la table",
+				Resolution: calque.ResolutionAucune,
+				Confiance:  1,
+			})
+		case identifiantes[colonne]:
+			avertissements = append(avertissements, calque.Avertissement{
+				Code:       calque.CodeClePrimaireGardee,
+				Cible:      cible + "." + colonne,
+				Message:    colonne + " appartient à la clé primaire et reste mappée : une entité sans identifiant est inutilisable",
+				Resolution: calque.ResolutionAucune,
+				Confiance:  1,
+			})
+		default:
+			ecartees[colonne] = true
+			avertissements = append(avertissements, calque.Avertissement{
+				Code:       calque.CodeColonneIgnoree,
+				Cible:      cible + "." + colonne,
+				Message:    colonne + " est retirée de l'entité ; le calque physique la garde",
+				Resolution: calque.ResolutionForceeParDecision,
+				Confiance:  1,
+			})
+		}
+	}
+	return ecartees, avertissements
+}
+
 // inferrerEntite traduit une table en classe.
 func inferrerEntite(t *calque.Table, d *Decisions, prefixes []string, schema *schemaLogique, nomsPris map[string]string) (calque.Entite, []calque.Avertissement) {
 	cible := t.Schema + "." + t.Nom
@@ -141,8 +203,15 @@ func inferrerEntite(t *calque.Table, d *Decisions, prefixes []string, schema *sc
 		Origine: origine,
 	}
 
+	ecartees, avs := colonnesEcartees(t, d)
+	avertissements = append(avertissements, avs...)
+
 	entite.Proprietes = make([]calque.Propriete, 0, len(t.Colonnes))
 	for i := range t.Colonnes {
+		if ecartees[t.Colonnes[i].Nom] {
+			continue
+		}
+
 		propriete, avs := inferrerPropriete(&t.Colonnes[i], cible, d)
 		avertissements = append(avertissements, avs...)
 

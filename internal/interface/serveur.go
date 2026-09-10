@@ -157,6 +157,10 @@ func (s *serveur) routes() (http.Handler, error) {
 	mux.HandleFunc("/entrer", s.entrer)
 	mux.Handle("/api/contexte", s.protegerAPI(http.HandlerFunc(s.contexte)))
 	mux.Handle("/api/connexion", s.protegerAPI(http.HandlerFunc(s.connexion)))
+	mux.Handle("/api/bases", s.protegerAPI(http.HandlerFunc(s.bases)))
+	mux.Handle("/api/base", s.protegerAPI(http.HandlerFunc(s.basculerBase)))
+	mux.Handle("/api/inventaire", s.protegerAPI(http.HandlerFunc(s.inventaire)))
+	mux.Handle("/api/colonnes", s.protegerAPI(http.HandlerFunc(s.colonnes)))
 	mux.Handle("/", s.canoniser(front))
 	return mux, nil
 }

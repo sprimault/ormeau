@@ -3,7 +3,7 @@
 
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { CLE_THEME, themeEnregistre, useThemeStore } from './theme';
+import { CLE_THEME, themeEnregistre, useThemeStore } from '../theme';
 
 describe('thème', () => {
   beforeEach(() => {

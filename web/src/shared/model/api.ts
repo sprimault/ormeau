@@ -5,6 +5,8 @@
 // Types générés depuis internal/interface par `make web-types` (tygo).
 // Ne pas modifier à la main.
 
+import type { TableSommaire } from './introspection';
+
 //////////
 // source: api.go
 
@@ -55,4 +57,36 @@ export interface ReponseContexte {
  */
 export interface ReponseErreur {
   erreur: string;
+}
+/**
+ * ReponseBases liste les bases exploitables du serveur atteint.
+ * Les bases système en sont absentes : elles ne produiraient que des calques
+ * sans intérêt, et template0 refuse même la connexion.
+ */
+export interface ReponseBases {
+  bases: string[];
+}
+/**
+ * RequeteBase demande de basculer la session sur une autre base du même
+ * serveur.
+ */
+export interface RequeteBase {
+  session: string;
+  base: string;
+}
+/**
+ * ReponseColonnes décrit une table dépliée dans l'arbre.
+ */
+export interface ReponseColonnes {
+  colonnes: any /* introspection.ColonneSommaire */[];
+}
+/**
+ * ReponseInventaire porte l'arbre de sélection.
+ * L'inventaire complet part d'un coup, sans pagination : quelques dizaines de
+ * kilo-octets pour quatre cents tables, et la recherche reste instantanée côté
+ * navigateur. Paginer coûterait un aller-retour par frappe pour économiser un
+ * transfert qui tient dans un paquet réseau.
+ */
+export interface ReponseInventaire {
+  tables: TableSommaire[];
 }

@@ -6,7 +6,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useLangStore } from '@/shared/i18n';
-import { ConnectionForm } from './ConnectionForm';
+import { ConnectionForm } from '../ConnectionForm';
 
 describe('ConnectionForm', () => {
   beforeEach(() => {
@@ -51,9 +51,7 @@ describe('ConnectionForm', () => {
   });
 
   it('annonce l’échec et laisse rejouer', () => {
-    render(
-      <ConnectionForm enCours={false} erreur="mot de passe refusé" onConnecter={vi.fn()} />,
-    );
+    render(<ConnectionForm enCours={false} erreur="mot de passe refusé" onConnecter={vi.fn()} />);
     expect(screen.getByRole('alert')).toHaveTextContent('mot de passe refusé');
     expect(screen.getByRole('button', { name: 'Se connecter' })).toBeEnabled();
   });

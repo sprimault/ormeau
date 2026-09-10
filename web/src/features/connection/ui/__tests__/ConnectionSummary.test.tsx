@@ -6,7 +6,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useLangStore } from '@/shared/i18n';
-import { ConnectionSummary } from './ConnectionSummary';
+import { ConnectionSummary } from '../ConnectionSummary';
 
 const serveur = {
   session: 'jeton-de-session',
@@ -23,13 +23,12 @@ describe('ConnectionSummary', () => {
 
   it('affiche la variante annoncée par le serveur, pas celle qui a été saisie', () => {
     render(<ConnectionSummary serveur={serveur} onFermer={vi.fn()} />);
-    expect(screen.getByText('mariadb')).toBeInTheDocument();
-    expect(screen.getByText('11.4.2')).toBeInTheDocument();
+    expect(screen.getByText('mariadb 11.4.2')).toBeInTheDocument();
   });
 
   it('rend les noms de schémas tels qu’ils sont en base', () => {
     render(<ConnectionSummary serveur={serveur} onFermer={vi.fn()} />);
-    expect(screen.getByText('Compta_2019')).toBeInTheDocument();
+    expect(screen.getByText('public, Compta_2019')).toBeInTheDocument();
   });
 
   it('ne montre jamais l’identifiant de session', () => {
@@ -38,13 +37,25 @@ describe('ConnectionSummary', () => {
   });
 
   it('signale une base sans schéma exploitable', () => {
-    render(<ConnectionSummary serveur={{ ...serveur, schemas: [] }} onFermer={vi.fn()} />);
+    render(
+      <ConnectionSummary
+        serveur={{ ...serveur, schemas: [] }}
+
+        onFermer={vi.fn()}
+      />,
+    );
     expect(screen.getByText('Aucun schéma exploitable dans cette base.')).toBeInTheDocument();
   });
 
   it('permet de refermer la connexion', async () => {
     const onFermer = vi.fn();
-    render(<ConnectionSummary serveur={serveur} onFermer={onFermer} />);
+    render(
+      <ConnectionSummary
+        serveur={serveur}
+
+        onFermer={onFermer}
+      />,
+    );
     await userEvent.click(screen.getByRole('button', { name: 'Se déconnecter' }));
     expect(onFermer).toHaveBeenCalledOnce();
   });

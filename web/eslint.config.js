@@ -11,7 +11,7 @@ import tseslint from 'typescript-eslint';
 // réécrits par `make web-types`, et une règle de style y ferait échouer la
 // validation sur du code que personne n'écrit à la main.
 export default tseslint.config(
-  { ignores: ['node_modules', 'src/shared/model/calque.ts', 'src/shared/model/api.ts'] },
+  { ignores: ['node_modules', 'src/shared/model/calque.ts', 'src/shared/model/api.ts', 'src/shared/model/introspection.ts'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],

@@ -3,9 +3,9 @@
 
 import { describe, expect, it } from 'vitest';
 
-import { messages } from './messages';
-import { translate } from './useT';
-import { useLangStore } from './store';
+import { messages } from '../messages';
+import { translate } from '../useT';
+import { useLangStore } from '../store';
 
 describe('dictionnaire', () => {
   it('couvre les mêmes clés dans les deux langues', () => {
