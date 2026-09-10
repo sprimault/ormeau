@@ -30,15 +30,15 @@ architectures, pas davantage : amd64 et arm64.
 
 ## Ordre de construction
 
-Le front se construit **avant** les binaires. Si `web/dist` n'existe pas au
-moment de la compilation, `embed` produit un système de fichiers vide et la
-compilation réussit quand même : on publie alors des binaires avec une interface
-blanche, sans qu'aucun avertissement ne le signale.
+Le front se construit **avant** les binaires. Vite écrit dans
+`internal/interface/embarque`, que `go:embed` lit depuis son propre paquet —
+`embed` ne remonte pas au-dessus du répertoire où il est déclaré, et une copie
+intermédiaire serait une étape de plus à oublier.
 
-La cible `binaries` dépend de `web-build` pour cette raison. Un test devra
-vérifier que le système de fichiers embarqué n'est pas vide : il n'a pas de sens
-avant que l'interface existe, mais il devra arriver avec elle, sans quoi le
-garde-fou repose sur la seule dépendance du Makefile.
+La cible `binaries` dépend de `web-build` pour cette raison, et un test vérifie
+que le système de fichiers embarqué porte un `index.html` non vide. Sans lui, le
+garde-fou reposerait sur la seule dépendance du Makefile, et un bundle absent se
+découvrirait à l'ouverture d'une interface blanche.
 
 ## Images Docker
 

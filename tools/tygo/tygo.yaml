@@ -1,0 +1,28 @@
+# Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
+# SPDX-License-Identifier: Apache-2.0
+#
+# Génération des types TypeScript depuis les structures Go, par `make web-types`.
+#
+# Sur ce projet, ces types ne sont pas un confort : le calque est un contrat
+# public versionné, et un front qui lit un champ que le Go n'expose plus produit
+# un écran silencieusement faux. `make lint` régénère et refuse toute dérive.
+packages:
+  - path: "github.com/sprimault/ormeau/internal/calque"
+    output_path: "web/src/shared/model/calque.ts"
+    include_files: ["physique.go", "logique.go"]
+    frontmatter: |
+      // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
+      // SPDX-License-Identifier: Apache-2.0
+      //
+      // Types générés depuis internal/calque par `make web-types` (tygo).
+      // Ne pas modifier à la main.
+
+  - path: "github.com/sprimault/ormeau/internal/interface"
+    output_path: "web/src/shared/model/api.ts"
+    include_files: ["api.go"]
+    frontmatter: |
+      // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
+      // SPDX-License-Identifier: Apache-2.0
+      //
+      // Types générés depuis internal/interface par `make web-types` (tygo).
+      // Ne pas modifier à la main.

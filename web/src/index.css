@@ -1,0 +1,37 @@
+/*
+ * Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+@import 'tailwindcss';
+
+/*
+ * Le thème a trois états — clair, sombre, système — et non un basculement
+ * binaire. La variante par défaut de Tailwind suit prefers-color-scheme seul,
+ * ce qui ne permet pas de forcer le clair sur un poste en sombre. On la
+ * redéfinit sur une classe, que le script de pré-initialisation pose.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-ormeau-50: oklch(0.98 0.02 180);
+  --color-ormeau-500: oklch(0.6 0.11 185);
+  --color-ormeau-600: oklch(0.52 0.1 185);
+  --color-ormeau-700: oklch(0.44 0.09 185);
+}
+
+/*
+ * Densité d'information élevée, zéro décoration : l'interface sert à cocher et
+ * à trancher, pas à être contemplée.
+ */
+html {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100;
+}

@@ -103,6 +103,22 @@ fichier n'est jamais réécrit : les arbitrages se rejouent à chaque passage.
 
 Entre deux versions, `go install github.com/sprimault/ormeau/cmd/ormeau@master`.
 
+### Interface locale
+
+`ormeau interface` ouvre le navigateur sur un écran de connexion, où l'on saisit
+un hôte et un identifiant plutôt qu'une chaîne à composer. Le SGBD se déduit du
+port, et le serveur dit ensuite ce qu'il est vraiment.
+
+```console
+$ cd ~/projets/gescom && ormeau interface
+Interface sur http://127.0.0.1:53412
+Répertoire de travail : /home/steff/projets/gescom
+```
+
+Elle écoute sur `127.0.0.1` seulement, sur un port tiré au lancement, et le
+jeton de l'URL ne sert qu'une fois. Les fichiers produits atterrissent dans le
+répertoire affiché — `--repertoire` en désigne un autre.
+
 ### Sous Windows
 
 Les commandes sont les mêmes, à trois détails près : le binaire s'appelle

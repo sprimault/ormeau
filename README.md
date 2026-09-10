@@ -103,6 +103,22 @@ file is never rewritten: your rulings replay on every pass.
 
 Between releases, `go install github.com/sprimault/ormeau/cmd/ormeau@master`.
 
+### Local interface
+
+`ormeau interface` opens your browser on a connection screen, where you type a
+host and a login rather than assemble a connection string. The DBMS follows from
+the port, and the server then says what it actually is.
+
+```console
+$ cd ~/projects/gescom && ormeau interface
+Interface sur http://127.0.0.1:53412
+Répertoire de travail : /home/steff/projects/gescom
+```
+
+It listens on `127.0.0.1` only, on a port drawn at startup, and the token in the
+URL is good for a single use. Files land in the directory shown on screen;
+`--repertoire` points somewhere else.
+
 ### On Windows
 
 The commands are the same, bar three details: the binary is called

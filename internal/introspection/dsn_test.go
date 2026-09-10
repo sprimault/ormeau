@@ -315,3 +315,57 @@ func TestNettoyerDSNNeDivulguePasLeSecret(t *testing.T) {
 		t.Error("le masquage ne couvre plus le dsn nettoye")
 	}
 }
+
+// Le port est le second niveau d'aiguillage, après le préfixe du DSN.
+func TestSGBDDepuisPort(t *testing.T) {
+	t.Parallel()
+
+	cas := map[int]string{
+		5432: "postgres",
+		3306: "mysql",
+		1433: "sqlserver",
+		1521: "oracle",
+		0:    "",
+		5433: "",
+		8080: "",
+	}
+
+	for port, attendu := range cas {
+		if obtenu := SGBDDepuisPort(port); obtenu != attendu {
+			t.Errorf("port %d donne %q, attendu %q", port, obtenu, attendu)
+		}
+	}
+}
+
+// 3306 doit rendre le même pilote à chaque appel. La table est écrite à la
+// main pour cette raison : dérivée de portsParDefaut, où le port apparaît deux
+// fois, elle rendrait « mysql » ou « mariadb » selon l'ordre d'itération.
+func TestSGBDDepuisPortEstStable(t *testing.T) {
+	t.Parallel()
+
+	premier := SGBDDepuisPort(3306)
+	if premier != "mysql" {
+		t.Fatalf("3306 donne %q, attendu \"mysql\" — la variante se lit à la connexion", premier)
+	}
+	for range 64 {
+		if obtenu := SGBDDepuisPort(3306); obtenu != premier {
+			t.Fatalf("3306 donne %q puis %q", premier, obtenu)
+		}
+	}
+}
+
+// Le vocabulaire de SGBDDepuisPort est celui du calque : un port ne peut pas
+// désigner un SGBD que le format ne connaît pas.
+func TestSGBDDepuisPortAppartientAuVocabulaire(t *testing.T) {
+	t.Parallel()
+
+	connus := map[string]bool{
+		"postgres": true, "mysql": true, "mariadb": true,
+		"sqlserver": true, "sqlite": true, "oracle": true,
+	}
+	for port, sgbd := range sgbdParPort {
+		if !connus[sgbd] {
+			t.Errorf("le port %d designe %q, hors du vocabulaire du calque", port, sgbd)
+		}
+	}
+}

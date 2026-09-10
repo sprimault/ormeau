@@ -5,10 +5,14 @@
 # dépôt bouge, donc du code tiers exécuté avec nos droits. Le SHA ne se réécrit
 # pas. Contrepartie assumée : relever les versions est une opération manuelle.
 #
-# Pas de job front ni d'image : web/ arrive en phase 9, la publication en
-# phase 11. Pas de job PHP non plus tant que php/ n'a ni composer.lock ni
-# phpunit.xml — un `composer install` sans lock ne validerait pas ce que la CI
-# et les intégrateurs verront.
+# Pas d'image : la publication a son propre workflow. Pas de job PHP complet non
+# plus tant que php/ n'a ni composer.lock ni phpunit.xml — un `composer install`
+# sans lock ne validerait pas ce que la CI et les intégrateurs verront.
+#
+# Le front, lui, est construit partout où du Go se compile : internal/interface
+# l'embarque par go:embed, qui échoue quand le bundle manque. C'est le
+# comportement voulu — un embarqué vide passerait la compilation et donnerait un
+# binaire à interface blanche.
 name: CI
 
 on:
@@ -29,6 +33,13 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  NODE_VERSION: '22'
+  # Doit rester égale à TYGO_VERSION dans le Makefile : le contrôle de dérive
+  # compare une génération locale à une génération CI, et deux versions
+  # différentes le feraient échouer sans qu'aucun type Go n'ait bougé.
+  TYGO_VERSION: 'v0.2.21'
+
 jobs:
   go:
     name: Go — lint et tests
@@ -41,12 +52,32 @@ jobs:
           go-version-file: go.mod
           cache: true
 
+      # npm ci et jamais npm install : c'est le lock que la CI et les
+      # contributeurs doivent voir. Sans lui, npx irait chercher la dernière
+      # version de chaque outil, et un tsconfig valide ici deviendrait invalide
+      # là-bas sans qu'une ligne ait bougé.
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Installer les dépendances du front
+        run: npm ci
+        working-directory: web
+
       # Version épinglée, la même que le Makefile : un lint qui change de règles
       # tout seul transforme une PR verte en PR rouge sans que rien n'ait bougé
       # côté code. Pas en deçà de v2.13.0, qui est la première à embarquer un
       # staticcheck capable d'analyser la stdlib Go 1.27.
       - name: Installer golangci-lint
         run: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.13.0
+
+      # make lint régénère les types TypeScript et refuse toute dérive : sans
+      # tygo, le contrôle ne tourne pas et les deux moitiés du projet peuvent
+      # diverger sans que personne ne le voie.
+      - name: Installer tygo
+        run: go install github.com/gzuidhof/tygo@${{ env.TYGO_VERSION }}
 
       - name: Lint
         run: make lint
@@ -106,6 +137,18 @@ jobs:
           go-version-file: go.mod
           cache: true
 
+      # gosec compile ce qu'il analyse : sans le bundle, internal/interface ne
+      # compile pas et l'analyse se réduit au silence.
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Construire le front
+        run: npm ci && npm run build
+        working-directory: web
+
       # Deux familles comptent ici plus que les autres : les identifiants en dur
       # et la construction de requêtes SQL. Les requêtes de catalogue sont des
       # constantes, aucune ne doit être assemblée à partir d'une entrée.
@@ -114,6 +157,49 @@ jobs:
 
       - name: gosec
         run: gosec ./...
+
+  web:
+    name: Front — lint, types et tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Installer les dépendances
+        run: npm ci
+        working-directory: web
+
+      # tsc avant eslint : vite build transpile sans contrôler les types, un
+      # projet peut donc se construire en étant faux.
+      - name: Types
+        run: npx tsc -b
+        working-directory: web
+
+      - name: Lint
+        run: npm run lint
+        working-directory: web
+
+      # Feature-Sliced Design n'est pas une intention : un import qui contourne
+      # une API publique se corrige, il ne se met pas en liste d'exception.
+      - name: Découpage FSD
+        run: npx steiger ./src
+        working-directory: web
+
+      # Le front finit dans le binaire : une dépendance vulnérable y voyage
+      # avec lui, sur le poste de quelqu'un qui manipule des identifiants de
+      # base de données.
+      - name: Vulnérabilités des dépendances
+        run: npm run audit:high
+        working-directory: web
+
+      - name: Tests
+        run: npm run test:run
+        working-directory: web
 
   php:
     name: PHP — syntaxe

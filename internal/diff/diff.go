@@ -7,7 +7,7 @@
 // pour du legacy où le schéma bouge sans passer par les migrations. Il n'écrit
 // jamais rien.
 //
-// La comparaison elle-même reste à écrire (phase 8). Elle supposera les deux
+// La comparaison elle-même reste à écrire (phase 9). Elle supposera les deux
 // calques triés : c'est le déterminisme de la sérialisation qui rend ce diff
 // exploitable plutôt que bruyant.
 //

@@ -78,14 +78,47 @@ var portsParDefaut = map[string]int{
 	"oracle":    1521,
 }
 
+// sgbdParPort est écrite à la main plutôt que dérivée de portsParDefaut :
+// 3306 y apparaît deux fois, et parcourir une map pour retrouver une clé par sa
+// valeur rendrait « mysql » ou « mariadb » selon l'ordre d'itération. Le même
+// port donnerait alors deux pilotes d'une exécution à l'autre.
+//
+// 3306 désigne donc mysql, qui est le pilote à charger. La variante se lit à la
+// connexion et c'est elle qui atterrit dans le calque : quelqu'un qui vise un
+// serveur MariaDB obtient « mariadb », qu'il ait nommé le SGBD ou non.
+var sgbdParPort = map[int]string{
+	5432: "postgres",
+	3306: "mysql",
+	1433: "sqlserver",
+	1521: "oracle",
+}
+
+// SGBDDepuisPort rend le SGBD que désigne un port, et une chaîne vide pour un
+// port inconnu.
+//
+// C'est le second niveau d'aiguillage, après le préfixe du DSN : l'utilisateur
+// fournit des identifiants, pas une configuration. Rien n'est tenté à l'aveugle
+// quand le port ne dit rien — chaque essai enverrait des identifiants, et une
+// politique qui compte les échecs d'authentification verrouillerait le compte.
+func SGBDDepuisPort(port int) string {
+	return sgbdParPort[port]
+}
+
 // DSN compose une URL à partir des composants. L'encodage est fait par
 // net/url : un mot de passe contenant « @ », « / » ou « : » passe sans que
 // l'utilisateur ait à s'en soucier.
+//
+// Le SGBD peut être omis quand le port le désigne sans ambiguïté : c'est le cas
+// nominal dans l'interface, où l'on saisit un hôte et un port sans avoir à
+// déclarer ce qui écoute derrière.
 func (c Connexion) DSN() (string, error) {
-	if c.SGBD == "" {
-		return "", errors.New("--sgbd est requis avec les drapeaux de connexion")
+	sgbd := strings.ToLower(c.SGBD)
+	if sgbd == "" {
+		if sgbd = SGBDDepuisPort(c.Port); sgbd == "" {
+			return "", errors.New("sgbd indetermine, preciser --sgbd ou un port connu")
+		}
 	}
-	if _, connu := prefixes[strings.ToLower(c.SGBD)]; !connu {
+	if _, connu := prefixes[sgbd]; !connu {
 		return "", fmt.Errorf("sgbd inconnu: %q", c.SGBD)
 	}
 	if c.Hote == "" {
@@ -94,11 +127,11 @@ func (c Connexion) DSN() (string, error) {
 
 	port := c.Port
 	if port == 0 {
-		port = portsParDefaut[strings.ToLower(c.SGBD)]
+		port = portsParDefaut[sgbd]
 	}
 
 	u := url.URL{
-		Scheme: strings.ToLower(c.SGBD),
+		Scheme: sgbd,
 		Host:   fmt.Sprintf("%s:%d", c.Hote, port),
 		Path:   "/" + c.Base,
 	}

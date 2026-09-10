@@ -104,6 +104,34 @@ func (p *pilote) Inventorier(ctx context.Context, schemas []string) ([]introspec
 	return sommaires, nil
 }
 
+// Decrire rend ce que l'écran de connexion affiche en retour : le serveur
+// atteint, sa version, et les schémas parmi lesquels choisir.
+//
+// Deux requêtes de catalogue, aucune donnée lue. Le DSN n'apparaît nulle part
+// dans le résultat — la connexion a réussi, c'est tout ce que l'appelant a
+// besoin de savoir d'elle.
+func (p *pilote) Decrire(ctx context.Context) (introspection.Serveur, error) {
+	ctx, annuler := context.WithTimeout(ctx, delaiRequete)
+	defer annuler()
+
+	s := introspection.Serveur{SGBD: "postgres"}
+	if err := p.conn.QueryRow(ctx, requeteSource).Scan(&s.Version, &s.Catalogue); err != nil {
+		return s, fmt.Errorf("lecture de la source: %w", err)
+	}
+
+	schemas, err := p.lireSchemas(ctx)
+	if err != nil {
+		return s, err
+	}
+	// Jamais nil : une base sans schéma exploitable est un résultat vide, que le
+	// front affiche comme tel, pas une absence de réponse.
+	s.Schemas = schemas
+	if s.Schemas == nil {
+		s.Schemas = []string{}
+	}
+	return s, nil
+}
+
 // Fermer libère la connexion.
 func (p *pilote) Fermer() error {
 	if p.conn == nil {
