@@ -17,7 +17,8 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
-    "baseUrl": ".",
+    // Pas de baseUrl : l'option est retirée des versions récentes de
+    // TypeScript, et paths se résout relativement à ce fichier sans elle.
     "paths": {
       "@/*": ["./src/*"]
     }
