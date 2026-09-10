@@ -28,11 +28,13 @@ Usage :
   ormeau extraire --sgbd <sgbd> --hote <hote> --utilisateur <nom> [--base <base>] --sortie <chemin>
   ormeau inferer  <fichier.calque.json> [--decisions <fichier.yaml>] [--sortie <fichier.logique.json>]
   ormeau diff     <fichier.calque.json> [--dsn <dsn>]
+  ormeau interface [--port <port>] [--repertoire <chemin>] [--sans-navigateur]
 
 Commandes :
   extraire   lit le catalogue et écrit un calque physique
   inferer    applique les heuristiques et écrit un calque logique
   diff       compare un calque enregistré à l'état actuel de la base
+  interface  sert l'interface locale de connexion et d'arbitrage
   version    affiche la version du binaire
 
 Sans --base, toutes les bases du serveur sont extraites et --sortie désigne
@@ -70,6 +72,8 @@ func main() {
 		err = inferer(os.Args[2:])
 	case "diff":
 		err = diffuser(os.Args[2:])
+	case "interface":
+		err = interfaceLocale(os.Args[2:])
 	case "-h", "--help", "aide":
 		fmt.Print(usage)
 		return

@@ -8,6 +8,7 @@ package postgres
 import (
 	"context"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -202,6 +203,62 @@ func TestListerBases(t *testing.T) {
 		if contient(bases, systeme) {
 			t.Errorf("la base systeme %s est listee", systeme)
 		}
+	}
+}
+
+// Decrire alimente l'écran de connexion : le serveur atteint, sa version, et
+// les schémas parmi lesquels choisir.
+func TestDecrire(t *testing.T) {
+	p := ouvrirOuEchouer(t)
+
+	descripteur, ok := p.(introspection.DescripteurServeur)
+	if !ok {
+		t.Fatal("le pilote postgres n'implemente pas DescripteurServeur")
+	}
+
+	ctx, annuler := context.WithTimeout(context.Background(), 10*time.Second)
+	defer annuler()
+
+	serveur, err := descripteur.Decrire(ctx)
+	if err != nil {
+		t.Fatalf("description : %v", err)
+	}
+
+	if serveur.SGBD != "postgres" {
+		t.Errorf("sgbd %q, attendu \"postgres\"", serveur.SGBD)
+	}
+	if serveur.Catalogue != "gescom" {
+		t.Errorf("catalogue %q, attendu \"gescom\"", serveur.Catalogue)
+	}
+	if serveur.Version == "" {
+		t.Error("version vide : l'ecran de connexion n'a rien a afficher")
+	}
+	if !contient(serveur.Schemas, "public") {
+		t.Errorf("public absent des schemas : %v", serveur.Schemas)
+	}
+
+	// Les schémas système n'ont rien à faire dans une liste où l'on choisit ce
+	// qu'on va introspecter.
+	for _, systeme := range []string{"pg_catalog", "information_schema", "pg_toast"} {
+		if contient(serveur.Schemas, systeme) {
+			t.Errorf("le schema systeme %s est propose", systeme)
+		}
+	}
+}
+
+// Le DSN ne doit ressortir d'aucune erreur du pilote, pas même masqué.
+func TestConnexionRefuseeSansFuiteDuSecret(t *testing.T) {
+	ctx, annuler := context.WithTimeout(context.Background(), 10*time.Second)
+	defer annuler()
+
+	const secret = "Mot-De-Passe-Qui-Ne-Doit-Pas-Fuiter"
+	_, err := introspection.Ouvrir(ctx, "postgres",
+		"postgres://postgres:"+secret+"@127.0.0.1:35432/gescom")
+	if err == nil {
+		t.Fatal("connexion acceptee avec un mot de passe faux")
+	}
+	if strings.Contains(err.Error(), secret) {
+		t.Error("le mot de passe apparait dans l'erreur de connexion")
 	}
 }
 

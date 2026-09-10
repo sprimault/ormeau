@@ -12,9 +12,9 @@
 /.tmp/
 /makefile.local
 
-# Front
+# Front. Vite écrit directement dans le paquet qui l'embarque : go:embed ne
+# remonte pas au-dessus de son répertoire.
 /web/node_modules/
-/web/dist/
 /internal/interface/embarque/
 
 # PHP

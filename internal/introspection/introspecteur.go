@@ -70,6 +70,29 @@ type ListeurDeBases interface {
 	ListerBases(ctx context.Context) ([]string, error)
 }
 
+// DescripteurServeur est implémenté par les pilotes qui savent se décrire sans
+// rien introspecter.
+//
+// Hors d'Introspecteur pour la même raison que ListeurDeBases : se décrire n'est
+// pas introspecter, et l'interface doit rester à trois méthodes. C'est ce que
+// l'écran de connexion affiche en retour — le serveur atteint, sa version, et
+// les schémas parmi lesquels choisir.
+type DescripteurServeur interface {
+	Decrire(ctx context.Context) (Serveur, error)
+}
+
+// Serveur est ce qu'on apprend d'un serveur en s'y connectant.
+//
+// SGBD porte la variante constatée et non le préfixe du DSN : un « mysql:// »
+// vers un serveur MariaDB donne « mariadb ». Le préfixe dit quel pilote
+// charger, le serveur dit ce qu'il est, et c'est lui qui a raison.
+type Serveur struct {
+	SGBD      string   `json:"sgbd"`
+	Version   string   `json:"version"`
+	Catalogue string   `json:"catalogue"`
+	Schemas   []string `json:"schemas"`
+}
+
 // Fabrique ouvre une connexion et rend l'introspecteur d'un dialecte.
 type Fabrique func(ctx context.Context, dsn string) (Introspecteur, error)
 

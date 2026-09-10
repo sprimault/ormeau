@@ -30,14 +30,15 @@ more: amd64 and arm64.
 
 ## Build order
 
-The front end is built **before** the binaries. If `web/dist` does not exist at
-compile time, `embed` produces an empty filesystem and the build still succeeds:
-you then publish binaries with a blank interface, with no warning whatsoever.
+The front end is built **before** the binaries. Vite writes to
+`internal/interface/embarque`, which `go:embed` reads from its own package:
+`embed` cannot reach above the directory it is declared in, and an intermediate
+copy would be one more step to forget.
 
-The `binaries` target depends on `web-build` for that reason. A test will have
-to check that the embedded filesystem is not empty: it makes no sense before the
-interface exists, but it must land with it, otherwise the safeguard rests on the
-Makefile dependency alone.
+The `binaries` target depends on `web-build` for that reason, and a test checks
+that the embedded filesystem carries a non-empty `index.html`. Without it the
+safeguard would rest on the Makefile dependency alone, and a missing bundle
+would surface as a blank interface.
 
 ## Local builds
 

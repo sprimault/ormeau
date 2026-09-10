@@ -193,6 +193,61 @@ func TestAvecBase(t *testing.T) {
 	}
 }
 
+// Personne ne déclare son SGBD dans un formulaire quand le port le dit déjà.
+// C'est l'outil qui aiguille, pas l'utilisateur.
+func TestDSNDeduitLeSGBDDuPort(t *testing.T) {
+	t.Parallel()
+
+	cas := []struct {
+		port    int
+		attendu string
+	}{
+		{5432, "postgres://u@hote:5432/base"},
+		{1433, "sqlserver://u@hote:1433/base"},
+		{3306, "mysql://u@hote:3306/base"},
+	}
+
+	for _, c := range cas {
+		obtenu, err := Connexion{Hote: "hote", Port: c.port, Utilisateur: "u", Base: "base"}.DSN()
+		if err != nil {
+			t.Errorf("port %d : %v", c.port, err)
+			continue
+		}
+		if obtenu != c.attendu {
+			t.Errorf("port %d donne %q, attendu %q", c.port, obtenu, c.attendu)
+		}
+	}
+}
+
+// Un SGBD déclaré l'emporte sur ce que le port suggère : le port par défaut de
+// l'un peut être occupé par l'autre.
+func TestDSNPrefereLeSGBDDeclare(t *testing.T) {
+	t.Parallel()
+
+	obtenu, err := Connexion{SGBD: "sqlserver", Hote: "hote", Port: 5432, Utilisateur: "u", Base: "base"}.DSN()
+	if err != nil {
+		t.Fatalf("DSN: %v", err)
+	}
+	if attendu := "sqlserver://u@hote:5432/base"; obtenu != attendu {
+		t.Errorf("obtenu %q, attendu %q", obtenu, attendu)
+	}
+}
+
+// Rien ne se tente à l'aveugle quand le port ne tranche pas : chaque essai
+// enverrait des identifiants, et une politique qui compte les échecs
+// d'authentification verrouillerait le compte.
+func TestDSNRefuseUnPortInconnuSansSGBD(t *testing.T) {
+	t.Parallel()
+
+	_, err := Connexion{Hote: "hote", Port: 7777, Utilisateur: "u"}.DSN()
+	if err == nil {
+		t.Fatal("aucune erreur sur un port inconnu")
+	}
+	if !strings.Contains(err.Error(), "sgbd") {
+		t.Errorf("le message ne dit pas quoi préciser : %q", err)
+	}
+}
+
 // Changer de base ne doit pas perdre les identifiants ni les options.
 func TestAvecBaseConserveLeReste(t *testing.T) {
 	t.Parallel()
