@@ -143,6 +143,7 @@ func EcrireDecisions(p *calque.Physique, d *Decisions) []byte {
 	sectionPrefixes(&b, p, d)
 	sectionRenommages(&b, Proposer(p, d), d)
 	sectionTablesIgnorees(&b, d)
+	sectionColonnesIgnorees(&b, d)
 	sectionTypesForces(&b, d)
 	sectionRelationsForcees(&b)
 	sectionEnumerations(&b)
@@ -286,6 +287,46 @@ func sectionTablesIgnorees(b *strings.Builder, d *Decisions) {
 		b.WriteString("#\n")
 	}
 	b.WriteString("#tables_ignorees: []\n\n")
+}
+
+// sectionColonnesIgnorees écrit les colonnes à retirer des entités.
+func sectionColonnesIgnorees(b *strings.Builder, d *Decisions) {
+	b.WriteString("# ── Colonnes à ne pas mapper ────────────────────────────────────────\n")
+	b.WriteString("#\n")
+	b.WriteString("# Une colonne qu'on ne veut pas voir dans l'entité : un blob d'import, un\n")
+	b.WriteString("# champ libre laissé par une application morte, une colonne technique.\n")
+	b.WriteString("#\n")
+	b.WriteString("# L'arbitrage est ici et non à l'extraction : le calque physique garde\n")
+	b.WriteString("# toutes les colonnes, sans quoi le mode diff les signalerait comme\n")
+	b.WriteString("# disparues à chaque comparaison avec la base. En les écartant ici, on se\n")
+	b.WriteString("# ravise six mois plus tard sans rouvrir la connexion.\n")
+	b.WriteString("#\n")
+	b.WriteString("# Une colonne de clé primaire reste mappée quoi qu'il arrive : Doctrine\n")
+	b.WriteString("# refuse une entité sans identifiant.\n")
+	b.WriteString("#\n")
+	b.WriteString("#   colonnes_ignorees:\n")
+	b.WriteString("#     public.clients: [photo, blob_import]\n")
+	b.WriteString("#     dbo.T_COMMANDES: [champ_libre_12]\n#\n")
+
+	if len(d.ColonnesIgnorees) > 0 {
+		b.WriteString("# Déjà décidé :\n")
+		tables := make([]string, 0, len(d.ColonnesIgnorees))
+		for table := range d.ColonnesIgnorees {
+			tables = append(tables, table)
+		}
+		sort.Strings(tables)
+		for _, table := range tables {
+			colonnes := append([]string(nil), d.ColonnesIgnorees[table]...)
+			sort.Strings(colonnes)
+			b.WriteString("#  - ")
+			b.WriteString(table)
+			b.WriteString(" : ")
+			b.WriteString(strings.Join(colonnes, ", "))
+			b.WriteString("\n")
+		}
+		b.WriteString("#\n")
+	}
+	b.WriteString("#colonnes_ignorees: {}\n\n")
 }
 
 // sectionTypesForces écrit les types Doctrine imposés.

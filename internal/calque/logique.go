@@ -224,6 +224,8 @@ const (
 	CodeCollision            = "collision_de_nom"
 	CodeDecisionOrpheline    = "decision_sans_cible"
 	CodeTableIgnoree         = "table_ignoree"
+	CodeColonneIgnoree       = "colonne_ignoree"
+	CodeClePrimaireGardee    = "cle_primaire_non_ignorable"
 	CodeDefautIncompatible   = "defaut_incompatible"
 	CodePrefixeDetecte       = "prefixe_detecte"
 	CodeCibleHorsPortee      = "cible_hors_portee"

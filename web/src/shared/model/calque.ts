@@ -320,6 +320,14 @@ export const CodeTableIgnoree = "table_ignoree";
 /**
  * Codes d'avertissement. Stables entre versions : ils servent de filtre en CI.
  */
+export const CodeColonneIgnoree = "colonne_ignoree";
+/**
+ * Codes d'avertissement. Stables entre versions : ils servent de filtre en CI.
+ */
+export const CodeClePrimaireGardee = "cle_primaire_non_ignorable";
+/**
+ * Codes d'avertissement. Stables entre versions : ils servent de filtre en CI.
+ */
 export const CodeDefautIncompatible = "defaut_incompatible";
 /**
  * Codes d'avertissement. Stables entre versions : ils servent de filtre en CI.

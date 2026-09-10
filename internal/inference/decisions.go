@@ -27,7 +27,25 @@ type Decisions struct {
 	// à celui qui connaît la base.
 	PrefixesARetirer []string `yaml:"prefixes_a_retirer"`
 
-	TablesIgnorees   []string            `yaml:"tables_ignorees"`
+	TablesIgnorees []string `yaml:"tables_ignorees"`
+
+	// ColonnesIgnorees retire des propriétés d'une entité sans rien retirer du
+	// calque. Clé : la table qualifiée ; valeurs : les noms de colonnes.
+	//
+	//	colonnes_ignorees:
+	//	  public.clients: [photo, blob_import, champ_libre_12]
+	//
+	// L'arbitrage est ici et pas à l'extraction, et ce n'est pas un détail de
+	// rangement : le calque physique ne perd rien, sans quoi le mode diff
+	// signalerait ces colonnes comme disparues à chaque comparaison et
+	// l'aller-retour vers le DDL cesserait d'être fidèle. Écarter une colonne de
+	// l'entité se rejoue hors ligne, et se défait six mois plus tard sans
+	// rouvrir la base.
+	//
+	// La clé primaire ne s'ignore pas : Doctrine refuse une entité sans
+	// identifiant, et la retirer produirait un modèle que rien ne peut charger.
+	ColonnesIgnorees map[string][]string `yaml:"colonnes_ignorees"`
+
 	Renommages       map[string]string   `yaml:"renommages"`
 	TypesForces      map[string]string   `yaml:"types_forces"`
 	RelationsForcees []RelationForcee    `yaml:"relations_forcees"`
