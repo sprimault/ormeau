@@ -246,6 +246,71 @@ func TestDecrire(t *testing.T) {
 	}
 }
 
+// Colonnes décrit une table pour l'écran de sélection : assez pour décider si
+// on mappe une colonne, et rien de plus.
+func TestColonnes(t *testing.T) {
+	p := ouvrirOuEchouer(t)
+
+	listeur, ok := p.(introspection.ListeurDeColonnes)
+	if !ok {
+		t.Fatal("le pilote postgres n'implemente pas ListeurDeColonnes")
+	}
+
+	ctx, annuler := context.WithTimeout(context.Background(), 10*time.Second)
+	defer annuler()
+
+	colonnes, err := listeur.Colonnes(ctx, "gescom", "t_client")
+	if err != nil {
+		t.Fatalf("colonnes : %v", err)
+	}
+	if len(colonnes) == 0 {
+		t.Fatal("aucune colonne rendue")
+	}
+
+	// L'ordre est celui du catalogue : le front affiche la table comme elle est
+	// déclarée, et non par ordre alphabétique.
+	for i, c := range colonnes {
+		if c.Position != i+1 {
+			t.Errorf("colonne %s en position %d, attendue %d", c.Nom, c.Position, i+1)
+		}
+		if c.TypeBrut == "" {
+			t.Errorf("colonne %s sans type brut : c'est ce qui distingue un citext d'un text", c.Nom)
+		}
+	}
+
+	var identifiantes int
+	for _, c := range colonnes {
+		if c.ClePrimaire {
+			identifiantes++
+		}
+	}
+	if identifiantes == 0 {
+		t.Error("aucune clé primaire signalée : le front les laisserait décocher")
+	}
+}
+
+// Une table inconnue rend une liste vide, pas une erreur : c'est une table
+// disparue depuis l'inventaire, pas une panne.
+func TestColonnesTableInconnue(t *testing.T) {
+	p := ouvrirOuEchouer(t)
+
+	listeur, ok := p.(introspection.ListeurDeColonnes)
+	if !ok {
+		t.Fatal("le pilote postgres n'implemente pas ListeurDeColonnes")
+	}
+
+	ctx, annuler := context.WithTimeout(context.Background(), 10*time.Second)
+	defer annuler()
+
+	colonnes, err := listeur.Colonnes(ctx, "gescom", "table_qui_n_existe_pas")
+	if err != nil {
+		t.Fatalf("colonnes : %v", err)
+	}
+	if len(colonnes) != 0 {
+		t.Errorf("%d colonne(s) rendues pour une table inconnue", len(colonnes))
+	}
+}
+
 // Le DSN ne doit ressortir d'aucune erreur du pilote, pas même masqué.
 func TestConnexionRefuseeSansFuiteDuSecret(t *testing.T) {
 	ctx, annuler := context.WithTimeout(context.Background(), 10*time.Second)

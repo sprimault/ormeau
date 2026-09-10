@@ -30,7 +30,9 @@ describe('masquerDSN', () => {
   });
 
   it('laisse passer un DSN sans mot de passe', () => {
-    expect(masquerDSN('postgres://utilisateur@hote/gescom')).toBe('postgres://utilisateur@hote/gescom');
+    expect(masquerDSN('postgres://utilisateur@hote/gescom')).toBe(
+      'postgres://utilisateur@hote/gescom',
+    );
   });
 
   it('masque tout ce qu’il ne sait pas analyser', () => {

@@ -27,7 +27,7 @@ export function Field({ label, aide, className = '', ...reste }: ProprietesChamp
       </label>
       <input
         id={id}
-        className={`rounded border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-900 outline-none focus:border-ormeau-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 ${className}`}
+        className={`focus:border-ormeau-500 rounded border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-900 outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 ${className}`}
         {...reste}
       />
       {aide ? <p className="text-xs text-slate-500 dark:text-slate-500">{aide}</p> : null}

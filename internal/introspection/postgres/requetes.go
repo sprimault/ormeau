@@ -243,6 +243,29 @@ ORDER BY n.nspname, t.typname, e.enumsortorder
 
 // requeteInventaire alimente l'arbre de sélection. Une seule requête, aucune
 // lecture de données : reltuples est une estimation du planificateur.
+// requeteColonnesSommaire décrit une table pour l'écran de sélection. Elle ne
+// remplace pas requeteColonnes, qui alimente le calque : celle-ci ne rend que
+// ce qui aide à décider si une colonne mérite une propriété.
+const requeteColonnesSommaire = `
+SELECT a.attname                                AS nom,
+       a.attnum                                 AS position,
+       format_type(a.atttypid, a.atttypmod)     AS type_brut,
+       NOT a.attnotnull                         AS nullable,
+       EXISTS (SELECT 1 FROM pg_constraint pk
+               WHERE pk.conrelid = c.oid
+                 AND pk.contype = 'p'
+                 AND a.attnum = ANY (pk.conkey)) AS cle_primaire,
+       col_description(c.oid, a.attnum)          AS commentaire
+FROM pg_attribute a
+         JOIN pg_class c ON c.oid = a.attrelid
+         JOIN pg_namespace n ON n.oid = c.relnamespace
+WHERE n.nspname = $1
+  AND c.relname = $2
+  AND a.attnum > 0
+  AND NOT a.attisdropped
+ORDER BY a.attnum
+`
+
 const requeteInventaire = `
 SELECT n.nspname                                  AS schema,
        c.relname                                  AS nom,

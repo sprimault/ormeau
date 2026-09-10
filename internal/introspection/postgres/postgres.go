@@ -132,6 +132,38 @@ func (p *pilote) Decrire(ctx context.Context) (introspection.Serveur, error) {
 	return s, nil
 }
 
+// Colonnes décrit une table pour l'écran de sélection, sans l'introspecter.
+//
+// Le type est rendu verbatim, comme partout ailleurs : c'est ce qui distingue un
+// citext d'un text, et l'utilisateur qui décide d'écarter une colonne veut voir
+// ce que sa base contient, pas une traduction.
+func (p *pilote) Colonnes(ctx context.Context, schema, table string) ([]introspection.ColonneSommaire, error) {
+	ctx, annuler := context.WithTimeout(ctx, delaiRequete)
+	defer annuler()
+
+	lignes, err := p.conn.Query(ctx, requeteColonnesSommaire, schema, table)
+	if err != nil {
+		return nil, fmt.Errorf("colonnes de %s.%s: %w", schema, table, err)
+	}
+	defer lignes.Close()
+
+	colonnes := []introspection.ColonneSommaire{}
+	for lignes.Next() {
+		var c introspection.ColonneSommaire
+		var commentaire *string
+
+		if err := lignes.Scan(&c.Nom, &c.Position, &c.TypeBrut, &c.Nullable,
+			&c.ClePrimaire, &commentaire); err != nil {
+			return nil, fmt.Errorf("lecture d'une colonne: %w", err)
+		}
+		if commentaire != nil {
+			c.Commentaire = *commentaire
+		}
+		colonnes = append(colonnes, c)
+	}
+	return colonnes, lignes.Err()
+}
+
 // Fermer libère la connexion.
 func (p *pilote) Fermer() error {
 	if p.conn == nil {

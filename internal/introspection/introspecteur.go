@@ -26,36 +26,8 @@ type Introspecteur interface {
 	Fermer() error
 }
 
-// TableSommaire est ce qu'on sait d'une table sans l'avoir introspectée. Aucune
-// donnée métier : LignesEstimees vient des statistiques du catalogue, pas d'un
-// COUNT.
-type TableSommaire struct {
-	Schema         string `json:"schema"`
-	Nom            string `json:"nom"`
-	Commentaire    string `json:"commentaire,omitempty"`
-	NbColonnes     int    `json:"nb_colonnes"`
-	LignesEstimees int64  `json:"lignes_estimees"`
-	ClePrimaire    bool   `json:"cle_primaire"`
-	// ReferenceVers liste les tables qualifiées atteintes par clé étrangère.
-	// L'interface s'en sert pour proposer les dépendances quand on coche une
-	// table, et pour signaler les références qui sortiraient de la sélection.
-	ReferenceVers []string `json:"reference_vers,omitempty"`
-}
-
-// Portee délimite ce qu'une extraction lit. Valeurs zéro : aucune lecture de
-// données.
-type Portee struct {
-	Schemas        []string
-	TablesIncluses []string
-	TablesExclues  []string
-	// Echantillonner est la seule option qui autorise la lecture de données.
-	// Elle alimente la détection d'énumérations et des clés étrangères
-	// implicites, cas majoritaire sur du legacy.
-	Echantillonner bool
-	// CardinaliteMax plafonne l'échantillonnage : au-delà, une colonne produit
-	// une statistique, pas un échantillon.
-	CardinaliteMax int
-}
+// TableSommaire et Portee vivent dans sommaire.go : ce sont les types que
+// l'interface reçoit et renvoie, et c'est ce fichier que tygo traduit.
 
 // ListeurDeBases est implémenté par les pilotes qui savent énumérer les bases
 // d'un serveur.
@@ -91,6 +63,16 @@ type Serveur struct {
 	Version   string   `json:"version"`
 	Catalogue string   `json:"catalogue"`
 	Schemas   []string `json:"schemas"`
+}
+
+// ListeurDeColonnes est implémenté par les pilotes qui savent décrire une table
+// sans l'introspecter entièrement.
+//
+// Hors d'Introspecteur, comme les deux précédentes. L'écran de sélection s'en
+// sert au dépliement d'une table : porter les colonnes dans l'inventaire
+// multiplierait sa taille par dix pour des lignes que personne n'ouvrira.
+type ListeurDeColonnes interface {
+	Colonnes(ctx context.Context, schema, table string) ([]ColonneSommaire, error)
 }
 
 // Fabrique ouvre une connexion et rend l'introspecteur d'un dialecte.

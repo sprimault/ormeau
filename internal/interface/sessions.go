@@ -19,19 +19,46 @@ const maxConnexions = 8
 // message, ce n'est pas une panne.
 var ErrTropDeConnexions = errors.New("trop de connexions ouvertes, en fermer une avant d'en ouvrir une autre")
 
-// registre garde les pilotes ouverts entre deux appels d'API.
+// connexion est une base atteinte, gardée ouverte entre deux appels d'API.
 //
-// Le DSN n'y figure pas, et ce n'est pas un oubli : une fois le pilote ouvert,
-// plus rien n'en a besoin. Ce qui n'est pas conservé ne peut pas ressortir d'une
-// réponse ni d'un journal.
+// Le DSN y figure parce qu'un serveur porte souvent vingt bases : en changer
+// demande de rouvrir une connexion, et le redemander obligerait à ressaisir un
+// mot de passe qu'on vient de donner. Il vit là et nulle part ailleurs — jamais
+// dans une réponse, un journal ou un message d'erreur, ce que les tests
+// vérifient.
+//
+// Le mutex n'est pas une précaution : une connexion de base de données porte un
+// protocole à un seul échange à la fois, et pgx refuse net une seconde requête
+// sur la même connexion — « conn busy ». Or le navigateur en lance plusieurs de
+// front dès le chargement d'un écran, l'arbre et la liste des bases par exemple.
+// Sans cette sérialisation, l'une des deux échoue, et laquelle dépend de
+// l'ordonnancement.
+type connexion struct {
+	mu     sync.Mutex
+	pilote introspection.Introspecteur
+	dsn    string
+	sgbd   string
+}
+
+// utiliser donne accès au pilote, une requête à la fois.
+//
+// Le verrou couvre l'appel entier plutôt que l'envoi seul : c'est la lecture du
+// résultat qui occupe la connexion, pas la seule émission de la requête.
+func (c *connexion) utiliser(action func(introspection.Introspecteur) error) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return action(c.pilote)
+}
+
+// registre garde les connexions vivantes de la session d'interface.
 type registre struct {
 	mu    sync.Mutex
-	parID map[string]introspection.Introspecteur
+	parID map[string]*connexion
 }
 
 // nouveauRegistre rend un registre vide.
 func nouveauRegistre() *registre {
-	return &registre{parID: map[string]introspection.Introspecteur{}}
+	return &registre{parID: map[string]*connexion{}}
 }
 
 // ajouter enregistre un pilote ouvert et rend l'identifiant que le front
@@ -40,7 +67,7 @@ func nouveauRegistre() *registre {
 // L'identifiant est tiré comme un secret, pas incrémenté : il désigne une
 // connexion utilisable, et deviner celui du voisin reviendrait à emprunter la
 // base d'un autre onglet.
-func (r *registre) ajouter(pilote introspection.Introspecteur) (string, error) {
+func (r *registre) ajouter(pilote introspection.Introspecteur, dsn, sgbd string) (string, error) {
 	id, err := genererJeton()
 	if err != nil {
 		return "", err
@@ -52,31 +79,33 @@ func (r *registre) ajouter(pilote introspection.Introspecteur) (string, error) {
 	if len(r.parID) >= maxConnexions {
 		return "", ErrTropDeConnexions
 	}
-	r.parID[id] = pilote
+	r.parID[id] = &connexion{pilote: pilote, dsn: dsn, sgbd: sgbd}
 	return id, nil
 }
 
-// trouver rend le pilote d'un identifiant.
-func (r *registre) trouver(id string) (introspection.Introspecteur, bool) {
+// trouver rend la connexion d'un identifiant.
+func (r *registre) trouver(id string) (*connexion, bool) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	pilote, ok := r.parID[id]
-	return pilote, ok
+	c, ok := r.parID[id]
+	return c, ok
 }
 
 // fermer ferme la connexion et l'oublie. Fermer deux fois n'est pas une erreur :
 // un onglet rechargé peut poster la même fermeture.
 func (r *registre) fermer(id string) error {
 	r.mu.Lock()
-	pilote, ok := r.parID[id]
+	c, ok := r.parID[id]
 	delete(r.parID, id)
 	r.mu.Unlock()
 
 	if !ok {
 		return nil
 	}
-	return pilote.Fermer()
+	// Attend la requête en cours : fermer sous les pieds d'un inventaire lui
+	// ferait rendre une erreur de transport plutôt qu'un résultat.
+	return c.utiliser(func(pilote introspection.Introspecteur) error { return pilote.Fermer() })
 }
 
 // toutFermer libère ce qui reste, à l'arrêt du serveur.
@@ -85,14 +114,14 @@ func (r *registre) fermer(id string) error {
 // qu'on n'a pas su fermer proprement sera coupée de toute façon.
 func (r *registre) toutFermer() {
 	r.mu.Lock()
-	restants := make([]introspection.Introspecteur, 0, len(r.parID))
-	for id, pilote := range r.parID {
-		restants = append(restants, pilote)
+	restantes := make([]*connexion, 0, len(r.parID))
+	for id, c := range r.parID {
+		restantes = append(restantes, c)
 		delete(r.parID, id)
 	}
 	r.mu.Unlock()
 
-	for _, pilote := range restants {
-		_ = pilote.Fermer()
+	for _, c := range restantes {
+		_ = c.utiliser(func(pilote introspection.Introspecteur) error { return pilote.Fermer() })
 	}
 }

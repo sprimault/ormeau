@@ -12,52 +12,42 @@ interface ProprietesResume {
 }
 
 /**
- * Ce que l'écran affiche une fois la base atteinte.
+ * Bandeau de la connexion en cours.
+ *
+ * Sur une ligne, parce qu'il reste affiché pendant tout le travail de sélection
+ * et que la place appartient à l'arbre.
  *
  * Le SGBD montré est celui que le serveur a annoncé, pas celui qui a été saisi :
- * viser un serveur MariaDB en écrivant « mysql » doit se voir ici.
- *
- * Les noms de schémas s'affichent tels qu'ils sont en base — jamais traduits,
- * jamais normalisés : c'est ce que l'utilisateur retrouvera dans son SGBD.
+ * viser un serveur MariaDB en écrivant « mysql » doit se voir ici. Les noms de
+ * schémas s'affichent tels qu'ils sont en base, jamais traduits.
  */
 export function ConnectionSummary({ serveur, onFermer }: ProprietesResume) {
   const t = useT();
 
   return (
-    <section className="flex w-full max-w-xl flex-col gap-4">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-lg font-semibold">
-            {t('connection.connected', { catalogue: serveur.catalogue })}
-          </h1>
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-            {t('connection.server')} : <span className="font-mono">{serveur.sgbd}</span>{' '}
-            <span className="font-mono">{serveur.version}</span>
-          </p>
-        </div>
+    <section className="flex flex-wrap items-center gap-x-4 gap-y-1">
+      <h1 className="text-sm font-semibold">
+        {t('connection.connected', { catalogue: serveur.catalogue })}
+      </h1>
+      <span className="font-mono text-xs text-slate-500">
+        {serveur.sgbd} {serveur.version}
+      </span>
+
+      <span className="min-w-0 text-xs text-slate-500">
+        {t('connection.schemas')} :{' '}
+        {serveur.schemas.length === 0 ? (
+          <span className="text-amber-700 dark:text-amber-500">
+            {t('connection.schemas.empty')}
+          </span>
+        ) : (
+          <span className="font-mono">{serveur.schemas.join(', ')}</span>
+        )}
+      </span>
+
+      <div className="ml-auto shrink-0">
         <Button variante="discret" onClick={onFermer}>
           {t('connection.disconnect')}
         </Button>
-      </div>
-
-      <div>
-        <h2 className="text-xs font-medium text-slate-600 uppercase dark:text-slate-400">
-          {t('connection.schemas')}
-        </h2>
-        {serveur.schemas.length === 0 ? (
-          <p className="mt-1 text-sm text-slate-500">{t('connection.schemas.empty')}</p>
-        ) : (
-          <ul className="mt-1 flex flex-wrap gap-1">
-            {serveur.schemas.map((schema) => (
-              <li
-                key={schema}
-                className="rounded bg-slate-200 px-2 py-0.5 font-mono text-xs text-slate-800 dark:bg-slate-800 dark:text-slate-200"
-              >
-                {schema}
-              </li>
-            ))}
-          </ul>
-        )}
       </div>
     </section>
   );

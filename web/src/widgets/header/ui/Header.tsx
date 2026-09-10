@@ -22,7 +22,8 @@ export function Header() {
         <span className="font-semibold">{t('app.name')}</span>
         {contexte ? (
           <span className="text-xs text-slate-500" title={contexte.repertoire}>
-            {t('app.workdir')} : <span className="font-mono">{tronquerMilieu(contexte.repertoire)}</span>
+            {t('app.workdir')} :{' '}
+            <span className="font-mono">{tronquerMilieu(contexte.repertoire)}</span>
           </span>
         ) : null}
       </div>
