@@ -8,10 +8,10 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { useLangStore } from '@/shared/i18n';
 import type { TableSommaire } from '@/shared/model';
-import type { Colonnes } from '../model/useColumns';
-import { useExclusions } from '../model/useExclusions';
-import { useSelection } from '../model/useSelection';
-import { TableTree } from './TableTree';
+import type { Colonnes } from '../../model/useColumns';
+import { useExclusions } from '../../model/useExclusions';
+import { useSelection } from '../../model/useSelection';
+import { TableTree } from '../TableTree';
 
 /**
  * Monte l'arbre avec une sélection réelle.

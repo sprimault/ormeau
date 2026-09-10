@@ -3,7 +3,7 @@
 
 import { describe, expect, it } from 'vitest';
 
-import { compact } from './numbers';
+import { compact } from '../numbers';
 
 describe('compact', () => {
   it('laisse les petits nombres entiers', () => {

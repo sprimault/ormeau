@@ -5,7 +5,7 @@ import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import type { TableSommaire } from '@/shared/model';
-import { useSelection } from './useSelection';
+import { useSelection } from '../useSelection';
 
 /** Fabrique un sommaire, seuls le nom et les références important ici. */
 function table(nom: string, reference_vers: string[] = [], schema = 'public'): TableSommaire {

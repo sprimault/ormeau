@@ -7,8 +7,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useLangStore } from '@/shared/i18n';
 import type { ColonneSommaire } from '@/shared/model';
-import type { EtatExclusions } from '../model/useExclusions';
-import { ColumnList } from './ColumnList';
+import type { EtatExclusions } from '../../model/useExclusions';
+import { ColumnList } from '../ColumnList';
 
 const colonnes: ColonneSommaire[] = [
   { nom: 'id', position: 1, type_brut: 'integer', nullable: false, cle_primaire: true },

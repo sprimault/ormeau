@@ -6,7 +6,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useLangStore } from '@/shared/i18n';
-import { ConnectionForm } from './ConnectionForm';
+import { ConnectionForm } from '../ConnectionForm';
 
 describe('ConnectionForm', () => {
   beforeEach(() => {

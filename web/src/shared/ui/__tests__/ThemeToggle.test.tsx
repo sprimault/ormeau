@@ -7,7 +7,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { useLangStore } from '@/shared/i18n';
 import { useThemeStore } from '@/shared/model';
-import { ThemeToggle } from './ThemeToggle';
+import { ThemeToggle } from '../ThemeToggle';
 
 describe('ThemeToggle', () => {
   beforeEach(() => {

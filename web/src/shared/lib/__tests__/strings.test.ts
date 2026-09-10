@@ -3,7 +3,7 @@
 
 import { describe, expect, it } from 'vitest';
 
-import { masquerDSN, tronquerMilieu } from './strings';
+import { masquerDSN, tronquerMilieu } from '../strings';
 
 describe('tronquerMilieu', () => {
   it('laisse intacte une chaîne assez courte', () => {

@@ -4,7 +4,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { useExclusions } from './useExclusions';
+import { useExclusions } from '../useExclusions';
 
 describe('useExclusions', () => {
   it('écarte puis remet une colonne', () => {

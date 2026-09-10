@@ -6,7 +6,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useLangStore } from '@/shared/i18n';
-import { ConnectionSummary } from './ConnectionSummary';
+import { ConnectionSummary } from '../ConnectionSummary';
 
 const serveur = {
   session: 'jeton-de-session',

@@ -6,8 +6,8 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useLangStore } from '@/shared/i18n';
-import type { EtatExclusions } from '../model/useExclusions';
-import { ScopePreview } from './ScopePreview';
+import type { EtatExclusions } from '../../model/useExclusions';
+import { ScopePreview } from '../ScopePreview';
 
 /** Rend un état d'exclusions figé : ce composant les affiche, il ne les tient pas. */
 function exclusions(ignorees: Record<string, string[]> = {}): EtatExclusions {

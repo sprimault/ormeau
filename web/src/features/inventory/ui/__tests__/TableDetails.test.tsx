@@ -6,9 +6,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useLangStore } from '@/shared/i18n';
 import type { ColonneSommaire, TableSommaire } from '@/shared/model';
-import type { Colonnes } from '../model/useColumns';
-import type { EtatExclusions } from '../model/useExclusions';
-import { TableDetails } from './TableDetails';
+import type { Colonnes } from '../../model/useColumns';
+import type { EtatExclusions } from '../../model/useExclusions';
+import { TableDetails } from '../TableDetails';
 
 const commandes: TableSommaire = {
   schema: 'public',

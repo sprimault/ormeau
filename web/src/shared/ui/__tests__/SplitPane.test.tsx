@@ -6,7 +6,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { useLangStore } from '@/shared/i18n';
-import { SplitPane } from './SplitPane';
+import { SplitPane } from '../SplitPane';
 
 const CLE = 'ormeau-test-largeur';
 
