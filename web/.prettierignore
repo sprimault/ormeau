@@ -1,0 +1,7 @@
+# Types générés depuis le Go par `make web-types` (tygo).
+#
+# Les reformater les fait diverger de ce que tygo produit, et `make lint`
+# refuse alors une dérive que personne n'a écrite.
+src/shared/model/api.ts
+src/shared/model/calque.ts
+src/shared/model/introspection.ts
