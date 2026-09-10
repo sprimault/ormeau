@@ -9,7 +9,7 @@ générateur.
 | 1 — Calque physique | terminée |
 | 2 — Introspection PostgreSQL | terminée |
 | 3 — Inférence et calque logique | terminée, hors clés étrangères implicites |
-| 4 — Interface | écran de connexion livré, arbre et arbitrage à écrire |
+| 4 — Interface | connexion et arbre livrés, extraction et arbitrage à écrire |
 | 5 — Génération Doctrine | bundle installable, génération à écrire |
 | 6 à 10 | non commencées |
 | 11 — Publication | faite pour l'essentiel, hors Packagist |
@@ -44,9 +44,10 @@ alimenté par `Inventorier`, sélection avec propagation des dépendances par cl
 étrangère, puis écran d'arbitrage des avertissements et des propositions de
 renommage, produisant un `<base>.decisions.yaml`.
 
-L'écran de connexion est livré, avec le serveur local qui le porte : port
-dynamique, jeton d'URL à usage unique échangé contre un cookie, et connexion par
-composants ou par DSN. Restent l'arbre et l'arbitrage.
+Livrés : le serveur local — port dynamique, jeton d'URL à usage unique échangé
+contre un cookie —, la connexion par composants ou par DSN, et l'arbre des bases,
+des schémas et des tables, colonnes comprises. Restent l'extraction depuis
+l'interface et l'écran d'arbitrage.
 
 Ici et pas plus tard, pour deux raisons. L'écran de connexion et l'arbre ne
 dépendent que d'`Inventorier`, écrit depuis la phase 2 : les repousser était un

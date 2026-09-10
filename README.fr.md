@@ -115,6 +115,15 @@ Interface sur http://127.0.0.1:53412
 Répertoire de travail : /home/steff/projets/gescom
 ```
 
+L'arbre de gauche liste les bases du serveur, leurs schémas et leurs tables ;
+chaque table se déplie sur ses colonnes. On coche ce qu'on veut extraire, et
+l'écran signale les tables référencées qui manquent à la sélection — une clé
+étrangère laissée dans le vide fait disparaître l'association sans bruit.
+
+Décocher une colonne ne la retire pas du calque : cela remplit
+`colonnes_ignorees` dans le fichier de décisions, qui la retire de l'entité. Le
+calque garde tout, et l'on se ravise sans rouvrir la connexion.
+
 Elle écoute sur `127.0.0.1` seulement, sur un port tiré au lancement, et le
 jeton de l'URL ne sert qu'une fois. Les fichiers produits atterrissent dans le
 répertoire affiché — `--repertoire` en désigne un autre.

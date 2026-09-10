@@ -115,6 +115,16 @@ Interface sur http://127.0.0.1:53412
 Répertoire de travail : /home/steff/projects/gescom
 ```
 
+The left-hand tree lists the server's databases, their schemas and their tables;
+each table expands into its columns. You tick what you want to extract, and the
+screen flags referenced tables missing from the selection — a foreign key left
+pointing nowhere makes the association vanish silently.
+
+Unticking a column does not remove it from the layer: it fills
+`colonnes_ignorees` in the decisions file, which drops it from the entity. The
+layer keeps everything, and you can change your mind without reopening the
+connection.
+
 It listens on `127.0.0.1` only, on a port drawn at startup, and the token in the
 URL is good for a single use. Files land in the directory shown on screen;
 `--repertoire` points somewhere else.
