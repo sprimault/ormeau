@@ -72,7 +72,9 @@ function Ecran() {
         actions={(portee) => (
           <ExtractButton session={serveur.session} base={serveur.catalogue} portee={portee} />
         )}
-        produit={<CalquePreview session={serveur.session} base={serveur.catalogue} />}
+        produit={(table) => (
+          <CalquePreview session={serveur.session} base={serveur.catalogue} table={table} />
+        )}
       />
     </div>
   );

@@ -4,7 +4,7 @@
 import { useState, type ReactNode } from 'react';
 
 import { qualifier } from '@/shared/lib';
-import type { Portee, ReponseConnexion } from '@/shared/model';
+import type { Portee, ReponseConnexion, TableSommaire } from '@/shared/model';
 import { SplitPane } from '@/shared/ui';
 import { useApercuOuvert } from '../model/useApercuOuvert';
 import { useColumns } from '../model/useColumns';
@@ -24,8 +24,8 @@ interface ProprietesEcran {
   onOuvrirBase: (base: string) => void;
   /** Ce qui agit sur la portée composée ici — le lancement d'une extraction. */
   actions?: (portee: Portee) => ReactNode;
-  /** Ce que l'extraction a produit, affiché à côté de la portée. */
-  produit?: ReactNode;
+  /** Ce que l'extraction a produit, pour la table cliquée s'il y en a une. */
+  produit?: (table: TableSommaire | null) => ReactNode;
 }
 
 /**
@@ -103,7 +103,7 @@ export function InventoryScreen({
           ouvert={apercuOuvert}
           onBasculer={basculerApercu}
           actions={actions?.(portee)}
-          produit={produit}
+          produit={produit?.(table ?? null)}
         />
       }
     />

@@ -26,6 +26,6 @@ export {
   type ReponseCalque,
   type ResultatExtraction,
 } from './api';
-export type { Anomalie } from './calque';
+export type { Anomalie, Physique } from './calque';
 export type { TableSommaire, ColonneSommaire, Portee, Avancement } from './introspection';
 export { CLE_THEME, initTheme, themeEnregistre, useThemeStore, type Theme } from './theme';

@@ -161,6 +161,10 @@ const fr = {
   'calque.extractedAt': 'extrait à {heure}',
   'calque.copy': 'Copier le calque',
   'calque.loading': 'Lecture du calque…',
+  'calque.view': 'Affichage du calque',
+  'calque.showFile': 'Fichier complet',
+  'calque.tableMissing':
+    '{table} n’est pas dans ce calque : pas encore extraite, ou hors de la portée de la dernière extraction.',
   'calque.statsHidden':
     'Statistiques retirées : l’interface n’affiche aucune valeur échantillonnée.',
 
@@ -320,6 +324,10 @@ const en: Record<MessageKey, string> = {
   'calque.extractedAt': 'extracted at {heure}',
   'calque.copy': 'Copy the layer',
   'calque.loading': 'Reading the layer…',
+  'calque.view': 'Layer view',
+  'calque.showFile': 'Whole file',
+  'calque.tableMissing':
+    '{table} is not in this layer: not extracted yet, or outside the scope of the last extraction.',
   'calque.statsHidden': 'Statistics removed: the interface shows no sampled value.',
 
   'error.network': 'The local server is not responding.',
