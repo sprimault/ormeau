@@ -124,6 +124,12 @@ Décocher une colonne ne la retire pas du calque : cela remplit
 `colonnes_ignorees` dans le fichier de décisions, qui la retire de l'entité. Le
 calque garde tout, et l'on se ravise sans rouvrir la connexion.
 
+**Extraire** écrit `<base>.calque.json` en tâche de fond : on continue de
+parcourir l'arbre, ou l'on passe à une autre base pour en lancer une seconde.
+L'en-tête suit chaque extraction étape par étape et permet de l'annuler — une
+extraction lancée par erreur sur une base de production s'arrête sans fermer
+l'onglet. Deux tournent à la fois, les suivantes attendent leur tour.
+
 Elle écoute sur `127.0.0.1` seulement, sur un port tiré au lancement, et le
 jeton de l'URL ne sert qu'une fois. Les fichiers produits atterrissent dans le
 répertoire affiché — `--repertoire` en désigne un autre.
