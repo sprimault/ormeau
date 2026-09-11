@@ -3,7 +3,7 @@
 
 import { useT } from '@/shared/i18n';
 import { qualifier } from '@/shared/lib';
-import type { Entite, ReponseEntite, Table } from '@/shared/model';
+import type { Association, Entite, ReponseEntite, Table } from '@/shared/model';
 import { CopyButton, HelpTip } from '@/shared/ui';
 
 /** Propriétés du détail. */
@@ -112,20 +112,84 @@ function EntityView({ entite }: { entite: Entite }) {
           </tbody>
         </table>
       </div>
-      {entite.associations?.length ? (
-        <>
-          <h5 className="mt-3 mb-1 text-slate-500">{t('arbitrage.detail.associations')}</h5>
-          <ul className="font-mono">
-            {entite.associations.map((a) => (
-              <li key={a.nom}>
-                {a.nom} : {a.genre} → {a.cible}
-              </li>
-            ))}
-          </ul>
-        </>
-      ) : null}
+      {entite.associations?.length ? <Associations associations={entite.associations} /> : null}
     </>
   );
+}
+
+/** Attribut Doctrine de chaque cardinalité : c'est le mot qu'un développeur Symfony reconnaît. */
+const ATTRIBUTS: Record<string, string> = {
+  plusieurs_vers_un: 'ManyToOne',
+  un_vers_un: 'OneToOne',
+  un_vers_plusieurs: 'OneToMany',
+  plusieurs_vers_plusieurs: 'ManyToMany',
+};
+
+/**
+ * Les liens de l'entité vers les autres, lisibles sans connaître le calque.
+ *
+ * Ce que contient la propriété — un objet ou une collection —, l'attribut
+ * Doctrine qui la mappera, et d'où vient le lien : la colonne qui le porte, la
+ * table de jointure, ou l'association dont c'est l'autre côté. Le vocabulaire
+ * du calque, `plusieurs_vers_un`, ne s'affiche pas : il se lit à l'envers dès
+ * qu'on le regarde depuis l'autre entité.
+ */
+function Associations({ associations }: { associations: Association[] }) {
+  const t = useT();
+
+  return (
+    <>
+      <h5 className="mt-3 mb-1 flex items-center gap-1 text-slate-500">
+        {t('arbitrage.detail.associations')}
+        <HelpTip texte={t('arbitrage.help.associations')} />
+      </h5>
+      <div className="overflow-x-auto">
+        <table className="w-full text-left">
+          <thead className="text-slate-500">
+            <tr>
+              <th className="pr-2 font-normal">{t('arbitrage.detail.property')}</th>
+              <th className="pr-2 font-normal">{t('arbitrage.association.gives')}</th>
+              <th className="font-normal">{t('arbitrage.association.relation')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {associations.map((a) => {
+              const collection =
+                a.genre === 'un_vers_plusieurs' || a.genre === 'plusieurs_vers_plusieurs';
+              return (
+                <tr key={a.nom}>
+                  <td className="pr-2 font-mono">{a.nom}</td>
+                  <td className="pr-2">
+                    {t(collection ? 'arbitrage.association.many' : 'arbitrage.association.one', {
+                      cible: a.cible,
+                    })}
+                  </td>
+                  <td className="text-slate-600 dark:text-slate-400">
+                    {ATTRIBUTS[a.genre] ?? a.genre} · {provenance(a, t)}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
+}
+
+/** D'où vient une association : sa colonne, sa table de jointure, ou son autre côté. */
+function provenance(a: Association, t: ReturnType<typeof useT>): string {
+  if (!a.proprietaire && a.mappee_par) {
+    return t('arbitrage.association.inverse', { cible: a.cible, nom: a.mappee_par });
+  }
+  if (a.table_jointure) {
+    return t('arbitrage.association.joinTable', {
+      table: qualifier(a.table_jointure.schema, a.table_jointure.nom),
+    });
+  }
+  return t('arbitrage.association.column', {
+    colonnes: (a.jointure ?? []).map((j) => j.colonne).join(', '),
+  });
 }
 
 /** Propriétés de la table. */

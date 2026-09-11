@@ -1,7 +1,7 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
-import type { Decisions } from '@/shared/model';
+import type { Decisions, EnumerationInferee } from '@/shared/model';
 
 // Chaque transformation rend un brouillon neuf et n'y laisse ni clé vide ni
 // collection vide : le fichier ne les écrit pas, et un brouillon qui ne décide
@@ -26,6 +26,35 @@ export function renommer(d: Decisions, table: string, nom: string): Decisions {
 /** Force le type Doctrine d'une colonne. Un type vide rend la main à l'inférence. */
 export function forcerType(d: Decisions, colonne: string, type: string): Decisions {
   return { ...d, types_forces: poser(d.types_forces, colonne, type) };
+}
+
+/**
+ * Nomme les cas d'une énumération.
+ *
+ * Le fichier rattache une énumération à une colonne : portée par plusieurs,
+ * elle y figure pour chacune, sous le même nom, pour que la décision vaille
+ * partout où l'inférence l'a trouvée. Les cas déjà décidés restent, ceux qu'on
+ * nomme les remplacent.
+ */
+export function nommerCas(
+  d: Decisions,
+  enumeration: Pick<EnumerationInferee, 'nom' | 'colonnes'>,
+  cas: Record<string, string>,
+): Decisions {
+  const precedente = d.enumerations?.find((e) => enumeration.colonnes.includes(e.colonne));
+  const nom = precedente?.nom ?? enumeration.nom;
+  const fusion = { ...precedente?.cas, ...cas };
+  const autres = (d.enumerations ?? []).filter((e) => !enumeration.colonnes.includes(e.colonne));
+  return {
+    ...d,
+    enumerations: [...autres, ...enumeration.colonnes.map((colonne) => ({ colonne, nom, cas: fusion }))],
+  };
+}
+
+/** Retire la décision d'énumération d'une colonne, et rend la main à l'inférence. */
+export function retirerEnumeration(d: Decisions, colonne: string): Decisions {
+  const reste = (d.enumerations ?? []).filter((e) => e.colonne !== colonne);
+  return { ...d, enumerations: reste.length > 0 ? reste : undefined };
 }
 
 /** Pose ou retire une entrée d'un dictionnaire, sans le laisser vide. */

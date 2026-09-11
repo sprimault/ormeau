@@ -200,8 +200,12 @@ const fr = {
   'arbitrage.warnings': 'Avertissements',
   'arbitrage.forceType': 'Forcer',
   'arbitrage.forceType.label': 'Type Doctrine pour {colonne}',
-  'arbitrage.forced': 'Types forcés',
-  'arbitrage.forced.undo': 'Annuler',
+  'arbitrage.nameCases': 'Nommer les cas',
+  'arbitrage.nameCases.label': 'Nom du cas {valeur}',
+  'arbitrage.decided': 'Décisions de cette table',
+  'arbitrage.decided.type': '{colonne} : type {type}',
+  'arbitrage.decided.enumeration': '{colonne} : {nom} ({cas})',
+  'arbitrage.decided.undo': 'Annuler',
 
   'help.label': 'Aide',
   'arbitrage.help.entities':
@@ -212,8 +216,10 @@ const fr = {
     'Ce que l’outil n’a pas pu décider seul pour cette entité. En orange, ce qui demande une action ; en gris, une simple information.',
   'arbitrage.help.forceType':
     'L’outil ne connaît pas le type de cette colonne. Le champ propose le type qu’il a retenu faute de mieux : « Forcer » le confirme et fait disparaître l’avertissement. Un autre type Doctrine peut être saisi, y compris un type propre au projet.',
-  'arbitrage.help.forced':
-    'Types Doctrine imposés à des colonnes de cette table. « Annuler » rend la main à l’inférence.',
+  'arbitrage.help.nameCases':
+    'La colonne n’accepte que ces valeurs, et l’outil en fait une énumération PHP. Faute de mieux, il nomme chaque cas d’après sa valeur : donner un nom lisible (FA → Facture), puis « Nommer les cas ». Confirmer sans rien changer garde les noms proposés.',
+  'arbitrage.help.decided':
+    'Ce qui est décidé pour cette table en plus du nom de classe : types forcés, cas d’énumération nommés. « Annuler » rend la main à l’inférence.',
   'arbitrage.help.entity':
     'Ce que la génération produira : propriétés, types PHP et Doctrine, associations. Recalculé à chaque modification.',
   'arbitrage.help.table':
@@ -229,6 +235,15 @@ const fr = {
   'arbitrage.detail.php': 'PHP',
   'arbitrage.detail.doctrine': 'Doctrine',
   'arbitrage.detail.associations': 'Associations',
+  'arbitrage.association.gives': 'Contient',
+  'arbitrage.association.relation': 'Relation',
+  'arbitrage.association.one': 'un {cible}',
+  'arbitrage.association.many': 'une collection de {cible}',
+  'arbitrage.association.column': 'colonne {colonnes}',
+  'arbitrage.association.joinTable': 'table de jointure {table}',
+  'arbitrage.association.inverse': 'côté inverse de {cible}.{nom}',
+  'arbitrage.help.associations':
+    'Les liens vers les autres entités, tirés des clés étrangères. « un Plan » : la propriété contient un objet ; « une collection de Tenant » : elle en contient plusieurs. La relation dit d’où vient le lien : la colonne qui le porte, ou l’association dont c’est l’autre côté.',
   'arbitrage.detail.foreignKeys': 'Clés étrangères',
   'arbitrage.detail.copyEntity': 'Copier l’entité',
   'arbitrage.detail.copyTable': 'Copier la table',
@@ -445,8 +460,12 @@ const en: Record<MessageKey, string> = {
   'arbitrage.warnings': 'Warnings',
   'arbitrage.forceType': 'Force',
   'arbitrage.forceType.label': 'Doctrine type for {colonne}',
-  'arbitrage.forced': 'Forced types',
-  'arbitrage.forced.undo': 'Undo',
+  'arbitrage.nameCases': 'Name the cases',
+  'arbitrage.nameCases.label': 'Name of case {valeur}',
+  'arbitrage.decided': 'Decisions for this table',
+  'arbitrage.decided.type': '{colonne}: type {type}',
+  'arbitrage.decided.enumeration': '{colonne}: {nom} ({cas})',
+  'arbitrage.decided.undo': 'Undo',
 
   'help.label': 'Help',
   'arbitrage.help.entities':
@@ -457,8 +476,10 @@ const en: Record<MessageKey, string> = {
     'What the tool could not decide on its own for this entity. Orange needs an action; grey is information only.',
   'arbitrage.help.forceType':
     'The tool does not know this column’s type. The field suggests the type it fell back on: “Force” confirms it and clears the warning. Another Doctrine type can be typed, including one specific to the project.',
-  'arbitrage.help.forced':
-    'Doctrine types imposed on columns of this table. “Undo” gives control back to the inference.',
+  'arbitrage.help.nameCases':
+    'The column only accepts these values, and the tool turns them into a PHP enum. Lacking anything better, it names each case after its value: give a readable name (FA → Invoice), then “Name the cases”. Confirming without changes keeps the suggested names.',
+  'arbitrage.help.decided':
+    'What is decided for this table besides the class name: forced types, named enumeration cases. “Undo” gives control back to the inference.',
   'arbitrage.help.entity':
     'What generation will produce: properties, PHP and Doctrine types, associations. Recomputed at each change.',
   'arbitrage.help.table':
@@ -473,6 +494,15 @@ const en: Record<MessageKey, string> = {
   'arbitrage.detail.php': 'PHP',
   'arbitrage.detail.doctrine': 'Doctrine',
   'arbitrage.detail.associations': 'Associations',
+  'arbitrage.association.gives': 'Holds',
+  'arbitrage.association.relation': 'Relation',
+  'arbitrage.association.one': 'one {cible}',
+  'arbitrage.association.many': 'a collection of {cible}',
+  'arbitrage.association.column': 'column {colonnes}',
+  'arbitrage.association.joinTable': 'join table {table}',
+  'arbitrage.association.inverse': 'inverse side of {cible}.{nom}',
+  'arbitrage.help.associations':
+    'Links to other entities, taken from foreign keys. “one Plan”: the property holds an object; “a collection of Tenant”: it holds several. The relation says where the link comes from: the column that carries it, or the association it is the other side of.',
   'arbitrage.detail.foreignKeys': 'Foreign keys',
   'arbitrage.detail.copyEntity': 'Copy the entity',
   'arbitrage.detail.copyTable': 'Copy the table',

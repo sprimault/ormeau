@@ -154,6 +154,7 @@ export function ArbitrageScreen({ base, versionCalque }: ProprietesEcran) {
                 avertissements={parTable.get(active.qualifiee) ?? []}
                 proposition={resultat.propositions.find((p) => p.cible === active.qualifiee)}
                 typesDoctrine={resultat.types_doctrine}
+                enumerations={resultat.enumerations}
                 onModifier={modifier}
               />
             ) : null

@@ -42,7 +42,14 @@ export {
   type ResumeEntite,
 } from './api';
 export type { Decisions, EnumerationForcee, Proposition } from './inference';
-export type { Anomalie, Avertissement, Entite, ReferenceTable, Table } from './calque';
+export type {
+  Anomalie,
+  Association,
+  Avertissement,
+  Entite,
+  ReferenceTable,
+  Table,
+} from './calque';
 export {
   CodeCasEnumerationOpaque,
   CodeCibleHorsPortee,

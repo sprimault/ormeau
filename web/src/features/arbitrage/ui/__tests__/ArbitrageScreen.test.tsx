@@ -9,6 +9,7 @@ import { ErreurAPI } from '@/shared/api';
 import { useLangStore } from '@/shared/i18n';
 import {
   CodeCalqueModifie,
+  CodeCasEnumerationOpaque,
   CodeColonneIgnoree,
   CodeTableSansClePrimaire,
   CodeTraitDeduit,
@@ -127,6 +128,24 @@ function detail(table: string): ReponseEntite {
         { nom: 'id', colonne: 'id', type_php: 'int', type_doctrine: 'integer', nullable: false },
         { nom: 'position', colonne: 'position', type_php: 'string', type_doctrine: 'string', nullable: false },
       ],
+      associations: [
+        {
+          nom: 'plan',
+          genre: 'plusieurs_vers_un',
+          cible: 'Plan',
+          proprietaire: true,
+          jointure: [{ colonne: 'plan_id', colonne_referencee: 'id', nullable: false }],
+          origine: 'contrainte',
+        },
+        {
+          nom: 'commande',
+          genre: 'un_vers_plusieurs',
+          cible: 'Commande',
+          proprietaire: false,
+          mappee_par: 'client',
+          origine: 'contrainte',
+        },
+      ],
     },
     table_physique: {
       schema: 'public',
@@ -161,6 +180,17 @@ describe('ArbitrageScreen', () => {
     expect(vi.mocked(lireEntite).mock.calls[0][0]).toMatchObject({ schema: 'public', table: 'clients' });
   });
 
+  it('dit ce que contient chaque association et d’où elle vient, sans le vocabulaire du calque', async () => {
+    vi.mocked(inferer).mockResolvedValue(inference());
+    render(<ArbitrageScreen base="gescom" versionCalque="" />);
+
+    expect(await screen.findByText('un Plan')).toBeInTheDocument();
+    expect(screen.getByText('ManyToOne · colonne plan_id')).toBeInTheDocument();
+    expect(screen.getByText('une collection de Commande')).toBeInTheDocument();
+    expect(screen.getByText('OneToMany · côté inverse de Commande.client')).toBeInTheDocument();
+    expect(screen.queryByText(/plusieurs_vers_un/)).not.toBeInTheDocument();
+  });
+
   it('compte dans la liste les avertissements à traiter, sans les informations', async () => {
     vi.mocked(inferer).mockResolvedValue(inference());
     render(<ArbitrageScreen base="gescom" versionCalque="" />);
@@ -179,7 +209,7 @@ describe('ArbitrageScreen', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Forcer' }));
 
     expect(brouillon.courant.types_forces).toEqual({ 'public.clients.position': 'string' });
-    expect(screen.getByText('position → string')).toBeInTheDocument();
+    expect(screen.getByText('position : type string')).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: 'Annuler' }));
     expect(brouillon.courant.types_forces).toBeUndefined();
@@ -196,6 +226,48 @@ describe('ArbitrageScreen', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Forcer' }));
 
     expect(brouillon.courant.types_forces).toEqual({ 'public.clients.position': 'point' });
+  });
+
+  it('nomme les cas d’une énumération opaque d’un seul formulaire par colonne', async () => {
+    const opaque = (valeur: string, nom: string) => ({
+      code: CodeCasEnumerationOpaque,
+      cible: 'public.clients.prefix',
+      message: `la valeur ${valeur} donne un cas nommé ${nom}`,
+      resolution: 'par_defaut',
+      confiance: 0.4,
+    });
+    vi.mocked(inferer).mockResolvedValue(
+      inference({
+        avertissements: [opaque('AV', 'Av'), opaque('FA', 'Fa')],
+        enumerations: [
+          {
+            nom: 'Prefix',
+            type_support: 'string',
+            origine: 'verification',
+            cas: [
+              { nom: 'Av', valeur: 'AV' },
+              { nom: 'Fa', valeur: 'FA' },
+            ],
+            colonnes: ['public.clients.prefix'],
+          },
+        ],
+      }),
+    );
+    render(<ArbitrageScreen base="gescom" versionCalque="" />);
+
+    const facture = await screen.findByRole('textbox', { name: 'Nom du cas FA' });
+    expect(screen.getAllByRole('button', { name: 'Nommer les cas' })).toHaveLength(1);
+    await userEvent.clear(facture);
+    await userEvent.type(facture, 'Facture');
+    await userEvent.click(screen.getByRole('button', { name: 'Nommer les cas' }));
+
+    expect(brouillon.courant.enumerations).toEqual([
+      { colonne: 'public.clients.prefix', nom: 'Prefix', cas: { AV: 'Av', FA: 'Facture' } },
+    ]);
+    expect(screen.getByText('prefix : Prefix (AV → Av, FA → Facture)')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Annuler' }));
+    expect(brouillon.courant.enumerations).toBeUndefined();
   });
 
   it('ouvre une autre entité en cliquant sur sa ligne', async () => {
