@@ -36,6 +36,15 @@ préambule reste en français : il n'est jamais publié.
 
 ## [Non publié]
 
+### Ajouté
+
+- **Ormeau range ses propres données dans le répertoire de configuration du
+  système** : `%AppData%\ormeau`, `~/.config/ormeau` ou
+  `~/Library/Application Support/ormeau`, créé au premier lancement.
+  `ORMEAU_CONFIG_DIR` en désigne un autre, ce qui permet aussi un usage
+  portable. L'interface annonce les deux emplacements au démarrage — le
+  répertoire de travail, qui porte les fichiers du projet, et celui-ci.
+
 ### Corrigé
 
 - **Le refus d'un calque absent nomme le répertoire de travail.** Lancée
@@ -43,6 +52,15 @@ préambule reste en français : il n'est jamais publié.
   dire où elle l'avait cherché.
 
 ***
+
+### Added
+
+- **Ormeau stores its own data in the system configuration directory**:
+  `%AppData%\ormeau`, `~/.config/ormeau` or
+  `~/Library/Application Support/ormeau`, created on first launch.
+  `ORMEAU_CONFIG_DIR` points somewhere else, which also makes portable use
+  possible. The interface announces both locations on startup — the working
+  directory, which holds the project files, and this one.
 
 ### Fixed
 

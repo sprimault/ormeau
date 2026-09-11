@@ -47,6 +47,11 @@ type Options struct {
 	Repertoire string
 	// Version est celle du binaire, affichée à côté du lien vers les releases.
 	Version string
+	// Configuration est la racine où Ormeau range ses propres données —
+	// préférences, profils, brouillons —, par opposition au répertoire de
+	// travail qui porte celles du projet. Annoncée au démarrage pour que les
+	// deux emplacements se distinguent d'emblée. Vide, la ligne est tue.
+	Configuration string
 	// SansNavigateur laisse l'utilisateur ouvrir l'URL lui-même.
 	SansNavigateur bool
 	// Sortie reçoit les lignes de démarrage, et rien d'autre. C'est la seule
@@ -149,9 +154,12 @@ func (s *serveur) annoncer(o Options, url string) {
 		return
 	}
 	// Un terminal qui n'accepte plus rien n'empêche pas de servir l'interface :
-	// ces trois lignes sont un confort de démarrage, pas une sortie utile.
+	// ces lignes sont un confort de démarrage, pas une sortie utile.
 	_, _ = fmt.Fprintf(o.Sortie, "Interface sur %s\n", s.origine)
 	_, _ = fmt.Fprintf(o.Sortie, "Répertoire de travail : %s\n", s.repertoire)
+	if o.Configuration != "" {
+		_, _ = fmt.Fprintf(o.Sortie, "Configuration : %s\n", o.Configuration)
+	}
 	if !ouverte {
 		_, _ = fmt.Fprintf(o.Sortie, "Ouvrir : %s\n", url)
 	}
