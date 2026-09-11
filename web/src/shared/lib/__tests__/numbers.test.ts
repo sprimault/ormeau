@@ -3,7 +3,7 @@
 
 import { describe, expect, it } from 'vitest';
 
-import { compact } from '../numbers';
+import { compact, duree } from '../numbers';
 
 describe('compact', () => {
   it('laisse les petits nombres entiers', () => {
@@ -24,5 +24,27 @@ describe('compact', () => {
   it('monte dans les unités supérieures', () => {
     expect(compact(3_400_000)).toBe('3,4 M');
     expect(compact(2_000_000_000)).toBe('2 G');
+  });
+});
+
+describe('duree', () => {
+  it('ne dit pas zéro sous la seconde', () => {
+    expect(duree(0)).toBe('< 1 s');
+    expect(duree(0.4)).toBe('< 1 s');
+  });
+
+  it('compte en secondes entières sous la minute', () => {
+    expect(duree(1)).toBe('1 s');
+    expect(duree(42.9)).toBe('42 s');
+  });
+
+  it('passe aux minutes, secondes sur deux chiffres', () => {
+    expect(duree(65)).toBe('1 min 05 s');
+    expect(duree(600)).toBe('10 min 00 s');
+  });
+
+  it('laisse tomber les secondes au-delà de l’heure', () => {
+    expect(duree(3600)).toBe('1 h 00 min');
+    expect(duree(4320)).toBe('1 h 12 min');
   });
 });

@@ -1,16 +1,23 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+import { ExtractionIndicator } from '@/features/extraction';
 import { useContexte } from '@/shared/api';
 import { useT } from '@/shared/i18n';
 import { tronquerMilieu } from '@/shared/lib';
-import { LangToggle, ThemeToggle } from '@/shared/ui';
+import { CopyButton, LangToggle, ThemeToggle } from '@/shared/ui';
 
 /**
  * En-tête permanent.
  *
  * Le répertoire de travail y est affiché tout le temps, et en entier au survol :
- * on doit savoir où on écrit avant de cliquer.
+ * on doit savoir où on écrit avant de cliquer. Le texte affiché est tronqué au
+ * milieu et ne se colle donc nulle part : c'est le bouton de copie qui donne le
+ * chemin, pour aller ouvrir le calque qui vient d'être écrit.
+ *
+ * Les extractions s'y suivent aussi. C'est le seul élément présent sur tous les
+ * écrans, formulaire de connexion compris, et une extraction lancée continue
+ * après la déconnexion.
  */
 export function Header() {
   const t = useT();
@@ -23,12 +30,14 @@ export function Header() {
         {contexte ? (
           <span className="text-xs text-slate-500" title={contexte.repertoire}>
             {t('app.workdir')} :{' '}
-            <span className="font-mono">{tronquerMilieu(contexte.repertoire)}</span>
+            <span className="font-mono">{tronquerMilieu(contexte.repertoire)}</span>{' '}
+            <CopyButton valeur={contexte.repertoire} libelle={t('app.workdir.copy')} />
           </span>
         ) : null}
       </div>
 
       <div className="flex items-center gap-3">
+        <ExtractionIndicator />
         {contexte ? (
           <span className="text-xs text-slate-500">
             {t('app.version', { version: contexte.version })}

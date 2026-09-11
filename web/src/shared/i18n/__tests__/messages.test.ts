@@ -3,7 +3,7 @@
 
 import { describe, expect, it } from 'vitest';
 
-import { messages } from '../messages';
+import { estCle, messages } from '../messages';
 import { translate } from '../useT';
 import { useLangStore } from '../store';
 
@@ -18,6 +18,13 @@ describe('dictionnaire', () => {
         expect(libelle, `${langue}/${cle}`).not.toBe('');
       }
     }
+  });
+
+  it('reconnaît une clé construite à l’exécution, et rien d’autre', () => {
+    expect(estCle('extraction.step.colonnes')).toBe(true);
+    expect(estCle('extraction.step.partitions')).toBe(false);
+    // Une propriété héritée d'Object n'est pas une clé du dictionnaire.
+    expect(estCle('toString')).toBe(false);
   });
 });
 

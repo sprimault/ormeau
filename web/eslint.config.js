@@ -9,9 +9,11 @@ import tseslint from 'typescript-eslint';
 
 // Les types générés depuis le Go ne sont pas relus par ESLint : ils sont
 // réécrits par `make web-types`, et une règle de style y ferait échouer la
-// validation sur du code que personne n'écrit à la main.
+// validation sur du code que personne n'écrit à la main. Le rapport de
+// couverture non plus : ses scripts portent des directives que la validation
+// refuserait.
 export default tseslint.config(
-  { ignores: ['node_modules', 'src/shared/model/calque.ts', 'src/shared/model/api.ts', 'src/shared/model/introspection.ts'] },
+  { ignores: ['node_modules', 'coverage', 'src/shared/model/calque.ts', 'src/shared/model/api.ts', 'src/shared/model/introspection.ts'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],

@@ -15,7 +15,9 @@ export type Lang = 'fr' | 'en';
 const fr = {
   'app.name': 'Ormeau',
   'app.workdir': 'Répertoire de travail',
+  'app.workdir.copy': 'Copier le chemin complet',
   'app.version': 'Version {version}',
+  'app.title.busy': '({n}) Ormeau',
 
   'theme.label': 'Thème',
   'theme.clair': 'Clair',
@@ -79,6 +81,7 @@ const fr = {
 
   'action.copy': 'Copier',
   'split.handle': 'Largeur du panneau — tirer, ou flèches gauche et droite',
+  'split.handleVertical': 'Hauteur du panneau — tirer, ou flèches haut et bas',
 
   'scope.title': 'Ce que produira cet écran',
   'scope.extraction': 'Portée envoyée à l’extraction',
@@ -103,6 +106,64 @@ const fr = {
   'details.noReference': 'Aucune clé étrangère déclarée.',
   'details.outOfSelection': 'hors sélection',
 
+  'extraction.launch': 'Extraire',
+  'extraction.running': 'Extraction en cours',
+  'extraction.target': 'Écrit dans le répertoire de travail',
+  'extraction.indicator.running': '{n} extraction(s) en cours',
+  'extraction.indicator.failed': '{n} extraction(s) en échec',
+  'extraction.indicator.finished': '{n} extraction(s) finie(s)',
+  'extraction.panel.title': 'Extractions',
+  'extraction.stream.lost': 'Suivi interrompu, reconnexion…',
+  'extraction.scope.all': 'toutes les tables',
+  'extraction.scope.tables': '{n} table(s)',
+  'extraction.state.en_attente': 'en attente',
+  'extraction.state.en_cours': 'en cours',
+  'extraction.state.terminee': 'terminée',
+  'extraction.state.echouee': 'échouée',
+  'extraction.state.annulee': 'annulée',
+  'extraction.step.source': 'serveur',
+  'extraction.step.tables': 'tables',
+  'extraction.step.colonnes': 'colonnes',
+  'extraction.step.contraintes': 'contraintes',
+  'extraction.step.index': 'index',
+  'extraction.step.sequences': 'séquences',
+  'extraction.step.types_enumeres': 'types énumérés',
+  'extraction.step.vues': 'vues',
+  'extraction.progress': 'Lecture : {etape}, étape {rang} sur {total}',
+  'extraction.progressLabel': 'Avancement par étape',
+  'extraction.waiting': 'En attente d’une place : deux extractions tournent déjà.',
+  'extraction.cancel': 'Annuler',
+  'extraction.dismiss': 'Retirer',
+  'extraction.result': '{tables} table(s), {colonnes} colonne(s)',
+  'extraction.anomalies': 'Anomalies du calque : {n}',
+  'extraction.at': 'à {heure}',
+  'extraction.replaced':
+    'Fichier réécrit depuis par l’extraction terminée à {heure} : ce résumé ne le décrit plus.',
+
+  'anomaly.version_inconnue': 'Version de calque inconnue',
+  'anomaly.sgbd_inconnu': 'SGBD hors du vocabulaire',
+  'anomaly.champ_requis_vide': 'Champ requis vide',
+  'anomaly.empreinte_malformee': 'Empreinte mal formée',
+  'anomaly.type_hors_vocabulaire': 'Type hors du vocabulaire',
+  'anomaly.genre_defaut_inconnu': 'Genre de défaut inconnu',
+  'anomaly.action_inconnue': 'Action référentielle inconnue',
+  'anomaly.position_invalide': 'Position de colonne invalide',
+  'anomaly.table_sans_colonne': 'Table sans colonne',
+  'anomaly.table_dupliquee': 'Table déclarée deux fois',
+  'anomaly.colonne_dupliquee': 'Colonne déclarée deux fois',
+  'anomaly.colonne_introuvable': 'Colonne introuvable',
+  'anomaly.table_cible_introuvable': 'Table référencée hors du calque',
+  'anomaly.arite_incoherente': 'Nombre de colonnes incohérent',
+  'anomaly.type_enumere_introuvable': 'Type énuméré introuvable',
+  'anomaly.statistiques_orphelines': 'Statistiques sans table',
+
+  'calque.title': 'Dernier calque produit',
+  'calque.extractedAt': 'extrait à {heure}',
+  'calque.copy': 'Copier le calque',
+  'calque.loading': 'Lecture du calque…',
+  'calque.statsHidden':
+    'Statistiques retirées : l’interface n’affiche aucune valeur échantillonnée.',
+
   'error.network': 'Le serveur local ne répond pas.',
   'error.unknown': 'Échec inattendu.',
   'error.notJson': 'Réponse inattendue de {path} ({type}).',
@@ -117,7 +178,9 @@ export type MessageKey = keyof typeof fr;
 const en: Record<MessageKey, string> = {
   'app.name': 'Ormeau',
   'app.workdir': 'Working directory',
+  'app.workdir.copy': 'Copy the full path',
   'app.version': 'Version {version}',
+  'app.title.busy': '({n}) Ormeau',
 
   'theme.label': 'Theme',
   'theme.clair': 'Light',
@@ -177,6 +240,7 @@ const en: Record<MessageKey, string> = {
 
   'action.copy': 'Copy',
   'split.handle': 'Panel width — drag, or left and right arrows',
+  'split.handleVertical': 'Panel height — drag, or up and down arrows',
 
   'scope.title': 'What this screen will produce',
   'scope.extraction': 'Scope sent to extraction',
@@ -201,6 +265,63 @@ const en: Record<MessageKey, string> = {
   'details.noReference': 'No foreign key declared.',
   'details.outOfSelection': 'outside the selection',
 
+  'extraction.launch': 'Extract',
+  'extraction.running': 'Extraction running',
+  'extraction.target': 'Written to the working directory',
+  'extraction.indicator.running': '{n} extraction(s) running',
+  'extraction.indicator.failed': '{n} extraction(s) failed',
+  'extraction.indicator.finished': '{n} extraction(s) finished',
+  'extraction.panel.title': 'Extractions',
+  'extraction.stream.lost': 'Tracking interrupted, reconnecting…',
+  'extraction.scope.all': 'all tables',
+  'extraction.scope.tables': '{n} table(s)',
+  'extraction.state.en_attente': 'waiting',
+  'extraction.state.en_cours': 'running',
+  'extraction.state.terminee': 'done',
+  'extraction.state.echouee': 'failed',
+  'extraction.state.annulee': 'cancelled',
+  'extraction.step.source': 'server',
+  'extraction.step.tables': 'tables',
+  'extraction.step.colonnes': 'columns',
+  'extraction.step.contraintes': 'constraints',
+  'extraction.step.index': 'indexes',
+  'extraction.step.sequences': 'sequences',
+  'extraction.step.types_enumeres': 'enumerated types',
+  'extraction.step.vues': 'views',
+  'extraction.progress': 'Reading: {etape}, step {rang} of {total}',
+  'extraction.progressLabel': 'Progress by step',
+  'extraction.waiting': 'Waiting for a slot: two extractions are already running.',
+  'extraction.cancel': 'Cancel',
+  'extraction.dismiss': 'Dismiss',
+  'extraction.result': '{tables} table(s), {colonnes} column(s)',
+  'extraction.anomalies': 'Layer anomalies: {n}',
+  'extraction.at': 'at {heure}',
+  'extraction.replaced':
+    'File rewritten since by the extraction finished at {heure}: this summary no longer describes it.',
+
+  'anomaly.version_inconnue': 'Unknown layer version',
+  'anomaly.sgbd_inconnu': 'DBMS outside the vocabulary',
+  'anomaly.champ_requis_vide': 'Required field empty',
+  'anomaly.empreinte_malformee': 'Malformed fingerprint',
+  'anomaly.type_hors_vocabulaire': 'Type outside the vocabulary',
+  'anomaly.genre_defaut_inconnu': 'Unknown default kind',
+  'anomaly.action_inconnue': 'Unknown referential action',
+  'anomaly.position_invalide': 'Invalid column position',
+  'anomaly.table_sans_colonne': 'Table without columns',
+  'anomaly.table_dupliquee': 'Table declared twice',
+  'anomaly.colonne_dupliquee': 'Column declared twice',
+  'anomaly.colonne_introuvable': 'Column not found',
+  'anomaly.table_cible_introuvable': 'Referenced table outside the layer',
+  'anomaly.arite_incoherente': 'Column count mismatch',
+  'anomaly.type_enumere_introuvable': 'Enumerated type not found',
+  'anomaly.statistiques_orphelines': 'Statistics without a table',
+
+  'calque.title': 'Last produced layer',
+  'calque.extractedAt': 'extracted at {heure}',
+  'calque.copy': 'Copy the layer',
+  'calque.loading': 'Reading the layer…',
+  'calque.statsHidden': 'Statistics removed: the interface shows no sampled value.',
+
   'error.network': 'The local server is not responding.',
   'error.unknown': 'Unexpected failure.',
   'error.notJson': 'Unexpected response from {path} ({type}).',
@@ -209,3 +330,13 @@ const en: Record<MessageKey, string> = {
 
 /** Dictionnaires servis à l'interface. */
 export const messages: Record<Lang, Record<MessageKey, string>> = { fr, en };
+
+/**
+ * Dit si une chaîne est une clé du dictionnaire.
+ *
+ * Sert aux codes venus du serveur — étapes, anomalies —, dont la clé se
+ * construit à l'exécution et que le typage ne peut donc pas vérifier.
+ */
+export function estCle(cle: string): cle is MessageKey {
+  return Object.prototype.hasOwnProperty.call(fr, cle);
+}

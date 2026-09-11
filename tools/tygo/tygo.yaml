@@ -9,7 +9,8 @@
 packages:
   - path: "github.com/sprimault/ormeau/internal/calque"
     output_path: "web/src/shared/model/calque.ts"
-    include_files: ["physique.go", "logique.go"]
+    # validation.go pour Anomalie, que le résultat d'une extraction rend au front.
+    include_files: ["physique.go", "logique.go", "validation.go"]
     frontmatter: |
       // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
       // SPDX-License-Identifier: Apache-2.0
@@ -35,6 +36,9 @@ packages:
     # champ ajouté d'un seul côté.
     type_mappings:
       "introspection.TableSommaire": "TableSommaire"
+      "introspection.Portee": "Portee"
+      "introspection.Avancement": "Avancement"
+      "calque.Anomalie": "Anomalie"
     frontmatter: |
       // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
       // SPDX-License-Identifier: Apache-2.0
@@ -42,4 +46,5 @@ packages:
       // Types générés depuis internal/interface par `make web-types` (tygo).
       // Ne pas modifier à la main.
 
-      import type { TableSommaire } from './introspection';
+      import type { Anomalie } from './calque';
+      import type { Avancement, Portee, TableSommaire } from './introspection';

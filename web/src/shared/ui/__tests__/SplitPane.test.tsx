@@ -10,10 +10,24 @@ import { SplitPane } from '../SplitPane';
 
 const CLE = 'ormeau-test-largeur';
 
-/** Monte les deux panneaux avec un contenu reconnaissable. */
+/** Monte les deux panneaux côte à côte, avec un contenu reconnaissable. */
 function monter(defaut?: number) {
   return render(
-    <SplitPane cleStockage={CLE} defaut={defaut} gauche={<p>arbre</p>} droite={<p>détail</p>} />,
+    <SplitPane cleStockage={CLE} defaut={defaut} premier={<p>arbre</p>} second={<p>détail</p>} />,
+  );
+}
+
+/** Monte les deux panneaux empilés. */
+function monterEmpiles(defaut?: number, replie?: boolean) {
+  return render(
+    <SplitPane
+      sens="vertical"
+      cleStockage={CLE}
+      defaut={defaut}
+      replie={replie}
+      premier={<p>arbre</p>}
+      second={<p>aperçu</p>}
+    />,
   );
 }
 
@@ -86,5 +100,35 @@ describe('SplitPane', () => {
     await userEvent.dblClick(poignee);
 
     expect(poignee).toHaveAttribute('aria-valuenow', '400');
+  });
+
+  it('empilés, règle la hauteur du bas aux flèches haut et bas', async () => {
+    monterEmpiles(320);
+    const poignee = screen.getByRole('separator', { name: /Hauteur du panneau/ });
+    expect(poignee).toHaveAttribute('aria-orientation', 'horizontal');
+
+    poignee.focus();
+    await userEvent.keyboard('{ArrowUp}');
+    expect(poignee).toHaveAttribute('aria-valuenow', '344');
+
+    await userEvent.keyboard('{ArrowDown}{ArrowDown}');
+    expect(poignee).toHaveAttribute('aria-valuenow', '296');
+  });
+
+  it('empilés, descend plus bas que côte à côte, sans passer sous une barre', async () => {
+    monterEmpiles(144);
+    const poignee = screen.getByRole('separator');
+
+    poignee.focus();
+    await userEvent.keyboard('{ArrowDown}{ArrowDown}');
+    expect(poignee).toHaveAttribute('aria-valuenow', '120');
+  });
+
+  it('replié, retire la poignée sans démonter les panneaux', () => {
+    monterEmpiles(320, true);
+
+    expect(screen.queryByRole('separator')).not.toBeInTheDocument();
+    expect(screen.getByText('arbre')).toBeInTheDocument();
+    expect(screen.getByText('aperçu')).toBeInTheDocument();
   });
 });

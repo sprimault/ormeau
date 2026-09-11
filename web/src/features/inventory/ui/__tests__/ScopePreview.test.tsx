@@ -3,9 +3,11 @@
 
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { ComponentProps } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useLangStore } from '@/shared/i18n';
+import type { Portee } from '@/shared/model';
 import type { EtatExclusions } from '../../model/useExclusions';
 import { ScopePreview } from '../ScopePreview';
 
@@ -20,44 +22,51 @@ function exclusions(ignorees: Record<string, string[]> = {}): EtatExclusions {
   };
 }
 
+/** Portée telle qu'usePortee la compose. */
+function portee(tables: string[] = [], schemas = ['public']): Portee {
+  return { schemas, tables_incluses: tables };
+}
+
+/** Monte l'aperçu ouvert, sur une portée vide, sauf précision contraire. */
+function rendre(proprietes: Partial<ComponentProps<typeof ScopePreview>> = {}) {
+  return render(
+    <ScopePreview
+      portee={portee()}
+      exclusions={exclusions()}
+      ouvert
+      onBasculer={vi.fn()}
+      {...proprietes}
+    />,
+  );
+}
+
 describe('ScopePreview', () => {
   beforeEach(() => {
     useLangStore.setState({ lang: 'fr' });
   });
 
   it('dit qu’une sélection vide couvre tout, ce que le JSON seul ne montre pas', () => {
-    render(<ScopePreview schemas={['public']} selection={new Set()} exclusions={exclusions()} />);
+    rendre();
     expect(screen.getByText('toutes les tables des schémas retenus')).toBeInTheDocument();
   });
 
-  it('compte les tables retenues', () => {
-    const selection = new Set(['public.clients', 'public.commandes']);
-    render(<ScopePreview schemas={['public']} selection={selection} exclusions={exclusions()} />);
-    expect(screen.getByText('2 table(s) sur 1 schéma(s)')).toBeInTheDocument();
+  it('compte les tables et les schémas qui partiront', () => {
+    rendre({ portee: portee(['public.clients', 'ventes.factures'], ['public', 'ventes']) });
+    expect(screen.getByText('2 table(s) sur 2 schéma(s)')).toBeInTheDocument();
   });
 
-  it('montre la portée exacte qui partira, une fois dépliée', async () => {
-    const selection = new Set(['public.commandes', 'public.clients']);
-    render(<ScopePreview schemas={['public']} selection={selection} exclusions={exclusions()} />);
+  it('montre la portée exacte qui partira', () => {
+    const attendue = portee(['public.clients', 'public.commandes']);
+    rendre({ portee: attendue });
 
-    await userEvent.click(screen.getByRole('button', { name: /Ce que produira cet écran/ }));
-
-    // Triée : deux sélections identiques doivent donner le même texte, sinon
-    // l'aperçu change sans que la portée ait bougé.
-    const json = screen.getByText(/tables_incluses/);
-    expect(json.textContent).toContain('"public.clients",\n    "public.commandes"');
+    expect(screen.getByText(/tables_incluses/).textContent).toBe(JSON.stringify(attendue, null, 2));
   });
 
-  it('sépare ce qui part à l’extraction de ce qui va dans les décisions', async () => {
-    render(
-      <ScopePreview
-        schemas={['public']}
-        selection={new Set(['public.clients'])}
-        exclusions={exclusions({ 'public.clients': ['blob_import', 'photo'] })}
-      />,
-    );
-
-    await userEvent.click(screen.getByRole('button', { name: /Ce que produira cet écran/ }));
+  it('sépare ce qui part à l’extraction de ce qui va dans les décisions', () => {
+    rendre({
+      portee: portee(['public.clients']),
+      exclusions: exclusions({ 'public.clients': ['blob_import', 'photo'] }),
+    });
 
     // La colonne écartée ne doit pas apparaître dans la portée : le calque
     // physique garde tout, c'est l'entité qui la perd.
@@ -67,19 +76,45 @@ describe('ScopePreview', () => {
     );
   });
 
-  it('annonce le nombre de colonnes écartées sans rien déplier', () => {
-    render(
-      <ScopePreview
-        schemas={['public']}
-        selection={new Set()}
-        exclusions={exclusions({ 'public.clients': ['photo'] })}
-      />,
-    );
+  it('annonce le nombre de colonnes écartées dans la barre', () => {
+    rendre({ exclusions: exclusions({ 'public.clients': ['photo'] }) });
     expect(screen.getByText('1 colonne(s) écartée(s)')).toBeInTheDocument();
   });
 
-  it('reste replié par défaut', () => {
-    render(<ScopePreview schemas={['public']} selection={new Set()} exclusions={exclusions()} />);
+  it('place le calque produit à côté de ce qui part', () => {
+    rendre({ produit: <p>calque produit</p> });
+
+    expect(screen.getByText('calque produit')).toBeInTheDocument();
+    expect(screen.getByText(/tables_incluses/)).toBeInTheDocument();
+  });
+
+  it('replié, ne garde que la barre et ses actions', () => {
+    rendre({ ouvert: false, actions: <button type="button">Extraire</button> });
+
     expect(screen.queryByText(/tables_incluses/)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Extraire' })).toBeInTheDocument();
+  });
+
+  it('demande le repli au chevron', async () => {
+    const onBasculer = vi.fn();
+    rendre({ onBasculer });
+
+    await userEvent.click(screen.getByRole('button', { name: /Ce que produira cet écran/ }));
+
+    expect(onBasculer).toHaveBeenCalledTimes(1);
+  });
+
+  it('place les actions juste après le compte, pas au bout de la barre', () => {
+    rendre({
+      exclusions: exclusions({ 'public.clients': ['photo'] }),
+      actions: <button type="button">Extraire</button>,
+    });
+
+    const compte = screen.getByText('toutes les tables des schémas retenus');
+    const bouton = screen.getByRole('button', { name: 'Extraire' });
+    const ecartees = screen.getByText('1 colonne(s) écartée(s)');
+
+    expect(compte.compareDocumentPosition(bouton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(bouton.compareDocumentPosition(ecartees) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 });

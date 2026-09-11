@@ -22,6 +22,9 @@ type Introspecteur interface {
 	// tables imposerait une extraction complète avant même que l'utilisateur
 	// ait choisi quoi que ce soit.
 	Inventorier(ctx context.Context, schemas []string) ([]TableSommaire, error)
+	// Extraire déroule ses passes par Derouler : c'est ce qui donne un
+	// avancement à chaque dialecte, que l'appelant suit en posant AvecSuivi
+	// sur le contexte.
 	Extraire(ctx context.Context, portee Portee) (*calque.Physique, error)
 	Fermer() error
 }

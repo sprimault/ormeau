@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/sprimault/ormeau/internal/calque"
 	"github.com/sprimault/ormeau/internal/introspection"
 )
 
@@ -24,9 +25,10 @@ const delaiConnexion = 30 * time.Second
 // catalogue, même sur quatre cents tables, tient largement dedans.
 const delaiInventaire = 60 * time.Second
 
-// tailleMaxCorps borne le corps d'une requête. Les corps attendus ici tiennent
-// en quelques centaines d'octets.
-const tailleMaxCorps = 64 << 10
+// tailleMaxCorps borne le corps d'une requête. La plupart tiennent en quelques
+// centaines d'octets ; une portée qui nomme ses tables en fait quelques
+// dizaines de kilo-octets sur une base de plusieurs milliers de tables.
+const tailleMaxCorps = 1 << 20
 
 // RequeteConnexion accepte les deux formes de connexion : une chaîne complète,
 // ou les composants.
@@ -100,6 +102,87 @@ type ReponseColonnes struct {
 // transfert qui tient dans un paquet réseau.
 type ReponseInventaire struct {
 	Tables []introspection.TableSommaire `json:"tables"`
+}
+
+// EtatExtraction est l'état d'une tâche d'extraction.
+type EtatExtraction string
+
+// États d'une tâche. Les trois derniers sont terminaux : la tâche n'évolue
+// plus, elle attend qu'on la retire.
+const (
+	EtatEnAttente EtatExtraction = "en_attente"
+	EtatEnCours   EtatExtraction = "en_cours"
+	EtatTerminee  EtatExtraction = "terminee"
+	EtatEchouee   EtatExtraction = "echouee"
+	EtatAnnulee   EtatExtraction = "annulee"
+)
+
+// RequeteExtraction lance l'extraction de la base d'une session. La base n'est
+// pas un paramètre : c'est celle de la session.
+type RequeteExtraction struct {
+	Session string               `json:"session"`
+	Portee  introspection.Portee `json:"portee"`
+}
+
+// ReferenceExtraction désigne une tâche : celle qu'on annule ou retire, et
+// celle qu'un événement « retrait » fait disparaître de l'écran.
+type ReferenceExtraction struct {
+	ID string `json:"id"`
+}
+
+// Extraction est ce que le front sait d'une tâche.
+//
+// Chaque événement du flux en porte l'état complet, jamais un delta : un
+// événement rejoué ne laisse pas l'écran dans un état intermédiaire. Le DSN
+// n'y figure sous aucune forme.
+type Extraction struct {
+	ID      string   `json:"id"`
+	Base    string   `json:"base"`
+	Fichier string   `json:"fichier"`
+	Schemas []string `json:"schemas,omitempty"`
+	// NbTables vaut zéro quand la portée ne nomme pas ses tables : toutes
+	// celles des schémas partent.
+	NbTables   int                       `json:"nb_tables"`
+	Etat       EtatExtraction            `json:"etat"`
+	Avancement *introspection.Avancement `json:"avancement,omitempty"`
+	Debut      string                    `json:"debut,omitempty"`
+	Fin        string                    `json:"fin,omitempty"`
+	Resultat   *ResultatExtraction       `json:"resultat,omitempty"`
+	Erreur     string                    `json:"erreur,omitempty"`
+}
+
+// ResultatExtraction résume le calque écrit.
+type ResultatExtraction struct {
+	Tables    int    `json:"tables"`
+	Colonnes  int    `json:"colonnes"`
+	Empreinte string `json:"empreinte"`
+	// Anomalies sont celles de la validation, qui n'empêchent pas l'écriture.
+	// Une clé étrangère vers une table restée hors de la portée en est le cas
+	// courant.
+	Anomalies []calque.Anomalie `json:"anomalies"`
+}
+
+// EtatExtractions est l'instantané de toutes les tâches, envoyé à qui ouvre le
+// flux sans pouvoir reprendre là où il en était.
+type EtatExtractions struct {
+	Extractions []Extraction `json:"extractions"`
+}
+
+// ReponseCalque porte le calque d'une base tel que le répertoire de travail le
+// contient.
+//
+// Le contenu est le document sérialisé et non une structure : l'écran l'affiche
+// dans l'ordre et l'indentation que le calque impose, ce qu'on retrouve en
+// ouvrant le fichier.
+type ReponseCalque struct {
+	Fichier   string `json:"fichier"`
+	ExtraitLe string `json:"extrait_le"`
+	Empreinte string `json:"empreinte"`
+	Contenu   string `json:"contenu"`
+	// StatistiquesRetirees signale un calque échantillonné dont les statistiques
+	// n'ont pas été envoyées : l'écran le dit plutôt que de laisser croire qu'il
+	// n'y en a pas.
+	StatistiquesRetirees bool `json:"statistiques_retirees,omitempty"`
 }
 
 // contexte rend le répertoire de travail et la version.
@@ -386,6 +469,13 @@ func (s *serveur) enregistrer(
 	if err != nil {
 		_ = pilote.Fermer()
 		return ReponseConnexion{}, err
+	}
+
+	// La session nomme toujours sa base, y compris quand la connexion n'en
+	// précisait aucune et que le serveur a pris celle par défaut : c'est ce nom
+	// qui désigne le calque qu'une extraction écrira.
+	if introspection.BaseDuDSN(dsn) == "" {
+		dsn = introspection.AvecBase(dsn, serveurBase.Catalogue)
 	}
 
 	session, err := s.registre.ajouter(pilote, dsn, sgbd)

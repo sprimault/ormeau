@@ -25,3 +25,26 @@ export function compact(valeur: number): string {
   const arrondi = reste < 10 ? Math.round(reste * 10) / 10 : Math.round(reste);
   return `${String(arrondi).replace('.', ',')} ${unites[rang]}`;
 }
+
+/**
+ * Rend une durée lisible : « < 1 s », « 42 s », « 3 min 05 s », « 1 h 12 min ».
+ *
+ * Sous la seconde, « < 1 s » plutôt que « 0 s » : une extraction de quelques
+ * tables tient dans la seconde, et un zéro laisserait croire qu'il ne s'est rien
+ * passé. Les secondes disparaissent au-delà de l'heure : elles ne disent plus
+ * rien et font danser la largeur du texte.
+ */
+export function duree(secondes: number): string {
+  if (secondes < 1) {
+    return '< 1 s';
+  }
+  const entieres = Math.floor(secondes);
+  if (entieres < 60) {
+    return `${entieres} s`;
+  }
+  if (entieres < 3600) {
+    return `${Math.floor(entieres / 60)} min ${String(entieres % 60).padStart(2, '0')} s`;
+  }
+  const minutes = Math.floor(entieres / 60) % 60;
+  return `${Math.floor(entieres / 3600)} h ${String(minutes).padStart(2, '0')} min`;
+}

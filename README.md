@@ -125,6 +125,12 @@ Unticking a column does not remove it from the layer: it fills
 layer keeps everything, and you can change your mind without reopening the
 connection.
 
+**Extract** writes `<base>.calque.json` as a background task: you keep browsing
+the tree, or move to another database to start a second one. The header tracks
+each extraction step by step and can cancel it — an extraction started by
+mistake on a production database stops without closing the tab. Two run at
+once; the rest wait their turn.
+
 It listens on `127.0.0.1` only, on a port drawn at startup, and the token in the
 URL is good for a single use. Files land in the directory shown on screen;
 `--repertoire` points somewhere else.
