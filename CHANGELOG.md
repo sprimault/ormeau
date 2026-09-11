@@ -34,6 +34,8 @@ tag**, faute de quoi la publication cherche une section qui n'existe pas.
 Chaque section est **bilingue, français d'abord, séparé par `***`**. Ce
 préambule reste en français : il n'est jamais publié.
 
+## [Non publié]
+
 ## [0.4.0] — 2026-09-11 — Interface de sélection et d'arbitrage
 
 **Si vous avez déjà un fichier de décisions** : `relations_forcees` est
