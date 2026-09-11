@@ -149,6 +149,10 @@ export function ArbitrageScreen({ base, versionCalque }: ProprietesEcran) {
               <EntityPanel
                 ligne={active}
                 etat={entite}
+                entites={lignes}
+                base={base}
+                empreinte={empreinte}
+                decisionsJugees={inference.decisionsJugees}
                 decisions={decisions}
                 avertissements={parTable.get(active.qualifiee) ?? []}
                 proposition={resultat.propositions.find((p) => p.cible === active.qualifiee)}

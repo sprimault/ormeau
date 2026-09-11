@@ -4,7 +4,15 @@
 import { describe, expect, it } from 'vitest';
 
 import type { Decisions } from '@/shared/model';
-import { fichierDecisions, forcerType, nommerCas, renommer, retirerEnumeration } from '../decisions';
+import {
+  ajouterRelation,
+  fichierDecisions,
+  forcerType,
+  nommerCas,
+  renommer,
+  retirerEnumeration,
+  retirerRelation,
+} from '../decisions';
 
 describe('transformations du brouillon', () => {
   it('renomme, et rend la main à l’inférence sur un nom vide', () => {
@@ -50,6 +58,23 @@ describe('transformations du brouillon', () => {
   it('retire la décision d’énumération d’une colonne, sans laisser de liste vide', () => {
     const d: Decisions = { enumerations: [{ colonne: 'public.facture.prefix', nom: 'Prefix' }] };
     expect(retirerEnumeration(d, 'public.facture.prefix').enumerations).toBeUndefined();
+  });
+
+  it('relie une colonne à une autre entité, en remplaçant la relation qu’elle portait', () => {
+    const premiere = {
+      source: 'public.commande.client_ref',
+      cible: 'public.client.id',
+      genre: 'plusieurs_vers_un',
+      nom: 'client',
+    };
+    const seconde = { ...premiere, cible: 'public.utilisateur.id', nom: 'acheteur' };
+    const autre = { ...premiere, source: 'public.commande.vendeur_ref', nom: 'vendeur' };
+
+    const d = ajouterRelation(ajouterRelation(ajouterRelation({}, premiere), autre), seconde);
+
+    expect(d.relations_forcees).toEqual([autre, seconde]);
+    expect(retirerRelation(d, autre.source).relations_forcees).toEqual([seconde]);
+    expect(retirerRelation({ relations_forcees: [premiere] }, premiere.source).relations_forcees).toBeUndefined();
   });
 
   it('nomme le fichier d’après la base', () => {

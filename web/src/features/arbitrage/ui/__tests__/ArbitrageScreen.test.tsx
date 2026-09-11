@@ -114,6 +114,7 @@ function detail(table: string): ReponseEntite {
       table_physique: {
         schema: 'public',
         nom: 't_log',
+        cle_primaire: { colonnes: ['ligne'] },
         colonnes: [
           { nom: 'ligne', position: 1, type_brut: 'varchar(80)', type_normalise: 'texte', nullable: true },
         ],
@@ -155,6 +156,7 @@ function detail(table: string): ReponseEntite {
         { nom: 'id', position: 1, type_brut: 'int4', type_normalise: 'entier', nullable: false },
         { nom: 'position', position: 2, type_brut: 'point', type_normalise: 'inconnu', nullable: false },
         { nom: 'note', position: 3, type_brut: 'text', type_normalise: 'texte', nullable: true },
+        { nom: 'vendeur_ref', position: 4, type_brut: 'integer', type_normalise: 'entier', nullable: true },
       ],
     },
   };
@@ -268,6 +270,34 @@ describe('ArbitrageScreen', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Annuler' }));
     expect(brouillon.courant.enumerations).toBeUndefined();
+  });
+
+  it('relie une colonne à une autre entité, clé primaire et nom préremplis', async () => {
+    vi.mocked(inferer).mockResolvedValue(inference());
+    render(<ArbitrageScreen base="gescom" versionCalque="" />);
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Relier à une autre entité' }));
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Colonne' }), 'vendeur_ref');
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Entité liée' }), 'public.t_log');
+
+    await waitFor(() =>
+      expect(screen.getByRole('combobox', { name: 'Colonne désignée' })).toHaveValue('ligne'),
+    );
+    expect(screen.getByRole('textbox', { name: 'Nom de la propriété' })).toHaveValue('tLog');
+    await userEvent.click(screen.getByRole('button', { name: 'Relier' }));
+
+    expect(brouillon.courant.relations_forcees).toEqual([
+      {
+        source: 'public.clients.vendeur_ref',
+        cible: 'public.t_log.ligne',
+        genre: 'plusieurs_vers_un',
+        nom: 'tLog',
+      },
+    ]);
+    expect(screen.getByText('vendeur_ref → public.t_log.ligne (ManyToOne)')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Annuler' }));
+    expect(brouillon.courant.relations_forcees).toBeUndefined();
   });
 
   it('ouvre une autre entité en cliquant sur sa ligne', async () => {

@@ -205,6 +205,18 @@ const fr = {
   'arbitrage.decided.type': '{colonne} : type {type}',
   'arbitrage.decided.enumeration': '{colonne} : {nom} ({cas})',
   'arbitrage.decided.undo': 'Annuler',
+  'arbitrage.decided.relation': '{colonne} → {cible}',
+  'arbitrage.relation.open': 'Relier à une autre entité',
+  'arbitrage.relation.title': 'Relier à une autre entité',
+  'arbitrage.relation.column': 'Colonne',
+  'arbitrage.relation.target': 'Entité liée',
+  'arbitrage.relation.targetColumn': 'Colonne désignée',
+  'arbitrage.relation.kind': 'Relation',
+  'arbitrage.relation.manyToOne': 'plusieurs {source} pour un {cible} (ManyToOne)',
+  'arbitrage.relation.oneToOne': 'un seul {source} par {cible} (OneToOne)',
+  'arbitrage.relation.name': 'Nom de la propriété',
+  'arbitrage.relation.submit': 'Relier',
+  'arbitrage.relation.choose': 'Choisir…',
 
   'help.label': 'Aide',
   'arbitrage.help.entities':
@@ -218,7 +230,9 @@ const fr = {
   'arbitrage.help.nameCases':
     'La colonne n’accepte que ces valeurs, et l’outil en fait une énumération PHP. Faute de mieux, il nomme chaque cas d’après sa valeur : donner un nom lisible (FA → Facture), puis « Nommer les cas ». Confirmer sans rien changer garde les noms proposés.',
   'arbitrage.help.decided':
-    'Ce qui est décidé pour cette table en plus du nom de classe : types forcés, cas d’énumération nommés. « Annuler » rend la main à l’inférence.',
+    'Ce qui est décidé pour cette table en plus du nom de classe : types forcés, cas d’énumération nommés, relations ajoutées. « Annuler » rend la main à l’inférence.',
+  'arbitrage.help.relation':
+    'Quand la base n’a jamais déclaré la clé étrangère, relier ici la colonne qui contient l’identifiant d’une autre entité — par exemple commande.client_ref vers client.id. La clé primaire de l’entité liée et le nom de la propriété sont proposés. L’entité liée reçoit l’autre côté, sa collection, sans rien faire de plus.',
   'arbitrage.help.entity':
     'Ce que la génération produira : propriétés, types PHP et Doctrine, associations. Recalculé à chaque modification.',
   'arbitrage.help.table':
@@ -464,6 +478,18 @@ const en: Record<MessageKey, string> = {
   'arbitrage.decided.type': '{colonne}: type {type}',
   'arbitrage.decided.enumeration': '{colonne}: {nom} ({cas})',
   'arbitrage.decided.undo': 'Undo',
+  'arbitrage.decided.relation': '{colonne} → {cible}',
+  'arbitrage.relation.open': 'Link to another entity',
+  'arbitrage.relation.title': 'Link to another entity',
+  'arbitrage.relation.column': 'Column',
+  'arbitrage.relation.target': 'Linked entity',
+  'arbitrage.relation.targetColumn': 'Referenced column',
+  'arbitrage.relation.kind': 'Relation',
+  'arbitrage.relation.manyToOne': 'many {source} for one {cible} (ManyToOne)',
+  'arbitrage.relation.oneToOne': 'a single {source} per {cible} (OneToOne)',
+  'arbitrage.relation.name': 'Property name',
+  'arbitrage.relation.submit': 'Link',
+  'arbitrage.relation.choose': 'Choose…',
 
   'help.label': 'Help',
   'arbitrage.help.entities':
@@ -477,7 +503,9 @@ const en: Record<MessageKey, string> = {
   'arbitrage.help.nameCases':
     'The column only accepts these values, and the tool turns them into a PHP enum. Lacking anything better, it names each case after its value: give a readable name (FA → Invoice), then “Name the cases”. Confirming without changes keeps the suggested names.',
   'arbitrage.help.decided':
-    'What is decided for this table besides the class name: forced types, named enumeration cases. “Undo” gives control back to the inference.',
+    'What is decided for this table besides the class name: forced types, named enumeration cases, added relations. “Undo” gives control back to the inference.',
+  'arbitrage.help.relation':
+    'When the database never declared the foreign key, link here the column that holds another entity’s identifier — for example commande.client_ref to client.id. The linked entity’s primary key and the property name are suggested. The linked entity gets the other side, its collection, with nothing more to do.',
   'arbitrage.help.entity':
     'What generation will produce: properties, PHP and Doctrine types, associations. Recomputed at each change.',
   'arbitrage.help.table':

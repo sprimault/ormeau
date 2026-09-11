@@ -24,6 +24,17 @@ export function tronquerMilieu(valeur: string, max = 64): string {
 }
 
 /**
+ * Met en minuscule la première lettre, et elle seule.
+ *
+ * C'est le passage d'un nom de classe à un nom de propriété, `TenantInvoice`
+ * vers `tenantInvoice` : les majuscules internes restent, sans quoi le nom ne
+ * se lirait plus.
+ */
+export function minusculeInitiale(valeur: string): string {
+  return valeur.charAt(0).toLowerCase() + valeur.slice(1);
+}
+
+/**
  * Masque le mot de passe d'une chaîne de connexion avant affichage.
  *
  * Le front ne reçoit jamais de DSN du serveur, mais il en manipule un que

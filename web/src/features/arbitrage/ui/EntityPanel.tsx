@@ -8,15 +8,18 @@ import { qualifier } from '@/shared/lib';
 import type { Avertissement, Decisions, EnumerationInferee, Proposition } from '@/shared/model';
 import { Button, ErrorBanner, HelpTip, TextInput } from '@/shared/ui';
 import {
+  ajouterRelation,
   forcerType,
   nommerCas,
   renommer,
   retirerEnumeration,
+  retirerRelation,
   type Modifier,
 } from '../model/decisions';
 import type { LigneEntite } from '../model/entites';
 import type { EtatEntite } from '../model/useEntite';
 import { EntityDetail } from './EntityDetail';
+import { RelationForm } from './RelationForm';
 import { WarningList } from './WarningList';
 
 /** Propriétés du panneau. */
@@ -28,6 +31,12 @@ interface ProprietesPanneau {
   proposition?: Proposition;
   typesDoctrine: string[];
   enumerations: EnumerationInferee[];
+  /** Toutes les entités, parmi lesquelles choisir celle qu'une relation relie. */
+  entites: LigneEntite[];
+  base: string;
+  empreinte: string;
+  /** Le brouillon jugé par la dernière inférence. */
+  decisionsJugees: Decisions;
   onModifier: Modifier;
 }
 
@@ -38,6 +47,12 @@ interface Decidee {
   annuler: (d: Decisions) => Decisions;
 }
 
+/** Attribut Doctrine d'une relation forcée, quand la décision précise son genre. */
+const ATTRIBUTS: Record<string, string> = {
+  plusieurs_vers_un: 'ManyToOne',
+  un_vers_un: 'OneToOne',
+};
+
 /**
  * L'entité ouverte : son nom de classe, ses avertissements, ce qui est décidé
  * pour sa table, puis l'entité à côté de sa table.
@@ -45,7 +60,7 @@ interface Decidee {
  * Les tables et les colonnes ne se décident pas ici : c'est l'onglet de
  * sélection qui les choisit. On y règle ce que la sélection ne sait pas dire —
  * le nom de la classe, le type d'une colonne que l'inférence ne reconnaît pas,
- * le nom des cas d'une énumération.
+ * le nom des cas d'une énumération, une relation que la base n'a pas déclarée.
  */
 export function EntityPanel({
   ligne,
@@ -55,6 +70,10 @@ export function EntityPanel({
   proposition,
   typesDoctrine,
   enumerations,
+  entites,
+  base,
+  empreinte,
+  decisionsJugees,
   onModifier,
 }: ProprietesPanneau) {
   const t = useT();
@@ -83,6 +102,19 @@ export function EntityPanel({
         }),
         annuler: (d: Decisions) => retirerEnumeration(d, e.colonne),
       })),
+    ...(decisions.relations_forcees ?? [])
+      .filter((r) => r.source.startsWith(prefixe))
+      .map((r) => {
+        const relation = t('arbitrage.decided.relation', {
+          colonne: r.source.slice(prefixe.length),
+          cible: r.cible,
+        });
+        return {
+          cle: `relation|${r.source}`,
+          libelle: ATTRIBUTS[r.genre] ? `${relation} (${ATTRIBUTS[r.genre]})` : relation,
+          annuler: (d: Decisions) => retirerRelation(d, r.source),
+        };
+      }),
   ];
 
   // Le détail d'une autre entité reste en mémoire le temps du calcul : il ne
@@ -163,6 +195,19 @@ export function EntityPanel({
             ))}
           </ul>
         </section>
+      ) : null}
+
+      {detail ? (
+        <RelationForm
+          qualifiee={qualifiee}
+          nomEntite={ligne.nom}
+          colonnes={detail.table_physique.colonnes.map((c) => c.nom)}
+          entites={entites}
+          base={base}
+          decisions={decisionsJugees}
+          empreinte={empreinte}
+          onRelier={(relation) => onModifier((d) => ajouterRelation(d, relation))}
+        />
       ) : null}
 
       {etat.erreur ? (

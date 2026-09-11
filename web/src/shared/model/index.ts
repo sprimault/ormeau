@@ -41,7 +41,7 @@ export {
   type ReponseInference,
   type ResumeEntite,
 } from './api';
-export type { Decisions, EnumerationForcee, Proposition } from './inference';
+export type { Decisions, EnumerationForcee, Proposition, RelationForcee } from './inference';
 export type {
   Anomalie,
   Association,

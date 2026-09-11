@@ -1,7 +1,7 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
-import type { Decisions, EnumerationInferee } from '@/shared/model';
+import type { Decisions, EnumerationInferee, RelationForcee } from '@/shared/model';
 
 // Chaque transformation rend un brouillon neuf et n'y laisse ni clé vide ni
 // collection vide : le fichier ne les écrit pas, et un brouillon qui ne décide
@@ -55,6 +55,21 @@ export function nommerCas(
 export function retirerEnumeration(d: Decisions, colonne: string): Decisions {
   const reste = (d.enumerations ?? []).filter((e) => e.colonne !== colonne);
   return { ...d, enumerations: reste.length > 0 ? reste : undefined };
+}
+
+/**
+ * Relie une colonne à une autre entité. Une colonne ne porte qu'une relation :
+ * celle qu'elle portait déjà est remplacée.
+ */
+export function ajouterRelation(d: Decisions, relation: RelationForcee): Decisions {
+  const autres = (d.relations_forcees ?? []).filter((r) => r.source !== relation.source);
+  return { ...d, relations_forcees: [...autres, relation] };
+}
+
+/** Retire la relation posée sur une colonne. */
+export function retirerRelation(d: Decisions, source: string): Decisions {
+  const reste = (d.relations_forcees ?? []).filter((r) => r.source !== source);
+  return { ...d, relations_forcees: reste.length > 0 ? reste : undefined };
 }
 
 /** Pose ou retire une entrée d'un dictionnaire, sans le laisser vide. */
