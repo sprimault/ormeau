@@ -169,7 +169,8 @@ func TestInferenceGardeLeCalqueJuge(t *testing.T) {
 }
 
 // TestInferenceRefuseCeQuiNeDesignePasUnCalque couvre le nom de base qui
-// sortirait du répertoire de travail, et le calque absent.
+// sortirait du répertoire de travail, et le calque absent, dont le refus nomme
+// le répertoire où il a été cherché.
 func TestInferenceRefuseCeQuiNeDesignePasUnCalque(t *testing.T) {
 	t.Parallel()
 
@@ -178,8 +179,12 @@ func TestInferenceRefuseCeQuiNeDesignePasUnCalque(t *testing.T) {
 	attendreStatut(t, poster(s, routeur, "/api/inference", RequeteInference{Base: "../gescom"}), http.StatusBadRequest)
 	w := poster(s, routeur, "/api/inference", RequeteInference{Base: "gescom"})
 	attendreStatut(t, w, http.StatusNotFound)
-	if !strings.Contains(w.Body.String(), "gescom.calque.json") {
-		t.Errorf("le message ne nomme pas le fichier absent : %s", w.Body.String())
+
+	// Message décodé plutôt que cherché dans le corps : sous Windows, les
+	// séparateurs du chemin y sont échappés.
+	message := decoderReponse[ReponseErreur](t, w).Erreur
+	if !strings.Contains(message, "gescom.calque.json") || !strings.Contains(message, s.repertoire) {
+		t.Errorf("le refus ne nomme pas le fichier et son répertoire : %s", message)
 	}
 }
 
