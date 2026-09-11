@@ -98,8 +98,10 @@ gescom.logique.json : 12 entité(s), 31 association(s), 2 énumération(s), 1 tr
   singulier_ambigu         public.categories     categories rendu Category par la règle anglaise ; le français donnerait Categorie
 ```
 
-You uncomment what suits you in `gescom.decisions.yaml`, run it again, and the
-file is never rewritten: your rulings replay on every pass.
+You uncomment what suits you in `gescom.decisions.yaml`, run it again, and your
+rulings replay on every pass: the command line never rewrites an existing file.
+The interface does regenerate it when you save, and asks first if it was edited
+by hand.
 
 Between releases, `go install github.com/sprimault/ormeau/cmd/ormeau@master`.
 
@@ -125,11 +127,12 @@ Unticking a column does not remove it from the layer: it fills
 layer keeps everything, and you can change your mind without reopening the
 connection.
 
-**Extract** writes `<base>.calque.json` as a background task: you keep browsing
-the tree, or move to another database to start a second one. The header tracks
-each extraction step by step and can cancel it — an extraction started by
-mistake on a production database stops without closing the tab. Two run at
-once; the rest wait their turn.
+**Extract** writes `<base>.calque.json` as a background task, without blocking
+the screen; a running extraction can be cancelled.
+
+The **Review** tab works offline, on the layer in the working directory: no
+connection is needed. It shows the entities generation will produce, and saves
+your rulings to `<base>.decisions.yaml`.
 
 It listens on `127.0.0.1` only, on a port drawn at startup, and the token in the
 URL is good for a single use. Files land in the directory shown on screen;

@@ -128,22 +128,24 @@ func TestColonnesIgnoreesNeTouchePasLesAutresTables(t *testing.T) {
 	}
 }
 
-// Le fichier prérempli documente l'arbitrage : personne ne lit docs/ avant de
-// corriger un mapping.
-func TestFichierPreremplitDocumenteLesColonnesIgnorees(t *testing.T) {
+// Le fichier documente l'arbitrage : personne ne lit docs/ avant de corriger un
+// mapping. Prérempli, la section reste commentée, rien ne s'applique sans
+// relecture ; arbitrée, la décision s'y écrit hors commentaire.
+func TestFichierDocumenteLesColonnesIgnorees(t *testing.T) {
 	t.Parallel()
 
-	decisions := &Decisions{ColonnesIgnorees: map[string][]string{
-		"public.clients": {"photo"},
-	}}
-	prerempli := string(EcrireDecisions(physiqueClients(), decisions))
-
-	for _, attendu := range []string{"colonnes_ignorees", "public.clients : photo", "clé primaire"} {
+	prerempli := string(EcrireDecisions(physiqueClients(), &Decisions{}, "clients"))
+	for _, attendu := range []string{"colonnes_ignorees", "clé primaire", "#colonnes_ignorees: {}"} {
 		if !strings.Contains(prerempli, attendu) {
 			t.Errorf("%q absent du fichier prérempli", attendu)
 		}
 	}
-	if !strings.Contains(prerempli, "#colonnes_ignorees: {}") {
-		t.Error("la section doit rester commentée : rien ne s'applique sans relecture")
+
+	decisions := &Decisions{ColonnesIgnorees: map[string][]string{
+		"public.clients": {"photo", "blob_import"},
+	}}
+	arbitre := string(EcrireDecisions(physiqueClients(), decisions, "clients"))
+	if !strings.Contains(arbitre, "\ncolonnes_ignorees:\n  public.clients: [blob_import, photo]\n") {
+		t.Errorf("décision absente ou commentée :\n%s", arbitre)
 	}
 }

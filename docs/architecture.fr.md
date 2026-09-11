@@ -111,6 +111,13 @@ Le champ `empreinte` a deux rôles distincts : dans `source`, il identifie un
 constat découle ce jugement — ce qui permet de détecter « la base a bougé depuis
 la dernière génération » sans relire les entités.
 
+Le fichier de décisions porte aussi la sienne, en tête. Elle couvre les
+décisions actives, pas le texte d'aide qui les entoure, et le nom de la base :
+l'interface sait ainsi, avant de le réécrire, si le fichier a été retouché à la
+main ou recopié d'une autre base, et demande confirmation. Chaque artefact porte
+son empreinte : le calque dans `source.empreinte`, le fichier de décisions en
+tête.
+
 ## Conséquence pratique
 
 On peut extraire une base chez un client, repartir avec un calque de quelques

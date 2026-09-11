@@ -9,7 +9,7 @@ générateur.
 | 1 — Calque physique | terminée |
 | 2 — Introspection PostgreSQL | terminée |
 | 3 — Inférence et calque logique | terminée, hors clés étrangères implicites |
-| 4 — Interface | connexion, arbre et extraction livrés, arbitrage à écrire |
+| 4 — Interface | terminée |
 | 5 — Génération Doctrine | bundle installable, génération à écrire |
 | 6 à 10 | non commencées |
 | 11 — Publication | faite pour l'essentiel, hors Packagist |
@@ -41,13 +41,13 @@ décisions prérempli, où l'utilisateur décommente ce qui lui convient.
 
 `ormeau interface` : front local embarqué. Saisie de connexion, arbre des tables
 alimenté par `Inventorier`, sélection avec propagation des dépendances par clé
-étrangère, puis écran d'arbitrage des avertissements et des propositions de
-renommage, produisant un `<base>.decisions.yaml`.
+étrangère, puis écran d'arbitrage produisant un `<base>.decisions.yaml`.
 
 Livrés : le serveur local — port dynamique, jeton d'URL à usage unique échangé
 contre un cookie —, la connexion par composants ou par DSN, l'arbre des bases,
-des schémas et des tables, colonnes comprises, et l'extraction en tâche de fond,
-suivie étape par étape dans l'en-tête et annulable. Reste l'écran d'arbitrage.
+des schémas et des tables, colonnes comprises, l'extraction en tâche de fond,
+suivie étape par étape dans l'en-tête et annulable, et l'écran d'arbitrage, qui
+travaille hors ligne sur le calque.
 
 Ici et pas plus tard, pour deux raisons. L'écran de connexion et l'arbre ne
 dépendent que d'`Inventorier`, écrit depuis la phase 2 : les repousser était un

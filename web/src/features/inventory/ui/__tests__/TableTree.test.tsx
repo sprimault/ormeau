@@ -4,14 +4,30 @@
 import { useState } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useLangStore } from '@/shared/i18n';
-import type { TableSommaire } from '@/shared/model';
+import type { Decisions, TableSommaire } from '@/shared/model';
 import type { Colonnes } from '../../model/useColumns';
 import { useExclusions } from '../../model/useExclusions';
 import { useSelection } from '../../model/useSelection';
 import { TableTree } from '../TableTree';
+
+// Les exclusions vivent dans le brouillon de décisions, dont la lecture du
+// fichier a ses propres tests : un brouillon en mémoire suffit à l'arbre.
+vi.mock('@/entities/decisions', async () => {
+  const { useCallback, useState } = await import('react');
+  return {
+    useDecisions: () => {
+      const [decisions, setDecisions] = useState<Decisions>({});
+      const modifier = useCallback(
+        (transformation: (d: Decisions) => Decisions) => setDecisions((d) => transformation(d)),
+        [],
+      );
+      return { decisions, modifier };
+    },
+  };
+});
 
 /**
  * Monte l'arbre avec une sélection réelle.

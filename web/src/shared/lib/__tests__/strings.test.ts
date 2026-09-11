@@ -3,7 +3,7 @@
 
 import { describe, expect, it } from 'vitest';
 
-import { masquerDSN, tronquerMilieu } from '../strings';
+import { masquerDSN, minusculeInitiale, tronquerMilieu } from '../strings';
 
 describe('tronquerMilieu', () => {
   it('laisse intacte une chaîne assez courte', () => {
@@ -41,5 +41,16 @@ describe('masquerDSN', () => {
 
   it('rend une chaîne vide telle quelle', () => {
     expect(masquerDSN('')).toBe('');
+  });
+});
+
+describe('minusculeInitiale', () => {
+  it('passe d’un nom de classe à un nom de propriété sans toucher aux majuscules internes', () => {
+    expect(minusculeInitiale('TenantInvoice')).toBe('tenantInvoice');
+    expect(minusculeInitiale('TLog')).toBe('tLog');
+  });
+
+  it('rend une chaîne vide telle quelle', () => {
+    expect(minusculeInitiale('')).toBe('');
   });
 });

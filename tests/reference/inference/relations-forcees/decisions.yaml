@@ -1,0 +1,40 @@
+# Une relation que le schéma ne déclare pas se décide ici, et gagne sur celle
+# qu'il déclare sur la même colonne. Ce cas couvre les relations appliquées,
+# et celles qui ne s'appliquent pas : signalées, jamais inventées.
+
+relations_forcees:
+  # Jamais déclarée en base : client_ref désigne un client.
+  - source: public.commande.client_ref
+    cible: public.client.id
+    genre: plusieurs_vers_un
+    nom: client
+  # La même colonne une seconde fois : la première relation, dans l'ordre du
+  # fichier réécrit, l'emporte.
+  - source: public.commande.client_ref
+    cible: public.utilisateur.id
+    genre: plusieurs_vers_un
+    nom: acheteur
+  # La table visée n'est pas dans le calque.
+  - source: public.commande.fournisseur_id
+    cible: public.fournisseur.id
+    genre: plusieurs_vers_un
+    nom: fournisseur
+  # La colonne source n'existe pas.
+  - source: public.commande.remise_id
+    cible: public.client.id
+    genre: plusieurs_vers_un
+    nom: remise
+  # Déclarée en base, renommée par la décision.
+  - source: public.commande.vendeur_id
+    cible: public.utilisateur.id
+    genre: plusieurs_vers_un
+    nom: commercial
+  # Une colonne porte un objet, pas une collection : genre refusé.
+  - source: public.profil.parrain_id
+    cible: public.utilisateur.id
+    genre: un_vers_plusieurs
+    nom: filleuls
+  # Sans genre ni nom : l'unicité de la colonne en fait un un-vers-un, et le nom
+  # vient de la classe cible.
+  - source: public.profil.utilisateur_ref
+    cible: public.utilisateur.id

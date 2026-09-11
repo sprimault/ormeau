@@ -150,6 +150,25 @@ func TestLireDecisionsEchoueProprement(t *testing.T) {
 	}
 }
 
+// Le nom de la base entre dans l'empreinte du fichier : la ligne de commande et
+// l'interface doivent le tirer du chemin de la même façon, cas tordus compris.
+func TestBaseDesDecisions(t *testing.T) {
+	t.Parallel()
+
+	cas := map[string]string{
+		"gescom.decisions.yaml":                "gescom",
+		"projets/gescom/gescom.decisions.yaml": "gescom",
+		"ma.base.decisions.yaml":               "ma.base",
+		"gescom-copie.decisions.yaml":          "gescom-copie",
+		"arbitrages.yaml":                      "arbitrages",
+	}
+	for chemin, attendu := range cas {
+		if obtenu := BaseDesDecisions(chemin); obtenu != attendu {
+			t.Errorf("%s : base %q, attendue %q", chemin, obtenu, attendu)
+		}
+	}
+}
+
 // Clés inconnues tolérées : un fichier écrit pour une version ultérieure ne
 // bloque pas.
 func TestLireDecisionsIgnoreLesClesInconnues(t *testing.T) {

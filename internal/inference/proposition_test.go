@@ -6,6 +6,7 @@ package inference
 import (
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -168,7 +169,7 @@ func TestProposerNeProposePasLIdentique(t *testing.T) {
 func TestEcrireDecisionsEstEntierementCommente(t *testing.T) {
 	t.Parallel()
 
-	fichier := string(EcrireDecisions(physiqueDeReference(t, "prefixes"), &Decisions{}))
+	fichier := string(EcrireDecisions(physiqueDeReference(t, "prefixes"), &Decisions{}, "gescom"))
 
 	for numero, ligne := range strings.Split(fichier, "\n") {
 		nette := strings.TrimSpace(ligne)
@@ -187,7 +188,7 @@ func TestEcrireDecisionsSeRelit(t *testing.T) {
 	t.Parallel()
 
 	chemin := filepath.Join(t.TempDir(), "decisions.yaml")
-	contenu := EcrireDecisions(physiqueDeReference(t, "prefixes"), &Decisions{})
+	contenu := EcrireDecisions(physiqueDeReference(t, "prefixes"), &Decisions{}, "gescom")
 	if err := os.WriteFile(chemin, contenu, 0o600); err != nil {
 		t.Fatalf("ecriture : %v", err)
 	}
@@ -201,12 +202,13 @@ func TestEcrireDecisionsSeRelit(t *testing.T) {
 	}
 }
 
-// TestEcrireDecisionsRappelleCeQuiEstDecide vérifie que le fichier réécrit
-// reprend les arbitrages déjà faits.
+// TestEcrireDecisionsEcritLesDecisionsHorsCommentaire vérifie qu'un fichier
+// arbitré applique ce qui a été décidé.
 //
-// Le fichier est régénéré à chaque passage : s'il perdait ce qui a été décidé,
-// il faudrait le fusionner à la main, et personne ne le ferait deux fois.
-func TestEcrireDecisionsRappelleCeQuiEstDecide(t *testing.T) {
+// C'est ce que l'interface enregistre : des décisions qu'on vient de trancher.
+// Laissées en commentaire, elles ne s'appliqueraient pas, et l'arbitrage serait
+// perdu au passage suivant.
+func TestEcrireDecisionsEcritLesDecisionsHorsCommentaire(t *testing.T) {
 	t.Parallel()
 
 	d := &Decisions{
@@ -217,18 +219,27 @@ func TestEcrireDecisionsRappelleCeQuiEstDecide(t *testing.T) {
 		TypesForces:      map[string]string{"dbo.T_CLIENTS.CLI_ACTIF": "boolean"},
 	}
 
-	fichier := string(EcrireDecisions(physiqueDeReference(t, "prefixes"), d))
+	contenu := EcrireDecisions(physiqueDeReference(t, "prefixes"), d, "gescom")
+	fichier := string(contenu)
 
 	for _, attendu := range []string{
-		`Gescom\Domaine\Entity`,
-		"dbo.T_CLIENTS: Acheteur",
-		"dbo.T_AUDIT",
-		"dbo.T_CLIENTS.CLI_ACTIF: boolean",
-		"- T_",
+		"\nespace_de_noms: " + `Gescom\Domaine\Entity` + "\n",
+		"\n  dbo.T_CLIENTS: Acheteur\n",
+		"\n  - dbo.T_AUDIT\n",
+		"\n  dbo.T_CLIENTS.CLI_ACTIF: boolean\n",
+		"\n  - T_\n",
 	} {
 		if !strings.Contains(fichier, attendu) {
-			t.Errorf("le fichier reecrit a perdu %q", attendu)
+			t.Errorf("décision %q absente ou commentée", attendu)
 		}
+	}
+
+	relues, err := DecisionsDepuis(contenu)
+	if err != nil {
+		t.Fatalf("relecture : %v", err)
+	}
+	if !reflect.DeepEqual(sensDes(relues), sensDes(d)) {
+		t.Errorf("décisions relues %#v, attendues %#v", relues, d)
 	}
 
 	// Une décision de préfixe éteint la proposition : la question est réglée.
@@ -279,9 +290,9 @@ func TestEcrireDecisionsEstDeterministe(t *testing.T) {
 		TypesForces: map[string]string{"public.client.id": "bigint", "public.boxes.id": "integer"},
 	}
 
-	premier := string(EcrireDecisions(p, d))
+	premier := string(EcrireDecisions(p, d, "gescom"))
 	for i := 0; i < 5; i++ {
-		if suivant := string(EcrireDecisions(p, d)); suivant != premier {
+		if suivant := string(EcrireDecisions(p, d, "gescom")); suivant != premier {
 			t.Fatal("deux ecritures du meme calque different")
 		}
 	}

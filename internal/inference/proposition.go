@@ -4,6 +4,7 @@
 package inference
 
 import (
+	"cmp"
 	"maps"
 	"slices"
 	"sort"
@@ -27,10 +28,10 @@ import (
 // en connaissance de cause, et de repérer celle qui pose problème dans une
 // liste de quatre cents.
 type Proposition struct {
-	Cible     string
-	Nom       string
-	Raison    string
-	Confiance float64
+	Cible     string  `json:"cible"`
+	Nom       string  `json:"nom"`
+	Raison    string  `json:"raison"`
+	Confiance float64 `json:"confiance"`
 }
 
 // Proposer rend les renommages que l'inférence suggère, triés par cible.
@@ -121,50 +122,66 @@ func proposerPour(t *calque.Table, prefixes []string, detecte string) (Propositi
 	}, true
 }
 
-// EcrireDecisions rend un fichier de décisions prérempli.
+// EcrireDecisions rend le fichier de décisions d'une base : documentation,
+// décisions, propositions de l'outil.
 //
-// Entièrement en commentaire, sans exception. Un fichier prérempli dont une
-// ligne s'applique sans qu'on l'ait lue reproduit ce qu'on refuse à
-// l'inférence : décider à la place de l'utilisateur. Tel quel, il ne change
-// rien — c'est ce qui permet de l'écrire au premier passage sans rien risquer.
+// Sans décision, c'est le fichier prérempli du premier passage, entièrement en
+// commentaire. Une ligne qui s'appliquerait sans qu'on l'ait lue reproduirait
+// ce qu'on refuse à l'inférence : décider à la place de l'utilisateur. Avec des
+// décisions — celles qu'on vient d'arbitrer —, elles s'écrivent hors
+// commentaire, et elles seules.
 //
-// Chaque section dit à quoi elle sert, quand s'en servir, et montre un exemple
-// avant les valeurs propres à cette base. Le fichier est la documentation de
-// l'arbitrage autant que son support : personne ne va lire docs/ avant de
-// corriger un nom de classe.
+// Chaque section dit à quoi elle sert et montre un exemple avant les valeurs
+// propres à cette base. Le fichier est la documentation de l'arbitrage autant
+// que son support : personne ne va lire docs/ avant de corriger un nom de
+// classe.
 //
-// Le contenu est déterministe : deux appels sur le même calque rendent les
-// mêmes octets, propositions triées par cible.
-func EcrireDecisions(p *calque.Physique, d *Decisions) []byte {
+// La détection du contenu manuel repose sur deux règles de forme, que les tests
+// gardent : un commentaire généré est toujours séparé d'un bloc de décisions
+// par une ligne vide, et aucune clé ne s'écrit sans valeur. Le contenu est
+// déterministe : les mêmes entrées rendent les mêmes octets, et un fichier relu
+// puis réécrit redonne les siens.
+func EcrireDecisions(p *calque.Physique, d *Decisions, base string) []byte {
 	var b strings.Builder
 
-	entete(&b, p)
+	entete(&b, p, d)
 	sectionEspaceDeNoms(&b, d)
 	sectionPrefixes(&b, p, d)
 	sectionRenommages(&b, Proposer(p, d), d)
 	sectionTablesIgnorees(&b, d)
 	sectionColonnesIgnorees(&b, d)
 	sectionTypesForces(&b, d)
-	sectionRelationsForcees(&b)
-	sectionEnumerations(&b)
+	sectionRelationsForcees(&b, d)
+	sectionEnumerations(&b, d)
 
-	return []byte(b.String())
+	corps := b.String()
+	return []byte(lignesEmpreinte(base, corps) + corps)
 }
 
 // entete annonce ce que le fichier fait, et surtout ce qu'il ne fait pas.
-func entete(b *strings.Builder, p *calque.Physique) {
-	b.WriteString("# Décisions d'inférence — ")
+func entete(b *strings.Builder, p *calque.Physique, d *Decisions) {
+	b.WriteString("#\n# Décisions d'inférence — ")
 	b.WriteString(p.Source.Catalogue)
 	b.WriteString("\n#\n")
-	b.WriteString("# TOUT EST EN COMMENTAIRE : ce fichier ne change rien tant que vous n'avez\n")
-	b.WriteString("# rien décommenté. C'est voulu. L'outil propose, il ne décide pas.\n")
+	if d.vide() {
+		b.WriteString("# TOUT EST EN COMMENTAIRE : ce fichier ne change rien tant que vous n'avez\n")
+		b.WriteString("# rien décommenté. C'est voulu. L'outil propose, il ne décide pas.\n")
+	} else {
+		b.WriteString("# Seules les lignes hors commentaire décident. Le reste documente chaque\n")
+		b.WriteString("# section et porte les propositions de l'outil, à décommenter au besoin.\n")
+	}
 	b.WriteString("#\n")
 	b.WriteString("# Une décision gagne toujours contre une heuristique, sans discussion. Le\n")
 	b.WriteString("# fichier est rejoué à chaque passage : le corriger une fois suffit, et la\n")
 	b.WriteString("# régénération de six mois plus tard n'écrasera pas votre arbitrage.\n")
 	b.WriteString("#\n")
 	b.WriteString("# Une décision qui ne correspond à rien produit un avertissement — c'est le\n")
-	b.WriteString("# signal que la base a bougé sous le fichier.\n\n")
+	b.WriteString("# signal que la base a bougé sous le fichier.\n")
+	b.WriteString("#\n")
+	b.WriteString("# L'interface réécrit ce fichier en entier quand elle l'enregistre. Un\n")
+	b.WriteString("# commentaire écrit dans le bloc d'une décision — sur sa ligne, ou juste\n")
+	b.WriteString("# au-dessus sans ligne vide — lui fait demander confirmation d'abord ; ceux\n")
+	b.WriteString("# qu'une ligne vide sépare des décisions sont réécrits sans elle.\n\n")
 }
 
 // sectionEspaceDeNoms écrit l'espace de noms PHP des entités.
@@ -174,8 +191,14 @@ func sectionEspaceDeNoms(b *strings.Builder, d *Decisions) {
 	b.WriteString("# Défaut : App\\Entity, la disposition d'un projet Symfony standard.\n")
 	b.WriteString("#\n")
 	b.WriteString("#   espace_de_noms: Gescom\\Domaine\\Entity\n")
-	b.WriteString("#\n")
-	b.WriteString("#espace_de_noms: ")
+
+	if d.EspaceDeNoms != "" {
+		b.WriteString("\nespace_de_noms: ")
+		b.WriteString(scalaire(d.EspaceDeNoms, false))
+		b.WriteString("\n\n")
+		return
+	}
+	b.WriteString("#\n#espace_de_noms: ")
 	b.WriteString(espaceDeNoms(d))
 	b.WriteString("\n\n")
 }
@@ -194,8 +217,20 @@ func sectionPrefixes(b *strings.Builder, p *calque.Physique, d *Decisions) {
 	b.WriteString("# Rien n'est retiré sans cette liste : un nom de table est un constat, et\n")
 	b.WriteString("# l'amputer change ce que vous lirez dans votre code pendant des années.\n")
 	b.WriteString("#\n")
-	b.WriteString("#   prefixes_a_retirer:\n#     - T_\n#     - tbl_\n#\n")
+	b.WriteString("#   prefixes_a_retirer:\n#     - T_\n#     - tbl_\n")
 
+	if len(d.PrefixesARetirer) > 0 {
+		b.WriteString("\nprefixes_a_retirer:\n")
+		for _, prefixe := range d.PrefixesARetirer {
+			b.WriteString("  - ")
+			b.WriteString(scalaire(prefixe, false))
+			b.WriteString("\n")
+		}
+		b.WriteString("\n")
+		return
+	}
+
+	b.WriteString("#\n")
 	if detecte != "" {
 		b.WriteString("# Repéré dans cette base : ")
 		b.WriteString(detecte)
@@ -207,13 +242,12 @@ func sectionPrefixes(b *strings.Builder, p *calque.Physique, d *Decisions) {
 		b.WriteString("\n\n")
 		return
 	}
-
 	b.WriteString("# Aucun préfixe commun repéré dans cette base.\n")
 	b.WriteString("#prefixes_a_retirer: []\n\n")
 }
 
-// sectionRenommages écrit les noms de classes : ceux déjà décidés, et ceux que
-// l'outil suggère.
+// sectionRenommages écrit les noms de classes : ceux décidés, et ceux que
+// l'outil suggère pour les autres tables.
 func sectionRenommages(b *strings.Builder, propositions []Proposition, d *Decisions) {
 	b.WriteString("# ── Noms de classes ─────────────────────────────────────────────────\n")
 	b.WriteString("#\n")
@@ -224,40 +258,39 @@ func sectionRenommages(b *strings.Builder, propositions []Proposition, d *Decisi
 	b.WriteString("#\n")
 	b.WriteString("# La clé se qualifie par le schéma quand deux schémas portent la même table.\n")
 	b.WriteString("#\n")
-	b.WriteString("#   renommages:\n#     dbo.T_CLIENTS: Client\n#     commandes: Commande\n#\n")
+	b.WriteString("#   renommages:\n#     dbo.T_CLIENTS: Client\n#     commandes: Commande\n")
 
-	if len(d.Renommages) > 0 {
-		b.WriteString("# Déjà décidé :\n")
-		for _, cible := range clesTriees(d.Renommages) {
-			b.WriteString("#  ")
-			b.WriteString(cible)
-			b.WriteString(": ")
-			b.WriteString(d.Renommages[cible])
-			b.WriteString("\n")
-		}
-		b.WriteString("#\n")
+	actif := len(d.Renommages) > 0
+	if actif {
+		b.WriteString("\nrenommages:\n")
+		ecrireCorrespondances(b, d.Renommages)
 	}
 
 	if len(propositions) == 0 {
-		b.WriteString("#renommages: {}\n\n")
+		if !actif {
+			b.WriteString("#\n#renommages: {}\n")
+		}
+		b.WriteString("\n")
 		return
 	}
 
-	b.WriteString("# Propositions de l'outil pour cette base. La colonne de droite dit ce qui\n")
+	// Paragraphe à part : les propositions changent avec le calque, et ne
+	// doivent jamais se mêler aux décisions que l'empreinte couvre.
+	b.WriteString("\n# Propositions de l'outil pour cette base. La colonne de droite dit ce qui\n")
 	b.WriteString("# a été appliqué pour y arriver — lisez-la avant de décommenter.\n")
-	b.WriteString("#renommages:\n")
-
-	largeur := 0
-	for _, prop := range propositions {
-		if n := len(prop.Cible) + len(prop.Nom); n > largeur {
-			largeur = n
-		}
+	if !actif {
+		b.WriteString("#renommages:\n")
 	}
 
-	for _, prop := range propositions {
-		ligne := "#  " + prop.Cible + ": " + prop.Nom
-		b.WriteString(ligne)
-		b.WriteString(strings.Repeat(" ", largeur+5-len(prop.Cible)-len(prop.Nom)))
+	lignes := make([]string, len(propositions))
+	largeur := 0
+	for i, prop := range propositions {
+		lignes[i] = "#  " + scalaire(prop.Cible, false) + ": " + scalaire(prop.Nom, false)
+		largeur = max(largeur, len(lignes[i]))
+	}
+	for i, prop := range propositions {
+		b.WriteString(lignes[i])
+		b.WriteString(strings.Repeat(" ", largeur+2-len(lignes[i])))
 		b.WriteString("# ")
 		b.WriteString(prop.Raison)
 		b.WriteString("\n")
@@ -273,20 +306,19 @@ func sectionTablesIgnorees(b *strings.Builder, d *Decisions) {
 	b.WriteString("# qui existe en base sans avoir de place dans le modèle objet. Chacune\n")
 	b.WriteString("# produit un avertissement, pour qu'aucune ne disparaisse en silence.\n")
 	b.WriteString("#\n")
-	b.WriteString("#   tables_ignorees:\n#     - dbo.T_AUDIT_TECHNIQUE\n#     - public.migrations\n#\n")
+	b.WriteString("#   tables_ignorees:\n#     - dbo.T_AUDIT_TECHNIQUE\n#     - public.migrations\n")
 
 	if len(d.TablesIgnorees) > 0 {
-		b.WriteString("# Déjà décidé :\n")
-		ignorees := append([]string(nil), d.TablesIgnorees...)
-		sort.Strings(ignorees)
-		for _, t := range ignorees {
-			b.WriteString("#  - ")
-			b.WriteString(t)
+		b.WriteString("\ntables_ignorees:\n")
+		for _, table := range slices.Sorted(slices.Values(d.TablesIgnorees)) {
+			b.WriteString("  - ")
+			b.WriteString(scalaire(table, false))
 			b.WriteString("\n")
 		}
-		b.WriteString("#\n")
+		b.WriteString("\n")
+		return
 	}
-	b.WriteString("#tables_ignorees: []\n\n")
+	b.WriteString("#\n#tables_ignorees: []\n\n")
 }
 
 // sectionColonnesIgnorees écrit les colonnes à retirer des entités.
@@ -306,27 +338,25 @@ func sectionColonnesIgnorees(b *strings.Builder, d *Decisions) {
 	b.WriteString("#\n")
 	b.WriteString("#   colonnes_ignorees:\n")
 	b.WriteString("#     public.clients: [photo, blob_import]\n")
-	b.WriteString("#     dbo.T_COMMANDES: [champ_libre_12]\n#\n")
+	b.WriteString("#     dbo.T_COMMANDES: [champ_libre_12]\n")
 
 	if len(d.ColonnesIgnorees) > 0 {
-		b.WriteString("# Déjà décidé :\n")
-		tables := make([]string, 0, len(d.ColonnesIgnorees))
-		for table := range d.ColonnesIgnorees {
-			tables = append(tables, table)
-		}
-		sort.Strings(tables)
-		for _, table := range tables {
-			colonnes := append([]string(nil), d.ColonnesIgnorees[table]...)
-			sort.Strings(colonnes)
-			b.WriteString("#  - ")
-			b.WriteString(table)
-			b.WriteString(" : ")
+		b.WriteString("\ncolonnes_ignorees:\n")
+		for _, table := range clesTriees(d.ColonnesIgnorees) {
+			colonnes := slices.Sorted(slices.Values(d.ColonnesIgnorees[table]))
+			for i, colonne := range colonnes {
+				colonnes[i] = scalaire(colonne, true)
+			}
+			b.WriteString("  ")
+			b.WriteString(scalaire(table, false))
+			b.WriteString(": [")
 			b.WriteString(strings.Join(colonnes, ", "))
-			b.WriteString("\n")
+			b.WriteString("]\n")
 		}
-		b.WriteString("#\n")
+		b.WriteString("\n")
+		return
 	}
-	b.WriteString("#colonnes_ignorees: {}\n\n")
+	b.WriteString("#\n#colonnes_ignorees: {}\n\n")
 }
 
 // sectionTypesForces écrit les types Doctrine imposés.
@@ -341,43 +371,63 @@ func sectionTypesForces(b *strings.Builder, d *Decisions) {
 	b.WriteString("# boolean donne un bool, et la longueur comme le défaut de la colonne sont\n")
 	b.WriteString("# écartés — ils décrivaient le type d'avant.\n")
 	b.WriteString("#\n")
-	b.WriteString("#   types_forces:\n#     dbo.T_CLIENTS.CLI_ACTIF: boolean\n#     public.client.donnees: json\n#\n")
+	b.WriteString("#   types_forces:\n#     dbo.T_CLIENTS.CLI_ACTIF: boolean\n#     public.client.donnees: json\n")
 
 	if len(d.TypesForces) > 0 {
-		b.WriteString("# Déjà décidé :\n")
-		for _, cible := range clesTriees(d.TypesForces) {
-			b.WriteString("#  ")
-			b.WriteString(cible)
-			b.WriteString(": ")
-			b.WriteString(d.TypesForces[cible])
-			b.WriteString("\n")
-		}
-		b.WriteString("#\n")
+		b.WriteString("\ntypes_forces:\n")
+		ecrireCorrespondances(b, d.TypesForces)
+		b.WriteString("\n")
+		return
 	}
-	b.WriteString("#types_forces: {}\n\n")
+	b.WriteString("#\n#types_forces: {}\n\n")
 }
 
 // sectionRelationsForcees écrit les associations que le schéma ne déclare pas.
-func sectionRelationsForcees(b *strings.Builder) {
+func sectionRelationsForcees(b *strings.Builder, d *Decisions) {
 	b.WriteString("# ── Relations non déclarées ─────────────────────────────────────────\n")
 	b.WriteString("#\n")
 	b.WriteString("# La clé étrangère que personne n'a jamais créée, cas majoritaire sur du\n")
 	b.WriteString("# legacy. L'outil peut la soupçonner en échantillonnant les valeurs, mais\n")
 	b.WriteString("# seul quelqu'un qui connaît le métier la confirme.\n")
 	b.WriteString("#\n")
-	b.WriteString("# genre : plusieurs_vers_un, un_vers_un, un_vers_plusieurs,\n")
-	b.WriteString("#         plusieurs_vers_plusieurs\n")
+	b.WriteString("# source est la colonne qui porte la relation, cible celle qu'elle désigne.\n")
+	b.WriteString("# genre : plusieurs_vers_un (plusieurs commandes pour un client) ou\n")
+	b.WriteString("# un_vers_un ; laissé vide, l'unicité de la colonne tranche. Le côté\n")
+	b.WriteString("# collection, sur l'entité cible, se déduit. Une relation écrite ici gagne\n")
+	b.WriteString("# sur une clé étrangère déclarée sur la même colonne.\n")
 	b.WriteString("#\n")
 	b.WriteString("#   relations_forcees:\n")
 	b.WriteString("#     - source: public.commande.client_id\n")
 	b.WriteString("#       cible: public.client.id\n")
 	b.WriteString("#       genre: plusieurs_vers_un\n")
 	b.WriteString("#       nom: client\n")
+
+	if len(d.RelationsForcees) > 0 {
+		relations := slices.Clone(d.RelationsForcees)
+		slices.SortStableFunc(relations, func(x, y RelationForcee) int {
+			return cmp.Or(
+				strings.Compare(x.Source, y.Source),
+				strings.Compare(x.Cible, y.Cible),
+				strings.Compare(x.Nom, y.Nom),
+				strings.Compare(x.Genre, y.Genre),
+			)
+		})
+
+		b.WriteString("\nrelations_forcees:\n")
+		for _, r := range relations {
+			b.WriteString("  - source: " + scalaire(r.Source, false) + "\n")
+			b.WriteString("    cible: " + scalaire(r.Cible, false) + "\n")
+			b.WriteString("    genre: " + scalaire(r.Genre, false) + "\n")
+			b.WriteString("    nom: " + scalaire(r.Nom, false) + "\n")
+		}
+		b.WriteString("\n")
+		return
+	}
 	b.WriteString("#\n#relations_forcees: []\n\n")
 }
 
 // sectionEnumerations écrit les énumérations imposées.
-func sectionEnumerations(b *strings.Builder) {
+func sectionEnumerations(b *strings.Builder, d *Decisions) {
 	b.WriteString("# ── Énumérations ────────────────────────────────────────────────────\n")
 	b.WriteString("#\n")
 	b.WriteString("# Une colonne à valeurs fermées devient un enum PHP. Les cas apparient la\n")
@@ -391,7 +441,40 @@ func sectionEnumerations(b *strings.Builder) {
 	b.WriteString("#         A: Actif\n")
 	b.WriteString("#         S: Suspendu\n")
 	b.WriteString("#         R: Radie\n")
+
+	if len(d.Enumerations) > 0 {
+		enumerations := slices.Clone(d.Enumerations)
+		slices.SortStableFunc(enumerations, func(x, y EnumerationForcee) int {
+			return cmp.Or(strings.Compare(x.Colonne, y.Colonne), strings.Compare(x.Nom, y.Nom))
+		})
+
+		b.WriteString("\nenumerations:\n")
+		for _, e := range enumerations {
+			b.WriteString("  - colonne: " + scalaire(e.Colonne, false) + "\n")
+			b.WriteString("    nom: " + scalaire(e.Nom, false) + "\n")
+			if len(e.Cas) == 0 {
+				b.WriteString("    cas: {}\n")
+				continue
+			}
+			b.WriteString("    cas:\n")
+			for _, valeur := range clesTriees(e.Cas) {
+				b.WriteString("      " + scalaire(valeur, false) + ": " + scalaire(e.Cas[valeur], false) + "\n")
+			}
+		}
+		return
+	}
 	b.WriteString("#\n#enumerations: []\n")
+}
+
+// ecrireCorrespondances écrit un bloc clé: valeur trié par clé, à deux espaces.
+func ecrireCorrespondances(b *strings.Builder, correspondances map[string]string) {
+	for _, cle := range clesTriees(correspondances) {
+		b.WriteString("  ")
+		b.WriteString(scalaire(cle, false))
+		b.WriteString(": ")
+		b.WriteString(scalaire(correspondances[cle], false))
+		b.WriteString("\n")
+	}
 }
 
 // clesTriees rend les clés d'une map dans un ordre stable.

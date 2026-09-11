@@ -24,8 +24,50 @@ export {
   type ReferenceExtraction,
   type RequeteExtraction,
   type ReponseCalque,
+  type ReponseDecisions,
   type ResultatExtraction,
 } from './api';
-export type { Anomalie } from './calque';
+export {
+  CodeCalqueModifie,
+  CodeContenuManuel,
+  CodeDecisionsModifiees,
+  type CodeRefus,
+  type EnumerationInferee,
+  type RequeteEcritureDecisions,
+  type ReponseEcritureDecisions,
+  type RequeteEntite,
+  type ReponseEntite,
+  type RequeteInference,
+  type ReponseInference,
+  type ResumeEntite,
+} from './api';
+export type { Decisions, EnumerationForcee, Proposition, RelationForcee } from './inference';
+export type {
+  Anomalie,
+  Association,
+  Avertissement,
+  Entite,
+  ReferenceTable,
+  Table,
+} from './calque';
+export {
+  CodeCasEnumerationOpaque,
+  CodeCibleHorsPortee,
+  CodeClePrimaireComposite,
+  CodeClePrimaireGardee,
+  CodeCollision,
+  CodeColonneIgnoree,
+  CodeDecisionOrpheline,
+  CodeDefautIncompatible,
+  CodeFKImpliciteProbable,
+  CodeHeritageDeduit,
+  CodeJointurePure,
+  CodeNomNonSingularisable,
+  CodePrefixeDetecte,
+  CodeTableIgnoree,
+  CodeTableSansClePrimaire,
+  CodeTraitDeduit,
+  CodeTypeNonReconnu,
+} from './calque';
 export type { TableSommaire, ColonneSommaire, Portee, Avancement } from './introspection';
 export { CLE_THEME, initTheme, themeEnregistre, useThemeStore, type Theme } from './theme';

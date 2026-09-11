@@ -4,9 +4,8 @@
 import { useT } from '@/shared/i18n';
 import { heure } from '@/shared/lib';
 import { CopyButton } from '@/shared/ui';
-import { useExtractions } from '../model/contexte';
 import { fichierCalque } from '../model/taches';
-import { derniereFin, useCalque } from '../model/useCalque';
+import { useCalque, useVersionCalque } from '../model/useCalque';
 
 /** Propriétés de l'aperçu du calque. */
 interface ProprietesCalque {
@@ -25,8 +24,7 @@ interface ProprietesCalque {
  */
 export function CalquePreview({ session, base }: ProprietesCalque) {
   const t = useT();
-  const { extractions } = useExtractions();
-  const { calque, message, enCours } = useCalque(session, derniereFin(extractions, base));
+  const { calque, message, enCours } = useCalque(session, useVersionCalque(base));
 
   return (
     <div className="flex h-full min-h-0 flex-col">

@@ -98,8 +98,10 @@ gescom.logique.json : 12 entité(s), 31 association(s), 2 énumération(s), 1 tr
   singulier_ambigu         public.categories     categories rendu Category par la règle anglaise ; le français donnerait Categorie
 ```
 
-On décommente ce qui convient dans `gescom.decisions.yaml`, on relance, et le
-fichier n'est jamais réécrit : les arbitrages se rejouent à chaque passage.
+On décommente ce qui convient dans `gescom.decisions.yaml`, on relance, et les
+arbitrages se rejouent à chaque passage : la ligne de commande ne réécrit jamais
+un fichier existant. L'interface, elle, le régénère quand on l'enregistre, et
+demande confirmation s'il a été retouché à la main.
 
 Entre deux versions, `go install github.com/sprimault/ormeau/cmd/ormeau@master`.
 
@@ -124,11 +126,12 @@ Décocher une colonne ne la retire pas du calque : cela remplit
 `colonnes_ignorees` dans le fichier de décisions, qui la retire de l'entité. Le
 calque garde tout, et l'on se ravise sans rouvrir la connexion.
 
-**Extraire** écrit `<base>.calque.json` en tâche de fond : on continue de
-parcourir l'arbre, ou l'on passe à une autre base pour en lancer une seconde.
-L'en-tête suit chaque extraction étape par étape et permet de l'annuler — une
-extraction lancée par erreur sur une base de production s'arrête sans fermer
-l'onglet. Deux tournent à la fois, les suivantes attendent leur tour.
+**Extraire** écrit `<base>.calque.json` en tâche de fond, sans bloquer l'écran ;
+une extraction en cours peut être annulée.
+
+L'onglet **Arbitrage** travaille hors ligne, sur le calque du répertoire de
+travail : la connexion n'est pas nécessaire. Il montre les entités que la
+génération produira, et enregistre les arbitrages dans `<base>.decisions.yaml`.
 
 Elle écoute sur `127.0.0.1` seulement, sur un port tiré au lancement, et le
 jeton de l'URL ne sert qu'une fois. Les fichiers produits atterrissent dans le

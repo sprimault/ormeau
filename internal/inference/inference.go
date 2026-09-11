@@ -68,6 +68,7 @@ func Inferer(p *calque.Physique, d *Decisions) (*calque.Logique, []calque.Averti
 	// tables à la fois, et un type énuméré natif est déclaré à part.
 	schema := analyser(p, d, prefixes)
 	schema.enumerations = enumerationsDuSchema(p, d)
+	avertissements = append(avertissements, verifierRelationsForcees(p, d, schema)...)
 
 	for i := range p.Tables {
 		t := &p.Tables[i]

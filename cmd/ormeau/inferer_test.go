@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/sprimault/ormeau/internal/calque"
+	"github.com/sprimault/ormeau/internal/inference"
 )
 
 // calqueDEssai écrit un calque physique minimal dans un répertoire temporaire
@@ -123,6 +124,37 @@ func TestInfererEcritLesDecisionsPreremplies(t *testing.T) {
 		if nette := strings.TrimSpace(ligne); nette != "" && !strings.HasPrefix(nette, "#") {
 			t.Errorf("ligne %d active dans le fichier prerempli : %q", numero+1, ligne)
 		}
+	}
+}
+
+// TestInfererPreremplitAvecUneEmpreinte vérifie que le premier passage écrit un
+// fichier que l'interface reconnaîtra comme intact, nom de base à point compris.
+//
+// Le nom entre dans l'empreinte, et la ligne de commande le tire du chemin. Si
+// les deux ne s'accordaient pas, le prérempli passerait pour modifié à la main
+// dès sa première ouverture dans l'interface.
+func TestInfererPreremplitAvecUneEmpreinte(t *testing.T) {
+	t.Parallel()
+
+	chemin := calqueDEssai(t, "ma.base.calque.json")
+	if err := inferer([]string{chemin}); err != nil {
+		t.Fatalf("inferer : %v", err)
+	}
+
+	cheminDecisions := filepath.Join(filepath.Dir(chemin), "ma.base.decisions.yaml")
+	contenu, err := os.ReadFile(cheminDecisions)
+	if err != nil {
+		t.Fatalf("lecture : %v", err)
+	}
+
+	if base := inference.BaseDesDecisions(cheminDecisions); base != "ma.base" {
+		t.Errorf("base %q, attendue ma.base", base)
+	}
+	if !strings.HasPrefix(string(contenu), "# empreinte des décisions : sha256:") {
+		t.Error("le prérempli ne porte pas son empreinte en tête")
+	}
+	if inference.ContenuManuel("ma.base", contenu) {
+		t.Error("le prérempli tout juste écrit passe pour modifié à la main")
 	}
 }
 

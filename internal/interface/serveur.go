@@ -22,6 +22,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"sync"
 	"time"
 )
 
@@ -59,9 +60,12 @@ type serveur struct {
 	acces       *acces
 	registre    *registre
 	extractions *extractions
-	repertoire  string
-	version     string
-	origine     string
+	calques     calquesLus
+	// ecriture sérialise les enregistrements de fichiers de décisions.
+	ecriture   sync.Mutex
+	repertoire string
+	version    string
+	origine    string
 }
 
 // Servir écoute sur la boucle locale et rend la main quand le contexte est
@@ -173,6 +177,9 @@ func (s *serveur) routes() (http.Handler, error) {
 	mux.Handle("/api/extractions", s.protegerAPI(http.HandlerFunc(s.gererExtractions)))
 	mux.Handle("/api/extractions/evenements", s.protegerAPI(http.HandlerFunc(s.suivreExtractions)))
 	mux.Handle("/api/calque", s.protegerAPI(http.HandlerFunc(s.calqueDeSession)))
+	mux.Handle("/api/decisions", s.protegerAPI(http.HandlerFunc(s.decisions)))
+	mux.Handle("/api/inference", s.protegerAPI(http.HandlerFunc(s.inferer)))
+	mux.Handle("/api/inference/entite", s.protegerAPI(http.HandlerFunc(s.entite)))
 	mux.Handle("/", s.canoniser(front))
 	return mux, nil
 }

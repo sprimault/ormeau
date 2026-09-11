@@ -1,0 +1,270 @@
+{
+  "version_ri": 1,
+  "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000014",
+  "espace_de_noms": "App\\Entity",
+  "entites": [
+    {
+      "nom": "Client",
+      "table": {
+        "nom": "client",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "nom",
+          "colonne": "nom",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 80,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "commande",
+          "genre": "un_vers_plusieurs",
+          "cible": "Commande",
+          "proprietaire": false,
+          "mappee_par": "client",
+          "origine": "decision"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "Commande",
+      "table": {
+        "nom": "commande",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "clientRef",
+          "colonne": "client_ref",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "fournisseurId",
+          "colonne": "fournisseur_id",
+          "type_php": "?int",
+          "type_doctrine": "integer",
+          "nullable": true,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "vendeurId",
+          "colonne": "vendeur_id",
+          "type_php": "?int",
+          "type_doctrine": "integer",
+          "nullable": true,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "client",
+          "genre": "plusieurs_vers_un",
+          "cible": "Client",
+          "proprietaire": true,
+          "inversee_par": "commande",
+          "jointure": [
+            {
+              "colonne": "client_ref",
+              "colonne_referencee": "id",
+              "nullable": false
+            }
+          ],
+          "origine": "decision"
+        },
+        {
+          "nom": "commercial",
+          "genre": "plusieurs_vers_un",
+          "cible": "Utilisateur",
+          "proprietaire": true,
+          "inversee_par": "commande",
+          "jointure": [
+            {
+              "colonne": "vendeur_id",
+              "colonne_referencee": "id",
+              "nullable": true,
+              "a_la_suppression": "set_null"
+            }
+          ],
+          "origine": "decision"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "Profil",
+      "table": {
+        "nom": "profil",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "utilisateurRef",
+          "colonne": "utilisateur_ref",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "unique": true,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "parrainId",
+          "colonne": "parrain_id",
+          "type_php": "?int",
+          "type_doctrine": "integer",
+          "nullable": true,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "utilisateur",
+          "genre": "un_vers_un",
+          "cible": "Utilisateur",
+          "proprietaire": true,
+          "inversee_par": "profil",
+          "jointure": [
+            {
+              "colonne": "utilisateur_ref",
+              "colonne_referencee": "id",
+              "nullable": false
+            }
+          ],
+          "origine": "decision"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "Utilisateur",
+      "table": {
+        "nom": "utilisateur",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "email",
+          "colonne": "email",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 120,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "commande",
+          "genre": "un_vers_plusieurs",
+          "cible": "Commande",
+          "proprietaire": false,
+          "mappee_par": "commercial",
+          "origine": "decision"
+        },
+        {
+          "nom": "profil",
+          "genre": "un_vers_un",
+          "cible": "Profil",
+          "proprietaire": false,
+          "mappee_par": "utilisateur",
+          "origine": "decision"
+        }
+      ],
+      "origine": "nommage"
+    }
+  ],
+  "avertissements": [
+    {
+      "code": "decision_sans_cible",
+      "cible": "public.commande.client_ref",
+      "message": "relation forcée vers public.utilisateur.id non appliquée : la colonne porte déjà une relation forcée",
+      "resolution": "aucune",
+      "confiance": 1
+    },
+    {
+      "code": "decision_sans_cible",
+      "cible": "public.commande.fournisseur_id",
+      "message": "relation forcée vers public.fournisseur.id non appliquée : la cible n'est pas une colonne d'une table générée",
+      "resolution": "aucune",
+      "confiance": 1
+    },
+    {
+      "code": "decision_sans_cible",
+      "cible": "public.commande.remise_id",
+      "message": "relation forcée vers public.client.id non appliquée : la source n'est pas une colonne d'une table générée",
+      "resolution": "aucune",
+      "confiance": 1
+    },
+    {
+      "code": "decision_sans_cible",
+      "cible": "public.profil.parrain_id",
+      "message": "relation forcée vers public.utilisateur.id non appliquée : le genre un_vers_plusieurs ne part pas d'une colonne ; plusieurs_vers_un ou un_vers_un, l'autre côté se déduit",
+      "resolution": "aucune",
+      "confiance": 1
+    }
+  ]
+}

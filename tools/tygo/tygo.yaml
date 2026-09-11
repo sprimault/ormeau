@@ -28,6 +28,19 @@ packages:
       // Types générés depuis internal/introspection par `make web-types` (tygo).
       // Ne pas modifier à la main.
 
+  - path: "github.com/sprimault/ormeau/internal/inference"
+    output_path: "web/src/shared/model/inference.ts"
+    # Les décisions et les propositions seulement : l'écran d'arbitrage
+    # compose un brouillon de décisions et affiche les propositions, rien de
+    # plus du paquet ne traverse l'API.
+    include_files: ["decisions.go", "proposition.go"]
+    frontmatter: |
+      // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
+      // SPDX-License-Identifier: Apache-2.0
+      //
+      // Types générés depuis internal/inference par `make web-types` (tygo).
+      // Ne pas modifier à la main.
+
   - path: "github.com/sprimault/ormeau/internal/interface"
     output_path: "web/src/shared/model/api.ts"
     include_files: ["api.go"]
@@ -39,6 +52,15 @@ packages:
       "introspection.Portee": "Portee"
       "introspection.Avancement": "Avancement"
       "calque.Anomalie": "Anomalie"
+      "calque.Avertissement": "Avertissement"
+      "calque.CasEnumeration": "CasEnumeration"
+      "calque.Entite": "Entite"
+      "calque.Heritage": "Heritage"
+      "calque.Origine": "Origine"
+      "calque.ReferenceTable": "ReferenceTable"
+      "calque.Table": "Table"
+      "inference.Decisions": "Decisions"
+      "inference.Proposition": "Proposition"
     frontmatter: |
       // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
       // SPDX-License-Identifier: Apache-2.0
@@ -46,5 +68,15 @@ packages:
       // Types générés depuis internal/interface par `make web-types` (tygo).
       // Ne pas modifier à la main.
 
-      import type { Anomalie } from './calque';
+      import type {
+        Anomalie,
+        Avertissement,
+        CasEnumeration,
+        Entite,
+        Heritage,
+        Origine,
+        ReferenceTable,
+        Table,
+      } from './calque';
+      import type { Decisions, Proposition } from './inference';
       import type { Avancement, Portee, TableSommaire } from './introspection';

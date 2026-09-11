@@ -4,6 +4,8 @@
 package inference
 
 import (
+	"maps"
+	"slices"
 	"strings"
 
 	"github.com/sprimault/ormeau/internal/calque"
@@ -128,6 +130,13 @@ var phpParTypeDoctrine = map[string]string{
 
 	"json":         "array",
 	"simple_array": "array",
+}
+
+// TypesDoctrine rend, triés, les types Doctrine dont l'inférence connaît le
+// type PHP. Ce sont ceux que l'interface suggère : un type absent de la liste
+// se force quand même, et garde le type PHP que la colonne avait produit.
+func TypesDoctrine() []string {
+	return slices.Sorted(maps.Keys(phpParTypeDoctrine))
 }
 
 // forcer applique un type Doctrine décidé, et met le type PHP en accord.
