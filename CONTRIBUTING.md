@@ -112,6 +112,10 @@ Say what the change does and why, in a few lines. The mechanism you had to
 understand to write the fix belongs in a comment, in the code, where it will be
 read alongside it.
 
+What a change brings also goes into [`CHANGELOG.md`](CHANGELOG.md), under
+`## [Non publié]`, in the same pull request: the section is reviewed there, when
+it matters, and the release takes its notes from it.
+
 ## Never attach a layer from a production database
 
 A layer holds a customer's table names, column names, business comments, and

@@ -117,6 +117,11 @@ Dire ce que fait le changement et pourquoi, en quelques lignes. Le mécanisme
 qu'il a fallu comprendre pour écrire le correctif va en commentaire, dans le
 code, là où il sera relu avec lui.
 
+Ce qu'un changement apporte s'écrit aussi dans
+[`CHANGELOG.md`](CHANGELOG.md), sous `## [Non publié]`, dans la même pull
+request : la section y est relue au moment où elle compte, et la publication en
+tire les notes de la version.
+
 ## Ne jamais joindre un calque issu d'une base de production
 
 Un calque porte les noms de tables, de colonnes et les commentaires métier d'un
