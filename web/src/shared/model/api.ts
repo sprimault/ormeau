@@ -179,3 +179,22 @@ export interface ResultatExtraction {
 export interface EtatExtractions {
   extractions: Extraction[];
 }
+/**
+ * ReponseCalque porte le calque d'une base tel que le répertoire de travail le
+ * contient.
+ * Le contenu est le document sérialisé et non une structure : l'écran l'affiche
+ * dans l'ordre et l'indentation que le calque impose, ce qu'on retrouve en
+ * ouvrant le fichier.
+ */
+export interface ReponseCalque {
+  fichier: string;
+  extrait_le: string;
+  empreinte: string;
+  contenu: string;
+  /**
+   * StatistiquesRetirees signale un calque échantillonné dont les statistiques
+   * n'ont pas été envoyées : l'écran le dit plutôt que de laisser croire qu'il
+   * n'y en a pas.
+   */
+  statistiques_retirees?: boolean;
+}

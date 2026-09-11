@@ -57,6 +57,7 @@ func TestMethodesRefusees(t *testing.T) {
 		{http.MethodPut, "/api/extractions"},
 		{http.MethodGet, "/api/extractions"},
 		{http.MethodPost, "/api/extractions/evenements"},
+		{http.MethodPost, "/api/calque"},
 	}
 	for _, c := range cas {
 		t.Run(c.methode+" "+c.chemin, func(t *testing.T) {

@@ -168,6 +168,23 @@ type EtatExtractions struct {
 	Extractions []Extraction `json:"extractions"`
 }
 
+// ReponseCalque porte le calque d'une base tel que le répertoire de travail le
+// contient.
+//
+// Le contenu est le document sérialisé et non une structure : l'écran l'affiche
+// dans l'ordre et l'indentation que le calque impose, ce qu'on retrouve en
+// ouvrant le fichier.
+type ReponseCalque struct {
+	Fichier   string `json:"fichier"`
+	ExtraitLe string `json:"extrait_le"`
+	Empreinte string `json:"empreinte"`
+	Contenu   string `json:"contenu"`
+	// StatistiquesRetirees signale un calque échantillonné dont les statistiques
+	// n'ont pas été envoyées : l'écran le dit plutôt que de laisser croire qu'il
+	// n'y en a pas.
+	StatistiquesRetirees bool `json:"statistiques_retirees,omitempty"`
+}
+
 // contexte rend le répertoire de travail et la version.
 func (s *serveur) contexte(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {

@@ -172,6 +172,7 @@ func (s *serveur) routes() (http.Handler, error) {
 	mux.Handle("/api/colonnes", s.protegerAPI(http.HandlerFunc(s.colonnes)))
 	mux.Handle("/api/extractions", s.protegerAPI(http.HandlerFunc(s.gererExtractions)))
 	mux.Handle("/api/extractions/evenements", s.protegerAPI(http.HandlerFunc(s.suivreExtractions)))
+	mux.Handle("/api/calque", s.protegerAPI(http.HandlerFunc(s.calqueDeSession)))
 	mux.Handle("/", s.canoniser(front))
 	return mux, nil
 }
