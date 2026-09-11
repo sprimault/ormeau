@@ -4,6 +4,7 @@
 package inference
 
 import (
+	"slices"
 	"strings"
 
 	"github.com/sprimault/ormeau/internal/calque"
@@ -16,8 +17,10 @@ import (
 // est le propriétaire, quelle cardinalité, comment nommer la propriété — et
 // chaque réponse se lit dans le physique.
 //
-// Les clés étrangères jamais déclarées, cas majoritaire sur du legacy, ne sont
-// pas ici : elles demandent d'échantillonner les données, ou une décision.
+// Les clés étrangères jamais déclarées, cas majoritaire sur du legacy, ne se
+// devinent pas ici : elles demandent d'échantillonner les données, ou une
+// décision. Une décision passe par le même chemin qu'une clé déclarée, et
+// l'emporte sur elle — voir relations.go.
 
 // schemaLogique porte ce qu'une table doit savoir des autres pour se traduire.
 //
@@ -38,6 +41,10 @@ type schemaLogique struct {
 
 	// enumerations donne, par colonne qualifiée, le type énuméré reconnu.
 	enumerations map[string]enumeree
+
+	// relations donne, par table source qualifiée, les relations forcées qui
+	// s'y appliquent.
+	relations map[string][]relationForcee
 }
 
 // jointurePure décrit une table qui n'existe que pour relier deux autres.
@@ -163,20 +170,29 @@ func reconnaitreHeritage(t *calque.Table) *calque.CleEtrangere {
 	return nil
 }
 
-// inferrerAssociations rend les associations d'une entité : celles qu'elle
-// porte, et celles dont elle est la cible.
+// inferrerAssociations rend les associations que porte une entité : une par
+// clé étrangère déclarée, et une par relation forcée. Leurs côtés inverses
+// viennent après, quand toutes les entités existent.
 func inferrerAssociations(t *calque.Table, s *schemaLogique, parColonne map[string]*calque.Propriete) ([]calque.Association, []calque.Avertissement) {
 	cible := t.Schema + "." + t.Nom
 
 	var associations []calque.Association
 	var avertissements []calque.Avertissement
 
+	forcees := s.relations[cible]
+	decidees := make(map[string]bool, len(forcees))
+	for _, r := range forcees {
+		decidees[r.colonne] = true
+	}
+
 	// Côté propriétaire : une par clé étrangère déclarée, sauf celle qui porte
-	// l'héritage — elle devient la hiérarchie, pas une propriété.
+	// l'héritage — elle devient la hiérarchie, pas une propriété — et celles
+	// dont une colonne porte une relation forcée : la décision gagne, et deux
+	// associations sur la même colonne écriraient deux fois la même valeur.
 	heritage := s.parents[cible]
 	for i := range t.ClesEtrangeres {
 		fk := &t.ClesEtrangeres[i]
-		if fk == heritage {
+		if fk == heritage || slices.ContainsFunc(fk.Colonnes, func(c string) bool { return decidees[c] }) {
 			continue
 		}
 
@@ -196,6 +212,30 @@ func inferrerAssociations(t *calque.Table, s *schemaLogique, parColonne map[stri
 		}
 
 		associations = append(associations, associationPortee(t, fk, nomCible, parColonne))
+	}
+
+	for _, r := range forcees {
+		fk := r.fk
+		// Une clé déclarée sur la même colonne vers la même table garde son
+		// comportement à la suppression : la décision renomme ou requalifie la
+		// relation, elle ne change pas ce que fait la base.
+		for i := range t.ClesEtrangeres {
+			declaree := &t.ClesEtrangeres[i]
+			if slices.Equal(declaree.Colonnes, fk.Colonnes) &&
+				declaree.SchemaCible == fk.SchemaCible && declaree.TableCible == fk.TableCible {
+				fk.ALaSuppression = declaree.ALaSuppression
+			}
+		}
+
+		a := associationPortee(t, &fk, s.nomsParTable[fk.SchemaCible+"."+fk.TableCible], parColonne)
+		if r.genre != "" {
+			a.Genre = r.genre
+		}
+		if r.nom != "" {
+			a.Nom = r.nom
+		}
+		a.Origine = calque.OrigineDecision
+		associations = append(associations, a)
 	}
 
 	return associations, avertissements

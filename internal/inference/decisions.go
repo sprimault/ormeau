@@ -67,6 +67,12 @@ type Decisions struct {
 
 // RelationForcee déclare une association que l'heuristique n'a pas vue — la clé
 // étrangère jamais déclarée, que seul l'humain confirme.
+//
+// Source et Cible sont des colonnes qualifiées, schema.table.colonne : celle
+// qui porte la relation, et celle qu'elle désigne. Genre vaut plusieurs_vers_un
+// ou un_vers_un, ou reste vide pour laisser l'unicité de la colonne trancher :
+// une colonne porte un objet, et le côté collection se déduit sur l'autre
+// entité. Nom, vide, suit la règle d'une clé déclarée.
 type RelationForcee struct {
 	Source string `json:"source" yaml:"source"`
 	Cible  string `json:"cible" yaml:"cible"`
