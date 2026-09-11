@@ -81,4 +81,42 @@ describe('useBrouillonDecisions', () => {
     expect(lireDecisions).toHaveBeenLastCalledWith('paie', expect.anything());
     expect(result.current.decisions).toEqual({});
   });
+
+  it('se sait modifié jusqu’à l’enregistrement', async () => {
+    vi.mocked(lireDecisions).mockResolvedValue(fichier);
+    const { result } = renderHook(() => useBrouillonDecisions('gescom'));
+    await waitFor(() => expect(result.current.pret).toBe(true));
+    expect(result.current.modifie).toBe(false);
+
+    const suivantes = { ...fichier.decisions, tables_ignorees: ['public.migrations'] };
+    act(() => result.current.modifier(() => suivantes));
+    expect(result.current.modifie).toBe(true);
+
+    act(() => result.current.enregistre(suivantes, 'sha256:2'));
+    expect(result.current.modifie).toBe(false);
+    expect(result.current.fichier).toEqual({
+      existe: true,
+      decisions: suivantes,
+      empreinte_fichier: 'sha256:2',
+      manuel: false,
+    });
+  });
+
+  it('relit le fichier et remplace le brouillon', async () => {
+    vi.mocked(lireDecisions)
+      .mockResolvedValueOnce(fichier)
+      .mockResolvedValueOnce({
+        ...fichier,
+        decisions: { renommages: { 'public.clients': 'Client' } },
+        empreinte_fichier: 'sha256:3',
+      });
+    const { result } = renderHook(() => useBrouillonDecisions('gescom'));
+    await waitFor(() => expect(result.current.pret).toBe(true));
+    act(() => result.current.modifier((d) => ({ ...d, espace_de_noms: 'App\\Gescom' })));
+
+    act(() => result.current.relire());
+
+    await waitFor(() => expect(result.current.fichier?.empreinte_fichier).toBe('sha256:3'));
+    expect(result.current.decisions).toEqual({ renommages: { 'public.clients': 'Client' } });
+  });
 });

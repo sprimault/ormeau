@@ -272,6 +272,11 @@ export interface ReponseInference {
   propositions: Proposition[];
   enumerations: EnumerationInferee[];
   entites: ResumeEntite[];
+  /**
+   * TypesDoctrine sont ceux que l'écran suggère quand on force le type d'une
+   * colonne.
+   */
+  types_doctrine: string[];
 }
 /**
  * ResumeEntite est ce qu'une ligne de la liste montre d'une entité.

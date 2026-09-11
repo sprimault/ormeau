@@ -236,6 +236,9 @@ type ReponseInference struct {
 	Propositions      []inference.Proposition `json:"propositions"`
 	Enumerations      []EnumerationInferee    `json:"enumerations"`
 	Entites           []ResumeEntite          `json:"entites"`
+	// TypesDoctrine sont ceux que l'écran suggère quand on force le type d'une
+	// colonne.
+	TypesDoctrine []string `json:"types_doctrine"`
 }
 
 // ResumeEntite est ce qu'une ligne de la liste montre d'une entité.

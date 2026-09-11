@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -97,6 +98,9 @@ func TestInferenceHorsLigneRendUnResume(t *testing.T) {
 	}
 	if len(reponse.Entites) != 1 || reponse.Entites[0].Nom != "Acheteur" || reponse.Entites[0].NbProprietes != 1 {
 		t.Errorf("entités %+v", reponse.Entites)
+	}
+	if !slices.Contains(reponse.TypesDoctrine, "boolean") || !slices.IsSorted(reponse.TypesDoctrine) {
+		t.Errorf("types Doctrine %v, attendus triés et complets", reponse.TypesDoctrine)
 	}
 	if len(reponse.Avertissements) == 0 {
 		t.Error("une table sans clé primaire devrait produire un avertissement")

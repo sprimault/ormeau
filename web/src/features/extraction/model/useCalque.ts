@@ -7,6 +7,7 @@ import { ErreurAPI } from '@/shared/api';
 import { translate } from '@/shared/i18n';
 import { EtatTerminee, type Extraction, type ReponseCalque } from '@/shared/model';
 import { lireCalque } from '../api/extractionApi';
+import { useExtractions } from './contexte';
 
 /** Ce que la colonne du calque affiche. */
 export interface EtatCalque {
@@ -52,6 +53,17 @@ export function useCalque(session: string, version: string): EtatCalque {
   }, [session, version]);
 
   return { calque, message, enCours };
+}
+
+/**
+ * Version du calque d'une base, lue dans le suivi des extractions.
+ *
+ * Ce que l'aperçu et l'arbitrage surveillent pour savoir que le fichier a pu
+ * être réécrit, sans sonder le disque ni ouvrir un second flux.
+ */
+export function useVersionCalque(base: string): string {
+  const { extractions } = useExtractions();
+  return derniereFin(extractions, base);
 }
 
 /**

@@ -5,6 +5,8 @@ export { Button } from './Button';
 export { CopyButton } from './CopyButton';
 export { ErrorBanner } from './ErrorBanner';
 export { Field } from './Field';
+export { HelpTip } from './HelpTip';
 export { LangToggle } from './LangToggle';
 export { SplitPane } from './SplitPane';
+export { TextInput } from './TextInput';
 export { ThemeToggle } from './ThemeToggle';

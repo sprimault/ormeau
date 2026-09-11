@@ -49,6 +49,23 @@ describe('client HTTP', () => {
     await expect(getJSON('/api/inventaire')).rejects.toMatchObject({ statut: 401 });
   });
 
+  it('porte le code d’un refus, pour que l’écran sache quoi faire', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValue(
+          reponse({ erreur: 'le calque a changé', code: 'calque_modifie' }, { statut: 409 }),
+        ),
+    );
+
+    await expect(postJSON('/api/inference', {})).rejects.toMatchObject({
+      statut: 409,
+      code: 'calque_modifie',
+      message: 'le calque a changé',
+    });
+  });
+
   it('reconnaît une réponse qui n’est pas du JSON', async () => {
     // Le repli du front sert index.html sur tout ce qu'il ne connaît pas : sans
     // ce contrôle, l'appel échouerait au décodage avec un message qui ne dirait

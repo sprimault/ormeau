@@ -10,7 +10,18 @@ import { DecisionsError } from '../DecisionsError';
 
 /** Brouillon figé, avec ou sans erreur de lecture. */
 function brouillon(erreur: string | null): BrouillonDecisions {
-  return { base: 'gescom', decisions: {}, fichier: null, enCours: false, erreur, modifier: vi.fn() };
+  return {
+    base: 'gescom',
+    decisions: {},
+    fichier: null,
+    pret: true,
+    enCours: false,
+    erreur,
+    modifie: false,
+    modifier: vi.fn(),
+    relire: vi.fn(),
+    enregistre: vi.fn(),
+  };
 }
 
 describe('DecisionsError', () => {

@@ -164,6 +164,93 @@ const fr = {
   'calque.statsHidden':
     'Statistiques retirées : l’interface n’affiche aucune valeur échantillonnée.',
 
+  'tabs.label': 'Écrans',
+  'tabs.selection': 'Sélection des tables',
+  'tabs.arbitrage': 'Arbitrage de {base}',
+
+  'arbitrage.title': 'Arbitrage de {base}',
+  'arbitrage.intro':
+    'Les entités que la génération produira pour les tables extraites. « Écrire » enregistre dans {fichier} les noms de classes, les types forcés et les colonnes écartées à la sélection.',
+  'arbitrage.loading': 'Inférence en cours…',
+  'arbitrage.inferring': 'recalcul…',
+  'arbitrage.save': 'Écrire {fichier}',
+  'arbitrage.saving': 'Écriture…',
+  'arbitrage.state.unsaved': 'Modifications non enregistrées',
+  'arbitrage.state.saved': 'Enregistré',
+  'arbitrage.state.absent': 'Aucun fichier de décisions pour cette base',
+  'arbitrage.layerChanged':
+    'Le calque a changé depuis le début de l’arbitrage : une extraction l’a réécrit. Les décisions en cours sont gardées ; celles qui ne visent plus rien seront signalées.',
+  'arbitrage.reload': 'Recharger le calque',
+  'arbitrage.fileChanged':
+    'Le fichier de décisions a changé sur disque depuis sa lecture. Le relire remplace les modifications en cours.',
+  'arbitrage.reread': 'Relire le fichier',
+  'arbitrage.manual':
+    'Ce fichier porte des modifications faites à la main. L’écrire depuis l’interface le régénère entièrement : ses commentaires et sa mise en forme seront perdus.',
+  'arbitrage.overwrite': 'Écraser quand même',
+  'arbitrage.cancel': 'Annuler',
+
+  'arbitrage.entities': 'Entités ({n})',
+  'arbitrage.entities.filter': 'Filtrer les entités',
+  'arbitrage.entities.none': 'Aucune entité à générer dans ce calque.',
+  'arbitrage.pending': '{n} à traiter',
+
+  'arbitrage.className': 'Nom de classe',
+  'arbitrage.proposal': 'Proposé : {nom} (confiance {pct} %)',
+  'arbitrage.useProposal': 'Reprendre',
+  'arbitrage.warnings': 'Avertissements',
+  'arbitrage.forceType': 'Forcer',
+  'arbitrage.forceType.label': 'Type Doctrine pour {colonne}',
+  'arbitrage.forced': 'Types forcés',
+  'arbitrage.forced.undo': 'Annuler',
+
+  'help.label': 'Aide',
+  'arbitrage.help.entities':
+    'Une entité par table extraite : la classe PHP que la génération produira. Le nombre en orange compte les avertissements à traiter.',
+  'arbitrage.help.className':
+    'Nom de la classe PHP générée pour cette table. Laissé vide, c’est le nom affiché en gris qui s’applique. Le nom saisi est enregistré dans le fichier de décisions et rejoué à chaque génération.',
+  'arbitrage.help.warnings':
+    'Ce que l’outil n’a pas pu décider seul pour cette entité. En orange, ce qui demande une action ; en gris, une simple information.',
+  'arbitrage.help.forceType':
+    'L’outil ne connaît pas le type de cette colonne. Le champ propose le type qu’il a retenu faute de mieux : « Forcer » le confirme et fait disparaître l’avertissement. Un autre type Doctrine peut être saisi, y compris un type propre au projet.',
+  'arbitrage.help.forced':
+    'Types Doctrine imposés à des colonnes de cette table. « Annuler » rend la main à l’inférence.',
+  'arbitrage.help.entity':
+    'Ce que la génération produira : propriétés, types PHP et Doctrine, associations. Recalculé à chaque modification.',
+  'arbitrage.help.table':
+    'La table telle que l’extraction l’a lue dans la base. Les colonnes écartées dans « Sélection des tables » ne deviennent pas des propriétés.',
+
+  'arbitrage.detail.loading': 'Calcul de l’entité…',
+  'arbitrage.detail.entity': 'Entité inférée',
+  'arbitrage.detail.table': 'Table physique',
+  'arbitrage.detail.noEntity':
+    'Aucune entité : la table est ignorée, ou c’est une table de jointure.',
+  'arbitrage.detail.identifier': 'Identifiant',
+  'arbitrage.detail.property': 'Propriété',
+  'arbitrage.detail.php': 'PHP',
+  'arbitrage.detail.doctrine': 'Doctrine',
+  'arbitrage.detail.associations': 'Associations',
+  'arbitrage.detail.foreignKeys': 'Clés étrangères',
+  'arbitrage.detail.copyEntity': 'Copier l’entité',
+  'arbitrage.detail.copyTable': 'Copier la table',
+
+  'warning.table_sans_cle_primaire': 'Table sans clé primaire',
+  'warning.cle_primaire_composite': 'Clé primaire composite',
+  'warning.fk_implicite_probable': 'Clé étrangère implicite probable',
+  'warning.type_non_reconnu': 'Type non reconnu',
+  'warning.nom_non_singularisable': 'Nom non singularisable',
+  'warning.collision_de_nom': 'Collision de nom',
+  'warning.decision_sans_cible': 'Décision sans cible',
+  'warning.table_ignoree': 'Table ignorée',
+  'warning.colonne_ignoree': 'Colonne ignorée',
+  'warning.cle_primaire_non_ignorable': 'Clé primaire non ignorable',
+  'warning.defaut_incompatible': 'Défaut incompatible',
+  'warning.prefixe_detecte': 'Préfixe détecté',
+  'warning.cible_hors_portee': 'Cible hors portée',
+  'warning.cas_enumeration_opaque': 'Cas d’énumération opaque',
+  'warning.trait_deduit': 'Trait déduit',
+  'warning.table_de_jointure': 'Table de jointure',
+  'warning.heritage_deduit': 'Héritage déduit',
+
   'error.network': 'Le serveur local ne répond pas.',
   'error.unknown': 'Échec inattendu.',
   'error.notJson': 'Réponse inattendue de {path} ({type}).',
@@ -321,6 +408,92 @@ const en: Record<MessageKey, string> = {
   'calque.copy': 'Copy the layer',
   'calque.loading': 'Reading the layer…',
   'calque.statsHidden': 'Statistics removed: the interface shows no sampled value.',
+
+  'tabs.label': 'Screens',
+  'tabs.selection': 'Table selection',
+  'tabs.arbitrage': 'Review of {base}',
+
+  'arbitrage.title': 'Review of {base}',
+  'arbitrage.intro':
+    'The entities generation will produce for the extracted tables. “Write” saves class names, forced types and the columns excluded in selection to {fichier}.',
+  'arbitrage.loading': 'Running the inference…',
+  'arbitrage.inferring': 'recomputing…',
+  'arbitrage.save': 'Write {fichier}',
+  'arbitrage.saving': 'Writing…',
+  'arbitrage.state.unsaved': 'Unsaved changes',
+  'arbitrage.state.saved': 'Saved',
+  'arbitrage.state.absent': 'No decisions file for this database',
+  'arbitrage.layerChanged':
+    'The layer changed since the review started: an extraction rewrote it. Current decisions are kept; those that no longer target anything will be reported.',
+  'arbitrage.reload': 'Reload the layer',
+  'arbitrage.fileChanged':
+    'The decisions file changed on disk since it was read. Reading it again replaces the current changes.',
+  'arbitrage.reread': 'Read the file again',
+  'arbitrage.manual':
+    'This file carries hand-made changes. Writing it from the interface regenerates it entirely: its comments and formatting will be lost.',
+  'arbitrage.overwrite': 'Overwrite anyway',
+  'arbitrage.cancel': 'Cancel',
+
+  'arbitrage.entities': 'Entities ({n})',
+  'arbitrage.entities.filter': 'Filter entities',
+  'arbitrage.entities.none': 'No entity to generate in this layer.',
+  'arbitrage.pending': '{n} to handle',
+
+  'arbitrage.className': 'Class name',
+  'arbitrage.proposal': 'Proposed: {nom} (confidence {pct}%)',
+  'arbitrage.useProposal': 'Use it',
+  'arbitrage.warnings': 'Warnings',
+  'arbitrage.forceType': 'Force',
+  'arbitrage.forceType.label': 'Doctrine type for {colonne}',
+  'arbitrage.forced': 'Forced types',
+  'arbitrage.forced.undo': 'Undo',
+
+  'help.label': 'Help',
+  'arbitrage.help.entities':
+    'One entity per extracted table: the PHP class generation will produce. The orange number counts the warnings to handle.',
+  'arbitrage.help.className':
+    'Name of the PHP class generated for this table. Left empty, the name shown in grey applies. A typed name is saved in the decisions file and replayed at each generation.',
+  'arbitrage.help.warnings':
+    'What the tool could not decide on its own for this entity. Orange needs an action; grey is information only.',
+  'arbitrage.help.forceType':
+    'The tool does not know this column’s type. The field suggests the type it fell back on: “Force” confirms it and clears the warning. Another Doctrine type can be typed, including one specific to the project.',
+  'arbitrage.help.forced':
+    'Doctrine types imposed on columns of this table. “Undo” gives control back to the inference.',
+  'arbitrage.help.entity':
+    'What generation will produce: properties, PHP and Doctrine types, associations. Recomputed at each change.',
+  'arbitrage.help.table':
+    'The table as the extraction read it from the database. Columns excluded in “Table selection” do not become properties.',
+
+  'arbitrage.detail.loading': 'Computing the entity…',
+  'arbitrage.detail.entity': 'Inferred entity',
+  'arbitrage.detail.table': 'Physical table',
+  'arbitrage.detail.noEntity': 'No entity: the table is ignored, or it is a join table.',
+  'arbitrage.detail.identifier': 'Identifier',
+  'arbitrage.detail.property': 'Property',
+  'arbitrage.detail.php': 'PHP',
+  'arbitrage.detail.doctrine': 'Doctrine',
+  'arbitrage.detail.associations': 'Associations',
+  'arbitrage.detail.foreignKeys': 'Foreign keys',
+  'arbitrage.detail.copyEntity': 'Copy the entity',
+  'arbitrage.detail.copyTable': 'Copy the table',
+
+  'warning.table_sans_cle_primaire': 'Table without primary key',
+  'warning.cle_primaire_composite': 'Composite primary key',
+  'warning.fk_implicite_probable': 'Probable implicit foreign key',
+  'warning.type_non_reconnu': 'Unrecognized type',
+  'warning.nom_non_singularisable': 'Name cannot be singularized',
+  'warning.collision_de_nom': 'Name collision',
+  'warning.decision_sans_cible': 'Decision without target',
+  'warning.table_ignoree': 'Ignored table',
+  'warning.colonne_ignoree': 'Ignored column',
+  'warning.cle_primaire_non_ignorable': 'Primary key cannot be ignored',
+  'warning.defaut_incompatible': 'Incompatible default',
+  'warning.prefixe_detecte': 'Prefix detected',
+  'warning.cible_hors_portee': 'Target out of scope',
+  'warning.cas_enumeration_opaque': 'Opaque enumeration case',
+  'warning.trait_deduit': 'Inferred trait',
+  'warning.table_de_jointure': 'Join table',
+  'warning.heritage_deduit': 'Inferred inheritance',
 
   'error.network': 'The local server is not responding.',
   'error.unknown': 'Unexpected failure.',

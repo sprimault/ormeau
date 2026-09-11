@@ -153,6 +153,7 @@ func (s *serveur) inferer(w http.ResponseWriter, r *http.Request) {
 		Propositions:      jamaisNil(inference.Proposer(physique, &requete.Decisions)),
 		Enumerations:      enumerationsInferees(logique),
 		Entites:           resumes(logique),
+		TypesDoctrine:     inference.TypesDoctrine(),
 	})
 }
 

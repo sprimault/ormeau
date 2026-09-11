@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { translate } from '@/shared/i18n';
-import type { ReponseErreur } from '@/shared/model';
+import type { CodeRefus, ReponseErreur } from '@/shared/model';
 
 /**
  * Client HTTP de l'interface.
@@ -20,6 +20,9 @@ export class ErreurAPI extends Error {
   constructor(
     public readonly statut: number,
     message: string,
+    /** Refus que l'écran traite à part. Il dit quoi faire, jamais quoi
+     *  afficher : le message reste celui du serveur. */
+    public readonly code?: CodeRefus,
   ) {
     super(message);
     this.name = 'ErreurAPI';
@@ -37,32 +40,35 @@ async function appeler(chemin: string, init?: RequestInit): Promise<Response> {
   }
 
   if (!reponse.ok) {
-    throw new ErreurAPI(reponse.status, await messageDErreur(reponse));
+    const { message, code } = await lireEchec(reponse);
+    throw new ErreurAPI(reponse.status, message, code);
   }
   return reponse;
 }
 
 /**
- * Extrait le message d'un échec.
+ * Extrait le message d'un échec, et le code du refus quand il y en a un.
  *
  * L'API répond toujours en JSON, mais un 404 servi par le repli du front rend
  * du HTML : sans ce contrôle, l'appel échouerait au décodage avec un message
  * qui ne dirait rien de la cause.
  */
-async function messageDErreur(reponse: Response): Promise<string> {
+async function lireEchec(reponse: Response): Promise<{ message: string; code?: CodeRefus }> {
   const type = reponse.headers.get('Content-Type') ?? '';
   if (!type.includes('json')) {
-    return translate('error.notJson', {
-      path: new URL(reponse.url, window.location.origin).pathname,
-      type: type || translate('error.noContentType'),
-    });
+    return {
+      message: translate('error.notJson', {
+        path: new URL(reponse.url, window.location.origin).pathname,
+        type: type || translate('error.noContentType'),
+      }),
+    };
   }
 
   try {
     const corps = (await reponse.json()) as ReponseErreur;
-    return corps.erreur || translate('error.unknown');
+    return { message: corps.erreur || translate('error.unknown'), code: corps.code || undefined };
   } catch {
-    return translate('error.unknown');
+    return { message: translate('error.unknown') };
   }
 }
 
