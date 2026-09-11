@@ -156,6 +156,13 @@ const fr = {
   'anomaly.type_enumere_introuvable': 'Type énuméré introuvable',
   'anomaly.statistiques_orphelines': 'Statistiques sans table',
 
+  'calque.title': 'Calque produit',
+  'calque.extractedAt': 'extrait à {heure}',
+  'calque.copy': 'Copier le calque',
+  'calque.loading': 'Lecture du calque…',
+  'calque.statsHidden':
+    'Statistiques retirées : l’interface n’affiche aucune valeur échantillonnée.',
+
   'error.network': 'Le serveur local ne répond pas.',
   'error.unknown': 'Échec inattendu.',
   'error.notJson': 'Réponse inattendue de {path} ({type}).',
@@ -306,6 +313,12 @@ const en: Record<MessageKey, string> = {
   'anomaly.arite_incoherente': 'Column count mismatch',
   'anomaly.type_enumere_introuvable': 'Enumerated type not found',
   'anomaly.statistiques_orphelines': 'Statistics without a table',
+
+  'calque.title': 'Produced layer',
+  'calque.extractedAt': 'extracted at {heure}',
+  'calque.copy': 'Copy the layer',
+  'calque.loading': 'Reading the layer…',
+  'calque.statsHidden': 'Statistics removed: the interface shows no sampled value.',
 
   'error.network': 'The local server is not responding.',
   'error.unknown': 'Unexpected failure.',

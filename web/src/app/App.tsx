@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ConnectionForm, ConnectionSummary, useConnection } from '@/features/connection';
-import { ExtractButton, ExtractionsProvider } from '@/features/extraction';
+import { CalquePreview, ExtractButton, ExtractionsProvider } from '@/features/extraction';
 import { InventoryScreen } from '@/features/inventory';
 import { ErrorBanner } from '@/shared/ui';
 import { Header } from '@/widgets/header';
@@ -72,6 +72,7 @@ function Ecran() {
         actions={(portee) => (
           <ExtractButton session={serveur.session} base={serveur.catalogue} portee={portee} />
         )}
+        produit={<CalquePreview session={serveur.session} base={serveur.catalogue} />}
       />
     </div>
   );

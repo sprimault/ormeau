@@ -23,6 +23,8 @@ interface ProprietesEcran {
   onOuvrirBase: (base: string) => void;
   /** Ce qui agit sur la portée composée ici — le lancement d'une extraction. */
   actions?: (portee: Portee) => ReactNode;
+  /** Ce que l'extraction a produit, affiché à côté de la portée. */
+  produit?: ReactNode;
 }
 
 /**
@@ -42,6 +44,7 @@ export function InventoryScreen({
   enCours,
   onOuvrirBase,
   actions,
+  produit,
 }: ProprietesEcran) {
   const inventaire = useInventory(serveur.session, serveur.schemas);
   const etat = useSelection(inventaire.tables);
@@ -82,7 +85,12 @@ export function InventoryScreen({
           />
         }
       />
-      <ScopePreview portee={portee} exclusions={exclusions} actions={actions?.(portee)} />
+      <ScopePreview
+        portee={portee}
+        exclusions={exclusions}
+        actions={actions?.(portee)}
+        produit={produit}
+      />
     </div>
   );
 }

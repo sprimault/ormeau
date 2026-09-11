@@ -23,6 +23,7 @@ export {
   type Extraction,
   type ReferenceExtraction,
   type RequeteExtraction,
+  type ReponseCalque,
   type ResultatExtraction,
 } from './api';
 export type { Anomalie } from './calque';

@@ -29,6 +29,7 @@ function portee(tables: string[] = [], schemas = ['public']): Portee {
 describe('ScopePreview', () => {
   beforeEach(() => {
     useLangStore.setState({ lang: 'fr' });
+    window.localStorage.clear();
   });
 
   it('dit qu’une sélection vide couvre tout, ce que le JSON seul ne montre pas', () => {
@@ -46,29 +47,20 @@ describe('ScopePreview', () => {
     expect(screen.getByText('2 table(s) sur 2 schéma(s)')).toBeInTheDocument();
   });
 
-  it('montre la portée exacte qui partira, une fois dépliée', async () => {
-    render(
-      <ScopePreview
-        portee={portee(['public.clients', 'public.commandes'])}
-        exclusions={exclusions()}
-      />,
-    );
+  it('montre dès l’ouverture la portée exacte qui partira', () => {
+    const attendue = portee(['public.clients', 'public.commandes']);
+    render(<ScopePreview portee={attendue} exclusions={exclusions()} />);
 
-    await userEvent.click(screen.getByRole('button', { name: /Ce que produira cet écran/ }));
-
-    const json = screen.getByText(/tables_incluses/);
-    expect(json.textContent).toBe(JSON.stringify(portee(['public.clients', 'public.commandes']), null, 2));
+    expect(screen.getByText(/tables_incluses/).textContent).toBe(JSON.stringify(attendue, null, 2));
   });
 
-  it('sépare ce qui part à l’extraction de ce qui va dans les décisions', async () => {
+  it('sépare ce qui part à l’extraction de ce qui va dans les décisions', () => {
     render(
       <ScopePreview
         portee={portee(['public.clients'])}
         exclusions={exclusions({ 'public.clients': ['blob_import', 'photo'] })}
       />,
     );
-
-    await userEvent.click(screen.getByRole('button', { name: /Ce que produira cet écran/ }));
 
     // La colonne écartée ne doit pas apparaître dans la portée : le calque
     // physique garde tout, c'est l'entité qui la perd.
@@ -78,14 +70,33 @@ describe('ScopePreview', () => {
     );
   });
 
-  it('annonce le nombre de colonnes écartées sans rien déplier', () => {
+  it('annonce le nombre de colonnes écartées dans la barre', () => {
     render(
       <ScopePreview portee={portee()} exclusions={exclusions({ 'public.clients': ['photo'] })} />,
     );
     expect(screen.getByText('1 colonne(s) écartée(s)')).toBeInTheDocument();
   });
 
-  it('reste replié par défaut', () => {
+  it('place le calque produit à côté de ce qui part', () => {
+    render(
+      <ScopePreview
+        portee={portee()}
+        exclusions={exclusions()}
+        produit={<p>calque produit</p>}
+      />,
+    );
+
+    expect(screen.getByText('calque produit')).toBeInTheDocument();
+    expect(screen.getByText(/tables_incluses/)).toBeInTheDocument();
+  });
+
+  it('se replie, et le retient au lancement suivant', async () => {
+    const { unmount } = render(<ScopePreview portee={portee()} exclusions={exclusions()} />);
+
+    await userEvent.click(screen.getByRole('button', { name: /Ce que produira cet écran/ }));
+    expect(screen.queryByText(/tables_incluses/)).not.toBeInTheDocument();
+
+    unmount();
     render(<ScopePreview portee={portee()} exclusions={exclusions()} />);
     expect(screen.queryByText(/tables_incluses/)).not.toBeInTheDocument();
   });

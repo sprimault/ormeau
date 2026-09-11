@@ -1,8 +1,14 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
-import { postJSON, supprimer } from '@/shared/api';
-import type { Extraction, Portee, ReferenceExtraction, RequeteExtraction } from '@/shared/model';
+import { getJSON, postJSON, supprimer } from '@/shared/api';
+import type {
+  Extraction,
+  Portee,
+  ReferenceExtraction,
+  ReponseCalque,
+  RequeteExtraction,
+} from '@/shared/model';
 
 /**
  * Lance l'extraction de la base d'une session.
@@ -32,4 +38,14 @@ export function retirerExtraction(id: string, signal?: AbortSignal): Promise<voi
  */
 export function ouvrirFlux(): EventSource {
   return new EventSource('/api/extractions/evenements');
+}
+
+/**
+ * Lit le calque de la base d'une session, dans le répertoire de travail.
+ *
+ * Aucun nom de fichier ne part d'ici : le serveur le compose à partir de la
+ * session, comme à l'extraction.
+ */
+export function lireCalque(session: string, signal?: AbortSignal): Promise<ReponseCalque> {
+  return getJSON<ReponseCalque>(`/api/calque?${new URLSearchParams({ session })}`, signal);
 }

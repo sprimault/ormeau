@@ -12,43 +12,60 @@ import type { EtatExclusions } from '../model/useExclusions';
 interface ProprietesApercu {
   portee: Portee;
   exclusions: EtatExclusions;
-  /** Placé dans la barre, visible sans rien déplier. */
+  /** Placé dans la barre, visible même replié. */
   actions?: ReactNode;
+  /** Ce que l'extraction a produit, en colonne de droite. */
+  produit?: ReactNode;
 }
 
+/** Clé de persistance du repli : une préférence d'affichage, comme la largeur
+ *  de l'arbre, jamais rien qui touche à la base. */
+const CLE_OUVERTURE = 'ormeau-apercu-ouvert';
+
 /**
- * Ce que produira l'écran, en deux morceaux qui ne vont pas au même endroit.
+ * Ce que produira l'écran, et ce qu'il a produit.
  *
- * La portée part à l'extraction et décide de ce que la base est interrogée. Les
- * colonnes écartées, elles, ne la touchent pas : elles vont dans le fichier de
- * décisions, qui se rejoue hors ligne. Les montrer côte à côte est le seul moyen
- * de rendre cette séparation évidente sans l'expliquer.
+ * À gauche, ce qui part, en deux morceaux qui ne vont pas au même endroit : la
+ * portée décide de ce que la base est interrogée, les colonnes écartées vont
+ * dans le fichier de décisions, qui se rejoue hors ligne. À droite, le calque
+ * que l'extraction a écrit. Les voir côte à côte rend évident ce qui a été
+ * demandé et ce qui est arrivé, sans l'expliquer.
  *
- * La portée arrive composée, et c'est elle qui s'affiche : ce qu'on lit ici est
- * exactement ce qui partira, pas une reconstitution qui pourrait s'en écarter.
+ * Ouvert par défaut : c'est le résultat du travail de l'écran, il n'a pas à se
+ * chercher. Le repli se retient d'un lancement à l'autre.
  *
  * Une liste de tables vide n'est pas une portée vide : c'est « toutes celles des
  * schémas retenus », comme en ligne de commande. Le dire, parce que le JSON seul
  * laisserait croire l'inverse.
  *
- * Le bouton qui lance l'extraction arrive par `actions` : il appartient à une
- * autre feature, que celle-ci ne connaît pas.
+ * Le bouton d'extraction et le calque produit arrivent par `actions` et
+ * `produit` : ils appartiennent à une autre feature, que celle-ci ne connaît pas.
  */
-export function ScopePreview({ portee, exclusions, actions }: ProprietesApercu) {
+export function ScopePreview({ portee, exclusions, actions, produit }: ProprietesApercu) {
   const t = useT();
-  const [ouvert, setOuvert] = useState(false);
+  const [ouvert, setOuvert] = useState(ouvertureEnregistree);
 
   const tables = portee.tables_incluses ?? [];
   const schemas = portee.schemas ?? [];
   const json = useMemo(() => JSON.stringify(portee, null, 2), [portee]);
   const decisions = useMemo(() => enYaml(exclusions.ignorees), [exclusions.ignorees]);
 
+  function basculer() {
+    const suivant = !ouvert;
+    setOuvert(suivant);
+    try {
+      window.localStorage.setItem(CLE_OUVERTURE, suivant ? '1' : '0');
+    } catch {
+      // Stockage indisponible : le repli vaut pour cette session.
+    }
+  }
+
   return (
     <section className="border-t border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-900">
       <div className="flex items-center gap-3 px-3 py-1.5">
         <button
           type="button"
-          onClick={() => setOuvert((precedent) => !precedent)}
+          onClick={basculer}
           aria-expanded={ouvert}
           className="text-xs font-semibold"
         >
@@ -70,34 +87,53 @@ export function ScopePreview({ portee, exclusions, actions }: ProprietesApercu) 
       </div>
 
       {ouvert ? (
-        <div className="grid max-h-56 grid-cols-2 gap-px overflow-auto border-t border-slate-200 bg-slate-200 dark:border-slate-800 dark:bg-slate-800">
-          <div className="bg-slate-100 dark:bg-slate-900">
-            <div className="flex items-center gap-2 px-3 py-1">
-              <h3 className="text-xs font-medium text-slate-600 dark:text-slate-400">
-                {t('scope.extraction')}
-              </h3>
-              <div className="ml-auto">
-                <CopyButton valeur={json} libelle={t('scope.copy')} />
+        <div
+          className={`grid h-[35vh] gap-px border-t border-slate-200 bg-slate-200 dark:border-slate-800 dark:bg-slate-800 ${
+            produit ? 'grid-cols-2' : 'grid-cols-1'
+          }`}
+        >
+          <div className="flex min-h-0 flex-col gap-px">
+            <div className="flex min-h-0 flex-1 flex-col bg-slate-100 dark:bg-slate-900">
+              <div className="flex items-center gap-2 px-3 py-1">
+                <h3 className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                  {t('scope.extraction')}
+                </h3>
+                <div className="ml-auto">
+                  <CopyButton valeur={json} libelle={t('scope.copy')} />
+                </div>
               </div>
+              <pre className="min-h-0 flex-1 overflow-auto px-3 pb-2 font-mono text-xs">{json}</pre>
             </div>
-            <pre className="px-3 pb-2 font-mono text-xs">{json}</pre>
+
+            <div className="flex max-h-[40%] min-h-0 flex-col bg-slate-100 dark:bg-slate-900">
+              <div className="flex items-center gap-2 px-3 py-1">
+                <h3 className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                  {t('scope.decisions')}
+                </h3>
+                <div className="ml-auto">
+                  <CopyButton valeur={decisions} libelle={t('scope.copyDecisions')} />
+                </div>
+              </div>
+              <pre className="min-h-0 overflow-auto px-3 pb-2 font-mono text-xs">{decisions}</pre>
+            </div>
           </div>
 
-          <div className="bg-slate-100 dark:bg-slate-900">
-            <div className="flex items-center gap-2 px-3 py-1">
-              <h3 className="text-xs font-medium text-slate-600 dark:text-slate-400">
-                {t('scope.decisions')}
-              </h3>
-              <div className="ml-auto">
-                <CopyButton valeur={decisions} libelle={t('scope.copyDecisions')} />
-              </div>
-            </div>
-            <pre className="px-3 pb-2 font-mono text-xs">{decisions}</pre>
-          </div>
+          {produit ? (
+            <div className="min-h-0 overflow-hidden bg-slate-100 dark:bg-slate-900">{produit}</div>
+          ) : null}
         </div>
       ) : null}
     </section>
   );
+}
+
+/** Relit le repli choisi ; ouvert quand rien n'a été retenu. */
+function ouvertureEnregistree(): boolean {
+  try {
+    return window.localStorage.getItem(CLE_OUVERTURE) !== '0';
+  } catch {
+    return true;
+  }
 }
 
 /**
