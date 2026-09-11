@@ -12,5 +12,19 @@ export type {
   RequeteBase,
   ReponseColonnes,
 } from './api';
-export type { TableSommaire, ColonneSommaire, Portee } from './introspection';
+export {
+  EtatAnnulee,
+  EtatEchouee,
+  EtatEnAttente,
+  EtatEnCours,
+  EtatTerminee,
+  type EtatExtraction,
+  type EtatExtractions,
+  type Extraction,
+  type ReferenceExtraction,
+  type RequeteExtraction,
+  type ResultatExtraction,
+} from './api';
+export type { Anomalie } from './calque';
+export type { TableSommaire, ColonneSommaire, Portee, Avancement } from './introspection';
 export { CLE_THEME, initTheme, themeEnregistre, useThemeStore, type Theme } from './theme';

@@ -82,4 +82,16 @@ describe('ScopePreview', () => {
     render(<ScopePreview schemas={['public']} selection={new Set()} exclusions={exclusions()} />);
     expect(screen.queryByText(/tables_incluses/)).not.toBeInTheDocument();
   });
+
+  it('place les actions fournies dans la barre, sans rien déplier', () => {
+    render(
+      <ScopePreview
+        schemas={['public']}
+        selection={new Set()}
+        exclusions={exclusions()}
+        actions={<button type="button">Extraire</button>}
+      />,
+    );
+    expect(screen.getByRole('button', { name: 'Extraire' })).toBeInTheDocument();
+  });
 });

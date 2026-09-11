@@ -2,12 +2,27 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ConnectionForm, ConnectionSummary, useConnection } from '@/features/connection';
+import { ExtractButton, ExtractionsProvider } from '@/features/extraction';
 import { InventoryScreen } from '@/features/inventory';
 import { ErrorBanner } from '@/shared/ui';
 import { Header } from '@/widgets/header';
 
 /**
  * Racine de l'interface.
+ *
+ * Le suivi des extractions l'enveloppe entière : il ouvre le seul flux
+ * d'événements de la page, et survit au passage d'un écran à l'autre.
+ */
+export function App() {
+  return (
+    <ExtractionsProvider>
+      <Ecran />
+    </ExtractionsProvider>
+  );
+}
+
+/**
+ * Écran courant.
  *
  * Pas de routeur tant que l'écran affiché découle de l'état de la connexion :
  * la session vit en mémoire, donc recharger une adresse profonde ramènerait au
@@ -17,7 +32,7 @@ import { Header } from '@/widgets/header';
  * Hauteur fixée à l'écran plutôt que laissée au contenu : l'arbre et le détail
  * défilent chacun de leur côté, et la portée reste visible en bas.
  */
-export function App() {
+function Ecran() {
   const { serveur, bases, enCours, erreur, ouvrir, fermer, changerBase } = useConnection();
 
   if (!serveur) {
@@ -54,6 +69,9 @@ export function App() {
         bases={bases}
         enCours={enCours}
         onOuvrirBase={(base) => void changerBase(base)}
+        actions={(portee) => (
+          <ExtractButton session={serveur.session} base={serveur.catalogue} portee={portee} />
+        )}
       />
     </div>
   );

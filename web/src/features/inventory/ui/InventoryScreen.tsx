@@ -1,14 +1,15 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 
 import { qualifier } from '@/shared/lib';
-import type { ReponseConnexion } from '@/shared/model';
+import type { Portee, ReponseConnexion } from '@/shared/model';
 import { SplitPane } from '@/shared/ui';
 import { useColumns } from '../model/useColumns';
 import { useExclusions } from '../model/useExclusions';
 import { useInventory } from '../model/useInventory';
+import { usePortee } from '../model/usePortee';
 import { useSelection } from '../model/useSelection';
 import { DatabaseTree } from './DatabaseTree';
 import { ScopePreview } from './ScopePreview';
@@ -20,6 +21,8 @@ interface ProprietesEcran {
   bases: string[];
   enCours: boolean;
   onOuvrirBase: (base: string) => void;
+  /** Ce qui agit sur la portée composée ici — le lancement d'une extraction. */
+  actions?: (portee: Portee) => ReactNode;
 }
 
 /**
@@ -29,12 +32,22 @@ interface ProprietesEcran {
  * droite, la portée qui partira à l'extraction en bas. La sélection est tenue
  * ici parce que les trois la lisent — l'arbre pour cocher, le détail pour
  * signaler une référence sortante, la portée pour la composer.
+ *
+ * L'écran compose la portée mais ne la lance pas : l'extraction est une autre
+ * feature, que l'application branche par `actions`.
  */
-export function InventoryScreen({ serveur, bases, enCours, onOuvrirBase }: ProprietesEcran) {
+export function InventoryScreen({
+  serveur,
+  bases,
+  enCours,
+  onOuvrirBase,
+  actions,
+}: ProprietesEcran) {
   const inventaire = useInventory(serveur.session, serveur.schemas);
   const etat = useSelection(inventaire.tables);
   const colonnes = useColumns(serveur.session);
   const exclusions = useExclusions();
+  const portee = usePortee(serveur.schemas, etat.selection);
   const [active, setActive] = useState<string | null>(null);
 
   const table = inventaire.tables.find(
@@ -69,7 +82,12 @@ export function InventoryScreen({ serveur, bases, enCours, onOuvrirBase }: Propr
           />
         }
       />
-      <ScopePreview schemas={serveur.schemas} selection={etat.selection} exclusions={exclusions} />
+      <ScopePreview
+        schemas={serveur.schemas}
+        selection={etat.selection}
+        exclusions={exclusions}
+        actions={actions?.(portee)}
+      />
     </div>
   );
 }

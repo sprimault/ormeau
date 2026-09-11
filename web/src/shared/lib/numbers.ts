@@ -25,3 +25,20 @@ export function compact(valeur: number): string {
   const arrondi = reste < 10 ? Math.round(reste * 10) / 10 : Math.round(reste);
   return `${String(arrondi).replace('.', ',')} ${unites[rang]}`;
 }
+
+/**
+ * Rend une durée lisible : « 42 s », « 3 min 05 s », « 1 h 12 min ».
+ *
+ * Les secondes disparaissent au-delà de l'heure : sur une extraction aussi
+ * longue, elles ne disent plus rien et font danser la largeur du texte.
+ */
+export function duree(secondes: number): string {
+  if (secondes < 60) {
+    return `${secondes} s`;
+  }
+  if (secondes < 3600) {
+    return `${Math.floor(secondes / 60)} min ${String(secondes % 60).padStart(2, '0')} s`;
+  }
+  const minutes = Math.floor(secondes / 60) % 60;
+  return `${Math.floor(secondes / 3600)} h ${String(minutes).padStart(2, '0')} min`;
+}

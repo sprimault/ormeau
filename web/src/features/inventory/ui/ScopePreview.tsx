@@ -1,18 +1,20 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 
 import { useT } from '@/shared/i18n';
-import type { Portee } from '@/shared/model';
 import { CopyButton } from '@/shared/ui';
 import type { EtatExclusions } from '../model/useExclusions';
+import { usePortee } from '../model/usePortee';
 
 /** Propriétés de l'aperçu. */
 interface ProprietesApercu {
   schemas: string[];
   selection: Set<string>;
   exclusions: EtatExclusions;
+  /** Placé au bout de la barre, visible sans rien déplier. */
+  actions?: ReactNode;
 }
 
 /**
@@ -29,16 +31,15 @@ interface ProprietesApercu {
  * Une liste de tables vide n'est pas une portée vide : c'est « toutes celles des
  * schémas retenus », comme en ligne de commande. Le dire, parce que le JSON seul
  * laisserait croire l'inverse.
+ *
+ * Le bouton qui lance l'extraction arrive par `actions` : il appartient à une
+ * autre feature, que celle-ci ne connaît pas.
  */
-export function ScopePreview({ schemas, selection, exclusions }: ProprietesApercu) {
+export function ScopePreview({ schemas, selection, exclusions, actions }: ProprietesApercu) {
   const t = useT();
   const [ouvert, setOuvert] = useState(false);
 
-  const portee = useMemo<Portee>(
-    () => ({ schemas, tables_incluses: [...selection].sort() }),
-    [schemas, selection],
-  );
-
+  const portee = usePortee(schemas, selection);
   const json = useMemo(() => JSON.stringify(portee, null, 2), [portee]);
   const decisions = useMemo(() => enYaml(exclusions.ignorees), [exclusions.ignorees]);
 
@@ -63,6 +64,7 @@ export function ScopePreview({ schemas, selection, exclusions }: ProprietesAperc
             {t('columns.excluded', { n: exclusions.total })}
           </span>
         ) : null}
+        {actions ? <div className="ml-auto">{actions}</div> : null}
       </div>
 
       {ouvert ? (

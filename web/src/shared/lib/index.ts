@@ -2,5 +2,5 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export { masquerDSN, tronquerMilieu } from './strings';
-export { compact } from './numbers';
+export { compact, duree } from './numbers';
 export { qualifier } from './sql';
