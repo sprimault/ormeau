@@ -22,6 +22,10 @@ on:
 permissions:
   contents: read
 
+env:
+  # La même que ci.yml : le front publié doit être celui que la CI a validé.
+  NODE_VERSION: '22'
+
 jobs:
   binaires:
     name: Binaires
@@ -77,6 +81,19 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
+
+      # Le binaire embarque le front : make test et make binaries le
+      # construisent, et go:embed échoue sans lui. npm ci et jamais npm
+      # install, pour publier ce que le lock a validé.
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Installer les dépendances du front
+        run: npm ci
+        working-directory: web
 
       # ci.yml n'écoute que les branches et les PR : sans ce garde-fou, un tag
       # posé sur un commit rouge publierait quand même.
@@ -175,6 +192,16 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Installer les dépendances du front
+        run: npm ci
+        working-directory: web
 
       # Les binaires sont reconstruits ici plutôt que transportés depuis le job
       # précédent : un artefact d'échange coûte plus cher que deux minutes de
