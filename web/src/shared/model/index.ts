@@ -24,8 +24,10 @@ export {
   type ReferenceExtraction,
   type RequeteExtraction,
   type ReponseCalque,
+  type ReponseDecisions,
   type ResultatExtraction,
 } from './api';
+export type { Decisions } from './inference';
 export type { Anomalie } from './calque';
 export type { TableSommaire, ColonneSommaire, Portee, Avancement } from './introspection';
 export { CLE_THEME, initTheme, themeEnregistre, useThemeStore, type Theme } from './theme';

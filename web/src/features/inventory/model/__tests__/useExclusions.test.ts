@@ -2,11 +2,40 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { act, renderHook } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { Decisions } from '@/shared/model';
 import { useExclusions } from '../useExclusions';
 
+/** Le brouillon simulé : ce qu'il contient au départ, et ce qu'il est devenu. */
+const brouillon = vi.hoisted(() => ({
+  initial: {} as Decisions,
+  courant: {} as Decisions,
+}));
+
+// Le brouillon de décisions a son propre fournisseur et ses propres tests : ce
+// qui est sous test ici, c'est ce que l'arbre y écrit.
+vi.mock('@/entities/decisions', async () => {
+  const { useCallback, useState } = await import('react');
+  return {
+    useDecisions: () => {
+      const [decisions, setDecisions] = useState<Decisions>(brouillon.initial);
+      const modifier = useCallback(
+        (transformation: (d: Decisions) => Decisions) => setDecisions((d) => transformation(d)),
+        [],
+      );
+      brouillon.courant = decisions;
+      return { decisions, modifier };
+    },
+  };
+});
+
 describe('useExclusions', () => {
+  beforeEach(() => {
+    brouillon.initial = {};
+    brouillon.courant = {};
+  });
+
   it('écarte puis remet une colonne', () => {
     const { result } = renderHook(() => useExclusions());
 
@@ -24,6 +53,7 @@ describe('useExclusions', () => {
     act(() => result.current.basculer('public.clients', 'photo'));
 
     expect(result.current.ignorees).toEqual({});
+    expect(brouillon.courant.colonnes_ignorees).toBeUndefined();
   });
 
   it('trie tables et colonnes, pour que deux sessions identiques se ressemblent', () => {
@@ -54,5 +84,25 @@ describe('useExclusions', () => {
     act(() => result.current.basculer('public.clients', 'note'));
 
     expect(result.current.estIgnoree('public.commandes', 'note')).toBe(false);
+  });
+
+  it('reprend les colonnes que le fichier de décisions écartait déjà', () => {
+    brouillon.initial = { colonnes_ignorees: { 'public.clients': ['photo', 'blob_import'] } };
+    const { result } = renderHook(() => useExclusions());
+
+    expect(result.current.estIgnoree('public.clients', 'photo')).toBe(true);
+    expect(result.current.total).toBe(2);
+  });
+
+  it('écrit dans le brouillon de décisions, sans toucher au reste', () => {
+    brouillon.initial = { tables_ignorees: ['public.migrations'] };
+    const { result } = renderHook(() => useExclusions());
+
+    act(() => result.current.basculer('public.clients', 'photo'));
+
+    expect(brouillon.courant).toEqual({
+      tables_ignorees: ['public.migrations'],
+      colonnes_ignorees: { 'public.clients': ['photo'] },
+    });
   });
 });

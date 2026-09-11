@@ -1,6 +1,7 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+import { DecisionsError, DecisionsProvider } from '@/entities/decisions';
 import { ConnectionForm, ConnectionSummary, useConnection } from '@/features/connection';
 import { CalquePreview, ExtractButton, ExtractionsProvider } from '@/features/extraction';
 import { InventoryScreen } from '@/features/inventory';
@@ -61,19 +62,24 @@ function Ecran() {
           <ErrorBanner message={erreur} />
         </div>
       ) : null}
-      {/* Remonté à chaque session : ouvrir une autre base repart d'une sélection
-          vide, puisqu'elle désignait les tables de la précédente. */}
-      <InventoryScreen
-        key={serveur.session}
-        serveur={serveur}
-        bases={bases}
-        enCours={enCours}
-        onOuvrirBase={(base) => void changerBase(base)}
-        actions={(portee) => (
-          <ExtractButton session={serveur.session} base={serveur.catalogue} portee={portee} />
-        )}
-        produit={<CalquePreview session={serveur.session} base={serveur.catalogue} />}
-      />
+      {/* Le brouillon de décisions suit la base : en ouvrir une autre repart de
+          son propre fichier. */}
+      <DecisionsProvider key={serveur.catalogue} base={serveur.catalogue}>
+        <DecisionsError />
+        {/* Remonté à chaque session : ouvrir une autre base repart d'une
+            sélection vide, puisqu'elle désignait les tables de la précédente. */}
+        <InventoryScreen
+          key={serveur.session}
+          serveur={serveur}
+          bases={bases}
+          enCours={enCours}
+          onOuvrirBase={(base) => void changerBase(base)}
+          actions={(portee) => (
+            <ExtractButton session={serveur.session} base={serveur.catalogue} portee={portee} />
+          )}
+          produit={<CalquePreview session={serveur.session} base={serveur.catalogue} />}
+        />
+      </DecisionsProvider>
     </div>
   );
 }
