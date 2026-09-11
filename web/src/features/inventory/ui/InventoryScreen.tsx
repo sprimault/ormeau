@@ -47,7 +47,7 @@ export function InventoryScreen({
   const etat = useSelection(inventaire.tables);
   const colonnes = useColumns(serveur.session);
   const exclusions = useExclusions();
-  const portee = usePortee(serveur.schemas, etat.selection);
+  const portee = usePortee(serveur.schemas, inventaire.tables, etat.selection);
   const [active, setActive] = useState<string | null>(null);
 
   const table = inventaire.tables.find(
@@ -82,12 +82,7 @@ export function InventoryScreen({
           />
         }
       />
-      <ScopePreview
-        schemas={serveur.schemas}
-        selection={etat.selection}
-        exclusions={exclusions}
-        actions={actions?.(portee)}
-      />
+      <ScopePreview portee={portee} exclusions={exclusions} actions={actions?.(portee)} />
     </div>
   );
 }

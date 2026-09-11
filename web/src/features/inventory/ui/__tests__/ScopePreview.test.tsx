@@ -6,6 +6,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useLangStore } from '@/shared/i18n';
+import type { Portee } from '@/shared/model';
 import type { EtatExclusions } from '../../model/useExclusions';
 import { ScopePreview } from '../ScopePreview';
 
@@ -20,39 +21,49 @@ function exclusions(ignorees: Record<string, string[]> = {}): EtatExclusions {
   };
 }
 
+/** Portée telle qu'usePortee la compose. */
+function portee(tables: string[] = [], schemas = ['public']): Portee {
+  return { schemas, tables_incluses: tables };
+}
+
 describe('ScopePreview', () => {
   beforeEach(() => {
     useLangStore.setState({ lang: 'fr' });
   });
 
   it('dit qu’une sélection vide couvre tout, ce que le JSON seul ne montre pas', () => {
-    render(<ScopePreview schemas={['public']} selection={new Set()} exclusions={exclusions()} />);
+    render(<ScopePreview portee={portee()} exclusions={exclusions()} />);
     expect(screen.getByText('toutes les tables des schémas retenus')).toBeInTheDocument();
   });
 
-  it('compte les tables retenues', () => {
-    const selection = new Set(['public.clients', 'public.commandes']);
-    render(<ScopePreview schemas={['public']} selection={selection} exclusions={exclusions()} />);
-    expect(screen.getByText('2 table(s) sur 1 schéma(s)')).toBeInTheDocument();
+  it('compte les tables et les schémas qui partiront', () => {
+    render(
+      <ScopePreview
+        portee={portee(['public.clients', 'ventes.factures'], ['public', 'ventes'])}
+        exclusions={exclusions()}
+      />,
+    );
+    expect(screen.getByText('2 table(s) sur 2 schéma(s)')).toBeInTheDocument();
   });
 
   it('montre la portée exacte qui partira, une fois dépliée', async () => {
-    const selection = new Set(['public.commandes', 'public.clients']);
-    render(<ScopePreview schemas={['public']} selection={selection} exclusions={exclusions()} />);
+    render(
+      <ScopePreview
+        portee={portee(['public.clients', 'public.commandes'])}
+        exclusions={exclusions()}
+      />,
+    );
 
     await userEvent.click(screen.getByRole('button', { name: /Ce que produira cet écran/ }));
 
-    // Triée : deux sélections identiques doivent donner le même texte, sinon
-    // l'aperçu change sans que la portée ait bougé.
     const json = screen.getByText(/tables_incluses/);
-    expect(json.textContent).toContain('"public.clients",\n    "public.commandes"');
+    expect(json.textContent).toBe(JSON.stringify(portee(['public.clients', 'public.commandes']), null, 2));
   });
 
   it('sépare ce qui part à l’extraction de ce qui va dans les décisions', async () => {
     render(
       <ScopePreview
-        schemas={['public']}
-        selection={new Set(['public.clients'])}
+        portee={portee(['public.clients'])}
         exclusions={exclusions({ 'public.clients': ['blob_import', 'photo'] })}
       />,
     );
@@ -69,25 +80,20 @@ describe('ScopePreview', () => {
 
   it('annonce le nombre de colonnes écartées sans rien déplier', () => {
     render(
-      <ScopePreview
-        schemas={['public']}
-        selection={new Set()}
-        exclusions={exclusions({ 'public.clients': ['photo'] })}
-      />,
+      <ScopePreview portee={portee()} exclusions={exclusions({ 'public.clients': ['photo'] })} />,
     );
     expect(screen.getByText('1 colonne(s) écartée(s)')).toBeInTheDocument();
   });
 
   it('reste replié par défaut', () => {
-    render(<ScopePreview schemas={['public']} selection={new Set()} exclusions={exclusions()} />);
+    render(<ScopePreview portee={portee()} exclusions={exclusions()} />);
     expect(screen.queryByText(/tables_incluses/)).not.toBeInTheDocument();
   });
 
   it('place les actions fournies dans la barre, sans rien déplier', () => {
     render(
       <ScopePreview
-        schemas={['public']}
-        selection={new Set()}
+        portee={portee()}
         exclusions={exclusions()}
         actions={<button type="button">Extraire</button>}
       />,

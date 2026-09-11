@@ -4,16 +4,15 @@
 import { useMemo, useState, type ReactNode } from 'react';
 
 import { useT } from '@/shared/i18n';
+import type { Portee } from '@/shared/model';
 import { CopyButton } from '@/shared/ui';
 import type { EtatExclusions } from '../model/useExclusions';
-import { usePortee } from '../model/usePortee';
 
 /** Propriétés de l'aperçu. */
 interface ProprietesApercu {
-  schemas: string[];
-  selection: Set<string>;
+  portee: Portee;
   exclusions: EtatExclusions;
-  /** Placé au bout de la barre, visible sans rien déplier. */
+  /** Placé dans la barre, visible sans rien déplier. */
   actions?: ReactNode;
 }
 
@@ -25,8 +24,8 @@ interface ProprietesApercu {
  * décisions, qui se rejoue hors ligne. Les montrer côte à côte est le seul moyen
  * de rendre cette séparation évidente sans l'expliquer.
  *
- * Le type de la portée vient du Go : ce qui s'affiche est exactement ce qui
- * partira, pas une reconstitution qui pourrait s'en écarter.
+ * La portée arrive composée, et c'est elle qui s'affiche : ce qu'on lit ici est
+ * exactement ce qui partira, pas une reconstitution qui pourrait s'en écarter.
  *
  * Une liste de tables vide n'est pas une portée vide : c'est « toutes celles des
  * schémas retenus », comme en ligne de commande. Le dire, parce que le JSON seul
@@ -35,11 +34,12 @@ interface ProprietesApercu {
  * Le bouton qui lance l'extraction arrive par `actions` : il appartient à une
  * autre feature, que celle-ci ne connaît pas.
  */
-export function ScopePreview({ schemas, selection, exclusions, actions }: ProprietesApercu) {
+export function ScopePreview({ portee, exclusions, actions }: ProprietesApercu) {
   const t = useT();
   const [ouvert, setOuvert] = useState(false);
 
-  const portee = usePortee(schemas, selection);
+  const tables = portee.tables_incluses ?? [];
+  const schemas = portee.schemas ?? [];
   const json = useMemo(() => JSON.stringify(portee, null, 2), [portee]);
   const decisions = useMemo(() => enYaml(exclusions.ignorees), [exclusions.ignorees]);
 
@@ -55,9 +55,9 @@ export function ScopePreview({ schemas, selection, exclusions, actions }: Propri
           {ouvert ? '▾' : '▸'} {t('scope.title')}
         </button>
         <span className="text-xs text-slate-500">
-          {selection.size === 0
+          {tables.length === 0
             ? t('scope.all')
-            : t('scope.count', { n: selection.size, schemas: schemas.length })}
+            : t('scope.count', { n: tables.length, schemas: schemas.length })}
         </span>
         {exclusions.total > 0 ? (
           <span className="text-xs text-amber-700 dark:text-amber-500">
