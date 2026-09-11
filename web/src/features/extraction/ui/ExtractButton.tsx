@@ -49,17 +49,17 @@ export function ExtractButton({ session, base, portee }: ProprietesBouton) {
 
   return (
     <div className="flex items-center gap-3">
+      <Button onClick={() => void extraire()} disabled={envoi || occupee}>
+        {occupee ? t('extraction.running') : t('extraction.launch')}
+      </Button>
+      <span className="font-mono text-xs text-slate-500" title={t('extraction.target')}>
+        {fichierCalque(base)}
+      </span>
       {erreur ? (
         <span role="alert" className="text-xs text-red-700 dark:text-red-400">
           {erreur}
         </span>
       ) : null}
-      <span className="font-mono text-xs text-slate-500" title={t('extraction.target')}>
-        {fichierCalque(base)}
-      </span>
-      <Button onClick={() => void extraire()} disabled={envoi || occupee}>
-        {occupee ? t('extraction.running') : t('extraction.launch')}
-      </Button>
     </div>
   );
 }

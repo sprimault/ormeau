@@ -90,14 +90,20 @@ describe('ScopePreview', () => {
     expect(screen.queryByText(/tables_incluses/)).not.toBeInTheDocument();
   });
 
-  it('place les actions fournies dans la barre, sans rien déplier', () => {
+  it('place les actions juste après le compte, pas au bout de la barre', () => {
     render(
       <ScopePreview
         portee={portee()}
-        exclusions={exclusions()}
+        exclusions={exclusions({ 'public.clients': ['photo'] })}
         actions={<button type="button">Extraire</button>}
       />,
     );
-    expect(screen.getByRole('button', { name: 'Extraire' })).toBeInTheDocument();
+
+    const compte = screen.getByText('toutes les tables des schémas retenus');
+    const bouton = screen.getByRole('button', { name: 'Extraire' });
+    const ecartees = screen.getByText('1 colonne(s) écartée(s)');
+
+    expect(compte.compareDocumentPosition(bouton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(bouton.compareDocumentPosition(ecartees) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 });

@@ -59,12 +59,14 @@ export function ScopePreview({ portee, exclusions, actions }: ProprietesApercu) 
             ? t('scope.all')
             : t('scope.count', { n: tables.length, schemas: schemas.length })}
         </span>
+        {/* Juste après le compte et non repoussé au bout de la barre : c'est là
+            que l'œil vient de lire ce qui partira. */}
+        {actions}
         {exclusions.total > 0 ? (
           <span className="text-xs text-amber-700 dark:text-amber-500">
             {t('columns.excluded', { n: exclusions.total })}
           </span>
         ) : null}
-        {actions ? <div className="ml-auto">{actions}</div> : null}
       </div>
 
       {ouvert ? (
