@@ -36,13 +36,16 @@ var (
 // Une taille nulle vaut « jamais réglée », et le front garde alors sa valeur
 // par défaut. Dupliquer ici les défauts de mise en page en ferait deux sources
 // à tenir d'accord.
+// Les deux jeux de balises ne se recouvrent pas par hasard : le fichier et
+// l'API portent les mêmes noms, et ce qu'on lit dans preferences.yaml est ce
+// que le navigateur renvoie.
 type Preferences struct {
-	Theme          string `yaml:"theme"`
-	Langue         string `yaml:"langue"`
-	ApercuOuvert   *bool  `yaml:"apercu_ouvert,omitempty"`
-	LargeurArbre   int    `yaml:"largeur_arbre,omitempty"`
-	HauteurApercu  int    `yaml:"hauteur_apercu,omitempty"`
-	LargeurEntites int    `yaml:"largeur_entites,omitempty"`
+	Theme          string `yaml:"theme" json:"theme"`
+	Langue         string `yaml:"langue" json:"langue"`
+	ApercuOuvert   *bool  `yaml:"apercu_ouvert,omitempty" json:"apercu_ouvert,omitempty"`
+	LargeurArbre   int    `yaml:"largeur_arbre,omitempty" json:"largeur_arbre,omitempty"`
+	HauteurApercu  int    `yaml:"hauteur_apercu,omitempty" json:"hauteur_apercu,omitempty"`
+	LargeurEntites int    `yaml:"largeur_entites,omitempty" json:"largeur_entites,omitempty"`
 }
 
 // PreferencesParDefaut rend ce qu'on affiche à un premier lancement : le thème

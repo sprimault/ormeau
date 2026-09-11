@@ -47,7 +47,7 @@ func interfaceLocale(args []string) error {
 	return ihm.Servir(ctx, ihm.Options{
 		Port:           *port,
 		Repertoire:     travail,
-		Configuration:  emplacements.Racine(),
+		Emplacements:   emplacements,
 		Version:        version,
 		SansNavigateur: *sansNavigateur,
 		Sortie:         os.Stderr,

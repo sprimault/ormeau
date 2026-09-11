@@ -47,6 +47,10 @@ préambule reste en français : il n'est jamais publié.
 
 ### Corrigé
 
+- **Le thème, la langue et la taille des panneaux sont retenus d'un lancement à
+  l'autre.** Ils revenaient à leurs valeurs par défaut à chaque démarrage.
+  Ils sont désormais enregistrés dans `preferences.yaml`, et appliqués avant le
+  premier affichage.
 - **Le refus d'un calque absent nomme le répertoire de travail.** Lancée
   ailleurs que dans le projet, l'interface annonçait un calque manquant sans
   dire où elle l'avait cherché.
@@ -64,6 +68,9 @@ préambule reste en français : il n'est jamais publié.
 
 ### Fixed
 
+- **Theme, language and panel sizes are kept between launches.** They reverted
+  to their defaults on every start. They are now stored in `preferences.yaml`,
+  and applied before the first paint.
 - **A missing layer is now refused with the working directory named.** Launched
   outside the project, the interface reported a missing layer without saying
   where it had looked for it.

@@ -139,7 +139,7 @@ export function ArbitrageScreen({ base, versionCalque }: ProprietesEcran) {
 
       {resultat ? (
         <SplitPane
-          cleStockage="ormeau-largeur-entites"
+          clePreference="largeur_entites"
           defaut={300}
           premier={
             <EntityList lignes={lignes} active={active?.qualifiee ?? ''} onActiver={setChoisie} />

@@ -9,8 +9,11 @@ import (
 	"io/fs"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/sprimault/ormeau/internal/config"
 )
 
 // origineDeTest est celle qu'un serveur écoutant sur ce port annoncerait.
@@ -25,10 +28,18 @@ func serveurDeTest(t *testing.T) (*serveur, http.Handler) {
 		t.Fatalf("nouvelAcces: %v", err)
 	}
 	repertoire := t.TempDir()
+	// Une configuration jetable plutôt que nil : les préférences s'écrivent
+	// vraiment, et un test qui les enregistre exerce le même chemin que le
+	// binaire.
+	emplacements, err := config.Ouvrir(filepath.Join(t.TempDir(), "configuration"))
+	if err != nil {
+		t.Fatalf("config.Ouvrir: %v", err)
+	}
 	s := &serveur{
 		acces:       acces,
 		registre:    nouveauRegistre(),
 		extractions: nouvellesExtractions(t.Context(), repertoire),
+		preferences: nouvellesPreferences(emplacements),
 		repertoire:  repertoire,
 		version:     "test",
 		origine:     origineDeTest,

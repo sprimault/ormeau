@@ -6,12 +6,18 @@ import { createRoot } from 'react-dom/client';
 
 import './index.css';
 import { App } from '@/app/App';
+import { enregistrerPreferences } from '@/shared/api';
 import { initI18n } from '@/shared/i18n';
-import { initTheme } from '@/shared/model';
+import { brancherEnregistrement, initTheme } from '@/shared/model';
 
-// Langue et thème sont appliqués au document par le script de
-// pré-initialisation ; ces deux appels alignent les stores sur ce qui est déjà
-// affiché, sans quoi le premier rendu contredirait la page.
+// Le store des préférences ne connaît pas le client HTTP : `shared/api` importe
+// déjà des types de `shared/model`, et l'appeler de là-bas fermerait le cercle.
+// C'est donc ici que les deux se rejoignent.
+brancherEnregistrement(enregistrerPreferences);
+
+// Langue et thème sont déjà appliqués à la page, injectés par le serveur avant
+// que ce bundle ne soit chargé ; ces deux appels alignent les stores sur ce qui
+// est affiché, sans quoi le premier rendu contredirait la page.
 initI18n();
 initTheme();
 

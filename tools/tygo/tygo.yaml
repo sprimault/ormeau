@@ -41,6 +41,19 @@ packages:
       // Types générés depuis internal/inference par `make web-types` (tygo).
       // Ne pas modifier à la main.
 
+  - path: "github.com/sprimault/ormeau/internal/config"
+    output_path: "web/src/shared/model/config.ts"
+    # Les préférences seulement : le reste du paquet est fait de chemins, qui
+    # ne traversent jamais l'API — le navigateur n'en reçoit ni n'en envoie
+    # aucun.
+    include_files: ["preferences.go"]
+    frontmatter: |
+      // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
+      // SPDX-License-Identifier: Apache-2.0
+      //
+      // Types générés depuis internal/config par `make web-types` (tygo).
+      // Ne pas modifier à la main.
+
   - path: "github.com/sprimault/ormeau/internal/interface"
     output_path: "web/src/shared/model/api.ts"
     include_files: ["api.go"]

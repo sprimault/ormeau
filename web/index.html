@@ -11,10 +11,14 @@
       href="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230d9488' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cellipse cx='12' cy='5' rx='9' ry='3'/%3E%3Cpath d='M3 5v14a9 3 0 0 0 18 0V5'/%3E%3Cpath d='M3 12a9 3 0 0 0 18 0'/%3E%3C/svg%3E"
     />
     <title>Ormeau</title>
-    <!-- Thème et langue appliqués avant le premier rendu. Sans ce script,
-         l'interface s'affiche en clair pendant une image puis bascule, ce qui
-         se voit et fait négligé sur une capture d'écran. -->
-    <script src="./ormeau-preinit.js"></script>
+    <!-- Thème, langue et tailles de panneaux sont posés ici par le serveur,
+         avant le premier rendu : la balise html reçoit data-theme et lang, et
+         une règle :root les variables CSS des panneaux. Sans cela l'interface
+         s'affiche en clair pendant une image puis bascule, ce qui se voit et
+         fait négligé sur une capture d'écran.
+
+         Servie par Vite en développement, la page n'en porte aucun : le front
+         retombe alors sur ses défauts, sans erreur. -->
   </head>
   <body class="antialiased">
     <div id="racine"></div>

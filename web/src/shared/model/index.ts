@@ -70,4 +70,11 @@ export {
   CodeTypeNonReconnu,
 } from './calque';
 export type { TableSommaire, ColonneSommaire, Portee, Avancement } from './introspection';
-export { CLE_THEME, initTheme, themeEnregistre, useThemeStore, type Theme } from './theme';
+export { initTheme, themeInitial, useThemeStore, type Theme } from './theme';
+export type { Preferences } from './config';
+export {
+  brancherEnregistrement,
+  usePreferencesStore,
+  variableCSS,
+  type ClePreference,
+} from './preferences';

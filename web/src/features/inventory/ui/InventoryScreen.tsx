@@ -65,12 +65,12 @@ export function InventoryScreen({
   return (
     <SplitPane
       sens="vertical"
-      cleStockage="ormeau-hauteur-apercu"
+      clePreference="hauteur_apercu"
       defaut={320}
       replie={!apercuOuvert}
       premier={
         <SplitPane
-          cleStockage="ormeau-largeur-arbre"
+          clePreference="largeur_arbre"
           premier={
             <DatabaseTree
               bases={bases}

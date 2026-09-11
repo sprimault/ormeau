@@ -3,9 +3,7 @@
 
 import { useCallback, useState } from 'react';
 
-/** Clé de persistance du repli : une préférence d'affichage, comme la largeur
- *  de l'arbre, jamais rien qui touche à la base. */
-const CLE_OUVERTURE = 'ormeau-apercu-ouvert';
+import { usePreferencesStore } from '@/shared/model';
 
 /**
  * Tient l'ouverture de l'aperçu du bas, retenue d'un lancement à l'autre.
@@ -14,28 +12,24 @@ const CLE_OUVERTURE = 'ormeau-apercu-ouvert';
  * chercher. Tenue au-dessus de l'aperçu parce que le séparateur qui le
  * dimensionne en dépend — replié, la zone se réduit à sa barre et la poignée
  * disparaît.
+ *
+ * Le repli est une préférence d'affichage, comme la largeur de l'arbre : c'est
+ * le serveur qui l'enregistre, le navigateur n'en retenant rien d'un lancement
+ * à l'autre.
  */
 export function useApercuOuvert(): [boolean, () => void] {
-  const [ouvert, setOuvert] = useState(ouvertureEnregistree);
+  const [ouvert, setOuvert] = useState(ouvertureInjectee);
 
   const basculer = useCallback(() => {
     const suivant = !ouvert;
     setOuvert(suivant);
-    try {
-      window.localStorage.setItem(CLE_OUVERTURE, suivant ? '1' : '0');
-    } catch {
-      // Stockage indisponible : le repli vaut pour cette session.
-    }
+    usePreferencesStore.getState().regler({ apercu_ouvert: suivant });
   }, [ouvert]);
 
   return [ouvert, basculer];
 }
 
-/** Relit le repli choisi ; ouvert quand rien n'a été retenu. */
-function ouvertureEnregistree(): boolean {
-  try {
-    return window.localStorage.getItem(CLE_OUVERTURE) !== '0';
-  } catch {
-    return true;
-  }
+/** Relit le repli injecté dans la page ; ouvert quand rien n'a été retenu. */
+function ouvertureInjectee(): boolean {
+  return usePreferencesStore.getState().preferences.apercu_ouvert ?? true;
 }
