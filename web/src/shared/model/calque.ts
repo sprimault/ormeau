@@ -687,3 +687,97 @@ export interface StatistiquesColonne {
   nuls?: number /* int64 */;
   echantillon?: string[];
 }
+
+//////////
+// source: validation.go
+
+/**
+ * Anomalie est un défaut du calque lui-même, pas un jugement sur la base. À ne
+ * pas confondre avec Avertissement, qui porte une incertitude d'inférence :
+ * une anomalie signale un document que quelque chose a produit de travers.
+ */
+export interface Anomalie {
+  code: string;
+  cible: string;
+  message: string;
+}
+/**
+ * Codes d'anomalie. Stables entre versions, comme ceux des avertissements :
+ * ils servent de filtre en CI.
+ */
+export const CodeVersionInconnue = "version_inconnue";
+/**
+ * Codes d'anomalie. Stables entre versions, comme ceux des avertissements :
+ * ils servent de filtre en CI.
+ */
+export const CodeSGBDInconnu = "sgbd_inconnu";
+/**
+ * Codes d'anomalie. Stables entre versions, comme ceux des avertissements :
+ * ils servent de filtre en CI.
+ */
+export const CodeChampRequisVide = "champ_requis_vide";
+/**
+ * Codes d'anomalie. Stables entre versions, comme ceux des avertissements :
+ * ils servent de filtre en CI.
+ */
+export const CodeEmpreinteMalformee = "empreinte_malformee";
+/**
+ * Codes d'anomalie. Stables entre versions, comme ceux des avertissements :
+ * ils servent de filtre en CI.
+ */
+export const CodeTypeHorsVocabulaire = "type_hors_vocabulaire";
+/**
+ * Codes d'anomalie. Stables entre versions, comme ceux des avertissements :
+ * ils servent de filtre en CI.
+ */
+export const CodeGenreDefautInconnu = "genre_defaut_inconnu";
+/**
+ * Codes d'anomalie. Stables entre versions, comme ceux des avertissements :
+ * ils servent de filtre en CI.
+ */
+export const CodeActionInconnue = "action_inconnue";
+/**
+ * Codes d'anomalie. Stables entre versions, comme ceux des avertissements :
+ * ils servent de filtre en CI.
+ */
+export const CodePositionInvalide = "position_invalide";
+/**
+ * Codes d'anomalie. Stables entre versions, comme ceux des avertissements :
+ * ils servent de filtre en CI.
+ */
+export const CodeTableSansColonne = "table_sans_colonne";
+/**
+ * Codes d'anomalie. Stables entre versions, comme ceux des avertissements :
+ * ils servent de filtre en CI.
+ */
+export const CodeTableDupliquee = "table_dupliquee";
+/**
+ * Codes d'anomalie. Stables entre versions, comme ceux des avertissements :
+ * ils servent de filtre en CI.
+ */
+export const CodeColonneDupliquee = "colonne_dupliquee";
+/**
+ * Codes d'anomalie. Stables entre versions, comme ceux des avertissements :
+ * ils servent de filtre en CI.
+ */
+export const CodeColonneIntrouvable = "colonne_introuvable";
+/**
+ * Codes d'anomalie. Stables entre versions, comme ceux des avertissements :
+ * ils servent de filtre en CI.
+ */
+export const CodeTableCibleIntrouvable = "table_cible_introuvable";
+/**
+ * Codes d'anomalie. Stables entre versions, comme ceux des avertissements :
+ * ils servent de filtre en CI.
+ */
+export const CodeAriteIncoherente = "arite_incoherente";
+/**
+ * Codes d'anomalie. Stables entre versions, comme ceux des avertissements :
+ * ils servent de filtre en CI.
+ */
+export const CodeTypeEnumereIntrouvable = "type_enumere_introuvable";
+/**
+ * Codes d'anomalie. Stables entre versions, comme ceux des avertissements :
+ * ils servent de filtre en CI.
+ */
+export const CodeStatistiquesOrphelines = "statistiques_orphelines";

@@ -56,11 +56,12 @@ type Options struct {
 // serveur est l'état d'un lancement : deux secrets, les connexions ouvertes, et
 // l'origine attendue des appels d'API.
 type serveur struct {
-	acces      *acces
-	registre   *registre
-	repertoire string
-	version    string
-	origine    string
+	acces       *acces
+	registre    *registre
+	extractions *extractions
+	repertoire  string
+	version     string
+	origine     string
 }
 
 // Servir écoute sur la boucle locale et rend la main quand le contexte est
@@ -85,14 +86,22 @@ func Servir(ctx context.Context, o Options) error {
 		return err
 	}
 
+	// Les extractions ont leur propre contexte, annulé à la sortie quelle qu'en
+	// soit la raison : une panne d'écoute ne doit pas laisser tourner une tâche
+	// que plus personne ne peut suivre.
+	taches, arreterTaches := context.WithCancel(ctx)
+
 	s := &serveur{
-		acces:      acces,
-		registre:   nouveauRegistre(),
-		repertoire: o.Repertoire,
-		version:    o.Version,
-		origine:    fmt.Sprintf("http://127.0.0.1:%d", port),
+		acces:       acces,
+		registre:    nouveauRegistre(),
+		extractions: nouvellesExtractions(taches, o.Repertoire),
+		repertoire:  o.Repertoire,
+		version:     o.Version,
+		origine:     fmt.Sprintf("http://127.0.0.1:%d", port),
 	}
 	defer s.registre.toutFermer()
+	defer s.extractions.attendre()
+	defer arreterTaches()
 
 	routeur, err := s.routes()
 	if err != nil {
@@ -161,6 +170,8 @@ func (s *serveur) routes() (http.Handler, error) {
 	mux.Handle("/api/base", s.protegerAPI(http.HandlerFunc(s.basculerBase)))
 	mux.Handle("/api/inventaire", s.protegerAPI(http.HandlerFunc(s.inventaire)))
 	mux.Handle("/api/colonnes", s.protegerAPI(http.HandlerFunc(s.colonnes)))
+	mux.Handle("/api/extractions", s.protegerAPI(http.HandlerFunc(s.gererExtractions)))
+	mux.Handle("/api/extractions/evenements", s.protegerAPI(http.HandlerFunc(s.suivreExtractions)))
 	mux.Handle("/", s.canoniser(front))
 	return mux, nil
 }

@@ -5,7 +5,8 @@
 // Types générés depuis internal/interface par `make web-types` (tygo).
 // Ne pas modifier à la main.
 
-import type { TableSommaire } from './introspection';
+import type { Anomalie } from './calque';
+import type { Avancement, Portee, TableSommaire } from './introspection';
 
 //////////
 // source: api.go
@@ -89,4 +90,92 @@ export interface ReponseColonnes {
  */
 export interface ReponseInventaire {
   tables: TableSommaire[];
+}
+/**
+ * EtatExtraction est l'état d'une tâche d'extraction.
+ */
+export type EtatExtraction = string;
+/**
+ * États d'une tâche. Les trois derniers sont terminaux : la tâche n'évolue
+ * plus, elle attend qu'on la retire.
+ */
+export const EtatEnAttente: EtatExtraction = "en_attente";
+/**
+ * États d'une tâche. Les trois derniers sont terminaux : la tâche n'évolue
+ * plus, elle attend qu'on la retire.
+ */
+export const EtatEnCours: EtatExtraction = "en_cours";
+/**
+ * États d'une tâche. Les trois derniers sont terminaux : la tâche n'évolue
+ * plus, elle attend qu'on la retire.
+ */
+export const EtatTerminee: EtatExtraction = "terminee";
+/**
+ * États d'une tâche. Les trois derniers sont terminaux : la tâche n'évolue
+ * plus, elle attend qu'on la retire.
+ */
+export const EtatEchouee: EtatExtraction = "echouee";
+/**
+ * États d'une tâche. Les trois derniers sont terminaux : la tâche n'évolue
+ * plus, elle attend qu'on la retire.
+ */
+export const EtatAnnulee: EtatExtraction = "annulee";
+/**
+ * RequeteExtraction lance l'extraction de la base d'une session. La base n'est
+ * pas un paramètre : c'est celle de la session.
+ */
+export interface RequeteExtraction {
+  session: string;
+  portee: Portee;
+}
+/**
+ * ReferenceExtraction désigne une tâche : celle qu'on annule ou retire, et
+ * celle qu'un événement « retrait » fait disparaître de l'écran.
+ */
+export interface ReferenceExtraction {
+  id: string;
+}
+/**
+ * Extraction est ce que le front sait d'une tâche.
+ * Chaque événement du flux en porte l'état complet, jamais un delta : un
+ * événement rejoué ne laisse pas l'écran dans un état intermédiaire. Le DSN
+ * n'y figure sous aucune forme.
+ */
+export interface Extraction {
+  id: string;
+  base: string;
+  fichier: string;
+  schemas?: string[];
+  /**
+   * NbTables vaut zéro quand la portée ne nomme pas ses tables : toutes
+   * celles des schémas partent.
+   */
+  nb_tables: number /* int */;
+  etat: EtatExtraction;
+  avancement?: Avancement;
+  debut?: string;
+  fin?: string;
+  resultat?: ResultatExtraction;
+  erreur?: string;
+}
+/**
+ * ResultatExtraction résume le calque écrit.
+ */
+export interface ResultatExtraction {
+  tables: number /* int */;
+  colonnes: number /* int */;
+  empreinte: string;
+  /**
+   * Anomalies sont celles de la validation, qui n'empêchent pas l'écriture.
+   * Une clé étrangère vers une table restée hors de la portée en est le cas
+   * courant.
+   */
+  anomalies: Anomalie[];
+}
+/**
+ * EtatExtractions est l'instantané de toutes les tâches, envoyé à qui ouvre le
+ * flux sans pouvoir reprendre là où il en était.
+ */
+export interface EtatExtractions {
+  extractions: Extraction[];
 }

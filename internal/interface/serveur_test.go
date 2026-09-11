@@ -24,13 +24,19 @@ func serveurDeTest(t *testing.T) (*serveur, http.Handler) {
 	if err != nil {
 		t.Fatalf("nouvelAcces: %v", err)
 	}
+	repertoire := t.TempDir()
 	s := &serveur{
-		acces:      acces,
-		registre:   nouveauRegistre(),
-		repertoire: t.TempDir(),
-		version:    "test",
-		origine:    origineDeTest,
+		acces:       acces,
+		registre:    nouveauRegistre(),
+		extractions: nouvellesExtractions(t.Context(), repertoire),
+		repertoire:  repertoire,
+		version:     "test",
+		origine:     origineDeTest,
 	}
+	// t.Context est annulé avant les nettoyages : les tâches encore en cours
+	// s'arrêtent, et l'attente ne retient pas le test.
+	t.Cleanup(s.extractions.attendre)
+
 	routeur, err := s.routes()
 	if err != nil {
 		t.Fatalf("routes: %v", err)
