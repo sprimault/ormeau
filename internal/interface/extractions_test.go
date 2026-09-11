@@ -227,8 +227,12 @@ func TestExtractionEcritLeCalque(t *testing.T) {
 	if finale.Avancement == nil || *finale.Avancement != derniere {
 		t.Errorf("avancement final %+v, attendu %+v", finale.Avancement, derniere)
 	}
-	if finale.Debut == "" || finale.Fin == "" {
-		t.Errorf("début %q, fin %q : la durée ne peut pas s'afficher", finale.Debut, finale.Fin)
+	// À la milliseconde : une extraction de quelques tables tient dans la
+	// seconde, et une durée arrondie à zéro n'apprendrait rien.
+	for _, horodatage := range []string{finale.Debut, finale.Fin} {
+		if _, err := time.Parse(formatInstant, horodatage); err != nil {
+			t.Errorf("horodatage %q hors du format %s : %v", horodatage, formatInstant, err)
+		}
 	}
 
 	relu, err := calque.LirePhysique(filepath.Join(s.repertoire, "gescom.calque.json"))

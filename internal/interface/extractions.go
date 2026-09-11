@@ -168,7 +168,7 @@ func (e *extractions) demarrer() {
 		ctx, annuler := context.WithTimeout(e.ctx, delaiExtraction)
 		t.annuler = annuler
 		t.Etat = EtatEnCours
-		t.Debut = horodater()
+		t.Debut = instant()
 		e.enCours++
 		e.emettre(evenementExtraction, t.Extraction)
 
@@ -187,7 +187,7 @@ func (e *extractions) executer(ctx context.Context, t *tache) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
-	t.Fin = horodater()
+	t.Fin = instant()
 	switch {
 	case err == nil:
 		t.Etat, t.Resultat = EtatTerminee, resultat
@@ -283,7 +283,7 @@ func (e *extractions) annuler(id string) {
 		}
 		switch t.Etat {
 		case EtatEnAttente:
-			t.Etat, t.Fin, t.dsn = EtatAnnulee, horodater(), ""
+			t.Etat, t.Fin, t.dsn = EtatAnnulee, instant(), ""
 			e.emettre(evenementExtraction, t.Extraction)
 			e.oublierFinies()
 		case EtatEnCours:
@@ -387,6 +387,19 @@ func serialiserEvenement(v any) []byte {
 // horodater rend l'instant présent au format du calque.
 func horodater() string {
 	return time.Now().UTC().Format(time.RFC3339)
+}
+
+// formatInstant est celui des changements d'état d'une tâche : RFC 3339 à la
+// milliseconde.
+const formatInstant = "2006-01-02T15:04:05.000Z07:00"
+
+// instant horodate un changement d'état d'une tâche.
+//
+// À la milliseconde, là où le calque s'en tient à la seconde : une extraction
+// de quelques tables tient dans la seconde, et une durée arrondie à zéro
+// n'apprendrait rien à qui la lit.
+func instant() string {
+	return time.Now().UTC().Format(formatInstant)
 }
 
 // gererExtractions lance une extraction ou en retire une.
