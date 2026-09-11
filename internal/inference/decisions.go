@@ -5,9 +5,15 @@ package inference
 
 import (
 	"os"
+	"path/filepath"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
+
+// suffixeDecisions termine le nom d'un fichier de décisions : la base gescom a
+// son gescom.decisions.yaml.
+const suffixeDecisions = ".decisions.yaml"
 
 // Decisions surcharge l'inférence. Une décision gagne toujours contre une
 // heuristique, sans discussion.
@@ -15,8 +21,12 @@ import (
 // Au premier passage, l'outil écrit un fichier prérempli où les inférences de
 // confiance moyenne figurent en commentaire. C'est ce qui rend la correction
 // humaine praticable sans partir d'une page blanche.
+//
+// Les balises JSON servent l'interface, qui arbitre un brouillon avant de
+// l'écrire ; elles reprennent les noms du fichier, pour qu'une clé se lise de
+// la même façon des deux côtés.
 type Decisions struct {
-	EspaceDeNoms string `yaml:"espace_de_noms"`
+	EspaceDeNoms string `yaml:"espace_de_noms" json:"espace_de_noms,omitempty"`
 
 	// PrefixesARetirer enlève une convention de nommage des noms de classes :
 	// avec T_, la table T_CLIENTS donne Clients au lieu de TClients.
@@ -25,9 +35,9 @@ type Decisions struct {
 	// commun à toutes les tables. Il le signale par un avertissement et
 	// l'inscrit en commentaire dans le fichier prérempli ; l'arbitrage revient
 	// à celui qui connaît la base.
-	PrefixesARetirer []string `yaml:"prefixes_a_retirer"`
+	PrefixesARetirer []string `yaml:"prefixes_a_retirer" json:"prefixes_a_retirer,omitempty"`
 
-	TablesIgnorees []string `yaml:"tables_ignorees"`
+	TablesIgnorees []string `yaml:"tables_ignorees" json:"tables_ignorees,omitempty"`
 
 	// ColonnesIgnorees retire des propriétés d'une entité sans rien retirer du
 	// calque. Clé : la table qualifiée ; valeurs : les noms de colonnes.
@@ -44,36 +54,46 @@ type Decisions struct {
 	//
 	// La clé primaire ne s'ignore pas : Doctrine refuse une entité sans
 	// identifiant, et la retirer produirait un modèle que rien ne peut charger.
-	ColonnesIgnorees map[string][]string `yaml:"colonnes_ignorees"`
+	ColonnesIgnorees map[string][]string `yaml:"colonnes_ignorees" json:"colonnes_ignorees,omitempty"`
 
-	Renommages       map[string]string   `yaml:"renommages"`
-	TypesForces      map[string]string   `yaml:"types_forces"`
-	RelationsForcees []RelationForcee    `yaml:"relations_forcees"`
-	Enumerations     []EnumerationForcee `yaml:"enumerations"`
+	Renommages       map[string]string   `yaml:"renommages" json:"renommages,omitempty"`
+	TypesForces      map[string]string   `yaml:"types_forces" json:"types_forces,omitempty"`
+	RelationsForcees []RelationForcee    `yaml:"relations_forcees" json:"relations_forcees,omitempty"`
+	Enumerations     []EnumerationForcee `yaml:"enumerations" json:"enumerations,omitempty"`
 }
 
 // RelationForcee déclare une association que l'heuristique n'a pas vue — la clé
 // étrangère jamais déclarée, que seul l'humain confirme.
 type RelationForcee struct {
-	Source string `yaml:"source"`
-	Cible  string `yaml:"cible"`
-	Genre  string `yaml:"genre"`
-	Nom    string `yaml:"nom"`
+	Source string `yaml:"source" json:"source"`
+	Cible  string `yaml:"cible" json:"cible"`
+	Genre  string `yaml:"genre" json:"genre"`
+	Nom    string `yaml:"nom" json:"nom"`
 }
 
 // EnumerationForcee impose une énumération. Cas apparie la valeur stockée au
 // nom PHP : un O/N en base n'a pas à donner un cas nommé O.
 type EnumerationForcee struct {
-	Colonne string            `yaml:"colonne"`
-	Nom     string            `yaml:"nom"`
-	Cas     map[string]string `yaml:"cas"`
+	Colonne string            `yaml:"colonne" json:"colonne"`
+	Nom     string            `yaml:"nom" json:"nom"`
+	Cas     map[string]string `yaml:"cas" json:"cas,omitempty"`
+}
+
+// vide dit si rien n'est décidé : c'est le premier passage, dont le fichier
+// reste entièrement en commentaire.
+func (d *Decisions) vide() bool {
+	return d.EspaceDeNoms == "" &&
+		len(d.PrefixesARetirer) == 0 &&
+		len(d.TablesIgnorees) == 0 &&
+		len(d.ColonnesIgnorees) == 0 &&
+		len(d.Renommages) == 0 &&
+		len(d.TypesForces) == 0 &&
+		len(d.RelationsForcees) == 0 &&
+		len(d.Enumerations) == 0
 }
 
 // LireDecisions charge le fichier. Un chemin vide rend des décisions vides sans
 // erreur : c'est le premier passage.
-//
-// Une erreur de syntaxe remonte plutôt que d'être avalée : sinon l'utilisateur
-// croit ses arbitrages appliqués alors qu'ils sont ignorés.
 func LireDecisions(chemin string) (*Decisions, error) {
 	if chemin == "" {
 		return &Decisions{}, nil
@@ -84,12 +104,35 @@ func LireDecisions(chemin string) (*Decisions, error) {
 	if err != nil {
 		return nil, err
 	}
+	return DecisionsDepuis(donnees)
+}
 
+// DecisionsDepuis analyse le contenu d'un fichier de décisions.
+//
+// Une erreur de syntaxe remonte plutôt que d'être avalée : sinon l'utilisateur
+// croit ses arbitrages appliqués alors qu'ils sont ignorés.
+func DecisionsDepuis(contenu []byte) (*Decisions, error) {
 	var d Decisions
-	if err := yaml.Unmarshal(donnees, &d); err != nil {
+	if err := yaml.Unmarshal(contenu, &d); err != nil {
 		return nil, err
 	}
 	return &d, nil
+}
+
+// BaseDesDecisions rend le nom de la base qu'un fichier de décisions désigne :
+// gescom pour projets/gescom/gescom.decisions.yaml.
+//
+// Seule source de ce nom, pour la ligne de commande qui le tire du chemin
+// qu'on lui donne comme pour l'interface qui compose le chemin à partir du nom.
+// Il entre dans l'empreinte du fichier, et deux façons de le calculer finiraient
+// par classer manuel un fichier que personne n'a touché. Un nom qui ne suit pas
+// la convention perd seulement son extension.
+func BaseDesDecisions(chemin string) string {
+	nom := filepath.Base(chemin)
+	if strings.HasSuffix(nom, suffixeDecisions) {
+		return strings.TrimSuffix(nom, suffixeDecisions)
+	}
+	return strings.TrimSuffix(nom, filepath.Ext(nom))
 }
 
 // Reste à écrire avec les heuristiques (phase 3) : la vérification des cibles,

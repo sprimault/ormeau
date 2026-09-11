@@ -124,7 +124,7 @@ func chargerOuPreremplir(chemin string, physique *calque.Physique, explicite boo
 		return nil, fmt.Errorf("fichier de décisions introuvable : %s", chemin)
 	}
 
-	prerempli := inference.EcrireDecisions(physique, &inference.Decisions{})
+	prerempli := inference.EcrireDecisions(physique, &inference.Decisions{}, inference.BaseDesDecisions(chemin))
 	if err := os.WriteFile(chemin, prerempli, 0o600); err != nil { // #nosec G703
 		return nil, err
 	}
