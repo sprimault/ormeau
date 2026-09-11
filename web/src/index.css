@@ -18,18 +18,36 @@
   --color-ormeau-500: oklch(0.6 0.11 185);
   --color-ormeau-600: oklch(0.52 0.1 185);
   --color-ormeau-700: oklch(0.44 0.09 185);
+
+  /*
+   * Deux crans au-dessus des tailles de Tailwind pour les deux qui portent
+   * presque tout l'écran : à 12 px, un nom de colonne se lit mal. Seul le texte
+   * grandit, les espacements restent, et l'arbre des tables garde sa densité.
+   */
+  --text-xs: 0.875rem;
+  --text-sm: 1rem;
 }
 
 /*
  * Densité d'information élevée, zéro décoration : l'interface sert à cocher et
  * à trancher, pas à être contemplée.
  */
+/*
+ * Le gris des textes secondaires manque de contraste dans les deux thèmes : il
+ * fonce sur fond clair, et s'éclaircit sur fond sombre avec slate-400. La
+ * teinte se redéfinit pour tout l'écran, plutôt que de doubler chaque classe
+ * d'une variante qu'un composant finirait par oublier. slate-500 ne sert qu'à
+ * des textes : rien d'autre ne change de couleur.
+ */
 html {
   color-scheme: light;
+  --color-slate-500: oklch(0.45 0.05 257.27);
 }
 
 html.dark {
   color-scheme: dark;
+  --color-slate-400: oklch(86.9% 0.022 252.894);
+  --color-slate-500: oklch(0.77 0.08 256.41);
 }
 
 body {

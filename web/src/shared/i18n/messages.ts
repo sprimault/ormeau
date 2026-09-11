@@ -168,7 +168,6 @@ const fr = {
   'tabs.selection': 'Sélection des tables',
   'tabs.arbitrage': 'Arbitrage de {base}',
 
-  'arbitrage.title': 'Arbitrage de {base}',
   'arbitrage.intro':
     'Les entités que la génération produira pour les tables extraites. « Écrire » enregistre dans {fichier} les noms de classes, les types forcés et les colonnes écartées à la sélection.',
   'arbitrage.loading': 'Inférence en cours…',
@@ -428,7 +427,6 @@ const en: Record<MessageKey, string> = {
   'tabs.selection': 'Table selection',
   'tabs.arbitrage': 'Review of {base}',
 
-  'arbitrage.title': 'Review of {base}',
   'arbitrage.intro':
     'The entities generation will produce for the extracted tables. “Write” saves class names, forced types and the columns excluded in selection to {fichier}.',
   'arbitrage.loading': 'Running the inference…',

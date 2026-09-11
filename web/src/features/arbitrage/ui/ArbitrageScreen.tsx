@@ -69,15 +69,11 @@ export function ArbitrageScreen({ base, versionCalque }: ProprietesEcran) {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="border-b border-slate-200 px-4 py-2 dark:border-slate-800">
+        {/* Pas de titre : l'onglet nomme déjà la base arbitrée. L'état et
+            l'écriture viennent en tête, au-dessus de ce qu'ils enregistrent. */}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <h2 className="text-sm font-semibold">{t('arbitrage.title', { base })}</h2>
-          {inference.enCours && resultat ? (
-            <span className="text-xs text-slate-500">{t('arbitrage.inferring')}</span>
-          ) : null}
           <span
-            className={`ml-auto text-xs ${
-              modifie ? 'text-amber-700 dark:text-amber-500' : 'text-slate-500'
-            }`}
+            className={`text-xs ${modifie ? 'text-amber-700 dark:text-amber-500' : 'text-slate-500'}`}
           >
             {etat}
           </span>
@@ -89,6 +85,9 @@ export function ArbitrageScreen({ base, versionCalque }: ProprietesEcran) {
               ? t('arbitrage.saving')
               : t('arbitrage.save', { fichier: nomFichier })}
           </Button>
+          {inference.enCours && resultat ? (
+            <span className="text-xs text-slate-500">{t('arbitrage.inferring')}</span>
+          ) : null}
         </div>
         <p className="mt-0.5 text-xs text-slate-500">{t('arbitrage.intro', { fichier: nomFichier })}</p>
       </div>
