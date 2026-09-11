@@ -79,6 +79,35 @@ func TestPageSansPreferencesPorteLesDefauts(t *testing.T) {
 	}
 }
 
+// TestAucuneRouteNeSertLIndexBrut garde le seul chemin par lequel une page sans
+// préférences pourrait sortir.
+//
+// « /index.html » contient un point et part donc au serveur de fichiers, qui
+// servirait l'embarqué tel quel. Il n'en sort rien aujourd'hui parce que
+// http.FileServer redirige de lui-même vers « ./ » — une convention de la
+// bibliothèque standard, pas une garantie qu'on pose. Remplacer ce serveur de
+// fichiers rouvrirait le trou, et une page rendue sans thème ne se rattacherait
+// à rien.
+func TestAucuneRouteNeSertLIndexBrut(t *testing.T) {
+	t.Parallel()
+
+	s, routeur := serveurDeTest(t)
+
+	for _, chemin := range []string{"/", "/index.html", "/arbitrage"} {
+		w := lire(s, routeur, chemin)
+		switch {
+		case w.Code == http.StatusMovedPermanently:
+			if w.Header().Get("Location") != "./" {
+				t.Errorf("%s redirige vers %q", chemin, w.Header().Get("Location"))
+			}
+		case w.Code != http.StatusOK:
+			t.Errorf("%s : code %d", chemin, w.Code)
+		case !strings.Contains(w.Body.String(), "data-theme"):
+			t.Errorf("%s sert une page sans préférences", chemin)
+		}
+	}
+}
+
 // TestPreferencesLuesEtEcrites vérifie l'aller-retour par l'API, qui sert aux
 // relectures et aux réglages, jamais au premier rendu.
 func TestPreferencesLuesEtEcrites(t *testing.T) {

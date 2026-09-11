@@ -16,6 +16,9 @@ const fr = {
   'app.name': 'Ormeau',
   'app.workdir': 'Répertoire de travail',
   'app.workdir.copy': 'Copier le chemin complet',
+  'app.workdir.change': 'Changer',
+  'app.workdir.apply': 'Appliquer',
+  'app.workdir.cancel': 'Annuler',
   'app.version': 'Version {version}',
   'app.title.busy': '({n}) Ormeau',
 
@@ -294,6 +297,9 @@ const en: Record<MessageKey, string> = {
   'app.name': 'Ormeau',
   'app.workdir': 'Working directory',
   'app.workdir.copy': 'Copy the full path',
+  'app.workdir.change': 'Change',
+  'app.workdir.apply': 'Apply',
+  'app.workdir.cancel': 'Cancel',
   'app.version': 'Version {version}',
   'app.title.busy': '({n}) Ormeau',
 

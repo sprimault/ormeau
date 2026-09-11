@@ -69,6 +69,15 @@ type ReponseContexte struct {
 	Version    string `json:"version"`
 }
 
+// RequeteRepertoire change le répertoire où les fichiers du projet s'écrivent.
+//
+// Le seul chemin de fichier que l'API accepte du navigateur, et il ne désigne
+// qu'un répertoire existant : les noms de fichiers restent composés côté
+// serveur à partir d'un nom de base validé.
+type RequeteRepertoire struct {
+	Repertoire string `json:"repertoire"`
+}
+
 // ReponseErreur est la forme unique des échecs d'API. Un code HTTP seul
 // laisserait le front deviner ce qu'il affiche.
 type ReponseErreur struct {
@@ -304,7 +313,7 @@ func (s *serveur) contexte(w http.ResponseWriter, r *http.Request) {
 		repondreErreur(w, http.StatusMethodNotAllowed, "méthode non acceptée")
 		return
 	}
-	repondreJSON(w, http.StatusOK, ReponseContexte{Repertoire: s.repertoire, Version: s.version})
+	repondreJSON(w, http.StatusOK, ReponseContexte{Repertoire: s.repertoireCourant(), Version: s.version})
 }
 
 // bases rend les bases du serveur atteint par une connexion ouverte.

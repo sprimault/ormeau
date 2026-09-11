@@ -38,6 +38,10 @@ préambule reste en français : il n'est jamais publié.
 
 ### Ajouté
 
+- **Le répertoire de travail se change depuis l'interface**, sans relancer le
+  binaire. Le serveur valide le chemin saisi et renvoie le chemin résolu, liens
+  suivis — c'est lui qui s'affiche, et non ce qui a été tapé. Une extraction en
+  cours écrit toujours là où elle a été lancée.
 - **Ormeau range ses propres données dans le répertoire de configuration du
   système** : `%AppData%\ormeau`, `~/.config/ormeau` ou
   `~/Library/Application Support/ormeau`, créé au premier lancement.
@@ -59,6 +63,10 @@ préambule reste en français : il n'est jamais publié.
 
 ### Added
 
+- **The working directory can be changed from the interface**, without
+  restarting the binary. The server validates the path and returns the resolved
+  one, symlinks followed — that is what is displayed, not what was typed. An
+  extraction already running still writes where it was started.
 - **Ormeau stores its own data in the system configuration directory**:
   `%AppData%\ormeau`, `~/.config/ormeau` or
   `~/Library/Application Support/ormeau`, created on first launch.

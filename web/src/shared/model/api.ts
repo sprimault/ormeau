@@ -63,6 +63,15 @@ export interface ReponseContexte {
   version: string;
 }
 /**
+ * RequeteRepertoire change le répertoire où les fichiers du projet s'écrivent.
+ * Le seul chemin de fichier que l'API accepte du navigateur, et il ne désigne
+ * qu'un répertoire existant : les noms de fichiers restent composés côté
+ * serveur à partir d'un nom de base validé.
+ */
+export interface RequeteRepertoire {
+  repertoire: string;
+}
+/**
  * ReponseErreur est la forme unique des échecs d'API. Un code HTTP seul
  * laisserait le front deviner ce qu'il affiche.
  */

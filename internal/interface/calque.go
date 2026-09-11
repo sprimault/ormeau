@@ -92,12 +92,13 @@ func (s *serveur) calqueDeBase(w http.ResponseWriter, base, empreinte string) (*
 	}
 
 	fichier := base + ".calque.json"
-	physique, err := s.calques.lire(filepath.Join(s.repertoire, fichier))
+	travail := s.repertoireCourant()
+	physique, err := s.calques.lire(filepath.Join(travail, fichier))
 	switch {
 	case errors.Is(err, fs.ErrNotExist):
 		repondreErreur(w, http.StatusNotFound, fmt.Sprintf(
-			"aucun %s dans %s : extraire la base, ou relancer l'interface depuis le projet qui porte ce calque",
-			fichier, s.repertoire))
+			"aucun %s dans %s : extraire la base, ou choisir le répertoire du projet qui porte ce calque",
+			fichier, travail))
 		return nil, false
 	case err != nil:
 		repondreErreur(w, http.StatusUnprocessableEntity, fmt.Sprintf("%s illisible : %v", fichier, err))

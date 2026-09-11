@@ -73,10 +73,22 @@ type serveur struct {
 	calques     calquesLus
 	preferences *preferences
 	// ecriture sérialise les enregistrements de fichiers de décisions.
-	ecriture   sync.Mutex
+	ecriture sync.Mutex
+	// travail garde le répertoire de travail, que l'écran peut changer en cours
+	// de session. Tout le monde le lit, un seul écran le change : un verrou
+	// lecteurs-rédacteur plutôt qu'un mutex.
+	travail sync.RWMutex
+	// repertoire ne se lit jamais directement : passer par repertoireCourant.
 	repertoire string
 	version    string
 	origine    string
+}
+
+// repertoireCourant rend le répertoire où les fichiers du projet s'écrivent.
+func (s *serveur) repertoireCourant() string {
+	s.travail.RLock()
+	defer s.travail.RUnlock()
+	return s.repertoire
 }
 
 // Servir écoute sur la boucle locale et rend la main quand le contexte est
@@ -109,7 +121,7 @@ func Servir(ctx context.Context, o Options) error {
 	s := &serveur{
 		acces:       acces,
 		registre:    nouveauRegistre(),
-		extractions: nouvellesExtractions(taches, o.Repertoire),
+		extractions: nouvellesExtractions(taches),
 		preferences: nouvellesPreferences(o.Emplacements),
 		repertoire:  o.Repertoire,
 		version:     o.Version,
@@ -163,7 +175,7 @@ func (s *serveur) annoncer(o Options, url string) {
 	// Un terminal qui n'accepte plus rien n'empêche pas de servir l'interface :
 	// ces lignes sont un confort de démarrage, pas une sortie utile.
 	_, _ = fmt.Fprintf(o.Sortie, "Interface sur %s\n", s.origine)
-	_, _ = fmt.Fprintf(o.Sortie, "Répertoire de travail : %s\n", s.repertoire)
+	_, _ = fmt.Fprintf(o.Sortie, "Répertoire de travail : %s\n", s.repertoireCourant())
 	if o.Emplacements != nil {
 		_, _ = fmt.Fprintf(o.Sortie, "Configuration : %s\n", o.Emplacements.Racine())
 	}
@@ -190,6 +202,7 @@ func (s *serveur) routes() (http.Handler, error) {
 	mux.HandleFunc("/entrer", s.entrer)
 	mux.Handle("/api/contexte", s.protegerAPI(http.HandlerFunc(s.contexte)))
 	mux.Handle("/api/preferences", s.protegerAPI(http.HandlerFunc(s.gererPreferences)))
+	mux.Handle("/api/repertoire", s.protegerAPI(http.HandlerFunc(s.changerRepertoire)))
 	mux.Handle("/api/connexion", s.protegerAPI(http.HandlerFunc(s.connexion)))
 	mux.Handle("/api/bases", s.protegerAPI(http.HandlerFunc(s.bases)))
 	mux.Handle("/api/base", s.protegerAPI(http.HandlerFunc(s.basculerBase)))

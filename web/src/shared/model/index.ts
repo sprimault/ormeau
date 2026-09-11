@@ -6,6 +6,7 @@ export type {
   ReponseConnexion,
   RequeteFermeture,
   ReponseContexte,
+  RequeteRepertoire,
   ReponseErreur,
   ReponseInventaire,
   ReponseBases,

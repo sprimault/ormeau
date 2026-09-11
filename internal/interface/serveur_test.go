@@ -38,7 +38,7 @@ func serveurDeTest(t *testing.T) (*serveur, http.Handler) {
 	s := &serveur{
 		acces:       acces,
 		registre:    nouveauRegistre(),
-		extractions: nouvellesExtractions(t.Context(), repertoire),
+		extractions: nouvellesExtractions(t.Context()),
 		preferences: nouvellesPreferences(emplacements),
 		repertoire:  repertoire,
 		version:     "test",

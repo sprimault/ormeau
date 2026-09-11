@@ -396,7 +396,7 @@ func TestFluxReprendSansDoublonNiTrou(t *testing.T) {
 func TestFluxSansRepriseRendUnInstantane(t *testing.T) {
 	t.Parallel()
 
-	e := nouvellesExtractions(t.Context(), t.TempDir())
+	e := nouvellesExtractions(t.Context())
 	e.mu.Lock()
 	for range tailleJournal + 10 {
 		e.emettre(evenementExtraction, Extraction{ID: "x"})
@@ -673,14 +673,14 @@ func TestExtractionEchoueSansDivulguerLeDSN(t *testing.T) {
 func TestExtractionsFiniesPlafonnees(t *testing.T) {
 	t.Parallel()
 
-	e := nouvellesExtractions(t.Context(), t.TempDir())
+	e := nouvellesExtractions(t.Context())
 	e.ouvrir = (&fabriqueDeTest{}).ouvrir
 	t.Cleanup(e.attendre)
 
 	var premiere Extraction
 	for i := range maxExtractionsFinies + 1 {
 		base := fmt.Sprintf("base%02d", i)
-		lancee, err := e.lancer(base, dsnSur(base), "postgres", introspection.Portee{})
+		lancee, err := e.lancer(base, dsnSur(base), "postgres", t.TempDir(), introspection.Portee{})
 		if err != nil {
 			t.Fatalf("lancer %s : %v", base, err)
 		}
@@ -721,11 +721,11 @@ func TestArretAnnuleLesExtractions(t *testing.T) {
 	t.Parallel()
 
 	ctx, arreter := context.WithCancel(t.Context())
-	e := nouvellesExtractions(ctx, t.TempDir())
+	e := nouvellesExtractions(ctx)
 	pilote := &piloteExtracteur{liberer: make(chan struct{})}
 	e.ouvrir = (&fabriqueDeTest{pilotes: map[string]*piloteExtracteur{"gescom": pilote}}).ouvrir
 
-	lancee, err := e.lancer("gescom", dsnSur("gescom"), "postgres", introspection.Portee{})
+	lancee, err := e.lancer("gescom", dsnSur("gescom"), "postgres", t.TempDir(), introspection.Portee{})
 	if err != nil {
 		t.Fatalf("lancer : %v", err)
 	}
