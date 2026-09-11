@@ -157,7 +157,7 @@ const fr = {
   'anomaly.type_enumere_introuvable': 'Type énuméré introuvable',
   'anomaly.statistiques_orphelines': 'Statistiques sans table',
 
-  'calque.title': 'Calque produit',
+  'calque.title': 'Dernier calque produit',
   'calque.extractedAt': 'extrait à {heure}',
   'calque.copy': 'Copier le calque',
   'calque.loading': 'Lecture du calque…',
@@ -320,7 +320,7 @@ const en: Record<MessageKey, string> = {
   'anomaly.type_enumere_introuvable': 'Enumerated type not found',
   'anomaly.statistiques_orphelines': 'Statistics without a table',
 
-  'calque.title': 'Produced layer',
+  'calque.title': 'Last produced layer',
   'calque.extractedAt': 'extracted at {heure}',
   'calque.copy': 'Copy the layer',
   'calque.loading': 'Reading the layer…',
