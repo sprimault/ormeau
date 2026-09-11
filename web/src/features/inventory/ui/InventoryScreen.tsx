@@ -6,6 +6,7 @@ import { useState, type ReactNode } from 'react';
 import { qualifier } from '@/shared/lib';
 import type { Portee, ReponseConnexion } from '@/shared/model';
 import { SplitPane } from '@/shared/ui';
+import { useApercuOuvert } from '../model/useApercuOuvert';
 import { useColumns } from '../model/useColumns';
 import { useExclusions } from '../model/useExclusions';
 import { useInventory } from '../model/useInventory';
@@ -30,13 +31,16 @@ interface ProprietesEcran {
 /**
  * Écran de sélection.
  *
- * Trois zones fixes : l'arbre des bases à gauche, le détail de la table active à
- * droite, la portée qui partira à l'extraction en bas. La sélection est tenue
- * ici parce que les trois la lisent — l'arbre pour cocher, le détail pour
- * signaler une référence sortante, la portée pour la composer.
+ * Trois zones : l'arbre des bases à gauche, le détail de la table active à
+ * droite, et en bas la portée qui partira à côté de ce qui a été produit. La
+ * sélection est tenue ici parce que les trois la lisent — l'arbre pour cocher,
+ * le détail pour signaler une référence sortante, la portée pour la composer.
+ *
+ * La zone du bas se règle en hauteur et se replie : on la garde grande pour
+ * relire un calque, petite pour cocher sur quatre cents tables.
  *
  * L'écran compose la portée mais ne la lance pas : l'extraction est une autre
- * feature, que l'application branche par `actions`.
+ * feature, que l'application branche par `actions` et `produit`.
  */
 export function InventoryScreen({
   serveur,
@@ -51,6 +55,7 @@ export function InventoryScreen({
   const colonnes = useColumns(serveur.session);
   const exclusions = useExclusions();
   const portee = usePortee(serveur.schemas, inventaire.tables, etat.selection);
+  const [apercuOuvert, basculerApercu] = useApercuOuvert();
   const [active, setActive] = useState<string | null>(null);
 
   const table = inventaire.tables.find(
@@ -58,39 +63,49 @@ export function InventoryScreen({
   );
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <SplitPane
-        cleStockage="ormeau-largeur-arbre"
-        gauche={
-          <DatabaseTree
-            bases={bases}
-            courante={serveur.catalogue}
-            tables={inventaire.tables}
-            enCours={enCours || inventaire.enCours}
-            erreur={inventaire.erreur}
-            etat={etat}
-            colonnes={colonnes}
-            exclusions={exclusions}
-            active={active}
-            onActiver={setActive}
-            onOuvrirBase={onOuvrirBase}
-          />
-        }
-        droite={
-          <TableDetails
-            table={table ?? null}
-            selection={etat.selection}
-            colonnes={colonnes}
-            exclusions={exclusions}
-          />
-        }
-      />
-      <ScopePreview
-        portee={portee}
-        exclusions={exclusions}
-        actions={actions?.(portee)}
-        produit={produit}
-      />
-    </div>
+    <SplitPane
+      sens="vertical"
+      cleStockage="ormeau-hauteur-apercu"
+      defaut={320}
+      replie={!apercuOuvert}
+      premier={
+        <SplitPane
+          cleStockage="ormeau-largeur-arbre"
+          premier={
+            <DatabaseTree
+              bases={bases}
+              courante={serveur.catalogue}
+              tables={inventaire.tables}
+              enCours={enCours || inventaire.enCours}
+              erreur={inventaire.erreur}
+              etat={etat}
+              colonnes={colonnes}
+              exclusions={exclusions}
+              active={active}
+              onActiver={setActive}
+              onOuvrirBase={onOuvrirBase}
+            />
+          }
+          second={
+            <TableDetails
+              table={table ?? null}
+              selection={etat.selection}
+              colonnes={colonnes}
+              exclusions={exclusions}
+            />
+          }
+        />
+      }
+      second={
+        <ScopePreview
+          portee={portee}
+          exclusions={exclusions}
+          ouvert={apercuOuvert}
+          onBasculer={basculerApercu}
+          actions={actions?.(portee)}
+          produit={produit}
+        />
+      }
+    />
   );
 }

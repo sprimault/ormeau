@@ -81,6 +81,7 @@ const fr = {
 
   'action.copy': 'Copier',
   'split.handle': 'Largeur du panneau — tirer, ou flèches gauche et droite',
+  'split.handleVertical': 'Hauteur du panneau — tirer, ou flèches haut et bas',
 
   'scope.title': 'Ce que produira cet écran',
   'scope.extraction': 'Portée envoyée à l’extraction',
@@ -239,6 +240,7 @@ const en: Record<MessageKey, string> = {
 
   'action.copy': 'Copy',
   'split.handle': 'Panel width — drag, or left and right arrows',
+  'split.handleVertical': 'Panel height — drag, or up and down arrows',
 
   'scope.title': 'What this screen will produce',
   'scope.extraction': 'Scope sent to extraction',

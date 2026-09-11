@@ -1,7 +1,7 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
-import { useMemo, useState, type ReactNode } from 'react';
+import { useMemo, type ReactNode } from 'react';
 
 import { useT } from '@/shared/i18n';
 import type { Portee } from '@/shared/model';
@@ -12,15 +12,14 @@ import type { EtatExclusions } from '../model/useExclusions';
 interface ProprietesApercu {
   portee: Portee;
   exclusions: EtatExclusions;
+  /** Replié, seule la barre reste. */
+  ouvert: boolean;
+  onBasculer: () => void;
   /** Placé dans la barre, visible même replié. */
   actions?: ReactNode;
   /** Ce que l'extraction a produit, en colonne de droite. */
   produit?: ReactNode;
 }
-
-/** Clé de persistance du repli : une préférence d'affichage, comme la largeur
- *  de l'arbre, jamais rien qui touche à la base. */
-const CLE_OUVERTURE = 'ormeau-apercu-ouvert';
 
 /**
  * Ce que produira l'écran, et ce qu'il a produit.
@@ -31,8 +30,8 @@ const CLE_OUVERTURE = 'ormeau-apercu-ouvert';
  * que l'extraction a écrit. Les voir côte à côte rend évident ce qui a été
  * demandé et ce qui est arrivé, sans l'expliquer.
  *
- * Ouvert par défaut : c'est le résultat du travail de l'écran, il n'a pas à se
- * chercher. Le repli se retient d'un lancement à l'autre.
+ * La hauteur et le repli sont tenus par l'écran, qui dimensionne la zone : ici,
+ * le contenu occupe ce qu'on lui donne.
  *
  * Une liste de tables vide n'est pas une portée vide : c'est « toutes celles des
  * schémas retenus », comme en ligne de commande. Le dire, parce que le JSON seul
@@ -41,31 +40,27 @@ const CLE_OUVERTURE = 'ormeau-apercu-ouvert';
  * Le bouton d'extraction et le calque produit arrivent par `actions` et
  * `produit` : ils appartiennent à une autre feature, que celle-ci ne connaît pas.
  */
-export function ScopePreview({ portee, exclusions, actions, produit }: ProprietesApercu) {
+export function ScopePreview({
+  portee,
+  exclusions,
+  ouvert,
+  onBasculer,
+  actions,
+  produit,
+}: ProprietesApercu) {
   const t = useT();
-  const [ouvert, setOuvert] = useState(ouvertureEnregistree);
 
   const tables = portee.tables_incluses ?? [];
   const schemas = portee.schemas ?? [];
   const json = useMemo(() => JSON.stringify(portee, null, 2), [portee]);
   const decisions = useMemo(() => enYaml(exclusions.ignorees), [exclusions.ignorees]);
 
-  function basculer() {
-    const suivant = !ouvert;
-    setOuvert(suivant);
-    try {
-      window.localStorage.setItem(CLE_OUVERTURE, suivant ? '1' : '0');
-    } catch {
-      // Stockage indisponible : le repli vaut pour cette session.
-    }
-  }
-
   return (
-    <section className="border-t border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-900">
-      <div className="flex items-center gap-3 px-3 py-1.5">
+    <section className="flex h-full min-h-0 flex-col border-t border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-900">
+      <div className="flex shrink-0 items-center gap-3 px-3 py-1.5">
         <button
           type="button"
-          onClick={basculer}
+          onClick={onBasculer}
           aria-expanded={ouvert}
           className="text-xs font-semibold"
         >
@@ -88,7 +83,7 @@ export function ScopePreview({ portee, exclusions, actions, produit }: Propriete
 
       {ouvert ? (
         <div
-          className={`grid h-[35vh] gap-px border-t border-slate-200 bg-slate-200 dark:border-slate-800 dark:bg-slate-800 ${
+          className={`grid min-h-0 flex-1 gap-px border-t border-slate-200 bg-slate-200 dark:border-slate-800 dark:bg-slate-800 ${
             produit ? 'grid-cols-2' : 'grid-cols-1'
           }`}
         >
@@ -125,15 +120,6 @@ export function ScopePreview({ portee, exclusions, actions, produit }: Propriete
       ) : null}
     </section>
   );
-}
-
-/** Relit le repli choisi ; ouvert quand rien n'a été retenu. */
-function ouvertureEnregistree(): boolean {
-  try {
-    return window.localStorage.getItem(CLE_OUVERTURE) !== '0';
-  } catch {
-    return true;
-  }
 }
 
 /**
