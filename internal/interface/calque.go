@@ -81,6 +81,11 @@ func (c *calquesLus) lire(chemin string) (*calque.Physique, error) {
 // courante. Une empreinte différente veut dire qu'une extraction a réécrit le
 // calque entre-temps : des décisions prises sur l'ancien portent sur un schéma
 // qui a bougé, et l'écran doit le savoir avant d'aller plus loin.
+//
+// Le refus d'un calque absent nomme le répertoire où il a été cherché.
+// L'interface se lance souvent ailleurs que dans le projet, et le fichier
+// existe alors bel et bien, à côté : sans le chemin, le message envoie chercher
+// un calque qui n'a jamais manqué.
 func (s *serveur) calqueDeBase(w http.ResponseWriter, base, empreinte string) (*calque.Physique, bool) {
 	if !baseValide(w, base) {
 		return nil, false
@@ -90,7 +95,9 @@ func (s *serveur) calqueDeBase(w http.ResponseWriter, base, empreinte string) (*
 	physique, err := s.calques.lire(filepath.Join(s.repertoire, fichier))
 	switch {
 	case errors.Is(err, fs.ErrNotExist):
-		repondreErreur(w, http.StatusNotFound, fmt.Sprintf("aucun %s dans le répertoire de travail", fichier))
+		repondreErreur(w, http.StatusNotFound, fmt.Sprintf(
+			"aucun %s dans %s : extraire la base, ou relancer l'interface depuis le projet qui porte ce calque",
+			fichier, s.repertoire))
 		return nil, false
 	case err != nil:
 		repondreErreur(w, http.StatusUnprocessableEntity, fmt.Sprintf("%s illisible : %v", fichier, err))

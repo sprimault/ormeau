@@ -36,6 +36,20 @@ préambule reste en français : il n'est jamais publié.
 
 ## [Non publié]
 
+### Corrigé
+
+- **Le refus d'un calque absent nomme le répertoire de travail.** Lancée
+  ailleurs que dans le projet, l'interface annonçait un calque manquant sans
+  dire où elle l'avait cherché.
+
+***
+
+### Fixed
+
+- **A missing layer is now refused with the working directory named.** Launched
+  outside the project, the interface reported a missing layer without saying
+  where it had looked for it.
+
 ## [0.4.0] — 2026-09-11 — Interface de sélection et d'arbitrage
 
 **Si vous avez déjà un fichier de décisions** : `relations_forcees` est
