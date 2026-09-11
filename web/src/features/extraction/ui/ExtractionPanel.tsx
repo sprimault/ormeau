@@ -1,9 +1,11 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+import { useMemo } from 'react';
+
 import { useT } from '@/shared/i18n';
 import type { Extraction } from '@/shared/model';
-import { estTerminal } from '../model/taches';
+import { estTerminal, remplacements } from '../model/taches';
 import { useMaintenant } from '../model/useMaintenant';
 import { ExtractionItem } from './ExtractionItem';
 
@@ -23,6 +25,7 @@ interface ProprietesPanneau {
 export function ExtractionPanel({ extractions, connecte }: ProprietesPanneau) {
   const t = useT();
   const maintenant = useMaintenant(extractions.some((e) => !estTerminal(e.etat)));
+  const remplacees = useMemo(() => remplacements(extractions), [extractions]);
 
   return (
     <section
@@ -40,7 +43,12 @@ export function ExtractionPanel({ extractions, connecte }: ProprietesPanneau) {
       </header>
       <ul className="max-h-[70vh] divide-y divide-slate-200 overflow-y-auto dark:divide-slate-800">
         {[...extractions].reverse().map((extraction) => (
-          <ExtractionItem key={extraction.id} extraction={extraction} maintenant={maintenant} />
+          <ExtractionItem
+            key={extraction.id}
+            extraction={extraction}
+            maintenant={maintenant}
+            remplaceeA={remplacees.get(extraction.id)}
+          />
         ))}
       </ul>
     </section>

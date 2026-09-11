@@ -135,6 +135,9 @@ const fr = {
   'extraction.dismiss': 'Retirer',
   'extraction.result': '{tables} table(s), {colonnes} colonne(s)',
   'extraction.anomalies': 'Anomalies du calque : {n}',
+  'extraction.at': 'à {heure}',
+  'extraction.replaced':
+    'Fichier réécrit depuis par l’extraction terminée à {heure} : ce résumé ne le décrit plus.',
 
   'anomaly.version_inconnue': 'Version de calque inconnue',
   'anomaly.sgbd_inconnu': 'SGBD hors du vocabulaire',
@@ -283,6 +286,9 @@ const en: Record<MessageKey, string> = {
   'extraction.dismiss': 'Dismiss',
   'extraction.result': '{tables} table(s), {colonnes} column(s)',
   'extraction.anomalies': 'Layer anomalies: {n}',
+  'extraction.at': 'at {heure}',
+  'extraction.replaced':
+    'File rewritten since by the extraction finished at {heure}: this summary no longer describes it.',
 
   'anomaly.version_inconnue': 'Unknown layer version',
   'anomaly.sgbd_inconnu': 'DBMS outside the vocabulary',

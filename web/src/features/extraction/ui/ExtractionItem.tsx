@@ -4,7 +4,7 @@
 import { useState } from 'react';
 
 import { estCle, useT } from '@/shared/i18n';
-import { duree } from '@/shared/lib';
+import { duree, heure } from '@/shared/lib';
 import {
   EtatEchouee,
   EtatEnAttente,
@@ -23,6 +23,8 @@ type Traduire = ReturnType<typeof useT>;
 interface ProprietesLigne {
   extraction: Extraction;
   maintenant: number;
+  /** Fin de l'extraction qui a réécrit le fichier depuis, s'il y en a une. */
+  remplaceeA?: string;
 }
 
 /** Couleur de l'état, affiché en bout de ligne. */
@@ -40,8 +42,11 @@ const couleurs: Record<string, string> = {
  * l'extraction, le fichier écrit et ses anomalies ensuite, le message du
  * serveur en cas d'échec. Base, fichier et cibles d'anomalie restent tels
  * qu'ils sont, jamais traduits.
+ *
+ * Une ligne dont le fichier a été réécrit depuis s'estompe et le dit : son
+ * résumé reste lisible, mais il ne décrit plus ce qui est sur disque.
  */
-export function ExtractionItem({ extraction, maintenant }: ProprietesLigne) {
+export function ExtractionItem({ extraction, maintenant, remplaceeA }: ProprietesLigne) {
   const t = useT();
   const [anomaliesOuvertes, setAnomaliesOuvertes] = useState(false);
 
@@ -51,7 +56,7 @@ export function ExtractionItem({ extraction, maintenant }: ProprietesLigne) {
   const anomalies = resultat?.anomalies ?? [];
 
   return (
-    <li className="space-y-1 px-3 py-2 text-xs">
+    <li className={`space-y-1 px-3 py-2 text-xs ${remplaceeA ? 'opacity-60' : ''}`}>
       <div className="flex items-baseline gap-2">
         <span className="font-mono text-sm font-semibold">{extraction.base}</span>
         <span className="text-slate-500">
@@ -61,6 +66,9 @@ export function ExtractionItem({ extraction, maintenant }: ProprietesLigne) {
         </span>
         <span className={`ml-auto ${couleurs[extraction.etat] ?? 'text-slate-500'}`}>
           {libelle(t, 'extraction.state.', extraction.etat)}
+          {!active && extraction.fin
+            ? ` ${t('extraction.at', { heure: heure(extraction.fin) })}`
+            : null}
         </span>
         {secondes === null ? null : (
           <span className="text-slate-500 tabular-nums">{duree(secondes)}</span>
@@ -100,6 +108,11 @@ export function ExtractionItem({ extraction, maintenant }: ProprietesLigne) {
               {t('extraction.result', { tables: resultat.tables, colonnes: resultat.colonnes })}
             </span>
           </p>
+          {remplaceeA ? (
+            <p className="text-slate-500">
+              {t('extraction.replaced', { heure: heure(remplaceeA) })}
+            </p>
+          ) : null}
           {anomalies.length > 0 ? (
             <button
               type="button"

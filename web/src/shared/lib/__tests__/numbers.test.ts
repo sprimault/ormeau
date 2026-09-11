@@ -28,9 +28,14 @@ describe('compact', () => {
 });
 
 describe('duree', () => {
-  it('compte en secondes sous la minute', () => {
-    expect(duree(0)).toBe('0 s');
-    expect(duree(42)).toBe('42 s');
+  it('ne dit pas zéro sous la seconde', () => {
+    expect(duree(0)).toBe('< 1 s');
+    expect(duree(0.4)).toBe('< 1 s');
+  });
+
+  it('compte en secondes entières sous la minute', () => {
+    expect(duree(1)).toBe('1 s');
+    expect(duree(42.9)).toBe('42 s');
   });
 
   it('passe aux minutes, secondes sur deux chiffres', () => {

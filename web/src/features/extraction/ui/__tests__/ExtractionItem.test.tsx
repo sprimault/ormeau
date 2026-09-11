@@ -95,6 +95,27 @@ describe('ExtractionItem', () => {
     expect(retirerExtraction).toHaveBeenCalledWith('tache-1');
   });
 
+  it('estompe un calque réécrit depuis par une autre extraction, et le dit', () => {
+    const { container } = render(
+      <ul>
+        <ExtractionItem
+          extraction={{
+            ...gescom,
+            etat: 'terminee',
+            fin: '2026-09-11T10:00:00.400Z',
+            resultat: { tables: 1, colonnes: 10, empreinte: 'sha256:0', anomalies: [] },
+          }}
+          maintenant={0}
+          remplaceeA="2026-09-11T10:05:00.000Z"
+        />
+      </ul>,
+    );
+
+    expect(screen.getByText(/^Fichier réécrit depuis/)).toBeInTheDocument();
+    expect(screen.getByText('< 1 s')).toBeInTheDocument();
+    expect(container.querySelector('li')).toHaveClass('opacity-60');
+  });
+
   it('affiche tel quel un code d’étape qui n’a pas de libellé', () => {
     rendre({ ...gescom, avancement: { etape: 'partitions', rang: 1, total: 9 } });
 
@@ -110,6 +131,6 @@ describe('ExtractionItem', () => {
     });
 
     expect(screen.getByText('lecture des colonnes: délai dépassé')).toBeInTheDocument();
-    expect(screen.getByText('échouée')).toBeInTheDocument();
+    expect(screen.getByText(/^échouée à \d{2}:\d{2}:\d{2}$/)).toBeInTheDocument();
   });
 });

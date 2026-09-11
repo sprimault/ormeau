@@ -4,3 +4,4 @@
 export { masquerDSN, tronquerMilieu } from './strings';
 export { compact, duree } from './numbers';
 export { qualifier } from './sql';
+export { heure } from './dates';
