@@ -111,6 +111,12 @@ database state; in the logical layer, `empreinte_physique` says which
 observation this judgement derives from — which is how "the database moved since
 the last generation" is detected without re-reading the entities.
 
+The decisions file carries its own, at the top. It covers the active decisions,
+not the help text around them, and the database name: before rewriting the file,
+the interface thus knows whether it was edited by hand or copied from another
+database, and asks for confirmation. Each artefact carries its fingerprint: the
+layer in `source.empreinte`, the decisions file at its top.
+
 ## Practical consequence
 
 You can extract a database at a customer's site, leave with a layer of a few
