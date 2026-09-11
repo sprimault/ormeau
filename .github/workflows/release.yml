@@ -35,11 +35,43 @@ jobs:
       id-token: write
       attestations: write
     steps:
-      # fetch-depth 0 : sans l'historique complet, l'objet du tag annoté n'est
-      # pas récupéré et son message serait vide.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
+
+      # Le titre et les notes viennent de la section du CHANGELOG qui porte
+      # cette version. Elle s'écrit avec les lots et se relit en PR, au moment
+      # où elle compte : rien n'est à recopier ici, où personne ne la relirait.
+      #
+      # Lue avant les tests et la construction : une section absente arrête la
+      # publication, et autant le savoir avant de compiler cinq cibles. Une
+      # version sans notes ne dit ni ce qui change, ni ce qu'un calque ou un
+      # fichier de décisions existant doit reprendre.
+      - name: Lire les notes dans le CHANGELOG
+        id: notes
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+
+          # index et non une expression régulière : les crochets du titre de
+          # section formeraient une classe de caractères, et « [0.4.0] » ne
+          # désignerait plus qu'un seul caractère.
+          awk -v v="$version" '
+            index($0, "## [" v "]") == 1 { dedans = 1; next }
+            dedans && index($0, "## ") == 1 { exit }
+            dedans { print }
+          ' CHANGELOG.md > notes.md
+
+          # Une section faite de lignes vides passerait un test de taille : c'est
+          # du texte qui est exigé, pas des octets.
+          if ! grep -q '[^[:space:]]' notes.md; then
+            echo "CHANGELOG.md n'a pas de section pour la version $version" >&2
+            exit 1
+          fi
+
+          # Le titre est la troisième partie du titre de section, après la
+          # version et la date. Absent, la release se nomme par son tag seul.
+          titre=$(grep -m1 -F "## [$version]" CHANGELOG.md \
+            | sed -n 's/^## \[[^]]*\][^—]*—[^—]*— *//p')
+          echo "titre=${GITHUB_REF_NAME}${titre:+ — $titre}" >> "$GITHUB_OUTPUT"
+          cat notes.md
 
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
@@ -117,23 +149,6 @@ jobs:
         with:
           subject-path: 'publication/ormeau_*'
 
-      # Le titre et les notes viennent du tag annoté : elles se relisent dans
-      # une revue, se corrigent avant de pousser, et restent dans l'historique.
-      #
-      #   git tag -a v0.2.0 -F notes.txt
-      #
-      # La première ligne fait le titre, le reste les notes. Un tag léger, sans
-      # message, retombe sur le numéro seul.
-      - name: Lire le tag annoté
-        id: tag
-        run: |
-          titre=$(git tag -l --format='%(contents:subject)' "${{ github.ref_name }}")
-          [ -n "$titre" ] || titre="${{ github.ref_name }}"
-          echo "titre=$titre" >> "$GITHUB_OUTPUT"
-
-          git tag -l --format='%(contents:body)' "${{ github.ref_name }}" > notes.md
-          [ -s notes.md ] || echo "Notes à rédiger avant publication." > notes.md
-
       # gh est préinstallé sur le runner : pas d'action tierce à épingler pour
       # une opération que la ligne de commande fait aussi bien.
       - name: Créer la release en brouillon
@@ -142,7 +157,7 @@ jobs:
         run: |
           gh release create "${{ github.ref_name }}" \
             --draft \
-            --title "${{ steps.tag.outputs.titre }}" \
+            --title "${{ steps.notes.outputs.titre }}" \
             --notes-file notes.md \
             publication/*
 
