@@ -54,6 +54,17 @@ const (
 // appliquer la même règle : une base extraite ici doit pouvoir y être rouverte.
 var motifBase = regexp.MustCompile(`^[\p{L}\p{N}_-]+$`)
 
+// baseValide refuse un nom de base qui ne peut pas nommer un fichier du
+// répertoire de travail. Rend false quand il a déjà répondu.
+func baseValide(w http.ResponseWriter, base string) bool {
+	if motifBase.MatchString(base) {
+		return true
+	}
+	repondreErreur(w, http.StatusBadRequest,
+		fmt.Sprintf("la base %q ne peut pas nommer un fichier : lettres, chiffres, tiret et souligné seulement", base))
+	return false
+}
+
 // ErrBaseDejaEnCours signale une deuxième extraction de la même base. Les deux
 // écriraient le même fichier, et l'une serait perdue sans trace.
 var ErrBaseDejaEnCours = errors.New("une extraction de cette base est deja en cours")
@@ -439,9 +450,7 @@ func (s *serveur) lancerExtraction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	base := introspection.BaseDuDSN(c.dsn)
-	if !motifBase.MatchString(base) {
-		repondreErreur(w, http.StatusBadRequest,
-			fmt.Sprintf("la base %q ne peut pas nommer un fichier : lettres, chiffres, tiret et souligné seulement", base))
+	if !baseValide(w, base) {
 		return
 	}
 

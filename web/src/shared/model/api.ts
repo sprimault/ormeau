@@ -5,7 +5,17 @@
 // Types générés depuis internal/interface par `make web-types` (tygo).
 // Ne pas modifier à la main.
 
-import type { Anomalie } from './calque';
+import type {
+  Anomalie,
+  Avertissement,
+  CasEnumeration,
+  Entite,
+  Heritage,
+  Origine,
+  ReferenceTable,
+  Table,
+} from './calque';
+import type { Decisions, Proposition } from './inference';
 import type { Avancement, Portee, TableSommaire } from './introspection';
 
 //////////
@@ -58,7 +68,31 @@ export interface ReponseContexte {
  */
 export interface ReponseErreur {
   erreur: string;
+  /**
+   * Code n'est posé que sur un refus que le front traite à part ; les autres
+   * échecs se distinguent par leur statut.
+   */
+  code?: CodeRefus;
 }
+/**
+ * CodeRefus distingue les refus qui n'appellent pas la même réaction.
+ */
+export type CodeRefus = string;
+/**
+ * CodeCalqueModifie : une extraction a réécrit le calque pendant
+ * l'arbitrage, l'écran recharge avant d'aller plus loin.
+ */
+export const CodeCalqueModifie: CodeRefus = "calque_modifie";
+/**
+ * CodeDecisionsModifiees : le fichier de décisions a changé sur disque
+ * depuis sa lecture, l'écran le relit.
+ */
+export const CodeDecisionsModifiees: CodeRefus = "decisions_modifiees";
+/**
+ * CodeContenuManuel : le fichier porte un travail humain que la réécriture
+ * perdrait, l'écran demande confirmation.
+ */
+export const CodeContenuManuel: CodeRefus = "contenu_manuel";
 /**
  * ReponseBases liste les bases exploitables du serveur atteint.
  * Les bases système en sont absentes : elles ne produiraient que des calques
@@ -197,4 +231,112 @@ export interface ReponseCalque {
    * n'y en a pas.
    */
   statistiques_retirees?: boolean;
+}
+/**
+ * ReponseDecisions décrit le fichier de décisions d'une base.
+ */
+export interface ReponseDecisions {
+  existe: boolean;
+  decisions: Decisions;
+  /**
+   * EmpreinteFichier identifie les octets lus. L'écriture la renvoie, et le
+   * serveur refuse d'écraser un fichier qui ne les porte plus.
+   */
+  empreinte_fichier?: string;
+  /**
+   * Manuel annonce qu'une réécriture perdrait un travail humain : l'écran
+   * demande confirmation avant d'enregistrer.
+   */
+  manuel: boolean;
+}
+/**
+ * RequeteInference rejoue l'inférence avec le brouillon de décisions de
+ * l'écran.
+ */
+export interface RequeteInference {
+  base: string;
+  decisions: Decisions;
+  /**
+   * EmpreintePhysique est celle du calque que l'écran juge. Vide au premier
+   * chargement, qui l'apprend.
+   */
+  empreinte_physique?: string;
+}
+/**
+ * ReponseInference porte ce que l'écran d'arbitrage liste, sans le détail des
+ * entités.
+ */
+export interface ReponseInference {
+  empreinte_physique: string;
+  avertissements: Avertissement[];
+  propositions: Proposition[];
+  enumerations: EnumerationInferee[];
+  entites: ResumeEntite[];
+}
+/**
+ * ResumeEntite est ce qu'une ligne de la liste montre d'une entité.
+ */
+export interface ResumeEntite {
+  nom: string;
+  table: ReferenceTable;
+  nb_proprietes: number /* int */;
+  nb_associations: number /* int */;
+  heritage?: Heritage;
+  traits?: string[];
+  origine?: Origine;
+}
+/**
+ * EnumerationInferee est une énumération du calque logique, avec les colonnes
+ * qui la portent : c'est par la colonne que le fichier de décisions en nomme
+ * les cas.
+ */
+export interface EnumerationInferee {
+  nom: string;
+  type_support: string;
+  cas: CasEnumeration[];
+  origine: Origine;
+  colonnes: string[];
+}
+/**
+ * RequeteEntite demande le détail d'une entité, calculé avec le brouillon
+ * courant.
+ */
+export interface RequeteEntite {
+  base: string;
+  decisions: Decisions;
+  empreinte_physique?: string;
+  schema: string;
+  table: string;
+}
+/**
+ * ReponseEntite porte une entité inférée et la table physique dont elle vient.
+ * Sans entité — table ignorée, table de jointure —, la table vient seule.
+ */
+export interface ReponseEntite {
+  entite?: Entite;
+  table_physique: Table;
+}
+/**
+ * RequeteEcritureDecisions enregistre le brouillon dans le fichier de la base.
+ */
+export interface RequeteEcritureDecisions {
+  base: string;
+  decisions: Decisions;
+  empreinte_physique: string;
+  /**
+   * EmpreinteFichier est celle rendue à la lecture, vide quand le fichier
+   * n'existait pas.
+   */
+  empreinte_fichier?: string;
+  /**
+   * EcraserManuel confirme la perte d'un contenu écrit à la main.
+   */
+  ecraser_manuel?: boolean;
+}
+/**
+ * ReponseEcritureDecisions rend l'empreinte du fichier écrit, que
+ * l'enregistrement suivant renverra.
+ */
+export interface ReponseEcritureDecisions {
+  empreinte_fichier: string;
 }

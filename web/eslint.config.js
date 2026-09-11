@@ -13,7 +13,16 @@ import tseslint from 'typescript-eslint';
 // couverture non plus : ses scripts portent des directives que la validation
 // refuserait.
 export default tseslint.config(
-  { ignores: ['node_modules', 'coverage', 'src/shared/model/calque.ts', 'src/shared/model/api.ts', 'src/shared/model/introspection.ts'] },
+  {
+    ignores: [
+      'node_modules',
+      'coverage',
+      'src/shared/model/calque.ts',
+      'src/shared/model/api.ts',
+      'src/shared/model/introspection.ts',
+      'src/shared/model/inference.ts',
+    ],
+  },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],

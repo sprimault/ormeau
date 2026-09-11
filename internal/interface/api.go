@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/sprimault/ormeau/internal/calque"
+	"github.com/sprimault/ormeau/internal/inference"
 	"github.com/sprimault/ormeau/internal/introspection"
 )
 
@@ -72,7 +73,27 @@ type ReponseContexte struct {
 // laisserait le front deviner ce qu'il affiche.
 type ReponseErreur struct {
 	Erreur string `json:"erreur"`
+	// Code n'est posé que sur un refus que le front traite à part ; les autres
+	// échecs se distinguent par leur statut.
+	Code CodeRefus `json:"code,omitempty"`
 }
+
+// CodeRefus distingue les refus qui n'appellent pas la même réaction.
+type CodeRefus string
+
+// Codes de refus. Ils disent au front quoi faire, jamais quoi afficher : le
+// texte reste celui de l'erreur.
+const (
+	// CodeCalqueModifie : une extraction a réécrit le calque pendant
+	// l'arbitrage, l'écran recharge avant d'aller plus loin.
+	CodeCalqueModifie CodeRefus = "calque_modifie"
+	// CodeDecisionsModifiees : le fichier de décisions a changé sur disque
+	// depuis sa lecture, l'écran le relit.
+	CodeDecisionsModifiees CodeRefus = "decisions_modifiees"
+	// CodeContenuManuel : le fichier porte un travail humain que la réécriture
+	// perdrait, l'écran demande confirmation.
+	CodeContenuManuel CodeRefus = "contenu_manuel"
+)
 
 // ReponseBases liste les bases exploitables du serveur atteint.
 //
@@ -183,6 +204,95 @@ type ReponseCalque struct {
 	// n'ont pas été envoyées : l'écran le dit plutôt que de laisser croire qu'il
 	// n'y en a pas.
 	StatistiquesRetirees bool `json:"statistiques_retirees,omitempty"`
+}
+
+// ReponseDecisions décrit le fichier de décisions d'une base.
+type ReponseDecisions struct {
+	Existe    bool                `json:"existe"`
+	Decisions inference.Decisions `json:"decisions"`
+	// EmpreinteFichier identifie les octets lus. L'écriture la renvoie, et le
+	// serveur refuse d'écraser un fichier qui ne les porte plus.
+	EmpreinteFichier string `json:"empreinte_fichier,omitempty"`
+	// Manuel annonce qu'une réécriture perdrait un travail humain : l'écran
+	// demande confirmation avant d'enregistrer.
+	Manuel bool `json:"manuel"`
+}
+
+// RequeteInference rejoue l'inférence avec le brouillon de décisions de
+// l'écran.
+type RequeteInference struct {
+	Base      string              `json:"base"`
+	Decisions inference.Decisions `json:"decisions"`
+	// EmpreintePhysique est celle du calque que l'écran juge. Vide au premier
+	// chargement, qui l'apprend.
+	EmpreintePhysique string `json:"empreinte_physique,omitempty"`
+}
+
+// ReponseInference porte ce que l'écran d'arbitrage liste, sans le détail des
+// entités.
+type ReponseInference struct {
+	EmpreintePhysique string                  `json:"empreinte_physique"`
+	Avertissements    []calque.Avertissement  `json:"avertissements"`
+	Propositions      []inference.Proposition `json:"propositions"`
+	Enumerations      []EnumerationInferee    `json:"enumerations"`
+	Entites           []ResumeEntite          `json:"entites"`
+}
+
+// ResumeEntite est ce qu'une ligne de la liste montre d'une entité.
+type ResumeEntite struct {
+	Nom            string                `json:"nom"`
+	Table          calque.ReferenceTable `json:"table"`
+	NbProprietes   int                   `json:"nb_proprietes"`
+	NbAssociations int                   `json:"nb_associations"`
+	Heritage       *calque.Heritage      `json:"heritage,omitempty"`
+	Traits         []string              `json:"traits,omitempty"`
+	Origine        calque.Origine        `json:"origine,omitempty"`
+}
+
+// EnumerationInferee est une énumération du calque logique, avec les colonnes
+// qui la portent : c'est par la colonne que le fichier de décisions en nomme
+// les cas.
+type EnumerationInferee struct {
+	Nom         string                  `json:"nom"`
+	TypeSupport string                  `json:"type_support"`
+	Cas         []calque.CasEnumeration `json:"cas"`
+	Origine     calque.Origine          `json:"origine"`
+	Colonnes    []string                `json:"colonnes"`
+}
+
+// RequeteEntite demande le détail d'une entité, calculé avec le brouillon
+// courant.
+type RequeteEntite struct {
+	Base              string              `json:"base"`
+	Decisions         inference.Decisions `json:"decisions"`
+	EmpreintePhysique string              `json:"empreinte_physique,omitempty"`
+	Schema            string              `json:"schema"`
+	Table             string              `json:"table"`
+}
+
+// ReponseEntite porte une entité inférée et la table physique dont elle vient.
+// Sans entité — table ignorée, table de jointure —, la table vient seule.
+type ReponseEntite struct {
+	Entite        *calque.Entite `json:"entite,omitempty"`
+	TablePhysique calque.Table   `json:"table_physique"`
+}
+
+// RequeteEcritureDecisions enregistre le brouillon dans le fichier de la base.
+type RequeteEcritureDecisions struct {
+	Base              string              `json:"base"`
+	Decisions         inference.Decisions `json:"decisions"`
+	EmpreintePhysique string              `json:"empreinte_physique"`
+	// EmpreinteFichier est celle rendue à la lecture, vide quand le fichier
+	// n'existait pas.
+	EmpreinteFichier string `json:"empreinte_fichier,omitempty"`
+	// EcraserManuel confirme la perte d'un contenu écrit à la main.
+	EcraserManuel bool `json:"ecraser_manuel,omitempty"`
+}
+
+// ReponseEcritureDecisions rend l'empreinte du fichier écrit, que
+// l'enregistrement suivant renverra.
+type ReponseEcritureDecisions struct {
+	EmpreinteFichier string `json:"empreinte_fichier"`
 }
 
 // contexte rend le répertoire de travail et la version.
@@ -565,6 +675,12 @@ func repondreJSON(w http.ResponseWriter, code int, corps any) {
 // repondreErreur écrit un échec sous la forme que le front sait afficher.
 func repondreErreur(w http.ResponseWriter, code int, message string) {
 	repondreJSON(w, code, ReponseErreur{Erreur: message})
+}
+
+// repondreRefus écrit un refus que le front traite à part : un conflit, avec le
+// code qui dit lequel.
+func repondreRefus(w http.ResponseWriter, code CodeRefus, message string) {
+	repondreJSON(w, http.StatusConflict, ReponseErreur{Erreur: message, Code: code})
 }
 
 // sansDSN retire d'un message toute occurrence de la chaîne de connexion.

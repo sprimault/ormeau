@@ -191,7 +191,7 @@ web-types:
 	@command -v tygo >/dev/null 2>&1 || { echo "tygo absent : go install github.com/gzuidhof/tygo@$(TYGO_VERSION)"; exit 1; }
 	tygo generate --config tools/tygo/tygo.yaml
 
-TYPES_GENERES = web/src/shared/model/calque.ts web/src/shared/model/api.ts web/src/shared/model/introspection.ts
+TYPES_GENERES = web/src/shared/model/calque.ts web/src/shared/model/api.ts web/src/shared/model/introspection.ts web/src/shared/model/inference.ts
 
 # web-types-check régénère et refuse toute dérive. Même contrôle que la
 # CI, à la même source, pour que les deux ne puissent pas diverger.

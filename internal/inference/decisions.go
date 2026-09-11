@@ -26,7 +26,7 @@ const suffixeDecisions = ".decisions.yaml"
 // l'écrire ; elles reprennent les noms du fichier, pour qu'une clé se lise de
 // la même façon des deux côtés.
 type Decisions struct {
-	EspaceDeNoms string `yaml:"espace_de_noms" json:"espace_de_noms,omitempty"`
+	EspaceDeNoms string `json:"espace_de_noms,omitempty" yaml:"espace_de_noms,omitempty"`
 
 	// PrefixesARetirer enlève une convention de nommage des noms de classes :
 	// avec T_, la table T_CLIENTS donne Clients au lieu de TClients.
@@ -35,9 +35,9 @@ type Decisions struct {
 	// commun à toutes les tables. Il le signale par un avertissement et
 	// l'inscrit en commentaire dans le fichier prérempli ; l'arbitrage revient
 	// à celui qui connaît la base.
-	PrefixesARetirer []string `yaml:"prefixes_a_retirer" json:"prefixes_a_retirer,omitempty"`
+	PrefixesARetirer []string `json:"prefixes_a_retirer,omitempty" yaml:"prefixes_a_retirer,omitempty"`
 
-	TablesIgnorees []string `yaml:"tables_ignorees" json:"tables_ignorees,omitempty"`
+	TablesIgnorees []string `json:"tables_ignorees,omitempty" yaml:"tables_ignorees,omitempty"`
 
 	// ColonnesIgnorees retire des propriétés d'une entité sans rien retirer du
 	// calque. Clé : la table qualifiée ; valeurs : les noms de colonnes.
@@ -54,29 +54,32 @@ type Decisions struct {
 	//
 	// La clé primaire ne s'ignore pas : Doctrine refuse une entité sans
 	// identifiant, et la retirer produirait un modèle que rien ne peut charger.
-	ColonnesIgnorees map[string][]string `yaml:"colonnes_ignorees" json:"colonnes_ignorees,omitempty"`
+	ColonnesIgnorees map[string][]string `json:"colonnes_ignorees,omitempty" yaml:"colonnes_ignorees,omitempty"`
 
-	Renommages       map[string]string   `yaml:"renommages" json:"renommages,omitempty"`
-	TypesForces      map[string]string   `yaml:"types_forces" json:"types_forces,omitempty"`
-	RelationsForcees []RelationForcee    `yaml:"relations_forcees" json:"relations_forcees,omitempty"`
-	Enumerations     []EnumerationForcee `yaml:"enumerations" json:"enumerations,omitempty"`
+	// omitempty est répété côté YAML pour tygo, qui retient la balise yaml
+	// quand elle existe : sans lui, ces champs sortiraient obligatoires dans les
+	// types du front. La lecture n'en tient pas compte.
+	Renommages       map[string]string   `json:"renommages,omitempty" yaml:"renommages,omitempty"`
+	TypesForces      map[string]string   `json:"types_forces,omitempty" yaml:"types_forces,omitempty"`
+	RelationsForcees []RelationForcee    `json:"relations_forcees,omitempty" yaml:"relations_forcees,omitempty"`
+	Enumerations     []EnumerationForcee `json:"enumerations,omitempty" yaml:"enumerations,omitempty"`
 }
 
 // RelationForcee déclare une association que l'heuristique n'a pas vue — la clé
 // étrangère jamais déclarée, que seul l'humain confirme.
 type RelationForcee struct {
-	Source string `yaml:"source" json:"source"`
-	Cible  string `yaml:"cible" json:"cible"`
-	Genre  string `yaml:"genre" json:"genre"`
-	Nom    string `yaml:"nom" json:"nom"`
+	Source string `json:"source" yaml:"source"`
+	Cible  string `json:"cible" yaml:"cible"`
+	Genre  string `json:"genre" yaml:"genre"`
+	Nom    string `json:"nom" yaml:"nom"`
 }
 
 // EnumerationForcee impose une énumération. Cas apparie la valeur stockée au
 // nom PHP : un O/N en base n'a pas à donner un cas nommé O.
 type EnumerationForcee struct {
-	Colonne string            `yaml:"colonne" json:"colonne"`
-	Nom     string            `yaml:"nom" json:"nom"`
-	Cas     map[string]string `yaml:"cas" json:"cas,omitempty"`
+	Colonne string            `json:"colonne" yaml:"colonne"`
+	Nom     string            `json:"nom" yaml:"nom"`
+	Cas     map[string]string `json:"cas,omitempty" yaml:"cas,omitempty"`
 }
 
 // vide dit si rien n'est décidé : c'est le premier passage, dont le fichier
