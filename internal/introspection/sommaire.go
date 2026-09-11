@@ -53,3 +53,16 @@ type Portee struct {
 	// une statistique, pas un échantillon.
 	CardinaliteMax int `json:"cardinalite_max,omitempty"`
 }
+
+// Avancement signale la passe qu'une extraction entame.
+//
+// Rang et Total comptent des passes, pas des tables : chacune interroge le
+// catalogue en une requête pour tous les schémas, et rien ne dit où en est le
+// serveur à l'intérieur de cette requête. L'interface affiche donc des paliers,
+// jamais un pourcentage lissé qui prétendrait le contraire.
+type Avancement struct {
+	// Etape est l'un des codes Etape de suivi.go, que l'interface traduit.
+	Etape string `json:"etape"`
+	Rang  int    `json:"rang"`
+	Total int    `json:"total"`
+}

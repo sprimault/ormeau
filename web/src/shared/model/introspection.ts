@@ -62,3 +62,18 @@ export interface Portee {
    */
   cardinalite_max?: number /* int */;
 }
+/**
+ * Avancement signale la passe qu'une extraction entame.
+ * Rang et Total comptent des passes, pas des tables : chacune interroge le
+ * catalogue en une requête pour tous les schémas, et rien ne dit où en est le
+ * serveur à l'intérieur de cette requête. L'interface affiche donc des paliers,
+ * jamais un pourcentage lissé qui prétendrait le contraire.
+ */
+export interface Avancement {
+  /**
+   * Etape est l'un des codes Etape de suivi.go, que l'interface traduit.
+   */
+  etape: string;
+  rang: number /* int */;
+  total: number /* int */;
+}

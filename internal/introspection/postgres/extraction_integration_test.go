@@ -7,6 +7,7 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"testing"
 	"time"
@@ -402,6 +403,63 @@ func TestExtrairePorteeFiltrante(t *testing.T) {
 		if tbl.Nom == "t_log_import" {
 			t.Error("table exclue presente dans le calque")
 		}
+	}
+}
+
+// L'avancement suit les huit passes du pilote, dans l'ordre où elles
+// s'exécutent : c'est ce que l'interface affiche en paliers.
+func TestExtraireSignaleSesPasses(t *testing.T) {
+	p := ouvrirOuEchouer(t)
+
+	ctx, annuler := context.WithTimeout(context.Background(), 30*time.Second)
+	defer annuler()
+
+	var signales []introspection.Avancement
+	ctx = introspection.AvecSuivi(ctx, func(a introspection.Avancement) {
+		signales = append(signales, a)
+	})
+
+	if _, err := p.Extraire(ctx, introspection.Portee{Schemas: []string{"gescom"}}); err != nil {
+		t.Fatalf("extraction : %v", err)
+	}
+
+	etapes := []string{
+		introspection.EtapeSource, introspection.EtapeTables, introspection.EtapeColonnes,
+		introspection.EtapeContraintes, introspection.EtapeIndex, introspection.EtapeSequences,
+		introspection.EtapeTypesEnumeres, introspection.EtapeVues,
+	}
+	if len(signales) != len(etapes) {
+		t.Fatalf("%d passes signalees, %d attendues : %+v", len(signales), len(etapes), signales)
+	}
+	for i, a := range signales {
+		attendu := introspection.Avancement{Etape: etapes[i], Rang: i + 1, Total: len(etapes)}
+		if a != attendu {
+			t.Errorf("passe %d : %+v, attendu %+v", i+1, a, attendu)
+		}
+	}
+}
+
+// Une extraction annulée en cours de route rend l'annulation et aucun calque :
+// c'est ce qui permet d'arrêter depuis l'interface une extraction lancée par
+// erreur sur une base de production.
+func TestExtraireAnnuleeEnCours(t *testing.T) {
+	p := ouvrirOuEchouer(t)
+
+	ctx, annuler := context.WithCancel(context.Background())
+	defer annuler()
+
+	ctx = introspection.AvecSuivi(ctx, func(a introspection.Avancement) {
+		if a.Etape == introspection.EtapeColonnes {
+			annuler()
+		}
+	})
+
+	physique, err := p.Extraire(ctx, introspection.Portee{Schemas: []string{"gescom"}})
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("erreur %v, attendu une annulation", err)
+	}
+	if physique != nil {
+		t.Error("calque rendu malgre l'annulation")
 	}
 }
 

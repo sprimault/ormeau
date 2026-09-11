@@ -14,20 +14,20 @@ import (
 
 // Extraire lit le catalogue et rend un calque trié.
 //
-// Les passes sont séquentielles et chacune interroge une vue du catalogue :
-// tables, colonnes, contraintes, colonnes de contraintes, index, colonnes
-// d'index, séquences, types énumérés, vues. Rien n'est parallélisé — le gain
-// serait marginal devant le risque de rendre l'ordre du résultat dépendant de
-// l'ordonnancement.
+// Huit passes séquentielles, déroulées par introspection.Derouler qui en
+// signale l'avancement. Chacune interroge le catalogue pour tous les schémas à
+// la fois. Rien n'est parallélisé — le gain serait marginal devant le risque de
+// rendre l'ordre du résultat dépendant de l'ordonnancement.
 //
 // Ce qui n'est pas capturé ici est perdu : aucune couche en aval ne peut le
 // retrouver.
-func (p *pilote) Extraire(ctx context.Context, portee introspection.Portee) (physique *calque.Physique, err error) {
+func (p *pilote) Extraire(ctx context.Context, portee introspection.Portee) (*calque.Physique, error) {
 	schemas := portee.Schemas
 	if len(schemas) == 0 {
 		// Tous les schémas de la base, et non « public » seul : une base
 		// legacy range rarement dans public, et un balayage de serveur ne peut
 		// pas deviner les schémas de chacune.
+		var err error
 		if schemas, err = p.lireSchemas(ctx); err != nil {
 			return nil, err
 		}
@@ -36,35 +36,41 @@ func (p *pilote) Extraire(ctx context.Context, portee introspection.Portee) (phy
 		return nil, errors.New("aucun schema exploitable dans cette base")
 	}
 
-	physique = &calque.Physique{VersionRI: calque.VersionCourante}
+	physique := &calque.Physique{VersionRI: calque.VersionCourante}
+	var tables *jeuDeTables
 
-	source, err := p.lireSource(ctx, schemas)
+	err := introspection.Derouler(ctx,
+		introspection.Passe{Etape: introspection.EtapeSource, Lire: func(ctx context.Context) (err error) {
+			physique.Source, err = p.lireSource(ctx, schemas)
+			return err
+		}},
+		introspection.Passe{Etape: introspection.EtapeTables, Lire: func(ctx context.Context) (err error) {
+			tables, err = p.lireTables(ctx, schemas)
+			return err
+		}},
+		introspection.Passe{Etape: introspection.EtapeColonnes, Lire: func(ctx context.Context) error {
+			return p.lireColonnes(ctx, schemas, tables)
+		}},
+		introspection.Passe{Etape: introspection.EtapeContraintes, Lire: func(ctx context.Context) error {
+			return p.lireContraintes(ctx, schemas, tables)
+		}},
+		introspection.Passe{Etape: introspection.EtapeIndex, Lire: func(ctx context.Context) error {
+			return p.lireIndex(ctx, schemas, tables)
+		}},
+		introspection.Passe{Etape: introspection.EtapeSequences, Lire: func(ctx context.Context) (err error) {
+			physique.Sequences, err = p.lireSequences(ctx, schemas)
+			return err
+		}},
+		introspection.Passe{Etape: introspection.EtapeTypesEnumeres, Lire: func(ctx context.Context) (err error) {
+			physique.TypesEnumeres, err = p.lireTypesEnumeres(ctx, schemas)
+			return err
+		}},
+		introspection.Passe{Etape: introspection.EtapeVues, Lire: func(ctx context.Context) (err error) {
+			physique.Vues, err = p.lireVues(ctx, schemas)
+			return err
+		}},
+	)
 	if err != nil {
-		return nil, err
-	}
-	physique.Source = source
-
-	tables, err := p.lireTables(ctx, schemas)
-	if err != nil {
-		return nil, err
-	}
-	if err := p.lireColonnes(ctx, schemas, tables); err != nil {
-		return nil, err
-	}
-	if err := p.lireContraintes(ctx, schemas, tables); err != nil {
-		return nil, err
-	}
-	if err := p.lireIndex(ctx, schemas, tables); err != nil {
-		return nil, err
-	}
-
-	if physique.Sequences, err = p.lireSequences(ctx, schemas); err != nil {
-		return nil, err
-	}
-	if physique.TypesEnumeres, err = p.lireTypesEnumeres(ctx, schemas); err != nil {
-		return nil, err
-	}
-	if physique.Vues, err = p.lireVues(ctx, schemas); err != nil {
 		return nil, err
 	}
 
