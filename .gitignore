@@ -42,7 +42,9 @@
 !tests/**/*.calque.json
 !tests/**/*.logique.json
 decisions.yaml
+*.decisions.yaml
 !tests/**/decisions.yaml
+!tests/**/*.decisions.yaml
 
 # Éditeurs
 .idea/
