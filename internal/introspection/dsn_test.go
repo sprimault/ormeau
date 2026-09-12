@@ -4,8 +4,11 @@
 package introspection
 
 import (
+	"net/url"
 	"strings"
 	"testing"
+
+	"github.com/sprimault/ormeau/internal/introspection/dsntest"
 )
 
 // TestSGBDDepuisDSN couvre les schémas d'URL de chaque dialecte, y compris les
@@ -91,25 +94,105 @@ func TestSGBDDepuisDSNNeDivulguePasLeSecret(t *testing.T) {
 func TestMasquerNeLaissePasserAucunSecret(t *testing.T) {
 	t.Parallel()
 
-	const secret = "S3cr3t-Tr0p-Long"
+	for _, c := range dsntest.Table {
+		if masque := Masquer(c.DSN); strings.Contains(masque, dsntest.Secret) {
+			t.Errorf("%s : secret visible dans %q", c.Nom, masque)
+		}
+	}
+}
 
-	dsns := []string{
-		"postgres://utilisateur:" + secret + "@hote:5432/base",
-		"postgres://utilisateur:" + secret + "@hote:5432/base?sslmode=require",
-		"postgresql://u:" + secret + "@h/b?sslpassword=" + secret,
-		"host=hote user=u password=" + secret + " dbname=base",
-		"host=hote password=" + secret,
-		"mysql://root:" + secret + "@tcp/base",
-		"sqlserver://sa:" + secret + "@hote:1433?database=base",
-		"sqlserver://sa@hote:1433?password=" + secret,
-		"oracle://systeme:" + secret + "@hote:1521/ORCL",
-		"pas du tout un dsn " + secret,
+// Une chaîne qu'Ormeau ne sait pas lire est refusée à l'aiguillage, avant
+// qu'un pilote la lise autrement, et se masque en entier. Une chaîne lisible
+// garde sa structure une fois masquée.
+func TestLisibiliteDesDSN(t *testing.T) {
+	t.Parallel()
+
+	for _, c := range dsntest.Table {
+		t.Run(c.Nom, func(t *testing.T) {
+			t.Parallel()
+
+			_, err := SGBDDepuisDSN(c.DSN)
+			if c.Lisible && err != nil {
+				t.Errorf("refusee a l'aiguillage : %v", err)
+			}
+			if !c.Lisible && err == nil {
+				t.Error("acceptee a l'aiguillage")
+			}
+			if err != nil && strings.Contains(err.Error(), dsntest.Secret) {
+				t.Errorf("secret visible dans l'erreur : %v", err)
+			}
+
+			if masque := Masquer(c.DSN); (masque == "***") == c.Lisible {
+				t.Errorf("masque %q", masque)
+			}
+		})
+	}
+}
+
+// La table elle-même : un cas sans le secret ne prouverait rien, et ferait
+// passer au vert chaque test qui la parcourt.
+func TestChaqueCasPorteLeSecret(t *testing.T) {
+	t.Parallel()
+
+	for _, c := range dsntest.Table {
+		if !strings.Contains(c.DSN, dsntest.Secret) {
+			t.Errorf("%s : %q ne porte pas %q", c.Nom, c.DSN, dsntest.Secret)
+		}
+	}
+}
+
+// Chaque clé de clesAffichees garde sa valeur, dans les deux formes ; une clé
+// qui n'y figure pas perd la sienne, qu'on la sache secrète ou non. Le test lit
+// la même liste que Masquer : il vérifie qu'elle est appliquée partout, pas
+// qu'elle est complète — c'est l'inversion de la liste qui en tient lieu.
+func TestMasquerSuitLaListeDesClesAffichees(t *testing.T) {
+	t.Parallel()
+
+	for cle := range clesAffichees {
+		t.Run(cle, func(t *testing.T) {
+			t.Parallel()
+
+			if !strings.ContainsAny(cle, espaces) {
+				dsn := "host=hote " + cle + "=valeur"
+				if masque := Masquer(dsn); !strings.Contains(masque, cle+"=valeur") {
+					t.Errorf("forme cle/valeur : %q", masque)
+				}
+			}
+
+			dsn := "postgres://u@hote/base?" + url.Values{cle: {"valeur"}}.Encode()
+			if masque := Masquer(dsn); !strings.Contains(masque, "=valeur") {
+				t.Errorf("forme url : %q", masque)
+			}
+		})
 	}
 
-	for _, dsn := range dsns {
-		masque := Masquer(dsn)
-		if strings.Contains(masque, secret) {
-			t.Errorf("secret visible :\n  entree : %s\n  sortie : %s", dsn, masque)
+	for _, dsn := range []string{
+		"host=hote options=valeur",
+		"host=hote OPTIONS=valeur",
+		"postgres://u@hote/base?options=valeur",
+	} {
+		if masque := Masquer(dsn); strings.Contains(masque, "valeur") {
+			t.Errorf("Masquer(%q) = %q, attendu la valeur masquee", dsn, masque)
+		}
+	}
+}
+
+// Le masquage remplace la valeur sur place : les blancs, les apostrophes des
+// autres valeurs et l'ordre des paramètres restent ceux qu'on a écrits.
+func TestMasquerCleValeurGardeLaForme(t *testing.T) {
+	t.Parallel()
+
+	cas := map[string]string{
+		"host=hote password = secret dbname=gescom":        "host=hote password = *** dbname=gescom",
+		"host=hote  password='un secret'\tdbname='a b'":    "host=hote  password=***\tdbname='a b'",
+		"host=hote user= dbname=gescom password=":          "***",
+		"host=hote user='' dbname=gescom password=":        "host=hote user='' dbname=gescom password=",
+		`host=hote password='l\'autre' application_name=x`: "host=hote password=*** application_name=x",
+	}
+
+	for dsn, attendu := range cas {
+		if obtenu := Masquer(dsn); obtenu != attendu {
+			t.Errorf("Masquer(%q) = %q, attendu %q", dsn, obtenu, attendu)
 		}
 	}
 }

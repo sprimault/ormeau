@@ -6,6 +6,8 @@ package main
 import (
 	"strings"
 	"testing"
+
+	"github.com/sprimault/ormeau/internal/introspection/dsntest"
 )
 
 // La validation des drapeaux vit ici : aucun paquet interne ne lit flag.
@@ -68,19 +70,28 @@ func TestExtraireLitLEnvironnement(t *testing.T) {
 	}
 }
 
-// Le DSN ne ressort d'aucune erreur, y compris de celles qui le citent en
-// partie pour situer la panne.
+// Le mot de passe ne ressort jamais de ce que `ormeau extraire` écrit sur la
+// sortie d'erreur, quelle que soit la forme du DSN.
+//
+// L'assertion porte sur la sortie et non sur une fonction interne : une fuite
+// s'est déjà produite avant l'ouverture du pilote, là où un test d'Ouvrir ne
+// regardait pas. Tout ce qui s'ajoutera entre la lecture du drapeau et
+// l'erreur finale passe par ici.
 func TestExtraireNeDivulguePasLeDSN(t *testing.T) {
 	t.Parallel()
 
-	const secret = "motdepasse-secret"
+	for _, c := range dsntest.Table {
+		t.Run(c.Nom, func(t *testing.T) {
+			t.Parallel()
 
-	err := extraire([]string{"--dsn", "db2://utilisateur:" + secret + "@hote:5432/base", "--sortie", "s.json"})
-	if err == nil {
-		t.Fatal("aucune erreur")
-	}
-	if strings.Contains(err.Error(), secret) {
-		t.Errorf("le mot de passe apparaît dans l'erreur : %v", err)
+			err := extraire([]string{"--dsn", c.DSN, "--sortie", t.TempDir()})
+			if err == nil {
+				t.Fatal("aucune erreur")
+			}
+			if strings.Contains(err.Error(), dsntest.Secret) {
+				t.Errorf("le mot de passe apparaît dans l'erreur : %v", err)
+			}
+		})
 	}
 }
 

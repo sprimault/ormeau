@@ -248,6 +248,60 @@ func TestDSNRefuseUnPortInconnuSansSGBD(t *testing.T) {
 	}
 }
 
+// La forme clé/valeur se lit comme pgx la lit : blancs autour du « = »,
+// apostrophes, échappements, et dernière valeur retenue pour une clé répétée.
+// Une lecture qui s'en écarte enregistre un profil avec un autre mot de passe,
+// ou extrait une autre base que celle qu'on a nommée.
+func TestLectureCleValeur(t *testing.T) {
+	t.Parallel()
+
+	connexion, err := ConnexionDepuisDSN(`host = hote port=5432 user=u password='un \'secret\'  long' dbname=a dbname=gescom`)
+	if err != nil {
+		t.Fatalf("ConnexionDepuisDSN: %v", err)
+	}
+	attendue := Connexion{SGBD: "postgres", Hote: "hote", Port: 5432, Utilisateur: "u", MotDePasse: `un 'secret'  long`, Base: "gescom"}
+	if connexion != attendue {
+		t.Errorf("connexion %+v, attendue %+v", connexion, attendue)
+	}
+
+	cas := map[string]string{
+		"host=h dbname = gescom":        "gescom",
+		"host=h dbname='ma base'":       "ma base",
+		"host=h DBNAME=gescom":          "",
+		"host=h dbname='non fermee":     "",
+		"host=h password='a  b' user=u": "",
+	}
+	for dsn, attendu := range cas {
+		if obtenu := BaseDuDSN(dsn); obtenu != attendu {
+			t.Errorf("BaseDuDSN(%q) = %q, attendu %q", dsn, obtenu, attendu)
+		}
+	}
+}
+
+// AvecBase ne touche qu'à la base : un mot de passe entre apostrophes garde
+// ses blancs, et un nom de base qui en a besoin est cité.
+func TestAvecBaseCleValeur(t *testing.T) {
+	t.Parallel()
+
+	cas := []struct {
+		dsn, base, attendu string
+	}{
+		{"host=h password='a  b' dbname = postgres sslmode=disable", "gescom", "host=h password='a  b' dbname = gescom sslmode=disable"},
+		{"host=h dbname=x dbname=y", "gescom", "host=h dbname=gescom dbname=gescom"},
+		{"host=h password='a  b'", "ma base", `host=h password='a  b' dbname='ma base'`},
+		{"host=h", `l'autre`, `host=h dbname='l\'autre'`},
+	}
+
+	for _, c := range cas {
+		if obtenu := AvecBase(c.dsn, c.base); obtenu != c.attendu {
+			t.Errorf("AvecBase(%q, %q) = %q, attendu %q", c.dsn, c.base, obtenu, c.attendu)
+		}
+		if base := BaseDuDSN(AvecBase(c.dsn, c.base)); base != c.base {
+			t.Errorf("AvecBase(%q, %q) relue avec la base %q", c.dsn, c.base, base)
+		}
+	}
+}
+
 // Changer de base ne doit pas perdre les identifiants ni les options.
 func TestAvecBaseConserveLeReste(t *testing.T) {
 	t.Parallel()

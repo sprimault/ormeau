@@ -813,9 +813,13 @@ func repondreRefus(w http.ResponseWriter, code CodeRefus, message string) {
 // un utilisateur et un nom de base — et la règle est que le DSN ne sorte ni dans
 // une réponse, ni dans un journal. Le remplacement porte sur les deux formes
 // exactes, celle qu'on a composée et sa version masquée.
+//
+// Un DSN que Masquer ne sait pas lire devient « *** » en entier : cette forme-là
+// n'est pas remplacée, elle changerait en « la base » les astérisques de tout
+// autre masque du message.
 func sansDSN(message, dsn string) string {
 	for _, forme := range []string{dsn, introspection.Masquer(dsn)} {
-		if forme != "" {
+		if forme != "" && forme != "***" {
 			message = strings.ReplaceAll(message, forme, "la base")
 		}
 	}

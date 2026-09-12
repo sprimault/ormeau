@@ -4,6 +4,8 @@
 package ihm
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -14,6 +16,11 @@ import (
 	"testing"
 
 	"github.com/sprimault/ormeau/internal/introspection"
+	"github.com/sprimault/ormeau/internal/introspection/dsntest"
+
+	// Le vrai pilote, pour que la connexion échoue là où elle échoue en
+	// service : une fuite passe par le message d'un pilote, pas d'un double.
+	_ "github.com/sprimault/ormeau/internal/introspection/postgres"
 )
 
 // TestContexteRendLeRepertoireEtLaVersion vérifie ce que l'interface affiche en
@@ -89,6 +96,41 @@ func TestConnexionRefuseUnCorpsIllisible(t *testing.T) {
 	}
 	if strings.Contains(w.Body.String(), "tres-secret") {
 		t.Error("le mot de passe est ressorti dans la réponse")
+	}
+}
+
+// TestConnexionNeDivulguePasLeDSN vérifie que le mot de passe ne ressort pas de
+// la réponse de connexion, quelle que soit la forme du DSN saisi. Le journal
+// porte le même message que la réponse.
+//
+// Le contexte de la requête est annulé d'avance : pgx renonce sans ouvrir de
+// connexion, et le test reste rapide et hors réseau quel que soit le cas.
+func TestConnexionNeDivulguePasLeDSN(t *testing.T) {
+	t.Parallel()
+
+	s, routeur := serveurDeTest(t)
+	annule, annuler := context.WithCancel(t.Context())
+	annuler()
+
+	for _, c := range dsntest.Table {
+		t.Run(c.Nom, func(t *testing.T) {
+			t.Parallel()
+
+			corps, err := json.Marshal(RequeteConnexion{DSN: c.DSN})
+			if err != nil {
+				t.Fatalf("corps : %v", err)
+			}
+			w := httptest.NewRecorder()
+			requete := requeteAPI(s, http.MethodPost, "/api/connexion", bytes.NewReader(corps))
+			routeur.ServeHTTP(w, requete.WithContext(annule))
+
+			if w.Code == http.StatusOK {
+				t.Fatal("connexion acceptee")
+			}
+			if strings.Contains(w.Body.String(), dsntest.Secret) {
+				t.Errorf("le mot de passe apparaît dans la réponse : %s", w.Body.String())
+			}
+		})
 	}
 }
 
@@ -529,5 +571,16 @@ func TestSansDSN(t *testing.T) {
 				t.Error("message vidé : le front n'a plus rien à afficher")
 			}
 		})
+	}
+}
+
+// Un DSN illisible se masque en « *** » : le retirer du message ferait de tout
+// autre masque une « la base » sans rapport.
+func TestSansDSNIllisibleGardeLesAutresMasques(t *testing.T) {
+	t.Parallel()
+
+	const message = "connexion a host=h password=*** refusee"
+	if nettoye := sansDSN(message, "host=h password='non fermee"); nettoye != message {
+		t.Errorf("message %q, attendu inchangé", nettoye)
 	}
 }
