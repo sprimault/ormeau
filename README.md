@@ -243,8 +243,9 @@ the local interface. No telemetry, no outbound call, not even an update check â€
 the code is public, and `netstat` confirms it during an extraction.
 
 **A layer is a customer's database schema** â€” table names, column names,
-business comments, and with `--echantillonner`, real values. A layer extracted
-from a production database never enters a repository, nor an issue attachment.
+business comments, and with `--echantillonner`, once sampling ships, real
+values. A layer extracted from a production database never enters a repository,
+nor an issue attachment.
 
 ## Status
 

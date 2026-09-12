@@ -33,8 +33,8 @@ fichiers se commitent : c'est ce qui rend la deuxième extraction supportable,
 six mois plus tard.
 
 Un calque porte les noms de tables, les noms de colonnes et les commentaires
-métier d'une base — et, avec `--echantillonner`, des valeurs réelles. Commitez-le
-dans le dépôt du client, jamais ailleurs.
+métier d'une base — et, avec `--echantillonner`, une fois l'échantillonnage
+livré, des valeurs réelles. Commitez-le dans le dépôt du client, jamais ailleurs.
 
 ## Les données de la machine
 

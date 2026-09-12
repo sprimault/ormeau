@@ -43,10 +43,21 @@ func extraire(args []string) error {
 	base := jeu.String("base", "", "base à introspecter ; toutes celles du serveur si omise")
 	sortie := jeu.String("sortie", "", "fichier de sortie, ou répertoire quand plusieurs bases sont extraites")
 	schemas := jeu.String("schemas", "", "schémas à introspecter, séparés par des virgules")
-	echantillonner := jeu.Bool("echantillonner", false, "lire des données pour détecter énumérations et clés étrangères implicites")
-	cardinalite := jeu.Int("cardinalite-max", 64, "plafond au-delà duquel une colonne ne produit plus d'échantillon")
+	echantillonner := jeu.Bool("echantillonner", false, "lire des données pour détecter énumérations et clés étrangères implicites (pas encore pris en charge)")
+	jeu.Int("cardinalite-max", 64, "plafond au-delà duquel une colonne ne produit plus d'échantillon (pas encore pris en charge)")
 	if err := jeu.Parse(args); err != nil {
 		return err
+	}
+
+	// Refusés plutôt qu'ignorés, comme par l'interface : aucun pilote ne lit
+	// encore de données, et un calque produit avec l'option serait identique à
+	// celui produit sans, sans que rien ne le dise. Les drapeaux restent
+	// déclarés pour que le refus nomme ce qui manque, au lieu d'un « flag
+	// provided but not defined » qui laisserait croire à une faute de frappe.
+	cardinaliteDonnee := false
+	jeu.Visit(func(f *flag.Flag) { cardinaliteDonnee = cardinaliteDonnee || f.Name == "cardinalite-max" })
+	if *echantillonner || cardinaliteDonnee {
+		return errors.New("l'echantillonnage n'est pas encore pris en charge")
 	}
 
 	chaine, err := resoudreDSN(*dsn, introspection.Connexion{
@@ -73,11 +84,7 @@ func extraire(args []string) error {
 	ctx, annuler := context.WithTimeout(context.Background(), delaiExtraction)
 	defer annuler()
 
-	portee := introspection.Portee{
-		Schemas:        decouper(*schemas),
-		Echantillonner: *echantillonner,
-		CardinaliteMax: *cardinalite,
-	}
+	portee := introspection.Portee{Schemas: decouper(*schemas)}
 
 	if introspection.BaseDuDSN(chaine) != "" {
 		return extraireUneBase(ctx, nomSGBD, chaine, *sortie, portee)
