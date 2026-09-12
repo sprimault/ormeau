@@ -541,8 +541,9 @@ func (s *serveur) inventaire(w http.ResponseWriter, r *http.Request) {
 		return err
 	})
 	if err != nil {
-		slog.Warn("inventaire refuse", "error", err)
-		repondreErreur(w, http.StatusBadGateway, err.Error())
+		message := sansDSN(err.Error(), c.dsn)
+		slog.Warn("inventaire refuse", "error", message)
+		repondreErreur(w, http.StatusBadGateway, message)
 		return
 	}
 	if tables == nil {
@@ -593,8 +594,9 @@ func (s *serveur) colonnes(w http.ResponseWriter, r *http.Request) {
 		return err
 	})
 	if err != nil {
-		slog.Warn("lecture des colonnes refusee", "error", err)
-		repondreErreur(w, http.StatusBadGateway, err.Error())
+		message := sansDSN(err.Error(), c.dsn)
+		slog.Warn("lecture des colonnes refusee", "error", message)
+		repondreErreur(w, http.StatusBadGateway, message)
 		return
 	}
 	if colonnes == nil {

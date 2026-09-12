@@ -5,6 +5,9 @@ package introspection
 
 import (
 	"net/url"
+	"os"
+	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -173,6 +176,38 @@ func TestMasquerSuitLaListeDesClesAffichees(t *testing.T) {
 	} {
 		if masque := Masquer(dsn); strings.Contains(masque, "valeur") {
 			t.Errorf("Masquer(%q) = %q, attendu la valeur masquee", dsn, masque)
+		}
+	}
+}
+
+// Le front masque un DSN saisi avec sa propre copie de clesAffichees. Une clé
+// ajoutée d'un seul côté y ferait afficher, ou masquer, ce que l'autre traite
+// autrement : les deux listes doivent être identiques.
+func TestClesAfficheesIdentiquesAuFront(t *testing.T) {
+	t.Parallel()
+
+	source, err := os.ReadFile(filepath.Join("..", "..", "web", "src", "shared", "lib", "strings.ts"))
+	if err != nil {
+		t.Fatalf("lecture de strings.ts : %v", err)
+	}
+	_, apres, trouve := strings.Cut(string(source), "const CLES_AFFICHEES = new Set([")
+	liste, _, ferme := strings.Cut(apres, "])")
+	if !trouve || !ferme {
+		t.Fatal("CLES_AFFICHEES introuvable dans strings.ts")
+	}
+
+	front := map[string]bool{}
+	for _, m := range regexp.MustCompile(`'([^']+)'`).FindAllStringSubmatch(liste, -1) {
+		front[m[1]] = true
+	}
+	for cle := range clesAffichees {
+		if !front[cle] {
+			t.Errorf("%q affichee par le Go, masquee par le front", cle)
+		}
+	}
+	for cle := range front {
+		if !clesAffichees[cle] {
+			t.Errorf("%q affichee par le front, masquee par le Go", cle)
 		}
 	}
 }
