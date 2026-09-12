@@ -3,4 +3,5 @@
 
 export { useConnection, type EtatConnexion } from './model/useConnection';
 export { ConnectionForm } from './ui/ConnectionForm';
+export { useProfils } from './model/useProfils';
 export { ConnectionSummary } from './ui/ConnectionSummary';

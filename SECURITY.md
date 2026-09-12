@@ -43,6 +43,23 @@ The following **are** in scope:
 - code execution while reading a layer, a decisions file or an existing entity;
 - a vulnerable dependency actually reachable from Ormeau's own code.
 
+### Saved password
+
+The connection screen offers to save a profile's password, on a checkbox that
+is unticked by default. It is then encrypted with AES-256-GCM in
+`profils.yaml`, using a key specific to the installation, drawn at random and
+stored next to it with `0600`.
+
+**What this guards against**: accidental reading. A file opened by mistake, a
+backup someone browses, a `cat` during a screen share, a glance over your
+shoulder.
+
+**What it does not guard against**: someone with access to your account. The
+key lives on the same disk as the file it encrypts, and whoever can read one
+can read the other. This is the same model as DBeaver or SSMS, and it is stated
+here rather than left to be discovered. Anyone needing more leaves the box
+unticked: the password is then retyped on every connection and written nowhere.
+
 The following are **not** vulnerabilities:
 
 - the SmartScreen warning on Windows and the Gatekeeper block on macOS. The
@@ -60,6 +77,9 @@ The following are **not** vulnerabilities:
 - resource exhaustion caused by introspecting a very large schema. The tool
   runs on the operator's own machine, against a database they already have
   credentials for;
+- being able to decrypt a saved password from the session of the user who saved
+  it. That is what the section above announces, and what the checkbox says on
+  screen;
 - automated scanner output with no working reproduction.
 
 ## Handling

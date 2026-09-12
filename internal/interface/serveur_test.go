@@ -36,13 +36,14 @@ func serveurDeTest(t *testing.T) (*serveur, http.Handler) {
 		t.Fatalf("config.Ouvrir: %v", err)
 	}
 	s := &serveur{
-		acces:       acces,
-		registre:    nouveauRegistre(),
-		extractions: nouvellesExtractions(t.Context()),
-		preferences: nouvellesPreferences(emplacements),
-		repertoire:  repertoire,
-		version:     "test",
-		origine:     origineDeTest,
+		acces:        acces,
+		registre:     nouveauRegistre(),
+		extractions:  nouvellesExtractions(t.Context()),
+		preferences:  nouvellesPreferences(emplacements),
+		emplacements: emplacements,
+		repertoire:   repertoire,
+		version:      "test",
+		origine:      origineDeTest,
 	}
 	// t.Context est annulé avant les nettoyages : les tâches encore en cours
 	// s'arrêtent, et l'attente ne retient pas le test.

@@ -72,6 +72,9 @@ type serveur struct {
 	extractions *extractions
 	calques     calquesLus
 	preferences *preferences
+	// emplacements est nil quand aucune configuration n'a pu être ouverte : les
+	// profils sont alors refusés, le reste de l'interface fonctionne.
+	emplacements *config.Emplacements
 	// ecriture sérialise les enregistrements de fichiers de décisions.
 	ecriture sync.Mutex
 	// travail garde le répertoire de travail, que l'écran peut changer en cours
@@ -119,13 +122,14 @@ func Servir(ctx context.Context, o Options) error {
 	taches, arreterTaches := context.WithCancel(ctx)
 
 	s := &serveur{
-		acces:       acces,
-		registre:    nouveauRegistre(),
-		extractions: nouvellesExtractions(taches),
-		preferences: nouvellesPreferences(o.Emplacements),
-		repertoire:  o.Repertoire,
-		version:     o.Version,
-		origine:     fmt.Sprintf("http://127.0.0.1:%d", port),
+		acces:        acces,
+		registre:     nouveauRegistre(),
+		extractions:  nouvellesExtractions(taches),
+		preferences:  nouvellesPreferences(o.Emplacements),
+		emplacements: o.Emplacements,
+		repertoire:   o.Repertoire,
+		version:      o.Version,
+		origine:      fmt.Sprintf("http://127.0.0.1:%d", port),
 	}
 	defer s.registre.toutFermer()
 	defer s.extractions.attendre()
@@ -203,6 +207,7 @@ func (s *serveur) routes() (http.Handler, error) {
 	mux.Handle("/api/contexte", s.protegerAPI(http.HandlerFunc(s.contexte)))
 	mux.Handle("/api/preferences", s.protegerAPI(http.HandlerFunc(s.gererPreferences)))
 	mux.Handle("/api/repertoire", s.protegerAPI(http.HandlerFunc(s.changerRepertoire)))
+	mux.Handle("/api/profils", s.protegerAPI(http.HandlerFunc(s.gererProfils)))
 	mux.Handle("/api/connexion", s.protegerAPI(http.HandlerFunc(s.connexion)))
 	mux.Handle("/api/bases", s.protegerAPI(http.HandlerFunc(s.bases)))
 	mux.Handle("/api/base", s.protegerAPI(http.HandlerFunc(s.basculerBase)))

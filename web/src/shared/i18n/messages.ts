@@ -14,6 +14,29 @@ export type Lang = 'fr' | 'en';
  */
 const fr = {
   'app.name': 'Ormeau',
+  'profile.label': 'Profil',
+  'profile.none': 'Nouvelle connexion',
+  'profile.save': 'Enregistrer cette connexion',
+  'profile.save.name': 'Nom du profil',
+  'profile.save.confirm': 'Enregistrer',
+  'profile.save.cancel': 'Annuler',
+  'profile.delete': 'Supprimer ce profil',
+  'profile.replace':
+    'Un profil porte déjà ce nom. L’écraser remplacera ses paramètres de connexion, et son mot de passe s’il en avait un.',
+  'profile.replace.confirm': 'Écraser',
+  'profile.password.save': 'Enregistrer le mot de passe',
+  // Deux messages distincts plutôt que le même deux fois : celui-ci explique le
+  // champ, l'autre ce qu'un enregistrement ferait.
+  'profile.password.stored':
+    'Un mot de passe est enregistré pour ce profil : laissez le champ vide pour l’utiliser.',
+  'profile.password.erase':
+    'Réenregistrer sans cocher la case effacera le mot de passe enregistré pour ce profil.',
+  // Ce texte est là où la décision se prend, et il ne dit pas « chiffré » tout
+  // court : personne ne doit pouvoir dire qu'on lui a vendu mieux que ce qui
+  // est livré.
+  'profile.password.save.hint':
+    'Il est chiffré sur ce poste, mais la clé y est aussi. Cela protège d’une lecture accidentelle, pas de quelqu’un qui a accès à votre session.',
+
   'app.workdir': 'Répertoire de travail',
   'app.workdir.copy': 'Copier le chemin complet',
   'app.workdir.change': 'Changer',
@@ -295,6 +318,24 @@ export type MessageKey = keyof typeof fr;
 /** Dictionnaire anglais. Le type impose qu'il couvre exactement les mêmes clés. */
 const en: Record<MessageKey, string> = {
   'app.name': 'Ormeau',
+  'profile.label': 'Profile',
+  'profile.none': 'New connection',
+  'profile.save': 'Save this connection',
+  'profile.save.name': 'Profile name',
+  'profile.save.confirm': 'Save',
+  'profile.save.cancel': 'Cancel',
+  'profile.delete': 'Delete this profile',
+  'profile.replace':
+    'A profile already has this name. Overwriting it will replace its connection settings, and its password if it had one.',
+  'profile.replace.confirm': 'Overwrite',
+  'profile.password.save': 'Save the password',
+  'profile.password.stored':
+    'A password is saved for this profile: leave the field empty to use it.',
+  'profile.password.erase':
+    'Saving again without ticking the box will remove the password saved for this profile.',
+  'profile.password.save.hint':
+    'It is encrypted on this machine, but so is the key. This guards against accidental reading, not against someone with access to your account.',
+
   'app.workdir': 'Working directory',
   'app.workdir.copy': 'Copy the full path',
   'app.workdir.change': 'Change',

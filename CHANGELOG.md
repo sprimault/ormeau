@@ -38,6 +38,13 @@ préambule reste en français : il n'est jamais publié.
 
 ### Ajouté
 
+- **Les connexions s'enregistrent en profils.** Un nom que vous choisissez, les
+  paramètres de connexion, et le répertoire de travail associé — choisir un
+  profil vous emmène donc aussi dans le bon projet. Le mot de passe n'est
+  retenu que si vous cochez la case prévue, décochée par défaut : il est alors
+  chiffré sur le poste, avec une clé qui s'y trouve aussi, ce qui protège d'une
+  lecture accidentelle et pas de quelqu'un qui a accès à votre session —
+  `SECURITY.md` le détaille. Écraser un profil existant demande confirmation.
 - **Le répertoire de travail se change depuis l'interface**, sans relancer le
   binaire. Le serveur valide le chemin saisi et renvoie le chemin résolu, liens
   suivis — c'est lui qui s'affiche, et non ce qui a été tapé. Une extraction en
@@ -63,6 +70,13 @@ préambule reste en français : il n'est jamais publié.
 
 ### Added
 
+- **Connections can be saved as profiles.** A name you choose, the connection
+  settings, and the working directory that goes with them — picking a profile
+  therefore takes you to the right project too. The password is only kept if
+  you tick the box, unticked by default: it is then encrypted on this machine,
+  with a key that lives there too, which guards against accidental reading and
+  not against someone with access to your account — `SECURITY.md` has the
+  details. Overwriting an existing profile asks for confirmation.
 - **The working directory can be changed from the interface**, without
   restarting the binary. The server validates the path and returns the resolved
   one, symlinks followed — that is what is displayed, not what was typed. An

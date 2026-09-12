@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 )
 
@@ -143,6 +144,83 @@ func (c Connexion) DSN() (string, error) {
 		}
 	}
 	return u.String(), nil
+}
+
+// ConnexionDepuisDSN décompose un DSN en ses composants.
+//
+// L'inverse de DSN, et pour un besoin précis : enregistrer un profil alors
+// qu'on a saisi une chaîne de connexion. Sans cela, le profil ne garderait rien
+// et ne servirait à rien la fois suivante.
+//
+// Le mot de passe est rendu avec le reste : c'est à l'appelant de décider s'il
+// le conserve, et lui seul sait si la case était cochée.
+//
+// La forme « host=serveur dbname=base » de libpq est acceptée au même titre
+// qu'une URL : quelqu'un qui la colle attend qu'on la comprenne.
+func ConnexionDepuisDSN(dsn string) (Connexion, error) {
+	dsn = strings.TrimSpace(dsn)
+	if dsn == "" {
+		return Connexion{}, errors.New("chaine de connexion vide")
+	}
+
+	if estCleValeur(dsn) {
+		return connexionDepuisCleValeur(dsn), nil
+	}
+
+	u, err := url.Parse(NettoyerDSN(dsn))
+	if err != nil {
+		// L'erreur de url.Parse cite la chaîne entière, mot de passe compris :
+		// elle ne peut ni être enveloppée, ni remonter telle quelle.
+		return Connexion{}, errors.New("chaine de connexion illisible")
+	}
+
+	c := Connexion{
+		SGBD: strings.ToLower(u.Scheme),
+		Hote: u.Hostname(),
+		Base: strings.TrimPrefix(u.Path, "/"),
+	}
+	if port, err := strconv.Atoi(u.Port()); err == nil {
+		c.Port = port
+	}
+	if u.User != nil {
+		c.Utilisateur = u.User.Username()
+		c.MotDePasse, _ = u.User.Password()
+	}
+	// Le préfixe dit quel pilote charger, mais c'est le nom du SGBD qu'un
+	// profil doit porter : postgresql:// et postgres:// désignent le même.
+	if normalise, connu := prefixes[c.SGBD]; connu {
+		c.SGBD = normalise
+	}
+	return c, nil
+}
+
+// connexionDepuisCleValeur décompose la forme « host=serveur password=secret ».
+func connexionDepuisCleValeur(dsn string) Connexion {
+	var c Connexion
+	for _, champ := range strings.Fields(dsn) {
+		cle, valeur, trouve := strings.Cut(champ, "=")
+		if !trouve {
+			continue
+		}
+		switch strings.ToLower(cle) {
+		case "host":
+			c.Hote = valeur
+		case "port":
+			if port, err := strconv.Atoi(valeur); err == nil {
+				c.Port = port
+			}
+		case "user":
+			c.Utilisateur = valeur
+		case "password":
+			c.MotDePasse = valeur
+		case "dbname":
+			c.Base = valeur
+		}
+	}
+	// Cette forme n'a pas de préfixe : seul le port peut désigner le SGBD, et
+	// c'est déjà ce que fait la composition inverse.
+	c.SGBD = SGBDDepuisPort(c.Port)
+	return c
 }
 
 // BaseDuDSN rend la base désignée par un DSN, ou une chaîne vide s'il n'en

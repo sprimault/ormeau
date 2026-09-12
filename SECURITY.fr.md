@@ -48,6 +48,23 @@ Sont **dans** le périmètre :
   d'une entité existante ;
 - une dépendance vulnérable réellement atteignable depuis le code d'Ormeau.
 
+### Mot de passe enregistré
+
+L'écran de connexion propose d'enregistrer le mot de passe d'un profil, sur une
+case décochée par défaut. Il est alors chiffré en AES-256-GCM dans
+`profils.yaml`, avec une clé propre à l'installation, tirée au hasard et rangée
+à côté en `0600`.
+
+**Ce que cela protège** : une lecture accidentelle. Un fichier ouvert par
+erreur, une sauvegarde parcourue, un `cat` pendant un partage d'écran, un
+regard par-dessus l'épaule.
+
+**Ce que cela ne protège pas** : quelqu'un qui a accès à votre session. La clé
+vit sur le même disque que le fichier qu'elle chiffre, et qui peut lire l'un
+peut lire l'autre. C'est le même modèle que DBeaver ou SSMS, et il est dit ici
+plutôt que laissé à deviner. Qui a besoin davantage laisse la case décochée : le
+mot de passe est alors ressaisi à chaque connexion et n'est écrit nulle part.
+
 Ne sont **pas** des vulnérabilités :
 
 - l'avertissement SmartScreen sous Windows et le blocage Gatekeeper sous macOS.
@@ -66,6 +83,9 @@ Ne sont **pas** des vulnérabilités :
 - l'épuisement de ressources provoqué par l'introspection d'un très gros
   schéma. L'outil tourne sur la machine de l'exploitant, contre une base dont
   il a déjà les accès ;
+- le fait de pouvoir déchiffrer un mot de passe enregistré depuis la session de
+  l'utilisateur qui l'a enregistré. C'est ce que la section ci-dessus annonce,
+  et la case à cocher le dit à l'écran ;
 - une sortie de scanner automatique sans reproduction.
 
 ## Traitement

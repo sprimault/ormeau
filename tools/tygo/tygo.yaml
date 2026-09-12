@@ -46,7 +46,7 @@ packages:
     # Les préférences seulement : le reste du paquet est fait de chemins, qui
     # ne traversent jamais l'API — le navigateur n'en reçoit ni n'en envoie
     # aucun.
-    include_files: ["preferences.go"]
+    include_files: ["preferences.go", "profils.go"]
     frontmatter: |
       // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
       // SPDX-License-Identifier: Apache-2.0
@@ -72,6 +72,7 @@ packages:
       "calque.Origine": "Origine"
       "calque.ReferenceTable": "ReferenceTable"
       "calque.Table": "Table"
+      "config.Profil": "Profil"
       "inference.Decisions": "Decisions"
       "inference.Proposition": "Proposition"
     frontmatter: |
@@ -91,5 +92,6 @@ packages:
         ReferenceTable,
         Table,
       } from './calque';
+      import type { Profil } from './config';
       import type { Decisions, Proposition } from './inference';
       import type { Avancement, Portee, TableSommaire } from './introspection';

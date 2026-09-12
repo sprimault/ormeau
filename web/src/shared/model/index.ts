@@ -32,6 +32,11 @@ export {
   CodeCalqueModifie,
   CodeContenuManuel,
   CodeDecisionsModifiees,
+  CodeProfilExistant,
+  type ProfilResume,
+  type ReponseProfils,
+  type RequeteProfil,
+  type ReferenceProfil,
   type CodeRefus,
   type EnumerationInferee,
   type RequeteEcritureDecisions,
@@ -72,7 +77,7 @@ export {
 } from './calque';
 export type { TableSommaire, ColonneSommaire, Portee, Avancement } from './introspection';
 export { initTheme, themeInitial, useThemeStore, type Theme } from './theme';
-export type { Preferences } from './config';
+export type { Preferences, Profil } from './config';
 export {
   brancherEnregistrement,
   usePreferencesStore,

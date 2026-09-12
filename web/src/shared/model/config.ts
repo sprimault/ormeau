@@ -28,3 +28,28 @@ export interface Preferences {
   hauteur_apercu?: number /* int */;
   largeur_entites?: number /* int */;
 }
+
+//////////
+// source: profils.go
+
+/**
+ * Profil est une connexion enregistrée, telle que l'écran de connexion la
+ * repropose.
+ * Le mot de passe n'y figure qu'en chiffré, et seulement si la case
+ * « enregistrer le mot de passe » a été cochée. Décocher l'efface : sinon on
+ * croirait l'avoir retiré alors qu'il resterait sur le disque.
+ */
+export interface Profil {
+  nom: string;
+  sgbd?: string;
+  hote?: string;
+  port?: number /* int */;
+  utilisateur?: string;
+  base?: string;
+  /**
+   * Repertoire est le répertoire de travail associé. Vide, choisir le profil
+   * laisse le répertoire courant tel quel : quelqu'un qui n'a jamais réglé de
+   * répertoire ne s'attend pas à ce qu'un profil le déplace.
+   */
+  repertoire?: string;
+}

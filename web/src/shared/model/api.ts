@@ -15,6 +15,7 @@ import type {
   ReferenceTable,
   Table,
 } from './calque';
+import type { Profil } from './config';
 import type { Decisions, Proposition } from './inference';
 import type { Avancement, Portee, TableSommaire } from './introspection';
 
@@ -29,6 +30,12 @@ import type { Avancement, Portee, TableSommaire } from './introspection';
  * désigne — c'est l'outil qui aiguille, pas l'utilisateur qui déclare.
  */
 export interface RequeteConnexion {
+  /**
+   * Profil désigne une connexion enregistrée. Ce que la requête ne dit pas
+   * est repris du profil, mot de passe compris — celui-ci ne descend jamais
+   * dans le navigateur, il va du fichier au pilote.
+   */
+  profil?: string;
   dsn?: string;
   sgbd?: string;
   hote?: string;
@@ -72,6 +79,56 @@ export interface RequeteRepertoire {
   repertoire: string;
 }
 /**
+ * ProfilResume est un profil tel que l'écran le reçoit : sans mot de passe,
+ * pas même chiffré, mais en sachant s'il y en a un.
+ * Le profil est imbriqué et non incorporé : Go aplatirait les champs à la
+ * sérialisation, mais le générateur de types du front ne sait pas le faire, et
+ * rendrait un type qui ne décrit pas ce qui passe sur le fil.
+ */
+export interface ProfilResume {
+  profil: Profil;
+  mot_de_passe_enregistre: boolean;
+}
+/**
+ * ReponseProfils liste les connexions enregistrées.
+ * L'avertissement dit ce que le fichier portait d'inutilisable, sans empêcher
+ * d'ouvrir l'écran : on saisit alors comme avant.
+ */
+export interface ReponseProfils {
+  profils: ProfilResume[];
+  avertissement?: string;
+}
+/**
+ * RequeteProfil enregistre une connexion.
+ * Le mot de passe n'est retenu que si EnregistrerMotDePasse est vrai. À faux,
+ * celui qui avait été enregistré est effacé : croire l'avoir retiré alors qu'il
+ * reste sur le disque serait le pire des deux.
+ */
+export interface RequeteProfil {
+  profil: Profil;
+  /**
+   * DSN enregistre un profil depuis une chaîne de connexion plutôt que depuis
+   * les champs. Le serveur la décompose : le front n'analyse jamais un DSN,
+   * et sans cela un profil enregistré depuis ce mode ne retiendrait rien.
+   * Le mot de passe qu'elle porte ne compte que si la case est cochée, comme
+   * celui du champ.
+   */
+  dsn?: string;
+  mot_de_passe?: string;
+  enregistrer_mot_de_passe: boolean;
+  /**
+   * Remplacer confirme l'écrasement d'un profil du même nom. Sans lui, un
+   * nom déjà pris est refusé avec CodeProfilExistant, et l'écran demande.
+   */
+  remplacer?: boolean;
+}
+/**
+ * ReferenceProfil désigne le profil à supprimer.
+ */
+export interface ReferenceProfil {
+  nom: string;
+}
+/**
  * ReponseErreur est la forme unique des échecs d'API. Un code HTTP seul
  * laisserait le front deviner ce qu'il affiche.
  */
@@ -102,6 +159,11 @@ export const CodeDecisionsModifiees: CodeRefus = "decisions_modifiees";
  * perdrait, l'écran demande confirmation.
  */
 export const CodeContenuManuel: CodeRefus = "contenu_manuel";
+/**
+ * CodeProfilExistant : un profil porte déjà ce nom, l'écran demande
+ * confirmation avant de l'écraser.
+ */
+export const CodeProfilExistant: CodeRefus = "profil_existant";
 /**
  * ReponseBases liste les bases exploitables du serveur atteint.
  * Les bases système en sont absentes : elles ne produiraient que des calques
