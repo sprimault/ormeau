@@ -2,7 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { getJSON, postJSON, supprimer } from '@/shared/api';
-import type { RequeteConnexion, ReponseConnexion, ReponseBases, RequeteBase } from '@/shared/model';
+import type {
+  RequeteConnexion,
+  ReponseConnexion,
+  ReponseBases,
+  RequeteBase,
+  RequeteFermeture,
+} from '@/shared/model';
 
 /** Ouvre une connexion et rend ce que le serveur dit de lui-même. */
 export function connecter(
@@ -14,7 +20,7 @@ export function connecter(
 
 /** Referme une connexion ouverte. */
 export function deconnecter(session: string, signal?: AbortSignal): Promise<void> {
-  return supprimer('/api/connexion', { session }, signal);
+  return supprimer<RequeteFermeture>('/api/connexion', { session }, signal);
 }
 
 /** Liste les bases du serveur atteint. Vide quand le dialecte ne sait pas les

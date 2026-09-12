@@ -6,6 +6,7 @@ package ihm
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -468,6 +469,73 @@ func TestRemplacementDeCleAnnonceALEnregistrement(t *testing.T) {
 	}
 	if !strings.Contains(recu.Avertissement, "perdus") {
 		t.Errorf("avertissement %q, attendu la perte des mots de passe", recu.Avertissement)
+	}
+}
+
+// TestCleAbsenteNeBloquePasLaConnexion couvre la clé effacée alors qu'un profil
+// porte un mot de passe : la connexion se prépare sans lui, et c'est la saisie
+// qui le fournira.
+func TestCleAbsenteNeBloquePasLaConnexion(t *testing.T) {
+	t.Parallel()
+
+	s, _ := serveurDeTest(t)
+	if _, err := s.emplacements.EnregistrerProfil(config.Profil{Nom: "nas", Hote: "h"},
+		"secret", true); err != nil {
+		t.Fatalf("enregistrement : %v", err)
+	}
+	if err := os.Remove(filepath.Join(s.emplacements.Racine(), "cle.bin")); err != nil {
+		t.Fatalf("suppression de la clé : %v", err)
+	}
+
+	requete := RequeteConnexion{Profil: "nas"}
+	if _, err := s.connexionDuProfil(&requete); err != nil {
+		t.Fatalf("connexion refusée : %v", err)
+	}
+	if requete.Hote != "h" || requete.MotDePasse != "" {
+		t.Errorf("requête %+v, attendue l'hôte du profil sans mot de passe", requete)
+	}
+}
+
+// TestPlafondDeProfilsRefuseEn409 vérifie la traduction du plafond : un conflit
+// que l'écran affiche, pas une erreur de saisie.
+func TestPlafondDeProfilsRefuseEn409(t *testing.T) {
+	t.Parallel()
+
+	s, routeur := serveurDeTest(t)
+	for i := range 50 {
+		if _, err := s.emplacements.EnregistrerProfil(config.Profil{
+			Nom: fmt.Sprintf("base-%02d", i), Hote: "h",
+		}, "", true); err != nil {
+			t.Fatalf("profil %d : %v", i, err)
+		}
+	}
+
+	attendreStatut(t, profilPoste(s, routeur, config.Profil{Nom: "de trop", Hote: "h"}, "", false, false),
+		http.StatusConflict)
+}
+
+// TestProfilAuRepertoireDisparuGardeLeCourant couvre le projet déplacé ou le
+// disque amovible absent : le profil sert encore à se connecter, et l'on reste
+// dans le répertoire courant plutôt que d'échouer.
+func TestProfilAuRepertoireDisparuGardeLeCourant(t *testing.T) {
+	t.Parallel()
+
+	s, _ := serveurDeTest(t)
+	depart := s.repertoireCourant()
+	disparu := filepath.Join(t.TempDir(), "projet-deplace")
+
+	if _, err := s.emplacements.EnregistrerProfil(config.Profil{
+		Nom: "ancien", Hote: "h", Repertoire: disparu,
+	}, "", true); err != nil {
+		t.Fatalf("enregistrement : %v", err)
+	}
+
+	requete := RequeteConnexion{Profil: "ancien"}
+	if _, err := s.connexionDuProfil(&requete); err != nil {
+		t.Fatalf("connexion refusée pour un répertoire disparu : %v", err)
+	}
+	if s.repertoireCourant() != depart {
+		t.Errorf("répertoire courant %s, attendu %s", s.repertoireCourant(), depart)
 	}
 }
 

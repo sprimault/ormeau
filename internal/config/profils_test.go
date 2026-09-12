@@ -5,6 +5,7 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"runtime"
 	"strings"
@@ -487,5 +488,26 @@ func TestProfilAuNomRetoucheEstEcarte(t *testing.T) {
 	}
 	if !strings.Contains(avertissement, "evasion") {
 		t.Errorf("l'avertissement ne nomme pas l'entrée écartée : %s", avertissement)
+	}
+}
+
+// TestPlafondDeProfils vérifie le garde-fou contre un formulaire rejoué : au
+// cinquantième profil, un nouveau nom est refusé, un nom existant se remplace
+// encore.
+func TestPlafondDeProfils(t *testing.T) {
+	t.Parallel()
+
+	e := emplacementsDeTest(t)
+	for i := range maxProfils {
+		if _, err := e.EnregistrerProfil(profilDeTest(fmt.Sprintf("base-%02d", i)), "", true); err != nil {
+			t.Fatalf("profil %d : %v", i, err)
+		}
+	}
+
+	if _, err := e.EnregistrerProfil(profilDeTest("de trop"), "", true); !errors.Is(err, ErrTropDeProfils) {
+		t.Errorf("erreur %v, attendue ErrTropDeProfils", err)
+	}
+	if _, err := e.EnregistrerProfil(profilDeTest("base-00"), "", true); err != nil {
+		t.Errorf("remplacement refusé une fois le plafond atteint : %v", err)
 	}
 }

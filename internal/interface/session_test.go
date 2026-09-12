@@ -98,6 +98,34 @@ func TestSessionJeteeQuandLeCalqueABouge(t *testing.T) {
 	}
 }
 
+// TestSessionJeteeQuandLeCalqueADisparu couvre un calque supprimé ou déplacé
+// alors qu'un brouillon l'attend : la raison se lit sans chercher, et le
+// brouillon s'efface.
+func TestSessionJeteeQuandLeCalqueADisparu(t *testing.T) {
+	t.Parallel()
+
+	s, routeur := serveurDeTest(t)
+	ecrireCalque(t, s, "gescom", physiqueDeTest())
+	attendreStatut(t, poster(s, routeur, "/api/session", sessionDeTest(t, s, "gescom")), http.StatusOK)
+
+	if err := os.Remove(cheminCalque(s.repertoireCourant(), "gescom")); err != nil {
+		t.Fatalf("suppression du calque : %v", err)
+	}
+
+	reponse := decoderReponse[ReponseSession](t, lire(s, routeur, "/api/session?base=gescom"))
+	if reponse.Session != nil {
+		t.Fatal("un brouillon sans calque a été rendu")
+	}
+	if !strings.Contains(reponse.Ecartee, "plus dans le répertoire") {
+		t.Errorf("raison %q", reponse.Ecartee)
+	}
+
+	suivante := decoderReponse[ReponseSession](t, lire(s, routeur, "/api/session?base=gescom"))
+	if suivante.Ecartee != "" {
+		t.Errorf("le brouillon sans calque n'a pas été effacé : %q", suivante.Ecartee)
+	}
+}
+
 // TestSessionJeteeQuandLesDecisionsOntChange couvre le fichier retouché dans un
 // éditeur : il fait foi, et un brouillon rejoué par-dessus réintroduirait ce
 // qu'on venait d'en retirer.

@@ -136,6 +136,37 @@ func TestRepertoireRefuseCeQuiNEstPasUtilisable(t *testing.T) {
 	}
 }
 
+// TestRepertoireRefuseUnDossierSansEcriture couvre le seul contrôle des droits
+// effectifs : sans lui, l'écran accepterait un répertoire en lecture seule et
+// l'échec ne se verrait qu'à l'écriture du calque, en fin d'extraction.
+func TestRepertoireRefuseUnDossierSansEcriture(t *testing.T) {
+	t.Parallel()
+
+	if runtime.GOOS == "windows" {
+		t.Skip("un chmod 0500 ne ferme pas l'écriture sous Windows")
+	}
+	if os.Geteuid() == 0 {
+		t.Skip("root écrit dans un répertoire en lecture seule")
+	}
+
+	s, routeur := serveurDeTest(t)
+	depart := s.repertoireCourant()
+	ferme := t.TempDir()
+	if err := os.Chmod(ferme, 0o500); err != nil {
+		t.Fatalf("fermeture : %v", err)
+	}
+	t.Cleanup(func() { _ = os.Chmod(ferme, 0o700) })
+
+	w := poster(s, routeur, "/api/repertoire", RequeteRepertoire{Repertoire: ferme})
+	attendreStatut(t, w, http.StatusUnprocessableEntity)
+	if !strings.Contains(w.Body.String(), "écriture") {
+		t.Errorf("le refus ne dit pas pourquoi : %s", w.Body.String())
+	}
+	if s.repertoireCourant() != depart {
+		t.Errorf("un répertoire en lecture seule a été retenu : %s", s.repertoireCourant())
+	}
+}
+
 // TestExtractionGardeSonRepertoire vérifie qu'une tâche écrit là où elle a été
 // lancée, même si l'écran change de répertoire ensuite.
 func TestExtractionGardeSonRepertoire(t *testing.T) {
