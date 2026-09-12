@@ -36,18 +36,26 @@ préambule reste en français : il n'est jamais publié.
 
 ## [Non publié]
 
+## [0.4.1] — 2026-09-12 — Où Ormeau range quoi
+
+**Rien à reprendre dans vos projets.** `version_ri` ne bouge pas, les calques
+déjà enregistrés restent lisibles, et aucun fichier de décisions n'est à
+retoucher. Cette version ne change que ce qu'Ormeau retient de votre poste.
+
 ### Ajouté
 
-- **Les connexions s'enregistrent en profils.** Un nom que vous choisissez, les
-  paramètres de connexion, et le répertoire de travail associé — choisir un
-  profil vous emmène donc aussi dans le bon projet. Un profil qui nomme une base
-  y garde la session : les autres bases du serveur ne sont pas proposées. C'est
-  un cadrage de travail et non une protection — le compte garde les droits qu'il
-  a, et les restreindre se fait côté serveur. Le mot de passe n'est
-  retenu que si vous cochez la case prévue, décochée par défaut : il est alors
-  chiffré sur le poste, avec une clé qui s'y trouve aussi, ce qui protège d'une
-  lecture accidentelle et pas de quelqu'un qui a accès à votre session —
-  `SECURITY.md` le détaille. Écraser un profil existant demande confirmation.
+- **Les connexions s'enregistrent en profils.** Donnez un nom avant de vous
+  connecter : le profil est créé une fois la connexion réussie, et il n'y a pas
+  d'autre bouton. Il retient le SGBD, l'hôte, l'utilisateur, la base, et le
+  répertoire de travail qui va avec — le choisir vous emmène donc aussi dans le
+  bon projet.
+- **Le mot de passe est retenu si vous cochez la case prévue**, décochée par
+  défaut. Il est chiffré sur le poste, avec une clé qui s'y trouve aussi : cela
+  protège d'une lecture accidentelle, pas de quelqu'un qui a accès à votre
+  session. La case le dit, et [`SECURITY.fr.md`](SECURITY.fr.md) détaille.
+- **Un profil qui nomme une base y garde la session** : les autres bases du
+  serveur ne sont pas proposées. C'est un cadrage de travail et non une
+  protection — le compte garde ses droits, que seul le serveur restreint.
 - **Le travail d'arbitrage non enregistré survit à un rechargement.** Les
   décisions en cours et l'entité ouverte sont retenues, et retrouvées à la
   réouverture de l'écran. Le fichier de décisions fait toujours foi : si la base
@@ -61,8 +69,11 @@ préambule reste en français : il n'est jamais publié.
   système** : `%AppData%\ormeau`, `~/.config/ormeau` ou
   `~/Library/Application Support/ormeau`, créé au premier lancement.
   `ORMEAU_CONFIG_DIR` en désigne un autre, ce qui permet aussi un usage
-  portable. L'interface annonce les deux emplacements au démarrage — le
-  répertoire de travail, qui porte les fichiers du projet, et celui-ci.
+  portable. [`docs/emplacements.fr.md`](docs/emplacements.fr.md) dit ce qui va
+  où, et pourquoi.
+- **Des aides au survol** expliquent ce qu'aucun libellé ne portait : ce que
+  cocher une table entraîne, et le fait que décocher une colonne ne retire rien
+  du calque.
 
 ### Corrigé
 
@@ -76,18 +87,23 @@ préambule reste en français : il n'est jamais publié.
 
 ***
 
+**Nothing to change in your projects.** `version_ri` stays put, layers already
+saved remain readable, and no decisions file needs editing. This release only
+changes what Ormeau remembers about your machine.
+
 ### Added
 
-- **Connections can be saved as profiles.** A name you choose, the connection
-  settings, and the working directory that goes with them — picking a profile
-  therefore takes you to the right project too. A profile that names a database
-  keeps the session on it: the server's other databases are not offered. This
-  frames the work rather than protecting anything — the account keeps whatever
-  rights it has, and restricting them is done on the server. The password is only kept if
-  you tick the box, unticked by default: it is then encrypted on this machine,
-  with a key that lives there too, which guards against accidental reading and
-  not against someone with access to your account — `SECURITY.md` has the
-  details. Overwriting an existing profile asks for confirmation.
+- **Connections can be saved as profiles.** Give a name before connecting: the
+  profile is created once the connection succeeds, and there is no other button.
+  It keeps the DBMS, host, user, database, and the working directory that goes
+  with them — picking it therefore takes you to the right project too.
+- **The password is kept if you tick the box**, unticked by default. It is
+  encrypted on this machine, with a key that lives there too: this guards
+  against accidental reading, not against someone with access to your account.
+  The box says so, and [`SECURITY.md`](SECURITY.md) has the details.
+- **A profile that names a database keeps the session on it**: the server's
+  other databases are not offered. This frames the work rather than protecting
+  anything — the account keeps its rights, which only the server can restrict.
 - **Unsaved review work survives a page reload.** Current decisions and the open
   entity are kept, and found again when the screen reopens. The decisions file
   still has the final word: if the database was re-extracted or the file edited
@@ -100,8 +116,10 @@ préambule reste en français : il n'est jamais publié.
   `%AppData%\ormeau`, `~/.config/ormeau` or
   `~/Library/Application Support/ormeau`, created on first launch.
   `ORMEAU_CONFIG_DIR` points somewhere else, which also makes portable use
-  possible. The interface announces both locations on startup — the working
-  directory, which holds the project files, and this one.
+  possible. [`docs/emplacements.md`](docs/emplacements.md) says what goes where,
+  and why.
+- **Hover help** explains what no label carried: what ticking a table entails,
+  and the fact that unticking a column removes nothing from the layer.
 
 ### Fixed
 
