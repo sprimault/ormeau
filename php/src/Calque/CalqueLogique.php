@@ -23,6 +23,7 @@ final class CalqueLogique
      *
      * @param list<array<string, mixed>> $entites
      * @param list<array<string, mixed>> $enumerations
+     * @param list<array<string, mixed>> $traits
      * @param list<array<string, mixed>> $avertissements
      */
     private function __construct(
@@ -31,15 +32,16 @@ final class CalqueLogique
         public readonly string $espaceDeNoms,
         public readonly array $entites,
         public readonly array $enumerations,
+        public readonly array $traits,
         public readonly array $avertissements,
     ) {}
 
     /**
      * Construit un calque depuis le JSON décodé.
      *
-     * Les champs optionnels du format — énumérations, avertissements — valent
-     * le tableau vide quand ils sont absents : leur absence est légitime, seuls
-     * les champs requis sont contrôlés.
+     * Les champs optionnels du format — énumérations, traits, avertissements —
+     * valent le tableau vide quand ils sont absents : leur absence est
+     * légitime, seuls les champs requis sont contrôlés.
      *
      * @param array<string, mixed> $donnees
      *
@@ -59,6 +61,7 @@ final class CalqueLogique
             $donnees['espace_de_noms'],
             $donnees['entites'],
             $donnees['enumerations'] ?? [],
+            $donnees['traits'] ?? [],
             $donnees['avertissements'] ?? [],
         );
     }

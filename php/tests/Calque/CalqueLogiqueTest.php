@@ -35,7 +35,36 @@ final class CalqueLogiqueTest extends TestCase
         ]);
 
         self::assertSame([], $calque->enumerations);
+        self::assertSame([], $calque->traits);
         self::assertSame([], $calque->avertissements);
+    }
+
+    /**
+     * Les traits déclarés au niveau du calque sont conservés : une entité qui
+     * nomme « Horodatage » dans ses traits doit en retrouver la définition.
+     */
+    public function testConserveLesTraits(): void
+    {
+        $horodatage = [
+            'nom' => 'Horodatage',
+            'proprietes' => [[
+                'nom' => 'creeLe',
+                'colonne' => 'cree_le',
+                'type_php' => '\\DateTimeImmutable',
+                'type_doctrine' => 'datetime_immutable',
+                'nullable' => false,
+            ]],
+        ];
+
+        $calque = CalqueLogique::depuisTableau([
+            'version_ri' => 1,
+            'empreinte_physique' => 'sha256:' . str_repeat('e', 64),
+            'espace_de_noms' => 'App\\Entity',
+            'entites' => [['nom' => 'Client', 'traits' => ['Horodatage']]],
+            'traits' => [$horodatage],
+        ]);
+
+        self::assertSame([$horodatage], $calque->traits);
     }
 
     /**

@@ -7,6 +7,8 @@ declare(strict_types=1);
 
 namespace Ormeau\Doctrine\Calque;
 
+use JsonException;
+
 /**
  * Lit un calque logique produit par le binaire ormeau.
  *
@@ -34,7 +36,9 @@ final class LecteurCalque
      * entités silencieusement fausses. L'inverse est accepté — une version
      * antérieure ne contient rien d'inconnu.
      *
-     * @throws CalqueInvalide fichier illisible, JSON mal formé, ou version non gérée
+     * @throws CalqueInvalide fichier illisible, version absente ou non gérée, champ requis absent
+     * @throws JsonException JSON mal formé, laissé tel quel : le message du
+     *                       décodeur situe l'erreur mieux qu'une réécriture
      */
     public function lire(string $chemin): CalqueLogique
     {
