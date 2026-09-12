@@ -28,14 +28,17 @@ function monter(options: Partial<Parameters<typeof ProfileBar>[0]> = {}) {
     erreur: null,
     choisi: '',
     onChoisir: vi.fn(),
-    aEnregistrer: () => ({ hote: '192.168.0.184', base: 'gescom' }),
-    onEnregistrer: vi.fn().mockResolvedValue(true),
+    nom: '',
+    onNommer: vi.fn(),
+    avecMotDePasse: false,
+    onAvecMotDePasse: vi.fn(),
+    divergent: false,
+    onMettreAJour: vi.fn(),
     onSupprimer: vi.fn(),
-    motDePasseEnregistre: false,
     ...options,
   } satisfies Parameters<typeof ProfileBar>[0];
-  render(<ProfileBar {...props} />);
-  return { ...props, utilisateur: userEvent.setup() };
+  const { unmount } = render(<ProfileBar {...props} />);
+  return { ...props, unmount, utilisateur: userEvent.setup() };
 }
 
 describe('ProfileBar', () => {
@@ -57,83 +60,54 @@ describe('ProfileBar', () => {
     expect(screen.getByRole('option', { name: 'gescom recette' })).toBeInTheDocument();
   });
 
-  it('ne propose de supprimer que lorsqu’un profil est choisi', async () => {
+  it('n’a aucun bouton d’enregistrement', () => {
+    // Un nom saisi suffit : le profil est créé à la connexion réussie, et il
+    // n'y a donc ni bouton à trouver ni ordre à respecter.
+    monter();
+    expect(screen.queryByRole('button', { name: /Enregistrer/ })).not.toBeInTheDocument();
+  });
+
+  it('demande un nom pour une connexion neuve, et rien pour un profil choisi', () => {
+    const { unmount } = monter();
+    expect(screen.getByLabelText('Nom du profil')).toBeInTheDocument();
+    unmount();
+
+    // Un profil déjà choisi n'a pas à être réenregistré : le faire à chaque
+    // connexion effacerait son mot de passe quand la case est décochée.
+    monter({ choisi: 'gescom production' });
+    expect(screen.queryByLabelText('Nom du profil')).not.toBeInTheDocument();
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+  });
+
+  it('signale un nom déjà pris', () => {
+    monter({ nom: 'gescom production' });
+    expect(screen.getByText(/porte déjà ce nom/)).toBeInTheDocument();
+  });
+
+  it('n’ouvre la case du mot de passe qu’avec un nom', async () => {
+    const { unmount } = monter();
+    expect(screen.getByRole('checkbox')).toBeDisabled();
+    unmount();
+
+    monter({ nom: 'nouveau' });
+    expect(screen.getByRole('checkbox')).toBeEnabled();
+  });
+
+  it('ne propose la mise à jour que si le formulaire diverge', () => {
+    const { unmount } = monter({ choisi: 'gescom production' });
+    expect(screen.queryByRole('button', { name: 'Mettre à jour ce profil' })).not.toBeInTheDocument();
+    unmount();
+
+    monter({ choisi: 'gescom production', divergent: true });
+    expect(screen.getByRole('button', { name: 'Mettre à jour ce profil' })).toBeInTheDocument();
+  });
+
+  it('supprime le profil choisi', async () => {
     const { utilisateur, onSupprimer } = monter({ choisi: 'gescom production' });
 
     await utilisateur.click(screen.getByRole('button', { name: 'Supprimer ce profil' }));
 
     expect(onSupprimer).toHaveBeenCalledWith('gescom production');
-  });
-
-  it('cache la suppression sur une connexion neuve', () => {
-    monter();
-    expect(screen.queryByRole('button', { name: 'Supprimer ce profil' })).not.toBeInTheDocument();
-  });
-
-  it('enregistre sous le nom saisi, sans le mot de passe par défaut', async () => {
-    const { utilisateur, onEnregistrer, onChoisir } = monter();
-
-    await utilisateur.click(screen.getByRole('button', { name: 'Enregistrer cette connexion' }));
-    await utilisateur.type(screen.getByLabelText('Nom du profil'), 'nouveau');
-    await utilisateur.click(screen.getByRole('button', { name: 'Enregistrer' }));
-
-    expect(onEnregistrer).toHaveBeenCalledWith(
-      { hote: '192.168.0.184', base: 'gescom', nom: 'nouveau' },
-      false,
-      false,
-    );
-    expect(onChoisir).toHaveBeenCalledWith('nouveau');
-  });
-
-  it('n’ouvre la case du mot de passe qu’avec le bloc d’enregistrement', async () => {
-    const { utilisateur } = monter();
-    // Elle n'agit qu'à l'enregistrement : ailleurs, elle laisserait croire
-    // qu'elle fait quelque chose au moment de se connecter.
-    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
-
-    await utilisateur.click(screen.getByRole('button', { name: 'Enregistrer cette connexion' }));
-
-    expect(screen.getByRole('checkbox')).not.toBeChecked();
-  });
-
-  it('enregistre le mot de passe quand la case est cochée', async () => {
-    const { utilisateur, onEnregistrer } = monter();
-
-    await utilisateur.click(screen.getByRole('button', { name: 'Enregistrer cette connexion' }));
-    await utilisateur.type(screen.getByLabelText('Nom du profil'), 'nouveau');
-    await utilisateur.click(screen.getByRole('checkbox'));
-    await utilisateur.click(screen.getByRole('button', { name: 'Enregistrer' }));
-
-    expect(onEnregistrer).toHaveBeenLastCalledWith(expect.anything(), false, true);
-  });
-
-  it('prévient qu’un enregistrement effacerait le mot de passe retenu', async () => {
-    const { utilisateur } = monter({ choisi: 'gescom production', motDePasseEnregistre: true });
-
-    await utilisateur.click(screen.getByRole('button', { name: 'Enregistrer cette connexion' }));
-    expect(screen.getByText(/effacera le mot de passe enregistré/)).toBeInTheDocument();
-
-    // Cochée, l'avertissement n'a plus lieu d'être : le mot de passe est repris.
-    await utilisateur.click(screen.getByRole('checkbox'));
-    expect(screen.queryByText(/effacera le mot de passe enregistré/)).not.toBeInTheDocument();
-  });
-
-  it('demande confirmation quand le nom est déjà pris', async () => {
-    // Le serveur refuse tant que le remplacement n'est pas confirmé : écraser
-    // un profil de production par erreur n'a rien d'anodin.
-    const onEnregistrer = vi
-      .fn()
-      .mockImplementation((_profil, remplacer: boolean) => Promise.resolve(remplacer));
-    const { utilisateur } = monter({ onEnregistrer });
-
-    await utilisateur.click(screen.getByRole('button', { name: 'Enregistrer cette connexion' }));
-    await utilisateur.type(screen.getByLabelText('Nom du profil'), 'gescom production');
-    await utilisateur.click(screen.getByRole('button', { name: 'Enregistrer' }));
-
-    expect(await screen.findByRole('alert')).toHaveTextContent('porte déjà ce nom');
-
-    await utilisateur.click(screen.getByRole('button', { name: 'Écraser' }));
-    expect(onEnregistrer).toHaveBeenLastCalledWith(expect.anything(), true, false);
   });
 
   it('affiche l’avertissement du fichier de profils', () => {

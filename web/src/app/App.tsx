@@ -68,7 +68,7 @@ function Ecran() {
           <ConnectionForm
             enCours={enCours}
             erreur={erreur}
-            onConnecter={(requete) => void ouvrir(requete)}
+            onConnecter={ouvrir}
           />
         </main>
       </div>

@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { ErreurAPI } from '@/shared/api';
 import { useT } from '@/shared/i18n';
 import { tronquerMilieu } from '@/shared/lib';
-import { CopyButton } from '@/shared/ui';
+import { CopyButton, HelpTip } from '@/shared/ui';
 
 /** Ce que le champ reçoit de l'en-tête. */
 interface ProprietesWorkdir {
@@ -69,7 +69,8 @@ export function WorkdirField({ repertoire, changer }: ProprietesWorkdir) {
   if (saisie === null) {
     return (
       <span className="text-xs text-slate-500" title={repertoire}>
-        {t('app.workdir')} : <span className="font-mono">{tronquerMilieu(repertoire)}</span>{' '}
+        {t('app.workdir')} <HelpTip texte={t('app.help.workdir')} /> :{' '}
+        <span className="font-mono">{tronquerMilieu(repertoire)}</span>{' '}
         <CopyButton valeur={repertoire} libelle={t('app.workdir.copy')} />{' '}
         <button
           type="button"

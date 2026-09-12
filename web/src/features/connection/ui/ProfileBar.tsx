@@ -1,11 +1,9 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
-import { useState } from 'react';
-
 import { useT } from '@/shared/i18n';
-import type { Profil, ProfilResume } from '@/shared/model';
-import { Button, ErrorBanner, Field } from '@/shared/ui';
+import type { ProfilResume } from '@/shared/model';
+import { Button, ErrorBanner, Field, HelpTip } from '@/shared/ui';
 
 /** Ce que la barre reçoit du formulaire. */
 interface ProprietesProfileBar {
@@ -15,26 +13,31 @@ interface ProprietesProfileBar {
   /** Nom du profil choisi, vide pour une connexion neuve. */
   choisi: string;
   onChoisir: (nom: string) => void;
-  /** Ce que le formulaire porte, à enregistrer sous le nom donné. */
-  aEnregistrer: () => Omit<Profil, 'nom'>;
-  onEnregistrer: (profil: Profil, remplacer: boolean, avecMotDePasse: boolean) => Promise<boolean>;
+  /** Nom sous lequel enregistrer à la connexion ; vide pour ne rien enregistrer. */
+  nom: string;
+  onNommer: (nom: string) => void;
+  /** Le mot de passe part-il dans le profil. */
+  avecMotDePasse: boolean;
+  onAvecMotDePasse: (avec: boolean) => void;
+  /** Le formulaire dit autre chose que le profil choisi. */
+  divergent: boolean;
+  onMettreAJour: () => void;
   onSupprimer: (nom: string) => void;
-  /** Vrai quand le profil choisi porte déjà un mot de passe. */
-  motDePasseEnregistre: boolean;
 }
 
 /**
  * Choix d'une connexion enregistrée, au-dessus du formulaire.
+ *
+ * **Un seul geste : remplir, nommer, se connecter.** Il n'y a pas de bouton
+ * d'enregistrement — un nom saisi suffit, et le profil est créé une fois la
+ * connexion réussie. On ne se demande donc ni sur quel bouton cliquer, ni dans
+ * quel ordre, et un profil enregistré est forcément un profil qui marche.
  *
  * Le sélecteur n'a **pas de sélection par défaut** : s'il pré-choisissait le
  * premier profil, l'écran se remplirait tout seul et quelqu'un qui voulait
  * taper une connexion neuve devrait d'abord comprendre pourquoi les champs sont
  * pleins. La connexion ponctuelle reste le cas le plus fréquent sur un outil de
  * reprise.
- *
- * Le formulaire ne disparaît pas quand des profils existent : un écran qui
- * change de visage après un premier enregistrement donne l'impression d'avoir
- * déclenché autre chose que ce qu'on voulait.
  */
 export function ProfileBar({
   profils,
@@ -42,43 +45,16 @@ export function ProfileBar({
   erreur,
   choisi,
   onChoisir,
-  aEnregistrer,
-  onEnregistrer,
+  nom,
+  onNommer,
+  avecMotDePasse,
+  onAvecMotDePasse,
+  divergent,
+  onMettreAJour,
   onSupprimer,
-  motDePasseEnregistre,
 }: ProprietesProfileBar) {
   const t = useT();
-  const [nom, setNom] = useState<string | null>(null);
-  const [aConfirmer, setAConfirmer] = useState(false);
-  const [avecMotDePasse, setAvecMotDePasse] = useState(false);
-
-  function ouvrir() {
-    setNom(choisi);
-    setAConfirmer(false);
-    // Jamais cochée d'elle-même, pas même sur un profil qui porte déjà un mot
-    // de passe : enregistrer un secret est une action, et une action se décide.
-    setAvecMotDePasse(false);
-  }
-
-  function fermer() {
-    setNom(null);
-    setAConfirmer(false);
-  }
-
-  async function enregistrer(remplacer: boolean) {
-    if (nom === null) {
-      return;
-    }
-    const pris = await onEnregistrer({ ...aEnregistrer(), nom }, remplacer, avecMotDePasse);
-    if (pris) {
-      onChoisir(nom);
-      fermer();
-      return;
-    }
-    // Refusé parce que le nom est déjà pris : on demande plutôt que d'écraser
-    // en silence un profil de production.
-    setAConfirmer(true);
-  }
+  const dejaPris = nom.trim() !== '' && profils.some(({ profil }) => profil.nom === nom.trim());
 
   return (
     <div className="flex flex-col gap-2 rounded border border-slate-200 p-3 dark:border-slate-800">
@@ -101,92 +77,60 @@ export function ProfileBar({
           </select>
         </label>
 
-        {nom === null ? (
+        {choisi ? (
           <>
+            {/* Sans lui, changer un port obligerait à supprimer puis recréer.
+                Caché tant que le formulaire dit la même chose que le profil :
+                un bouton qui ne ferait rien n'a pas à être là. */}
+            {divergent ? (
+              <Button type="button" variante="discret" onClick={onMettreAJour}>
+                {t('profile.update')}
+              </Button>
+            ) : null}
             <button
               type="button"
-              onClick={ouvrir}
-              className="py-1.5 text-sm underline underline-offset-2"
+              onClick={() => onSupprimer(choisi)}
+              className="py-1.5 text-sm text-slate-500 underline underline-offset-2"
             >
-              {t('profile.save')}
+              {t('profile.delete')}
             </button>
-            {choisi ? (
-              <button
-                type="button"
-                onClick={() => onSupprimer(choisi)}
-                className="py-1.5 text-sm text-slate-500 underline underline-offset-2"
-              >
-                {t('profile.delete')}
-              </button>
-            ) : null}
           </>
         ) : null}
       </div>
 
-      {nom !== null ? (
-        <div className="flex flex-col gap-2">
-          <div className="flex items-end gap-2">
-            <div className="flex-1">
-              <Field
-                label={t('profile.save.name')}
-                value={nom}
-                autoFocus
-                onChange={(evenement) => {
-                  setNom(evenement.target.value);
-                  setAConfirmer(false);
-                }}
-                onKeyDown={(evenement) => evenement.key === 'Escape' && fermer()}
-              />
-            </div>
-            <Button type="button" disabled={!nom.trim()} onClick={() => void enregistrer(false)}>
-              {t('profile.save.confirm')}
-            </Button>
-            <button
-              type="button"
-              onClick={fermer}
-              className="py-1.5 text-sm text-slate-500 underline underline-offset-2"
-            >
-              {t('profile.save.cancel')}
-            </button>
-          </div>
+      {/* Le champ de nom n'existe que pour une connexion neuve : un profil déjà
+          choisi n'a pas à être réenregistré, et le faire à chaque connexion
+          effacerait son mot de passe quand la case est décochée. */}
+      {choisi ? null : (
+        <>
+          <Field
+            label={t('profile.save.name')}
+            value={nom}
+            onChange={(evenement) => onNommer(evenement.target.value)}
+            aide={
+              <span className="inline-flex items-center gap-1">
+                {dejaPris ? t('profile.name.taken') : t('profile.name.optional')}
+                <HelpTip texte={t('profile.help.name')} />
+              </span>
+            }
+            aria-invalid={dejaPris}
+          />
 
-          {/* La case vit ici et non dans le formulaire de connexion : elle
-              n'agit qu'à l'enregistrement, et placée là-bas elle laissait croire
-              qu'elle faisait quelque chose au moment de se connecter. */}
-          <label className="flex items-start gap-2 text-sm">
+          <label className="flex items-center gap-2 text-sm">
             <input
               type="checkbox"
               checked={avecMotDePasse}
-              onChange={(evenement) => setAvecMotDePasse(evenement.target.checked)}
-              className="mt-1"
+              onChange={(evenement) => onAvecMotDePasse(evenement.target.checked)}
+              disabled={nom.trim() === ''}
+              className="disabled:opacity-50"
             />
-            <span>
+            <span className={nom.trim() === '' ? 'text-slate-400 dark:text-slate-600' : undefined}>
               {t('profile.password.save')}
-              <span className="block text-xs text-slate-500 dark:text-slate-400">
-                {t('profile.password.save.hint')}
-              </span>
             </span>
+            <HelpTip texte={t('profile.password.save.hint')} />
           </label>
-
-          {motDePasseEnregistre && !avecMotDePasse ? (
-            <p className="text-xs text-amber-700 dark:text-amber-500">
-              {t('profile.password.erase')}
-            </p>
-          ) : null}
-
-          {aConfirmer ? (
-            <div
-              role="alert"
-              className="flex items-center gap-3 rounded bg-amber-50 p-2 text-sm dark:bg-amber-950"
-            >
-              <span className="flex-1">{t('profile.replace')}</span>
-              <Button type="button" onClick={() => void enregistrer(true)}>
-                {t('profile.replace.confirm')}
-              </Button>
-            </div>
-          ) : null}
-        </div>
-      ) : null}
+        </>
+      )}
 
       {avertissement ? (
         <p className="text-xs text-amber-700 dark:text-amber-500">{avertissement}</p>

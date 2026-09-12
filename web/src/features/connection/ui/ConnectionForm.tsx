@@ -4,7 +4,7 @@
 import { useState, type FormEvent } from 'react';
 
 import { useT } from '@/shared/i18n';
-import { Button, ErrorBanner, Field } from '@/shared/ui';
+import { Button, ErrorBanner, Field, HelpTip } from '@/shared/ui';
 import type { Profil, RequeteConnexion } from '@/shared/model';
 
 import { useProfils } from '../model/useProfils';
@@ -26,7 +26,7 @@ type Mode = 'composants' | 'dsn';
 interface ProprietesFormulaire {
   enCours: boolean;
   erreur: string | null;
-  onConnecter: (requete: RequeteConnexion) => void;
+  onConnecter: (requete: RequeteConnexion) => Promise<boolean>;
 }
 
 /**
@@ -49,7 +49,19 @@ export function ConnectionForm({ enCours, erreur, onConnecter }: ProprietesFormu
   const [dsn, setDsn] = useState('');
   const [profilChoisi, setProfilChoisi] = useState('');
   const [motDePasseDuProfil, setMotDePasseDuProfil] = useState(false);
+  const [nomProfil, setNomProfil] = useState('');
+  const [avecMotDePasse, setAvecMotDePasse] = useState(false);
   const { profils, avertissement, enregistrer, retirer, erreur: erreurProfil } = useProfils();
+
+  // Le bouton de mise à jour ne paraît que lorsqu'il a quelque chose à faire.
+  const profilRetenu = profils.find(({ profil }) => profil.nom === profilChoisi)?.profil;
+  const divergent =
+    profilRetenu !== undefined &&
+    (profilRetenu.sgbd !== (sgbd || undefined) ||
+      profilRetenu.hote !== (hote || undefined) ||
+      profilRetenu.port !== (port ? Number(port) : undefined) ||
+      profilRetenu.utilisateur !== (utilisateur || undefined) ||
+      profilRetenu.base !== (base || undefined));
 
   /**
    * Reprend un profil dans le formulaire.
@@ -105,9 +117,16 @@ export function ConnectionForm({ enCours, erreur, onConnecter }: ProprietesFormu
     };
   }
 
-  function soumettre(evenement: FormEvent) {
+  /**
+   * Se connecte, puis enregistre le profil si un nom a été donné.
+   *
+   * Dans cet ordre, et c'est tout l'intérêt : un profil enregistré est
+   * forcément un profil qui marche, et il n'y a qu'un bouton à connaître.
+   */
+  async function soumettre(evenement: FormEvent) {
     evenement.preventDefault();
-    onConnecter(
+
+    const reussie = await onConnecter(
       mode === 'dsn'
         ? // Aucun profil ici : passer sur cet onglet en désélectionne un, et
           // une chaîne tapée décrit à elle seule la connexion voulue.
@@ -124,10 +143,24 @@ export function ConnectionForm({ enCours, erreur, onConnecter }: ProprietesFormu
             base,
           },
     );
+
+    // Rien à enregistrer sans nom : c'est une connexion ponctuelle. Rien non
+    // plus sur un profil déjà choisi — le réenregistrer à chaque connexion
+    // effacerait son mot de passe quand la case est décochée.
+    if (!reussie || profilChoisi || nomProfil.trim() === '') {
+      return;
+    }
+    await enregistrer(
+      { ...champsDuProfil(), nom: nomProfil.trim() },
+      motDePasse,
+      avecMotDePasse,
+      false,
+      mode === 'dsn' ? dsn : undefined,
+    );
   }
 
   return (
-    <form onSubmit={soumettre} className="flex w-full max-w-xl flex-col gap-4">
+    <form onSubmit={(evenement) => void soumettre(evenement)} className="flex w-full max-w-xl flex-col gap-4">
       <div>
         <h1 className="text-lg font-semibold">{t('connection.title')}</h1>
         <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{t('connection.intro')}</p>
@@ -139,13 +172,22 @@ export function ConnectionForm({ enCours, erreur, onConnecter }: ProprietesFormu
         erreur={erreurProfil}
         choisi={profilChoisi}
         onChoisir={choisirProfil}
-        aEnregistrer={champsDuProfil}
-        motDePasseEnregistre={motDePasseDuProfil}
-        onEnregistrer={(profil, remplacer, avecMotDePasse) =>
+        nom={nomProfil}
+        onNommer={setNomProfil}
+        avecMotDePasse={avecMotDePasse}
+        onAvecMotDePasse={setAvecMotDePasse}
+        divergent={divergent}
+        onMettreAJour={() => {
           // En mode DSN, les champs sont vides : c'est la chaîne qui porte la
           // connexion, et le serveur la décompose.
-          enregistrer(profil, motDePasse, avecMotDePasse, remplacer, mode === 'dsn' ? dsn : undefined)
-        }
+          void enregistrer(
+            { ...champsDuProfil(), nom: profilChoisi },
+            motDePasse,
+            avecMotDePasse,
+            true,
+            mode === 'dsn' ? dsn : undefined,
+          );
+        }}
         onSupprimer={(nom) => {
           void retirer(nom);
           choisirProfil('');
@@ -174,8 +216,9 @@ export function ConnectionForm({ enCours, erreur, onConnecter }: ProprietesFormu
       {mode === 'composants' ? (
         <div className="grid grid-cols-2 gap-3">
           <label className="flex flex-col gap-1">
-            <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-600 dark:text-slate-400">
               {t('connection.dbms')}
+              <HelpTip texte={t('connection.help.dbms')} />
             </span>
             <select
               value={sgbd}

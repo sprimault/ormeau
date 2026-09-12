@@ -16,14 +16,15 @@ const fr = {
   'app.name': 'Ormeau',
   'profile.label': 'Profil',
   'profile.none': 'Nouvelle connexion',
-  'profile.save': 'Enregistrer cette connexion',
   'profile.save.name': 'Nom du profil',
-  'profile.save.confirm': 'Enregistrer',
-  'profile.save.cancel': 'Annuler',
+  'profile.name.optional': 'Facultatif — laissez vide pour une connexion ponctuelle.',
+  'profile.name.taken': 'Un profil porte déjà ce nom : il ne sera pas enregistré.',
+  'connection.help.dbms':
+    'Laissez « Détecté » : le port désigne le SGBD, et le serveur dira ensuite ce qu’il est vraiment — un « mysql:// » vers un serveur MariaDB produit un calque qui dit « mariadb ». Ne le choisissez que si le port est inhabituel.',
+  'profile.help.name':
+    'Donnez un nom pour retrouver cette connexion plus tard. Le profil sera enregistré quand la connexion aura réussi — il n’y a pas d’autre bouton à cliquer. Laissez vide pour une connexion ponctuelle.',
+  'profile.update': 'Mettre à jour ce profil',
   'profile.delete': 'Supprimer ce profil',
-  'profile.replace':
-    'Un profil porte déjà ce nom. L’écraser remplacera ses paramètres de connexion, et son mot de passe s’il en avait un.',
-  'profile.replace.confirm': 'Écraser',
   'profile.password.save': 'Enregistrer le mot de passe',
   // Deux messages distincts plutôt que le même deux fois : celui-ci explique le
   // champ, l'autre ce qu'un enregistrement ferait.
@@ -38,6 +39,8 @@ const fr = {
     'Il est chiffré sur ce poste, mais la clé y est aussi. Cela protège d’une lecture accidentelle, pas de quelqu’un qui a accès à votre session.',
 
   'app.workdir': 'Répertoire de travail',
+  'app.help.workdir':
+    'C’est là qu’Ormeau écrit les trois fichiers d’une base — le calque, les décisions, le calque logique — et là qu’il les relit. En pratique, le projet Symfony qui les commitera. Un profil de connexion peut le changer pour vous.',
   'app.workdir.copy': 'Copier le chemin complet',
   'app.workdir.change': 'Changer',
   'app.workdir.apply': 'Appliquer',
@@ -84,6 +87,8 @@ const fr = {
   'inventory.search': 'Filtrer les tables',
   'inventory.noMatch': 'Aucune table ne correspond à « {terme} ».',
   'inventory.selected': '{n} sélectionnée(s) sur {total}',
+  'inventory.help.selection':
+    'Cochez large : le calque garde tout ce qui est extrait, et les tables se trient ensuite à l’inférence, hors ligne, sans revenir en base. Décocher une table référencée par une autre laisse une clé étrangère dans le vide et fait disparaître l’association — l’écran vous proposera d’ajouter les dépendances manquantes.',
   'inventory.tables': '{n} table(s)',
   'inventory.columns': '{n} col.',
   'inventory.rows': '{n} lignes',
@@ -107,6 +112,9 @@ const fr = {
   'columns.primaryKeyKept':
     'Une colonne de clé primaire reste mappée : Doctrine refuse une entité sans identifiant.',
   'columns.excluded': '{n} colonne(s) écartée(s)',
+  'columns.legend': 'Colonnes retenues comme propriétés',
+  'columns.help.excluded':
+    'Décocher une colonne la retire de l’entité générée, jamais du calque : la table reste extraite en entier, sinon le diff la signalerait disparue à chaque comparaison. La colonne part dans « colonnes_ignorees », et se remet d’un clic. Une colonne de clé primaire ne se décoche pas — Doctrine refuse une entité sans identifiant.',
   'columns.expand': 'Déplier les colonnes',
 
   'action.copy': 'Copier',
@@ -139,6 +147,8 @@ const fr = {
   'extraction.launch': 'Extraire',
   'extraction.running': 'Extraction en cours',
   'extraction.target': 'Écrit dans le répertoire de travail',
+  'extraction.help.launch':
+    'Lit le catalogue des tables cochées et écrit ce fichier dans le répertoire de travail, en remplaçant celui qui s’y trouve. Aucune donnée n’est lue, seulement la structure. Deux extractions au plus à la fois ; les suivantes attendent, et chacune s’annule depuis l’en-tête.',
   'extraction.indicator.running': '{n} extraction(s) en cours',
   'extraction.indicator.failed': '{n} extraction(s) en échec',
   'extraction.indicator.finished': '{n} extraction(s) finie(s)',
@@ -188,6 +198,8 @@ const fr = {
   'anomaly.statistiques_orphelines': 'Statistiques sans table',
 
   'calque.title': 'Dernier calque produit',
+  'calque.help.preview':
+    'Le fichier écrit par la dernière extraction terminée, en entier. Il ne suit pas la table sélectionnée : c’est le calque, tel qu’il est sur le disque. Les statistiques en sont retirées avant affichage — avec l’échantillonnage, elles porteraient des valeurs réelles.',
   'calque.extractedAt': 'extrait à {heure}',
   'calque.copy': 'Copier le calque',
   'calque.loading': 'Lecture du calque…',
@@ -328,14 +340,15 @@ const en: Record<MessageKey, string> = {
   'app.name': 'Ormeau',
   'profile.label': 'Profile',
   'profile.none': 'New connection',
-  'profile.save': 'Save this connection',
   'profile.save.name': 'Profile name',
-  'profile.save.confirm': 'Save',
-  'profile.save.cancel': 'Cancel',
+  'profile.name.optional': 'Optional — leave empty for a one-off connection.',
+  'profile.name.taken': 'A profile already has this name: it will not be saved.',
+  'connection.help.dbms':
+    'Leave “Detected”: the port identifies the DBMS, and the server then says what it really is — a “mysql://” pointing at a MariaDB server produces a layer that says “mariadb”. Only pick one if the port is unusual.',
+  'profile.help.name':
+    'Give a name to find this connection again later. The profile is saved once the connection succeeds — there is no other button to click. Leave empty for a one-off connection.',
+  'profile.update': 'Update this profile',
   'profile.delete': 'Delete this profile',
-  'profile.replace':
-    'A profile already has this name. Overwriting it will replace its connection settings, and its password if it had one.',
-  'profile.replace.confirm': 'Overwrite',
   'profile.password.save': 'Save the password',
   'profile.password.stored':
     'A password is saved for this profile: leave the field empty to use it.',
@@ -345,6 +358,8 @@ const en: Record<MessageKey, string> = {
     'It is encrypted on this machine, but so is the key. This guards against accidental reading, not against someone with access to your account.',
 
   'app.workdir': 'Working directory',
+  'app.help.workdir':
+    'This is where Ormeau writes a database’s three files — the layer, the decisions, the logical layer — and where it reads them back. In practice, the Symfony project that will commit them. A connection profile can change it for you.',
   'app.workdir.copy': 'Copy the full path',
   'app.workdir.change': 'Change',
   'app.workdir.apply': 'Apply',
@@ -388,6 +403,8 @@ const en: Record<MessageKey, string> = {
   'inventory.search': 'Filter tables',
   'inventory.noMatch': 'No table matches “{terme}”.',
   'inventory.selected': '{n} of {total} selected',
+  'inventory.help.selection':
+    'Tick broadly: the layer keeps everything extracted, and tables are filtered later during inference, offline, without going back to the database. Unticking a table referenced by another leaves a foreign key pointing nowhere and the association disappears — the screen will offer to add the missing dependencies.',
   'inventory.tables': '{n} table(s)',
   'inventory.columns': '{n} col.',
   'inventory.rows': '{n} rows',
@@ -408,6 +425,9 @@ const en: Record<MessageKey, string> = {
   'columns.primaryKeyKept':
     'A primary key column stays mapped: Doctrine rejects an entity without an identifier.',
   'columns.excluded': '{n} column(s) left out',
+  'columns.legend': 'Columns kept as properties',
+  'columns.help.excluded':
+    'Unticking a column removes it from the generated entity, never from the layer: the table is still extracted in full, otherwise the diff would report it missing on every comparison. The column goes to “colonnes_ignorees”, and comes back with one click. A primary key column cannot be unticked — Doctrine refuses an entity without an identifier.',
   'columns.expand': 'Expand columns',
 
   'action.copy': 'Copy',
@@ -440,6 +460,8 @@ const en: Record<MessageKey, string> = {
   'extraction.launch': 'Extract',
   'extraction.running': 'Extraction running',
   'extraction.target': 'Written to the working directory',
+  'extraction.help.launch':
+    'Reads the catalogue of the ticked tables and writes this file to the working directory, replacing whatever is there. No data is read, only structure. At most two extractions at a time; the others wait, and each can be cancelled from the header.',
   'extraction.indicator.running': '{n} extraction(s) running',
   'extraction.indicator.failed': '{n} extraction(s) failed',
   'extraction.indicator.finished': '{n} extraction(s) finished',
@@ -489,6 +511,8 @@ const en: Record<MessageKey, string> = {
   'anomaly.statistiques_orphelines': 'Statistics without a table',
 
   'calque.title': 'Last produced layer',
+  'calque.help.preview':
+    'The file written by the last finished extraction, in full. It does not follow the selected table: this is the layer as it sits on disk. Statistics are stripped before display — with sampling on, they would carry real values.',
   'calque.extractedAt': 'extracted at {heure}',
   'calque.copy': 'Copy the layer',
   'calque.loading': 'Reading the layer…',
