@@ -43,7 +43,12 @@ type pilote struct {
 func Ouvrir(ctx context.Context, dsn string) (introspection.Introspecteur, error) {
 	config, err := pgx.ParseConfig(introspection.NettoyerDSN(dsn))
 	if err != nil {
-		return nil, fmt.Errorf("dsn illisible (%s): %w", introspection.Masquer(dsn), err)
+		// L'erreur de pgx n'est ni enveloppée ni citée. Elle recopie la chaîne
+		// avec son propre masquage, qui ne reconnaît que « password= » collé :
+		// « password = secret » y passe en clair. Filtrer un message qu'on ne
+		// contrôle pas reviendrait à attendre la prochaine fuite ; le DSN masqué
+		// montre de toute façon la valeur fautive.
+		return nil, fmt.Errorf("dsn illisible (%s)", introspection.Masquer(dsn))
 	}
 
 	// Posé à la connexion plutôt que par un SET ensuite : il n'existe alors

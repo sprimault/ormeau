@@ -36,6 +36,32 @@ préambule reste en français : il n'est jamais publié.
 
 ## [Non publié]
 
+### Corrigé
+
+- **Un mot de passe pouvait s'afficher en clair dans une erreur de
+  connexion.** Il suffisait d'une chaîne clé/valeur écrite `password = secret`,
+  d'une valeur entre apostrophes, ou d'un port mal saisi : `ormeau extraire`
+  et l'écran de connexion recopiaient alors le secret. Toute valeur est
+  désormais masquée, sauf celles qui ne peuvent rien porter de sensible —
+  hôte, port, base, utilisateur, mode TLS.
+- **Une chaîne de connexion ambiguë est refusée au lieu d'être devinée** : un
+  mot de passe contenant `/`, `?` ou `#` non encodé dans une URL, ou
+  `user= password=…`, que le pilote lisait comme un nom d'utilisateur. Le
+  message dit quoi corriger.
+
+***
+
+### Fixed
+
+- **A password could show in clear in a connection error.** A key/value string
+  written `password = secret`, a quoted value, or a mistyped port was enough:
+  `ormeau extraire` and the connection screen then echoed the secret. Every
+  value is now masked, except those that cannot carry anything sensitive —
+  host, port, database, user, TLS mode.
+- **An ambiguous connection string is refused instead of guessed**: a password
+  holding an unencoded `/`, `?` or `#` in a URL, or `user= password=…`, which
+  the driver read as a user name. The message says what to fix.
+
 ## [0.4.1] — 2026-09-12 — Où Ormeau range quoi
 
 **Rien à reprendre dans vos projets.** `version_ri` ne bouge pas, les calques
