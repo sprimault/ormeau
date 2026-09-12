@@ -246,7 +246,8 @@ version — le code est public, et `netstat` le confirme le temps d'une
 extraction.
 
 **Un calque est le schéma de la base d'un client** — noms de tables, de
-colonnes, commentaires métier, et avec `--echantillonner`, des valeurs réelles.
+colonnes, commentaires métier, et avec `--echantillonner`, une fois
+l'échantillonnage livré, des valeurs réelles.
 Un calque extrait d'une base de production ne rentre jamais dans un dépôt, ni en
 pièce jointe d'une issue.
 

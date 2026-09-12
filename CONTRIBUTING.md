@@ -119,9 +119,9 @@ it matters, and the release takes its notes from it.
 ## Never attach a layer from a production database
 
 A layer holds a customer's table names, column names, business comments, and
-with `--echantillonner`, real values. It has no place in this repository nor in
-an issue attachment. The only layers versioned here are those produced from
-`tests/ddl/`.
+with `--echantillonner`, once sampling ships, real values. It has no place in
+this repository nor in an issue attachment. The only layers versioned here are
+those produced from `tests/ddl/`.
 
 If a reproduction needs a layer, build it from `tests/ddl/` or strip it down to
 the few objects that trigger the defect.

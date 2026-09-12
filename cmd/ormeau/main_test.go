@@ -36,6 +36,18 @@ func TestExtraireRefuseAvantDeSeConnecter(t *testing.T) {
 			[]string{"--dsn", "hote:5432/base", "--sortie", "gescom.calque.json"},
 			"prefixe",
 		},
+		// Accepté sans effet, le drapeau produisait un calque identique à celui
+		// obtenu sans lui ; l'interface refuse déjà la même option.
+		{
+			"echantillonnage",
+			[]string{"--dsn", "postgres://hote/base", "--sortie", "gescom.calque.json", "--echantillonner"},
+			"echantillonnage",
+		},
+		{
+			"plafond de cardinalite seul",
+			[]string{"--dsn", "postgres://hote/base", "--sortie", "gescom.calque.json", "--cardinalite-max", "10"},
+			"echantillonnage",
+		},
 	}
 
 	for _, c := range cas {

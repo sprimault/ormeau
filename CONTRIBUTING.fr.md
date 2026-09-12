@@ -125,9 +125,9 @@ tire les notes de la version.
 ## Ne jamais joindre un calque issu d'une base de production
 
 Un calque porte les noms de tables, de colonnes et les commentaires métier d'un
-client, et avec `--echantillonner`, des valeurs réelles. Il n'a sa place ni
-dans ce dépôt ni en pièce jointe d'une issue. Les seuls calques versionnés ici
-sont ceux produits depuis `tests/ddl/`.
+client, et avec `--echantillonner`, une fois l'échantillonnage livré, des
+valeurs réelles. Il n'a sa place ni dans ce dépôt ni en pièce jointe d'une
+issue. Les seuls calques versionnés ici sont ceux produits depuis `tests/ddl/`.
 
 Si une reproduction en exige un, le construire depuis `tests/ddl/` ou le
 réduire aux quelques objets qui déclenchent le défaut.

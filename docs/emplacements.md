@@ -32,8 +32,8 @@ from. These files are meant to be committed: that is what makes the second
 extraction bearable, six months later.
 
 A layer carries a database's table names, column names and business comments —
-and, with `--echantillonner`, real values. Commit it to the customer's
-repository, never anywhere else.
+and, with `--echantillonner`, once sampling ships, real values. Commit it to the
+customer's repository, never anywhere else.
 
 ## Machine data
 

@@ -53,6 +53,9 @@ préambule reste en français : il n'est jamais publié.
   mot de passe enregistré, comme pour une clé effacée. Le prochain mot de passe
   enregistré en tire une neuve, en prévenant que les précédents sont perdus, et
   l'ancienne clé reste à côté en `cle.bin.invalide`.
+- **`ormeau extraire --echantillonner` est refusé**, comme dans l'interface.
+  Accepté sans effet, il produisait un calque identique à celui obtenu sans lui.
+  `--cardinalite-max` suit.
 
 ***
 
@@ -71,6 +74,9 @@ préambule reste en français : il n'est jamais publié.
   the saved password, as for a deleted key. The next saved password draws a new
   one, warning that earlier ones are lost, and the old key stays alongside as
   `cle.bin.invalide`.
+- **`ormeau extraire --echantillonner` is refused**, as in the interface.
+  Accepted without effect, it produced a layer identical to one made without
+  it. `--cardinalite-max` follows.
 
 ## [0.4.1] — 2026-09-12 — Où Ormeau range quoi
 
