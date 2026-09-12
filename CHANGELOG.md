@@ -48,6 +48,11 @@ préambule reste en français : il n'est jamais publié.
   mot de passe contenant `/`, `?` ou `#` non encodé dans une URL, ou
   `user= password=…`, que le pilote lisait comme un nom d'utilisateur. Le
   message dit quoi corriger.
+- **Une clé de chiffrement abîmée ne bloque plus la connexion par profil.** Un
+  `cle.bin` tronqué faisait échouer la connexion au lieu de la préparer sans le
+  mot de passe enregistré, comme pour une clé effacée. Le prochain mot de passe
+  enregistré en tire une neuve, en prévenant que les précédents sont perdus, et
+  l'ancienne clé reste à côté en `cle.bin.invalide`.
 
 ***
 
@@ -61,6 +66,11 @@ préambule reste en français : il n'est jamais publié.
 - **An ambiguous connection string is refused instead of guessed**: a password
   holding an unencoded `/`, `?` or `#` in a URL, or `user= password=…`, which
   the driver read as a user name. The message says what to fix.
+- **A damaged encryption key no longer blocks connecting through a profile.** A
+  truncated `cle.bin` made the connection fail instead of preparing it without
+  the saved password, as for a deleted key. The next saved password draws a new
+  one, warning that earlier ones are lost, and the old key stays alongside as
+  `cle.bin.invalide`.
 
 ## [0.4.1] — 2026-09-12 — Où Ormeau range quoi
 

@@ -22,7 +22,7 @@ func (s *serveur) gererProfils(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case http.MethodGet:
-		s.listerProfils(w)
+		s.listerProfils(w, "")
 	case http.MethodPost:
 		s.enregistrerProfil(w, r)
 	case http.MethodDelete:
@@ -37,12 +37,19 @@ func (s *serveur) gererProfils(w http.ResponseWriter, r *http.Request) {
 // Sans les mots de passe, pas même chiffrés : le navigateur n'a besoin que de
 // savoir s'il y en a un, pour cocher la case et remplir le champ d'un
 // substitut. Le clair ne quitte jamais le serveur — il va du fichier au pilote.
-func (s *serveur) listerProfils(w http.ResponseWriter) {
+//
+// evenement porte ce que l'opération qui précède doit dire une seule fois, à
+// côté de ce que le chargement dit à chaque fois.
+func (s *serveur) listerProfils(w http.ResponseWriter, evenement string) {
 	profils, avertissement, err := s.emplacements.LireProfils()
 	if err != nil {
 		repondreErreur(w, http.StatusUnprocessableEntity, err.Error())
 		return
 	}
+	if evenement != "" && avertissement != "" {
+		avertissement += " ; "
+	}
+	avertissement += evenement
 
 	resumes := make([]ProfilResume, 0, len(profils))
 	for _, p := range profils {
@@ -75,7 +82,7 @@ func (s *serveur) enregistrerProfil(w http.ResponseWriter, r *http.Request) {
 	}
 	requete.Profil = profil
 
-	switch err := s.emplacements.EnregistrerProfil(requete.Profil, motDePasse, requete.Remplacer); {
+	switch avertissement, err := s.emplacements.EnregistrerProfil(requete.Profil, motDePasse, requete.Remplacer); {
 	case errors.Is(err, config.ErrProfilExistant):
 		repondreRefus(w, CodeProfilExistant, "un profil porte déjà ce nom")
 	case errors.Is(err, config.ErrTropDeProfils):
@@ -83,7 +90,7 @@ func (s *serveur) enregistrerProfil(w http.ResponseWriter, r *http.Request) {
 	case err != nil:
 		repondreErreur(w, http.StatusUnprocessableEntity, err.Error())
 	default:
-		s.listerProfils(w)
+		s.listerProfils(w, avertissement)
 	}
 }
 
@@ -130,7 +137,7 @@ func (s *serveur) supprimerProfil(w http.ResponseWriter, r *http.Request) {
 	case err != nil:
 		repondreErreur(w, http.StatusUnprocessableEntity, err.Error())
 	default:
-		s.listerProfils(w)
+		s.listerProfils(w, "")
 	}
 }
 

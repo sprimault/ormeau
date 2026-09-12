@@ -97,8 +97,13 @@ DBeaver or SSMS, and [`SECURITY.md`](../SECURITY.md) has the details. Anyone
 needing more leaves the box unticked: the password is then retyped on every
 connection and written nowhere.
 
-If `cle.bin` is deleted, or `profils.yaml` copied from another machine, the
-profiles stay usable without their passwords, and the screen says so once.
+If `cle.bin` is missing or unusable, or `profils.yaml` copied from another
+machine, the profiles stay usable without their passwords, and the screen says
+so once.
+
+An unusable key is replaced on the next saved password. The screen then warns
+that the passwords encrypted with it are lost, and the old one stays alongside,
+as `cle.bin.invalide`.
 
 ### etat/
 
