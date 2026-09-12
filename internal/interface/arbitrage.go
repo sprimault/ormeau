@@ -250,7 +250,7 @@ func enumerationsInferees(logique *calque.Logique) []EnumerationInferee {
 
 // cheminDecisions compose le fichier de décisions d'une base validée.
 func (s *serveur) cheminDecisions(base string) string {
-	return filepath.Join(s.repertoire, base+".decisions.yaml")
+	return filepath.Join(s.repertoireCourant(), base+".decisions.yaml")
 }
 
 // empreinteFichier identifie les octets d'un fichier, pour détecter qu'il a

@@ -16,7 +16,9 @@ export interface EtatConnexion {
   bases: string[];
   enCours: boolean;
   erreur: string | null;
-  ouvrir: (requete: RequeteConnexion) => Promise<void>;
+  /** Rend vrai quand la connexion a abouti, ce dont dépend l'enregistrement
+   *  d'un profil : on n'enregistre pas une connexion qui ne marche pas. */
+  ouvrir: (requete: RequeteConnexion) => Promise<boolean>;
   fermer: () => Promise<void>;
   changerBase: (base: string) => Promise<void>;
 }
@@ -59,8 +61,10 @@ export function useConnection(): EtatConnexion {
     setErreur(null);
     try {
       setServeur(await connecter(requete));
+      return true;
     } catch (echec) {
       setErreur(echec instanceof ErreurAPI ? echec.message : translate('error.unknown'));
+      return false;
     } finally {
       setEnCours(false);
     }

@@ -3,10 +3,9 @@
 
 import { create } from 'zustand';
 
-import type { Lang } from './messages';
+import { usePreferencesStore } from '@/shared/model';
 
-/** Clé de persistance, partagée avec le script de pré-initialisation. */
-export const CLE_LANGUE = 'ormeau-lang';
+import type { Lang } from './messages';
 
 /** État de la langue courante. */
 interface EtatLangue {
@@ -20,15 +19,15 @@ interface EtatLangue {
  * Aucun accès à `window` au chargement du module : le store reste pur et
  * testable, la détection vit dans `init.ts` et n'est appelée qu'une fois, avant
  * le premier rendu.
+ *
+ * Ce qui fait survivre la langue à la fermeture est ailleurs, dans les
+ * préférences que le serveur enregistre — le navigateur ne peut rien retenir,
+ * son origine changeant à chaque lancement avec le port d'écoute.
  */
 export const useLangStore = create<EtatLangue>((set) => ({
   lang: 'fr',
   setLang: (lang) => {
-    try {
-      window.localStorage.setItem(CLE_LANGUE, lang);
-    } catch {
-      // Stockage indisponible : la langue vaut pour cette session seulement.
-    }
+    usePreferencesStore.getState().regler({ langue: lang });
     document.documentElement.lang = lang;
     set({ lang });
   },

@@ -57,6 +57,11 @@ vi.mock('@/entities/decisions', async () => {
         enregistre: () => {},
       };
     },
+    // Le brouillon persisté a ses propres tests : ici, aucun ne doit partir sur
+    // le réseau ni ramener de session.
+    lireSession: () => Promise.resolve({}),
+    ecrireSession: (session: unknown) => Promise.resolve({ session }),
+    effacerSession: () => Promise.resolve(),
   };
 });
 

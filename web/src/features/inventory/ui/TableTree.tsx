@@ -7,7 +7,7 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useT } from '@/shared/i18n';
 import { compact, qualifier } from '@/shared/lib';
 import type { TableSommaire } from '@/shared/model';
-import { Button, ErrorBanner, Field } from '@/shared/ui';
+import { Button, ErrorBanner, Field, HelpTip } from '@/shared/ui';
 import type { Colonnes } from '../model/useColumns';
 import type { EtatExclusions } from '../model/useExclusions';
 import type { EtatSelection } from '../model/useSelection';
@@ -93,8 +93,9 @@ export function TableTree({
     <div className="flex h-full flex-col gap-2 p-3">
       {/* Pas de titre ici : la base au-dessus dit déjà de quoi il s'agit. Le
           compte, lui, ne se déduit de rien. */}
-      <span className="text-xs text-slate-500">
+      <span className="inline-flex items-center gap-1 text-xs text-slate-500">
         {t('inventory.selected', { n: selection.size, total: tables.length })}
+        <HelpTip texte={t('inventory.help.selection')} />
       </span>
 
       <Field

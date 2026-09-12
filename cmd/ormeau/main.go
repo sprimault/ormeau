@@ -46,8 +46,10 @@ du premier. Au premier passage, il écrit le fichier de décisions prérempli,
 entièrement en commentaire.
 
 Variables d'environnement :
-  ORMEAU_DSN   chaîne de connexion, à défaut de --dsn
-  ORMEAU_MDP   mot de passe ; il n'existe pas de drapeau, qui l'exposerait dans ps
+  ORMEAU_DSN          chaîne de connexion, à défaut de --dsn
+  ORMEAU_MDP          mot de passe ; il n'existe pas de drapeau, qui l'exposerait dans ps
+  ORMEAU_CONFIG_DIR   où ranger préférences, profils et brouillons ; à défaut,
+                      le répertoire de configuration du système
 `
 
 // versionAffichee rend la ligne que voit l'utilisateur. Ce qu'il recopiera

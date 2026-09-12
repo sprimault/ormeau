@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { ErreurAPI } from '@/shared/api';
 import { translate, useT } from '@/shared/i18n';
 import type { Portee } from '@/shared/model';
-import { Button } from '@/shared/ui';
+import { Button, HelpTip } from '@/shared/ui';
 import { lancerExtraction } from '../api/extractionApi';
 import { useExtractions } from '../model/contexte';
 import { estTerminal, fichierCalque } from '../model/taches';
@@ -52,8 +52,9 @@ export function ExtractButton({ session, base, portee }: ProprietesBouton) {
       <Button onClick={() => void extraire()} disabled={envoi || occupee}>
         {occupee ? t('extraction.running') : t('extraction.launch')}
       </Button>
-      <span className="font-mono text-xs text-slate-500" title={t('extraction.target')}>
+      <span className="inline-flex items-center gap-1 font-mono text-xs text-slate-500">
         {fichierCalque(base)}
+        <HelpTip texte={t('extraction.help.launch')} />
       </span>
       {erreur ? (
         <span role="alert" className="text-xs text-red-700 dark:text-red-400">

@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 
 import { useT } from '@/shared/i18n';
+import { usePreferencesStore, type ClePreference } from '@/shared/model';
 
 /** Sens du partage : côte à côte, ou l'un au-dessus de l'autre. */
 type Sens = 'horizontal' | 'vertical';
@@ -26,9 +27,9 @@ interface ProprietesSplit {
   premier: ReactNode;
   second: ReactNode;
   sens?: Sens;
-  /** Clé de persistance de la taille. Une préférence d'affichage, au même
+  /** Préférence qui porte la taille. Une préférence d'affichage, au même
    *  titre que le thème — jamais rien qui touche à la base. */
-  cleStockage: string;
+  clePreference: ClePreference;
   defaut?: number;
   /** Rend au panneau réglé sa taille naturelle et retire la poignée. Les deux
    *  panneaux restent montés : replier ne perd ni une recherche en cours ni un
@@ -54,7 +55,7 @@ export function SplitPane({
   premier,
   second,
   sens = 'horizontal',
-  cleStockage,
+  clePreference,
   defaut = 384,
   replie = false,
 }: ProprietesSplit) {
@@ -62,20 +63,16 @@ export function SplitPane({
   const vertical = sens === 'vertical';
   const { min, max } = BORNES[sens];
   const conteneur = useRef<HTMLDivElement>(null);
-  const [taille, setTaille] = useState(() => tailleEnregistree(cleStockage, defaut, min, max));
+  const [taille, setTaille] = useState(() => tailleInjectee(clePreference, defaut, min, max));
   const [glisse, setGlisse] = useState(false);
 
   const poser = useCallback(
     (valeur: number) => {
       const bornee = Math.min(max, Math.max(min, Math.round(valeur)));
       setTaille(bornee);
-      try {
-        window.localStorage.setItem(cleStockage, String(bornee));
-      } catch {
-        // Stockage indisponible : la taille vaut pour cette session.
-      }
+      usePreferencesStore.getState().regler({ [clePreference]: bornee });
     },
-    [cleStockage, min, max],
+    [clePreference, min, max],
   );
 
   // Le suivi est posé sur la fenêtre et non sur la poignée : le pointeur va
@@ -162,15 +159,18 @@ export function SplitPane({
   );
 }
 
-/** Relit la taille choisie, en écartant ce qui n'est pas exploitable. */
-function tailleEnregistree(cle: string, defaut: number, min: number, max: number): number {
-  try {
-    const brut = Number(window.localStorage.getItem(cle));
-    if (Number.isFinite(brut) && brut >= min && brut <= max) {
-      return brut;
-    }
-  } catch {
-    // Stockage indisponible : le défaut s'applique.
+/**
+ * Relit la taille que le serveur a injectée, en écartant ce qui n'est pas
+ * exploitable.
+ *
+ * La valeur arrive aussi en variable CSS, appliquée avant même que ce composant
+ * ne soit monté : la mise en page est juste dès le premier octet, et cette
+ * lecture ne sert qu'à ce que l'état React parte de la même valeur.
+ */
+function tailleInjectee(cle: ClePreference, defaut: number, min: number, max: number): number {
+  const brut = usePreferencesStore.getState().preferences[cle];
+  if (typeof brut === 'number' && brut >= min && brut <= max) {
+    return brut;
   }
   return defaut;
 }

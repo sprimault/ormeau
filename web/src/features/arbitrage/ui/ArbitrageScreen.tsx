@@ -1,7 +1,7 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { useDecisions } from '@/entities/decisions';
 import { useT } from '@/shared/i18n';
@@ -14,6 +14,7 @@ import { lignesEntites } from '../model/entites';
 import { useEnregistrement } from '../model/useEnregistrement';
 import { useEntite } from '../model/useEntite';
 import { useInference } from '../model/useInference';
+import { useSessionArbitrage } from '../model/useSessionArbitrage';
 import { Alerte } from './Alerte';
 import { EntityList } from './EntityList';
 import { EntityPanel } from './EntityPanel';
@@ -45,6 +46,17 @@ export function ArbitrageScreen({ base, versionCalque }: ProprietesEcran) {
   const empreinte = resultat?.empreinte_physique ?? '';
   const enregistrement = useEnregistrement(brouillon, empreinte);
   const [choisie, setChoisie] = useState<string | null>(null);
+
+  // Stable : le hook la garde en dépendance, et une fonction recréée à chaque
+  // rendu relancerait la restauration en boucle.
+  const restaurerEntite = useCallback((qualifiee: string) => setChoisie(qualifiee), []);
+  const session = useSessionArbitrage({
+    base,
+    brouillon,
+    empreinteCalque: empreinte,
+    entiteOuverte: choisie,
+    onRestaurerEntite: restaurerEntite,
+  });
 
   const parTable = useMemo(
     () =>
@@ -92,6 +104,12 @@ export function ArbitrageScreen({ base, versionCalque }: ProprietesEcran) {
         <p className="mt-0.5 text-xs text-slate-500">{t('arbitrage.intro', { fichier: nomFichier })}</p>
       </div>
 
+      {/* Un brouillon perdu se dit : le perdre sans rien annoncer laisserait
+          croire qu'on n'avait rien commencé. */}
+      {session.ecartee ? (
+        <Alerte message={t('arbitrage.draftDiscarded', { raison: session.ecartee })} />
+      ) : null}
+
       {calqueModifie ? (
         <Alerte message={t('arbitrage.layerChanged')}>
           <Button
@@ -111,6 +129,9 @@ export function ArbitrageScreen({ base, versionCalque }: ProprietesEcran) {
             variante="discret"
             onClick={() => {
               enregistrement.abandonner();
+              // Repartir du fichier, c'est renoncer au brouillon : le garder
+              // le ferait revenir au rechargement suivant.
+              session.oublier();
               relire();
             }}
           >
@@ -139,7 +160,7 @@ export function ArbitrageScreen({ base, versionCalque }: ProprietesEcran) {
 
       {resultat ? (
         <SplitPane
-          cleStockage="ormeau-largeur-entites"
+          clePreference="largeur_entites"
           defaut={300}
           premier={
             <EntityList lignes={lignes} active={active?.qualifiee ?? ''} onActiver={setChoisie} />

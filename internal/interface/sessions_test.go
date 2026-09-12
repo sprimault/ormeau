@@ -84,7 +84,7 @@ func TestRegistreOuvreEtRetrouve(t *testing.T) {
 	r := nouveauRegistre()
 	pilote := &piloteDeTest{}
 
-	id, err := r.ajouter(pilote, dsnDeTest, "postgres")
+	id, err := r.ajouter(pilote, dsnDeTest, "postgres", false)
 	if err != nil {
 		t.Fatalf("ajouter: %v", err)
 	}
@@ -108,11 +108,11 @@ func TestRegistreIdentifiantsImprevisibles(t *testing.T) {
 	t.Parallel()
 
 	r := nouveauRegistre()
-	premier, err := r.ajouter(&piloteDeTest{}, dsnDeTest, "postgres")
+	premier, err := r.ajouter(&piloteDeTest{}, dsnDeTest, "postgres", false)
 	if err != nil {
 		t.Fatalf("ajouter: %v", err)
 	}
-	second, err := r.ajouter(&piloteDeTest{}, dsnDeTest, "postgres")
+	second, err := r.ajouter(&piloteDeTest{}, dsnDeTest, "postgres", false)
 	if err != nil {
 		t.Fatalf("ajouter: %v", err)
 	}
@@ -128,7 +128,7 @@ func TestRegistreFermeEtOublie(t *testing.T) {
 
 	r := nouveauRegistre()
 	pilote := &piloteDeTest{}
-	id, err := r.ajouter(pilote, dsnDeTest, "postgres")
+	id, err := r.ajouter(pilote, dsnDeTest, "postgres", false)
 	if err != nil {
 		t.Fatalf("ajouter: %v", err)
 	}
@@ -154,7 +154,7 @@ func TestRegistreRemonteLEchecDeFermeture(t *testing.T) {
 
 	panne := errors.New("connexion deja coupee")
 	r := nouveauRegistre()
-	id, err := r.ajouter(&piloteDeTest{echec: panne}, dsnDeTest, "postgres")
+	id, err := r.ajouter(&piloteDeTest{echec: panne}, dsnDeTest, "postgres", false)
 	if err != nil {
 		t.Fatalf("ajouter: %v", err)
 	}
@@ -170,12 +170,12 @@ func TestRegistrePlafonne(t *testing.T) {
 
 	r := nouveauRegistre()
 	for i := range maxConnexions {
-		if _, err := r.ajouter(&piloteDeTest{}, dsnDeTest, "postgres"); err != nil {
+		if _, err := r.ajouter(&piloteDeTest{}, dsnDeTest, "postgres", false); err != nil {
 			t.Fatalf("connexion %d refusée : %v", i, err)
 		}
 	}
 
-	if _, err := r.ajouter(&piloteDeTest{}, dsnDeTest, "postgres"); !errors.Is(err, ErrTropDeConnexions) {
+	if _, err := r.ajouter(&piloteDeTest{}, dsnDeTest, "postgres", false); !errors.Is(err, ErrTropDeConnexions) {
 		t.Errorf("erreur rendue %v, attendue ErrTropDeConnexions", err)
 	}
 }
@@ -188,7 +188,7 @@ func TestRegistreToutFermer(t *testing.T) {
 	r := nouveauRegistre()
 	pilotes := []*piloteDeTest{{}, {}, {}}
 	for _, p := range pilotes {
-		if _, err := r.ajouter(p, dsnDeTest, "postgres"); err != nil {
+		if _, err := r.ajouter(p, dsnDeTest, "postgres", false); err != nil {
 			t.Fatalf("ajouter: %v", err)
 		}
 	}

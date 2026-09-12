@@ -35,6 +35,11 @@ func interfaceLocale(args []string) error {
 		return err
 	}
 
+	emplacements, err := ouvrirConfiguration()
+	if err != nil {
+		return err
+	}
+
 	// Arrêt propre : le processus meurt, le jeton et le cookie avec.
 	ctx, arreter := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer arreter()
@@ -42,6 +47,7 @@ func interfaceLocale(args []string) error {
 	return ihm.Servir(ctx, ihm.Options{
 		Port:           *port,
 		Repertoire:     travail,
+		Emplacements:   emplacements,
 		Version:        version,
 		SansNavigateur: *sansNavigateur,
 		Sortie:         os.Stderr,

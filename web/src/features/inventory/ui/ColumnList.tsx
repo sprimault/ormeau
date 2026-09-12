@@ -4,6 +4,7 @@
 import { KeyRound } from 'lucide-react';
 
 import { useT } from '@/shared/i18n';
+import { HelpTip } from '@/shared/ui';
 import type { EtatColonnes } from '../model/useColumns';
 import type { EtatExclusions } from '../model/useExclusions';
 
@@ -40,6 +41,12 @@ export function ColumnList({ cle, etat, exclusions }: ProprietesColonnes) {
 
   return (
     <ul className="flex flex-col border-l border-slate-200 py-0.5 pl-6 dark:border-slate-800">
+      {/* Une règle du format qu'aucune case ne porte : décocher retire la
+          propriété de l'entité, jamais la colonne du calque. */}
+      <li className="flex items-center gap-1 py-0.5 text-xs text-slate-500">
+        {t('columns.legend')}
+        <HelpTip texte={t('columns.help.excluded')} />
+      </li>
       {etat.colonnes.map((colonne) => {
         const ignoree = exclusions.estIgnoree(cle, colonne.nom);
         return (

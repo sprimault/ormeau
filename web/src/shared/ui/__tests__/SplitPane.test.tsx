@@ -6,14 +6,25 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { useLangStore } from '@/shared/i18n';
+import { usePreferencesStore } from '@/shared/model';
 import { SplitPane } from '../SplitPane';
 
-const CLE = 'ormeau-test-largeur';
+/** Pose la taille que le serveur aurait injectée dans la page. */
+function injecter(largeur?: number) {
+  usePreferencesStore.setState({
+    preferences: { theme: 'systeme', langue: 'fr', largeur_arbre: largeur },
+  });
+}
 
 /** Monte les deux panneaux côte à côte, avec un contenu reconnaissable. */
 function monter(defaut?: number) {
   return render(
-    <SplitPane cleStockage={CLE} defaut={defaut} premier={<p>arbre</p>} second={<p>détail</p>} />,
+    <SplitPane
+      clePreference="largeur_arbre"
+      defaut={defaut}
+      premier={<p>arbre</p>}
+      second={<p>détail</p>}
+    />,
   );
 }
 
@@ -22,7 +33,7 @@ function monterEmpiles(defaut?: number, replie?: boolean) {
   return render(
     <SplitPane
       sens="vertical"
-      cleStockage={CLE}
+      clePreference="hauteur_apercu"
       defaut={defaut}
       replie={replie}
       premier={<p>arbre</p>}
@@ -34,7 +45,7 @@ function monterEmpiles(defaut?: number, replie?: boolean) {
 describe('SplitPane', () => {
   beforeEach(() => {
     useLangStore.setState({ lang: 'fr' });
-    window.localStorage.clear();
+    injecter();
   });
 
   it('affiche les deux panneaux', () => {
@@ -76,17 +87,17 @@ describe('SplitPane', () => {
     screen.getByRole('separator').focus();
     await userEvent.keyboard('{ArrowRight}');
 
-    expect(window.localStorage.getItem(CLE)).toBe('424');
+    expect(usePreferencesStore.getState().preferences.largeur_arbre).toBe(424);
   });
 
-  it('relit la largeur enregistrée', () => {
-    window.localStorage.setItem(CLE, '512');
+  it('relit la largeur injectée', () => {
+    injecter(512);
     monter();
     expect(screen.getByRole('separator')).toHaveAttribute('aria-valuenow', '512');
   });
 
-  it('ignore une largeur enregistrée hors bornes', () => {
-    window.localStorage.setItem(CLE, '9000');
+  it('ignore une largeur injectée hors bornes', () => {
+    injecter(9000);
     monter(384);
     expect(screen.getByRole('separator')).toHaveAttribute('aria-valuenow', '384');
   });

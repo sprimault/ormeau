@@ -137,7 +137,7 @@ func TestFermetureLibereLaConnexion(t *testing.T) {
 
 	s, routeur := serveurDeTest(t)
 	pilote := &piloteDeTest{}
-	session, err := s.registre.ajouter(pilote, dsnDeTest, "postgres")
+	session, err := s.registre.ajouter(pilote, dsnDeTest, "postgres", false)
 	if err != nil {
 		t.Fatalf("ajouter: %v", err)
 	}
@@ -165,7 +165,7 @@ func TestBasesRendLesBasesDuServeur(t *testing.T) {
 
 	s, routeur := serveurDeTest(t)
 	pilote := &piloteListeur{bases: []string{"gescom", "paie"}}
-	session, err := s.registre.ajouter(pilote, dsnDeTest, "postgres")
+	session, err := s.registre.ajouter(pilote, dsnDeTest, "postgres", false)
 	if err != nil {
 		t.Fatalf("ajouter: %v", err)
 	}
@@ -191,7 +191,7 @@ func TestBasesToleUnPiloteSansEnumeration(t *testing.T) {
 	t.Parallel()
 
 	s, routeur := serveurDeTest(t)
-	session, err := s.registre.ajouter(&piloteDeTest{}, dsnDeTest, "postgres")
+	session, err := s.registre.ajouter(&piloteDeTest{}, dsnDeTest, "postgres", false)
 	if err != nil {
 		t.Fatalf("ajouter: %v", err)
 	}
@@ -214,7 +214,7 @@ func TestBasesNeDivulguePasLeDSN(t *testing.T) {
 
 	s, routeur := serveurDeTest(t)
 	pilote := &piloteListeur{echec: errors.New("connexion a " + dsnDeTest + " perdue")}
-	session, err := s.registre.ajouter(pilote, dsnDeTest, "postgres")
+	session, err := s.registre.ajouter(pilote, dsnDeTest, "postgres", false)
 	if err != nil {
 		t.Fatalf("ajouter: %v", err)
 	}
@@ -235,7 +235,7 @@ func TestBasculerBaseRefuseUneDemandeVide(t *testing.T) {
 	t.Parallel()
 
 	s, routeur := serveurDeTest(t)
-	session, err := s.registre.ajouter(&piloteDeTest{}, dsnDeTest, "postgres")
+	session, err := s.registre.ajouter(&piloteDeTest{}, dsnDeTest, "postgres", false)
 	if err != nil {
 		t.Fatalf("ajouter: %v", err)
 	}
@@ -274,7 +274,7 @@ func TestInventaireRendLesTables(t *testing.T) {
 		{Schema: "public", Nom: "clients", NbColonnes: 7, LignesEstimees: 48210, ClePrimaire: true},
 		{Schema: "public", Nom: "commandes", NbColonnes: 4, ReferenceVers: []string{"public.clients"}},
 	}}
-	session, err := s.registre.ajouter(pilote, dsnDeTest, "postgres")
+	session, err := s.registre.ajouter(pilote, dsnDeTest, "postgres", false)
 	if err != nil {
 		t.Fatalf("ajouter: %v", err)
 	}
@@ -320,7 +320,7 @@ func TestInventaireTransmetLesSchemas(t *testing.T) {
 
 			s, routeur := serveurDeTest(t)
 			pilote := &piloteDeTest{}
-			session, err := s.registre.ajouter(pilote, dsnDeTest, "postgres")
+			session, err := s.registre.ajouter(pilote, dsnDeTest, "postgres", false)
 			if err != nil {
 				t.Fatalf("ajouter: %v", err)
 			}
@@ -350,7 +350,7 @@ func TestSessionNAccepteQuUneRequeteALaFois(t *testing.T) {
 
 	s, routeur := serveurDeTest(t)
 	pilote := &piloteDeTest{}
-	session, err := s.registre.ajouter(pilote, dsnDeTest, "postgres")
+	session, err := s.registre.ajouter(pilote, dsnDeTest, "postgres", false)
 	if err != nil {
 		t.Fatalf("ajouter: %v", err)
 	}
@@ -405,7 +405,7 @@ func TestInventaireSansTableRendUneListeVide(t *testing.T) {
 			t.Parallel()
 
 			s, routeur := serveurDeTest(t)
-			session, err := s.registre.ajouter(&piloteDeTest{sommaires: sommaires}, dsnDeTest, "postgres")
+			session, err := s.registre.ajouter(&piloteDeTest{sommaires: sommaires}, dsnDeTest, "postgres", false)
 			if err != nil {
 				t.Fatalf("ajouter: %v", err)
 			}

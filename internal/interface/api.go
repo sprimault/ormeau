@@ -7,12 +7,14 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/sprimault/ormeau/internal/calque"
+	"github.com/sprimault/ormeau/internal/config"
 	"github.com/sprimault/ormeau/internal/inference"
 	"github.com/sprimault/ormeau/internal/introspection"
 )
@@ -38,6 +40,10 @@ const tailleMaxCorps = 1 << 20
 // connaît un hôte et un identifiant, pas un DSN. Quand SGBD est vide, le port le
 // désigne — c'est l'outil qui aiguille, pas l'utilisateur qui déclare.
 type RequeteConnexion struct {
+	// Profil désigne une connexion enregistrée. Ce que la requête ne dit pas
+	// est repris du profil, mot de passe compris — celui-ci ne descend jamais
+	// dans le navigateur, il va du fichier au pilote.
+	Profil      string `json:"profil,omitempty"`
 	DSN         string `json:"dsn,omitempty"`
 	SGBD        string `json:"sgbd,omitempty"`
 	Hote        string `json:"hote,omitempty"`
@@ -55,6 +61,12 @@ type ReponseConnexion struct {
 	Version   string   `json:"version"`
 	Catalogue string   `json:"catalogue"`
 	Schemas   []string `json:"schemas"`
+	// BaseImposee dit que la session vient d'un profil qui nomme sa base.
+	//
+	// L'écran en a besoin pour dire la vérité : sans lui, une liste à une seule
+	// entrée serait annoncée comme « ce serveur n'expose qu'une base », alors
+	// qu'il en porte vingt et que c'est le profil qui cadre.
+	BaseImposee bool `json:"base_imposee,omitempty"`
 }
 
 // RequeteFermeture désigne la connexion à refermer.
@@ -67,6 +79,78 @@ type RequeteFermeture struct {
 type ReponseContexte struct {
 	Repertoire string `json:"repertoire"`
 	Version    string `json:"version"`
+}
+
+// RequeteRepertoire change le répertoire où les fichiers du projet s'écrivent.
+//
+// Le seul chemin de fichier que l'API accepte du navigateur, et il ne désigne
+// qu'un répertoire existant : les noms de fichiers restent composés côté
+// serveur à partir d'un nom de base validé.
+type RequeteRepertoire struct {
+	Repertoire string `json:"repertoire"`
+}
+
+// ProfilResume est un profil tel que l'écran le reçoit : sans mot de passe,
+// pas même chiffré, mais en sachant s'il y en a un.
+//
+// Le profil est imbriqué et non incorporé : Go aplatirait les champs à la
+// sérialisation, mais le générateur de types du front ne sait pas le faire, et
+// rendrait un type qui ne décrit pas ce qui passe sur le fil.
+type ProfilResume struct {
+	Profil               config.Profil `json:"profil"`
+	MotDePasseEnregistre bool          `json:"mot_de_passe_enregistre"`
+}
+
+// ReponseProfils liste les connexions enregistrées.
+//
+// L'avertissement dit ce que le fichier portait d'inutilisable, sans empêcher
+// d'ouvrir l'écran : on saisit alors comme avant.
+type ReponseProfils struct {
+	Profils       []ProfilResume `json:"profils"`
+	Avertissement string         `json:"avertissement,omitempty"`
+}
+
+// RequeteProfil enregistre une connexion.
+//
+// Le mot de passe n'est retenu que si EnregistrerMotDePasse est vrai. À faux,
+// celui qui avait été enregistré est effacé : croire l'avoir retiré alors qu'il
+// reste sur le disque serait le pire des deux.
+type RequeteProfil struct {
+	Profil config.Profil `json:"profil"`
+	// DSN enregistre un profil depuis une chaîne de connexion plutôt que depuis
+	// les champs. Le serveur la décompose : le front n'analyse jamais un DSN,
+	// et sans cela un profil enregistré depuis ce mode ne retiendrait rien.
+	//
+	// Le mot de passe qu'elle porte ne compte que si la case est cochée, comme
+	// celui du champ.
+	DSN                   string `json:"dsn,omitempty"`
+	MotDePasse            string `json:"mot_de_passe,omitempty"`
+	EnregistrerMotDePasse bool   `json:"enregistrer_mot_de_passe"`
+	// Remplacer confirme l'écrasement d'un profil du même nom. Sans lui, un
+	// nom déjà pris est refusé avec CodeProfilExistant, et l'écran demande.
+	Remplacer bool `json:"remplacer,omitempty"`
+}
+
+// ReferenceProfil désigne le profil à supprimer.
+type ReferenceProfil struct {
+	Nom string `json:"nom"`
+}
+
+// ReponseSession porte le brouillon d'arbitrage d'une base, ou dit pourquoi il
+// a été écarté.
+//
+// Les deux sont vides quand la base n'a jamais été arbitrée, ce qui n'est pas
+// un incident : l'écran part du fichier de décisions.
+type ReponseSession struct {
+	Session *config.Session `json:"session,omitempty"`
+	// Ecartee dit pourquoi un brouillon existant ne s'applique plus. L'écran
+	// l'affiche : perdre un travail sans rien dire serait pire que le perdre.
+	Ecartee string `json:"ecartee,omitempty"`
+}
+
+// ReferenceSession désigne le brouillon à effacer.
+type ReferenceSession struct {
+	Base string `json:"base"`
 }
 
 // ReponseErreur est la forme unique des échecs d'API. Un code HTTP seul
@@ -93,6 +177,9 @@ const (
 	// CodeContenuManuel : le fichier porte un travail humain que la réécriture
 	// perdrait, l'écran demande confirmation.
 	CodeContenuManuel CodeRefus = "contenu_manuel"
+	// CodeProfilExistant : un profil porte déjà ce nom, l'écran demande
+	// confirmation avant de l'écraser.
+	CodeProfilExistant CodeRefus = "profil_existant"
 )
 
 // ReponseBases liste les bases exploitables du serveur atteint.
@@ -304,7 +391,7 @@ func (s *serveur) contexte(w http.ResponseWriter, r *http.Request) {
 		repondreErreur(w, http.StatusMethodNotAllowed, "méthode non acceptée")
 		return
 	}
-	repondreJSON(w, http.StatusOK, ReponseContexte{Repertoire: s.repertoire, Version: s.version})
+	repondreJSON(w, http.StatusOK, ReponseContexte{Repertoire: s.repertoireCourant(), Version: s.version})
 }
 
 // bases rend les bases du serveur atteint par une connexion ouverte.
@@ -321,6 +408,19 @@ func (s *serveur) bases(w http.ResponseWriter, r *http.Request) {
 	c, ok := s.registre.trouver(r.URL.Query().Get("session"))
 	if !ok {
 		repondreErreur(w, http.StatusNotFound, "connexion inconnue ou déjà fermée")
+		return
+	}
+
+	// Une session ouverte par un profil qui nomme sa base y reste : l'écran ne
+	// propose pas ce sur quoi on n'a pas choisi de travailler.
+	//
+	// Filtré ici et non dans la page : un tri posé côté navigateur se
+	// contournerait en rechargeant, et l'API rendrait quand même la liste
+	// entière.
+	if c.baseImposee {
+		repondreJSON(w, http.StatusOK, ReponseBases{
+			Bases: []string{introspection.BaseDuDSN(c.dsn)},
+		})
 		return
 	}
 
@@ -377,6 +477,15 @@ func (s *serveur) basculerBase(w http.ResponseWriter, r *http.Request) {
 		repondreErreur(w, http.StatusBadRequest, "aucune base demandée")
 		return
 	}
+	// Refusé, et non ignoré : la session a été ouverte par un profil qui nomme
+	// sa base. Se connecter ailleurs demande un autre profil, ou une connexion
+	// sans profil.
+	if c.baseImposee {
+		repondreErreur(w, http.StatusConflict, fmt.Sprintf(
+			"cette connexion vient d'un profil qui désigne %s : choisir un autre profil pour une autre base",
+			introspection.BaseDuDSN(c.dsn)))
+		return
+	}
 
 	ctx, annuler := context.WithTimeout(r.Context(), delaiConnexion)
 	defer annuler()
@@ -390,7 +499,9 @@ func (s *serveur) basculerBase(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	reponse, err := s.enregistrer(ctx, pilote, dsn, c.sgbd)
+	// La bascule n'est atteinte que pour une session libre : la nouvelle
+	// l'est aussi.
+	reponse, err := s.enregistrer(ctx, pilote, dsn, c.sgbd, false)
 	if err != nil {
 		repondreErreur(w, codeDe(err), sansDSN(err.Error(), dsn))
 		return
@@ -527,6 +638,12 @@ func (s *serveur) ouvrirConnexion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	baseImposee, err := s.connexionDuProfil(&requete)
+	if err != nil {
+		repondreErreur(w, codeDe(err), err.Error())
+		return
+	}
+
 	dsn, err := requete.composer()
 	if err != nil {
 		repondreErreur(w, http.StatusBadRequest, err.Error())
@@ -552,7 +669,7 @@ func (s *serveur) ouvrirConnexion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	reponse, err := s.enregistrer(ctx, pilote, dsn, sgbd)
+	reponse, err := s.enregistrer(ctx, pilote, dsn, sgbd, baseImposee)
 	if err != nil {
 		repondreErreur(w, codeDe(err), sansDSN(err.Error(), dsn))
 		return
@@ -571,6 +688,7 @@ func (s *serveur) enregistrer(
 	ctx context.Context,
 	pilote introspection.Introspecteur,
 	dsn, sgbd string,
+	baseImposee bool,
 ) (ReponseConnexion, error) {
 	descripteur, ok := pilote.(introspection.DescripteurServeur)
 	if !ok {
@@ -591,18 +709,19 @@ func (s *serveur) enregistrer(
 		dsn = introspection.AvecBase(dsn, serveurBase.Catalogue)
 	}
 
-	session, err := s.registre.ajouter(pilote, dsn, sgbd)
+	session, err := s.registre.ajouter(pilote, dsn, sgbd, baseImposee)
 	if err != nil {
 		_ = pilote.Fermer()
 		return ReponseConnexion{}, err
 	}
 
 	return ReponseConnexion{
-		Session:   session,
-		SGBD:      serveurBase.SGBD,
-		Version:   serveurBase.Version,
-		Catalogue: serveurBase.Catalogue,
-		Schemas:   serveurBase.Schemas,
+		Session:     session,
+		SGBD:        serveurBase.SGBD,
+		Version:     serveurBase.Version,
+		Catalogue:   serveurBase.Catalogue,
+		Schemas:     serveurBase.Schemas,
+		BaseImposee: baseImposee,
 	}, nil
 }
 
@@ -612,6 +731,8 @@ func codeDe(err error) int {
 	switch {
 	case errors.Is(err, ErrTropDeConnexions):
 		return http.StatusConflict
+	case errors.Is(err, config.ErrProfilInconnu):
+		return http.StatusNotFound
 	case errors.Is(err, errPiloteMuet):
 		return http.StatusNotImplemented
 	default:

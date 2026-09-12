@@ -44,6 +44,7 @@ function monter(proprietes: Partial<Parameters<typeof DatabaseTree>[0]> = {}) {
   render(
     <DatabaseTree
       bases={['gescom', 'paie']}
+      baseImposee={false}
       courante="gescom"
       tables={tables}
       enCours={false}
@@ -123,5 +124,14 @@ describe('DatabaseTree', () => {
   it('explique un serveur qui n’expose qu’une base', () => {
     monter({ bases: ['gescom'] });
     expect(screen.getByText(/qu’une base/)).toBeInTheDocument();
+  });
+
+  it('dit que c’est le profil qui cadre, et non le serveur', () => {
+    // Deux raisons pour une liste à une entrée : annoncer un serveur à base
+    // unique alors qu'il en porte vingt serait un écran qui ment.
+    monter({ bases: ['gescom'], baseImposee: true });
+
+    expect(screen.getByText(/Le profil de connexion désigne cette base/)).toBeInTheDocument();
+    expect(screen.queryByText(/qu’une base/)).not.toBeInTheDocument();
   });
 });

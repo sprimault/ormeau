@@ -6,6 +6,7 @@ export type {
   ReponseConnexion,
   RequeteFermeture,
   ReponseContexte,
+  RequeteRepertoire,
   ReponseErreur,
   ReponseInventaire,
   ReponseBases,
@@ -31,6 +32,11 @@ export {
   CodeCalqueModifie,
   CodeContenuManuel,
   CodeDecisionsModifiees,
+  CodeProfilExistant,
+  type ProfilResume,
+  type ReponseProfils,
+  type RequeteProfil,
+  type ReferenceProfil,
   type CodeRefus,
   type EnumerationInferee,
   type RequeteEcritureDecisions,
@@ -70,4 +76,12 @@ export {
   CodeTypeNonReconnu,
 } from './calque';
 export type { TableSommaire, ColonneSommaire, Portee, Avancement } from './introspection';
-export { CLE_THEME, initTheme, themeEnregistre, useThemeStore, type Theme } from './theme';
+export { initTheme, themeInitial, useThemeStore, type Theme } from './theme';
+export type { Preferences, Profil, Session } from './config';
+export type { ReponseSession, ReferenceSession } from './api';
+export {
+  brancherEnregistrement,
+  usePreferencesStore,
+  variableCSS,
+  type ClePreference,
+} from './preferences';

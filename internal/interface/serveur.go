@@ -24,6 +24,8 @@ import (
 	"net/url"
 	"sync"
 	"time"
+
+	"github.com/sprimault/ormeau/internal/config"
 )
 
 // delaiEnTetes borne la lecture des en-têtes d'une requête. Sans lui, une
@@ -47,6 +49,14 @@ type Options struct {
 	Repertoire string
 	// Version est celle du binaire, affichée à côté du lien vers les releases.
 	Version string
+	// Emplacements est l'endroit où Ormeau range ses propres données —
+	// préférences, profils, brouillons —, par opposition au répertoire de
+	// travail qui porte celles du projet. Sa racine est annoncée au démarrage
+	// pour que les deux emplacements se distinguent d'emblée.
+	//
+	// Nil est accepté : l'interface sert alors des préférences par défaut sans
+	// rien enregistrer, ce dont les tests se contentent.
+	Emplacements *config.Emplacements
 	// SansNavigateur laisse l'utilisateur ouvrir l'URL lui-même.
 	SansNavigateur bool
 	// Sortie reçoit les lignes de démarrage, et rien d'autre. C'est la seule
@@ -61,11 +71,27 @@ type serveur struct {
 	registre    *registre
 	extractions *extractions
 	calques     calquesLus
+	preferences *preferences
+	// emplacements est nil quand aucune configuration n'a pu être ouverte : les
+	// profils sont alors refusés, le reste de l'interface fonctionne.
+	emplacements *config.Emplacements
 	// ecriture sérialise les enregistrements de fichiers de décisions.
-	ecriture   sync.Mutex
+	ecriture sync.Mutex
+	// travail garde le répertoire de travail, que l'écran peut changer en cours
+	// de session. Tout le monde le lit, un seul écran le change : un verrou
+	// lecteurs-rédacteur plutôt qu'un mutex.
+	travail sync.RWMutex
+	// repertoire ne se lit jamais directement : passer par repertoireCourant.
 	repertoire string
 	version    string
 	origine    string
+}
+
+// repertoireCourant rend le répertoire où les fichiers du projet s'écrivent.
+func (s *serveur) repertoireCourant() string {
+	s.travail.RLock()
+	defer s.travail.RUnlock()
+	return s.repertoire
 }
 
 // Servir écoute sur la boucle locale et rend la main quand le contexte est
@@ -96,12 +122,14 @@ func Servir(ctx context.Context, o Options) error {
 	taches, arreterTaches := context.WithCancel(ctx)
 
 	s := &serveur{
-		acces:       acces,
-		registre:    nouveauRegistre(),
-		extractions: nouvellesExtractions(taches, o.Repertoire),
-		repertoire:  o.Repertoire,
-		version:     o.Version,
-		origine:     fmt.Sprintf("http://127.0.0.1:%d", port),
+		acces:        acces,
+		registre:     nouveauRegistre(),
+		extractions:  nouvellesExtractions(taches),
+		preferences:  nouvellesPreferences(o.Emplacements),
+		emplacements: o.Emplacements,
+		repertoire:   o.Repertoire,
+		version:      o.Version,
+		origine:      fmt.Sprintf("http://127.0.0.1:%d", port),
 	}
 	defer s.registre.toutFermer()
 	defer s.extractions.attendre()
@@ -149,9 +177,17 @@ func (s *serveur) annoncer(o Options, url string) {
 		return
 	}
 	// Un terminal qui n'accepte plus rien n'empêche pas de servir l'interface :
-	// ces trois lignes sont un confort de démarrage, pas une sortie utile.
+	// ces lignes sont un confort de démarrage, pas une sortie utile.
 	_, _ = fmt.Fprintf(o.Sortie, "Interface sur %s\n", s.origine)
-	_, _ = fmt.Fprintf(o.Sortie, "Répertoire de travail : %s\n", s.repertoire)
+	_, _ = fmt.Fprintf(o.Sortie, "Répertoire de travail : %s\n", s.repertoireCourant())
+	if o.Emplacements != nil {
+		_, _ = fmt.Fprintf(o.Sortie, "Configuration : %s\n", o.Emplacements.Racine())
+	}
+	// Une fois, au démarrage, et pas à chaque page servie : un fichier de
+	// préférences abîmé se corrige une fois, il n'a pas à être rappelé.
+	if s.preferences.avertissement != "" {
+		_, _ = fmt.Fprintf(o.Sortie, "Avertissement : %s\n", s.preferences.avertissement)
+	}
 	if !ouverte {
 		_, _ = fmt.Fprintf(o.Sortie, "Ouvrir : %s\n", url)
 	}
@@ -161,7 +197,7 @@ func (s *serveur) annoncer(o Options, url string) {
 // statique, qu'un site tiers ne peut de toute façon pas lire — et l'API ne
 // l'est jamais.
 func (s *serveur) routes() (http.Handler, error) {
-	front, err := frontal()
+	front, err := s.frontal()
 	if err != nil {
 		return nil, err
 	}
@@ -169,6 +205,10 @@ func (s *serveur) routes() (http.Handler, error) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/entrer", s.entrer)
 	mux.Handle("/api/contexte", s.protegerAPI(http.HandlerFunc(s.contexte)))
+	mux.Handle("/api/preferences", s.protegerAPI(http.HandlerFunc(s.gererPreferences)))
+	mux.Handle("/api/repertoire", s.protegerAPI(http.HandlerFunc(s.changerRepertoire)))
+	mux.Handle("/api/profils", s.protegerAPI(http.HandlerFunc(s.gererProfils)))
+	mux.Handle("/api/session", s.protegerAPI(http.HandlerFunc(s.gererSession)))
 	mux.Handle("/api/connexion", s.protegerAPI(http.HandlerFunc(s.connexion)))
 	mux.Handle("/api/bases", s.protegerAPI(http.HandlerFunc(s.bases)))
 	mux.Handle("/api/base", s.protegerAPI(http.HandlerFunc(s.basculerBase)))

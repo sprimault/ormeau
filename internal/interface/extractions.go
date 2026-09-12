@@ -74,10 +74,14 @@ type tache struct {
 	Extraction
 	// dsn n'existe que le temps d'ouvrir et de tenir la connexion : il est
 	// effacé dès que la tâche a fini.
-	dsn     string
-	sgbd    string
-	portee  introspection.Portee
-	annuler context.CancelFunc
+	dsn  string
+	sgbd string
+	// repertoire est celui du lancement, et non celui du moment où le calque
+	// s'écrit : changer de répertoire en cours d'extraction ne doit pas déplacer
+	// un fichier que l'écran annonce déjà ailleurs.
+	repertoire string
+	portee     introspection.Portee
+	annuler    context.CancelFunc
 }
 
 // evenement est une entrée du flux, sérialisée une fois pour tous les onglets
@@ -94,8 +98,7 @@ type evenement struct {
 // change de base ou qu'on se déconnecte, et ne retient jamais la connexion dont
 // l'arbre a besoin pour se déplier.
 type extractions struct {
-	ctx        context.Context
-	repertoire string
+	ctx context.Context
 	// ouvrir est introspection.Ouvrir ; les tests y mettent une fabrique qui ne
 	// joint aucun serveur.
 	ouvrir func(ctx context.Context, sgbd, dsn string) (introspection.Introspecteur, error)
@@ -116,12 +119,15 @@ type extractions struct {
 
 // nouvellesExtractions rend un registre vide. Ses tâches ne survivent pas à
 // ctx.
-func nouvellesExtractions(ctx context.Context, repertoire string) *extractions {
+//
+// Le registre ne connaît aucun répertoire : chaque tâche porte celui de son
+// lancement, faute de quoi un changement en cours de route réécrirait ailleurs
+// un calque déjà annoncé.
+func nouvellesExtractions(ctx context.Context) *extractions {
 	return &extractions{
-		ctx:        ctx,
-		repertoire: repertoire,
-		ouvrir:     introspection.Ouvrir,
-		signal:     make(chan struct{}),
+		ctx:    ctx,
+		ouvrir: introspection.Ouvrir,
+		signal: make(chan struct{}),
 	}
 }
 
@@ -131,7 +137,7 @@ func (e EtatExtraction) terminal() bool {
 }
 
 // lancer inscrit une extraction et la démarre si une place est libre.
-func (e *extractions) lancer(base, dsn, sgbd string, portee introspection.Portee) (Extraction, error) {
+func (e *extractions) lancer(base, dsn, sgbd, repertoire string, portee introspection.Portee) (Extraction, error) {
 	id, err := genererJeton()
 	if err != nil {
 		return Extraction{}, err
@@ -150,14 +156,15 @@ func (e *extractions) lancer(base, dsn, sgbd string, portee introspection.Portee
 		Extraction: Extraction{
 			ID:       id,
 			Base:     base,
-			Fichier:  base + ".calque.json",
+			Fichier:  fichierCalque(base),
 			Schemas:  portee.Schemas,
 			NbTables: len(portee.TablesIncluses),
 			Etat:     EtatEnAttente,
 		},
-		dsn:    dsn,
-		sgbd:   sgbd,
-		portee: portee,
+		dsn:        dsn,
+		sgbd:       sgbd,
+		repertoire: repertoire,
+		portee:     portee,
 	}
 	e.taches = append(e.taches, t)
 	e.emettre(evenementExtraction, t.Extraction)
@@ -250,13 +257,13 @@ func (e *extractions) extraire(ctx context.Context, t *tache) (*ResultatExtracti
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
-	return e.ecrire(physique, t.Fichier)
+	return e.ecrire(physique, filepath.Join(t.repertoire, t.Fichier))
 }
 
 // ecrire valide, horodate et sérialise. Les anomalies n'empêchent pas
 // l'écriture : un calque partiel reste exploitable, et elles accompagnent le
 // résultat pour que l'interface les montre.
-func (e *extractions) ecrire(physique *calque.Physique, fichier string) (*ResultatExtraction, error) {
+func (e *extractions) ecrire(physique *calque.Physique, chemin string) (*ResultatExtraction, error) {
 	anomalies := physique.Valider()
 	if anomalies == nil {
 		anomalies = []calque.Anomalie{}
@@ -265,7 +272,7 @@ func (e *extractions) ecrire(physique *calque.Physique, fichier string) (*Result
 	// Posé au dernier moment, et exclu de l'empreinte : deux extractions de la
 	// même base restent identiques.
 	physique.Source.ExtraitLe = horodater()
-	if err := physique.Ecrire(filepath.Join(e.repertoire, fichier)); err != nil {
+	if err := physique.Ecrire(chemin); err != nil {
 		return nil, err
 	}
 
@@ -454,7 +461,7 @@ func (s *serveur) lancerExtraction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	extraction, err := s.extractions.lancer(base, c.dsn, c.sgbd, requete.Portee)
+	extraction, err := s.extractions.lancer(base, c.dsn, c.sgbd, s.repertoireCourant(), requete.Portee)
 	switch {
 	case errors.Is(err, ErrBaseDejaEnCours):
 		repondreErreur(w, http.StatusConflict, fmt.Sprintf("une extraction de %s est déjà en cours", base))

@@ -3,7 +3,7 @@
 
 import { useT } from '@/shared/i18n';
 import { heure } from '@/shared/lib';
-import { CopyButton } from '@/shared/ui';
+import { CopyButton, HelpTip } from '@/shared/ui';
 import { fichierCalque } from '../model/taches';
 import { useCalque, useVersionCalque } from '../model/useCalque';
 
@@ -29,8 +29,9 @@ export function CalquePreview({ session, base }: ProprietesCalque) {
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex items-center gap-2 px-3 py-1">
-        <h3 className="text-xs font-medium text-slate-600 dark:text-slate-400">
+        <h3 className="inline-flex items-center gap-1 text-xs font-medium text-slate-600 dark:text-slate-400">
           {t('calque.title')}
+          <HelpTip texte={t('calque.help.preview')} />
         </h3>
         <span className="font-mono text-xs text-slate-500">
           {calque?.fichier ?? fichierCalque(base)}

@@ -3,3 +3,4 @@
 
 export { ErreurAPI, getJSON, postJSON, supprimer } from './client';
 export { useContexte } from './contexte';
+export { enregistrerPreferences } from './preferences';

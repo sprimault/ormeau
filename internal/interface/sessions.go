@@ -38,6 +38,15 @@ type connexion struct {
 	pilote introspection.Introspecteur
 	dsn    string
 	sgbd   string
+	// baseImposee vient d'un profil qui nomme une base : la session y reste,
+	// l'écran ne propose pas les autres et la bascule est refusée.
+	//
+	// Ce n'est pas une barrière et ne doit jamais être présenté comme telle : le
+	// compte garde le droit d'ouvrir les autres bases par un autre outil, ou par
+	// un lancement sans profil. C'est un cadrage de travail — le profil dit sur
+	// quoi l'on travaille —, et la seule vraie limite se pose côté serveur, avec
+	// un REVOKE CONNECT.
+	baseImposee bool
 }
 
 // utiliser donne accès au pilote, une requête à la fois.
@@ -67,7 +76,7 @@ func nouveauRegistre() *registre {
 // L'identifiant est tiré comme un secret, pas incrémenté : il désigne une
 // connexion utilisable, et deviner celui du voisin reviendrait à emprunter la
 // base d'un autre onglet.
-func (r *registre) ajouter(pilote introspection.Introspecteur, dsn, sgbd string) (string, error) {
+func (r *registre) ajouter(pilote introspection.Introspecteur, dsn, sgbd string, baseImposee bool) (string, error) {
 	id, err := genererJeton()
 	if err != nil {
 		return "", err
@@ -79,7 +88,7 @@ func (r *registre) ajouter(pilote introspection.Introspecteur, dsn, sgbd string)
 	if len(r.parID) >= maxConnexions {
 		return "", ErrTropDeConnexions
 	}
-	r.parID[id] = &connexion{pilote: pilote, dsn: dsn, sgbd: sgbd}
+	r.parID[id] = &connexion{pilote: pilote, dsn: dsn, sgbd: sgbd, baseImposee: baseImposee}
 	return id, nil
 }
 
