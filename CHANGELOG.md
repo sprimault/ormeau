@@ -40,7 +40,10 @@ préambule reste en français : il n'est jamais publié.
 
 - **Les connexions s'enregistrent en profils.** Un nom que vous choisissez, les
   paramètres de connexion, et le répertoire de travail associé — choisir un
-  profil vous emmène donc aussi dans le bon projet. Le mot de passe n'est
+  profil vous emmène donc aussi dans le bon projet. Un profil qui nomme une base
+  y garde la session : les autres bases du serveur ne sont pas proposées. C'est
+  un cadrage de travail et non une protection — le compte garde les droits qu'il
+  a, et les restreindre se fait côté serveur. Le mot de passe n'est
   retenu que si vous cochez la case prévue, décochée par défaut : il est alors
   chiffré sur le poste, avec une clé qui s'y trouve aussi, ce qui protège d'une
   lecture accidentelle et pas de quelqu'un qui a accès à votre session —
@@ -72,7 +75,10 @@ préambule reste en français : il n'est jamais publié.
 
 - **Connections can be saved as profiles.** A name you choose, the connection
   settings, and the working directory that goes with them — picking a profile
-  therefore takes you to the right project too. The password is only kept if
+  therefore takes you to the right project too. A profile that names a database
+  keeps the session on it: the server's other databases are not offered. This
+  frames the work rather than protecting anything — the account keeps whatever
+  rights it has, and restricting them is done on the server. The password is only kept if
   you tick the box, unticked by default: it is then encrypted on this machine,
   with a key that lives there too, which guards against accidental reading and
   not against someone with access to your account — `SECURITY.md` has the

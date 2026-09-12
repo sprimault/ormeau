@@ -90,6 +90,10 @@ const fr = {
   'inventory.noPrimaryKey': 'sans clé primaire',
   'inventory.singleDatabase':
     'Ce serveur n’expose qu’une base, ou n’en sait pas énumérer d’autres.',
+  // Deux raisons, deux messages : annoncer un serveur à base unique alors qu'il
+  // en porte vingt serait un écran qui ment.
+  'inventory.profileDatabase':
+    'Le profil de connexion désigne cette base. Choisir un autre profil, ou se connecter sans profil, donne accès aux autres.',
   'inventory.selectAll': 'Tout cocher',
   'inventory.clear': 'Tout décocher',
   'inventory.advice':
@@ -385,6 +389,8 @@ const en: Record<MessageKey, string> = {
   'inventory.rows': '{n} rows',
   'inventory.noPrimaryKey': 'no primary key',
   'inventory.singleDatabase': 'This server exposes a single database, or cannot enumerate others.',
+  'inventory.profileDatabase':
+    'The connection profile names this database. Pick another profile, or connect without one, to reach the others.',
   'inventory.selectAll': 'Select all',
   'inventory.clear': 'Clear selection',
   'inventory.advice':

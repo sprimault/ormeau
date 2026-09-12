@@ -54,6 +54,13 @@ export interface ReponseConnexion {
   version: string;
   catalogue: string;
   schemas: string[];
+  /**
+   * BaseImposee dit que la session vient d'un profil qui nomme sa base.
+   * L'écran en a besoin pour dire la vérité : sans lui, une liste à une seule
+   * entrée serait annoncée comme « ce serveur n'expose qu'une base », alors
+   * qu'il en porte vingt et que c'est le profil qui cadre.
+   */
+  base_imposee?: boolean;
 }
 /**
  * RequeteFermeture désigne la connexion à refermer.

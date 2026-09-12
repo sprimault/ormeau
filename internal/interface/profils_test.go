@@ -235,7 +235,7 @@ func TestProfilCompleteLaConnexion(t *testing.T) {
 	}
 
 	requete := RequeteConnexion{Profil: "nas"}
-	if err := s.connexionDuProfil(&requete); err != nil {
+	if _, err := s.connexionDuProfil(&requete); err != nil {
 		t.Fatalf("complétion : %v", err)
 	}
 	if requete.Hote != "192.168.1.10" || requete.Port != 5432 || requete.Base != "gescom" {
@@ -264,7 +264,7 @@ func TestProfilSansDSNDepuisLOngletChaine(t *testing.T) {
 	}
 
 	requete := RequeteConnexion{Profil: "nas", DSN: ""}
-	if err := s.connexionDuProfil(&requete); err != nil {
+	if _, err := s.connexionDuProfil(&requete); err != nil {
 		t.Fatalf("complétion : %v", err)
 	}
 
@@ -293,7 +293,7 @@ func TestDSNSaisiLEmporteSurLeProfil(t *testing.T) {
 	}
 
 	requete := RequeteConnexion{Profil: "nas", DSN: "postgres://u:p@autre:5432/ailleurs"}
-	if err := s.connexionDuProfil(&requete); err != nil {
+	if _, err := s.connexionDuProfil(&requete); err != nil {
 		t.Fatalf("complétion : %v", err)
 	}
 
@@ -304,6 +304,96 @@ func TestDSNSaisiLEmporteSurLeProfil(t *testing.T) {
 	if dsn != "postgres://u:p@autre:5432/ailleurs" {
 		t.Errorf("dsn composé %q", dsn)
 	}
+}
+
+// TestProfilAvecBaseVerrouilleLaSession vérifie le cadrage : un profil qui
+// nomme une base dit sur quoi l'on travaille, et l'écran ne propose pas le
+// reste.
+//
+// Ce n'est pas une barrière et le test ne prétend pas l'être : le compte garde
+// le droit d'ouvrir les autres bases par un autre outil ou sans profil. La
+// seule vraie limite se pose côté serveur.
+func TestProfilAvecBaseVerrouilleLaSession(t *testing.T) {
+	t.Parallel()
+
+	s, routeur := serveurDeTest(t)
+	session := sessionImposee(t, s, "gescom")
+
+	bases := decoderReponse[ReponseBases](t, lire(s, routeur, "/api/bases?session="+session))
+	if len(bases.Bases) != 1 || bases.Bases[0] != "gescom" {
+		t.Errorf("bases proposées %v", bases.Bases)
+	}
+
+	w := poster(s, routeur, "/api/base", RequeteBase{Session: session, Base: "paie"})
+	attendreStatut(t, w, http.StatusConflict)
+	if !strings.Contains(w.Body.String(), "gescom") {
+		t.Errorf("le refus ne nomme pas la base du profil : %s", w.Body.String())
+	}
+}
+
+// TestProfilSansBaseLaisseParcourir couvre l'autre moitié de la règle : un
+// profil qui ne nomme aucune base sert à parcourir le serveur.
+func TestProfilSansBaseLaisseParcourir(t *testing.T) {
+	t.Parallel()
+
+	s, routeur := serveurDeTest(t)
+	session, err := s.registre.ajouter(&piloteDeTest{}, dsnSur("gescom"), "postgres", false)
+	if err != nil {
+		t.Fatalf("session : %v", err)
+	}
+
+	// Le pilote de test ne liste pas de bases ; ce qui compte est que le
+	// point d'entrée ne court-circuite pas sur la seule base de la session.
+	w := lire(s, routeur, "/api/bases?session="+session)
+	attendreStatut(t, w, http.StatusOK)
+	bases := decoderReponse[ReponseBases](t, w)
+	if len(bases.Bases) == 1 && bases.Bases[0] == "gescom" {
+		t.Error("une session libre a été traitée comme verrouillée")
+	}
+}
+
+// TestBaseImposeeVientDuProfilQuiLaNomme vérifie d'où sort le verrou.
+func TestBaseImposeeVientDuProfilQuiLaNomme(t *testing.T) {
+	t.Parallel()
+
+	s, _ := serveurDeTest(t)
+	for _, c := range []struct {
+		nom     string
+		base    string
+		attendu bool
+	}{
+		{"avec base", "gescom", true},
+		{"sans base", "", false},
+	} {
+		t.Run(c.nom, func(t *testing.T) {
+			if err := s.emplacements.EnregistrerProfil(config.Profil{
+				Nom: c.nom, SGBD: "postgres", Hote: "h", Port: 5432, Base: c.base,
+			}, "", true); err != nil {
+				t.Fatalf("enregistrement : %v", err)
+			}
+
+			requete := RequeteConnexion{Profil: c.nom}
+			impose, err := s.connexionDuProfil(&requete)
+			if err != nil {
+				t.Fatalf("complétion : %v", err)
+			}
+			if impose != c.attendu {
+				t.Errorf("baseImposee %v, attendu %v", impose, c.attendu)
+			}
+		})
+	}
+}
+
+// sessionImposee rend une session ouverte comme par un profil qui nomme sa
+// base.
+func sessionImposee(t *testing.T, s *serveur, base string) string {
+	t.Helper()
+
+	session, err := s.registre.ajouter(&piloteDeTest{}, dsnSur(base), "postgres", true)
+	if err != nil {
+		t.Fatalf("session : %v", err)
+	}
+	return session
 }
 
 // TestMotDePasseSaisiLEmporte : on vient de le taper, c'est qu'il a changé.
@@ -317,7 +407,7 @@ func TestMotDePasseSaisiLEmporte(t *testing.T) {
 	}
 
 	requete := RequeteConnexion{Profil: "nas", MotDePasse: "nouveau"}
-	if err := s.connexionDuProfil(&requete); err != nil {
+	if _, err := s.connexionDuProfil(&requete); err != nil {
 		t.Fatalf("complétion : %v", err)
 	}
 	if requete.MotDePasse != "nouveau" {
@@ -345,7 +435,7 @@ func TestProfilBasculeLeRepertoire(t *testing.T) {
 	}
 
 	requete := RequeteConnexion{Profil: "sans"}
-	if err := s.connexionDuProfil(&requete); err != nil {
+	if _, err := s.connexionDuProfil(&requete); err != nil {
 		t.Fatalf("complétion : %v", err)
 	}
 	if s.repertoireCourant() != depart {
@@ -353,7 +443,7 @@ func TestProfilBasculeLeRepertoire(t *testing.T) {
 	}
 
 	requete = RequeteConnexion{Profil: "avec"}
-	if err := s.connexionDuProfil(&requete); err != nil {
+	if _, err := s.connexionDuProfil(&requete); err != nil {
 		t.Fatalf("complétion : %v", err)
 	}
 	if s.repertoireCourant() == depart {

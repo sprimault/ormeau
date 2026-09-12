@@ -75,6 +75,7 @@ export function InventoryScreen({
             <DatabaseTree
               bases={bases}
               courante={serveur.catalogue}
+              baseImposee={serveur.base_imposee ?? false}
               tables={inventaire.tables}
               enCours={enCours || inventaire.enCours}
               erreur={inventaire.erreur}

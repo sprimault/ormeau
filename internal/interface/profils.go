@@ -145,14 +145,15 @@ func (s *serveur) supprimerProfil(w http.ResponseWriter, r *http.Request) {
 // c'est qu'il a changé. Une clé disparue n'est pas une panne : la connexion
 // part sans mot de passe et la base la refusera avec son propre message, ce qui
 // est plus clair qu'un refus d'ouvrir l'écran.
-func (s *serveur) connexionDuProfil(requete *RequeteConnexion) error {
+// Rend vrai quand le profil nomme une base : la session y restera.
+func (s *serveur) connexionDuProfil(requete *RequeteConnexion) (bool, error) {
 	if requete.Profil == "" || s.emplacements == nil {
-		return nil
+		return false, nil
 	}
 
 	profils, _, err := s.emplacements.LireProfils()
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	var profil *config.Profil
@@ -163,7 +164,7 @@ func (s *serveur) connexionDuProfil(requete *RequeteConnexion) error {
 		}
 	}
 	if profil == nil {
-		return config.ErrProfilInconnu
+		return false, config.ErrProfilInconnu
 	}
 
 	completer(&requete.SGBD, profil.SGBD)
@@ -185,14 +186,17 @@ func (s *serveur) connexionDuProfil(requete *RequeteConnexion) error {
 			slog.Warn("mot de passe enregistre inutilisable",
 				"profile", profil.Nom, "error", err.Error())
 		case err != nil:
-			return err
+			return false, err
 		default:
 			requete.MotDePasse = clair
 		}
 	}
 
 	s.suivreRepertoireDuProfil(profil.Repertoire)
-	return nil
+
+	// Un profil qui nomme une base dit sur quoi l'on travaille ; un profil qui
+	// n'en nomme pas sert à parcourir le serveur.
+	return profil.Base != "", nil
 }
 
 // suivreRepertoireDuProfil bascule le répertoire de travail sur celui que le

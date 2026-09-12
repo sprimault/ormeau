@@ -143,7 +143,7 @@ func TestCalqueRefuseCeQuiNeNommePasUnFichier(t *testing.T) {
 		t.Errorf("session inconnue : code %d, attendu %d", w.Code, http.StatusNotFound)
 	}
 
-	session, err := s.registre.ajouter(&piloteDeTest{}, "postgres://u@h:5432/..", "postgres")
+	session, err := s.registre.ajouter(&piloteDeTest{}, "postgres://u@h:5432/..", "postgres", false)
 	if err != nil {
 		t.Fatalf("ajouter: %v", err)
 	}

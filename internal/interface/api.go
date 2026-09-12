@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -60,6 +61,12 @@ type ReponseConnexion struct {
 	Version   string   `json:"version"`
 	Catalogue string   `json:"catalogue"`
 	Schemas   []string `json:"schemas"`
+	// BaseImposee dit que la session vient d'un profil qui nomme sa base.
+	//
+	// L'écran en a besoin pour dire la vérité : sans lui, une liste à une seule
+	// entrée serait annoncée comme « ce serveur n'expose qu'une base », alors
+	// qu'il en porte vingt et que c'est le profil qui cadre.
+	BaseImposee bool `json:"base_imposee,omitempty"`
 }
 
 // RequeteFermeture désigne la connexion à refermer.
@@ -387,6 +394,19 @@ func (s *serveur) bases(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Une session ouverte par un profil qui nomme sa base y reste : l'écran ne
+	// propose pas ce sur quoi on n'a pas choisi de travailler.
+	//
+	// Filtré ici et non dans la page : un tri posé côté navigateur se
+	// contournerait en rechargeant, et l'API rendrait quand même la liste
+	// entière.
+	if c.baseImposee {
+		repondreJSON(w, http.StatusOK, ReponseBases{
+			Bases: []string{introspection.BaseDuDSN(c.dsn)},
+		})
+		return
+	}
+
 	listeur, ok := c.pilote.(introspection.ListeurDeBases)
 	if !ok {
 		// Un dialecte où la notion n'a pas de sens n'est pas une panne : le
@@ -440,6 +460,15 @@ func (s *serveur) basculerBase(w http.ResponseWriter, r *http.Request) {
 		repondreErreur(w, http.StatusBadRequest, "aucune base demandée")
 		return
 	}
+	// Refusé, et non ignoré : la session a été ouverte par un profil qui nomme
+	// sa base. Se connecter ailleurs demande un autre profil, ou une connexion
+	// sans profil.
+	if c.baseImposee {
+		repondreErreur(w, http.StatusConflict, fmt.Sprintf(
+			"cette connexion vient d'un profil qui désigne %s : choisir un autre profil pour une autre base",
+			introspection.BaseDuDSN(c.dsn)))
+		return
+	}
 
 	ctx, annuler := context.WithTimeout(r.Context(), delaiConnexion)
 	defer annuler()
@@ -453,7 +482,9 @@ func (s *serveur) basculerBase(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	reponse, err := s.enregistrer(ctx, pilote, dsn, c.sgbd)
+	// La bascule n'est atteinte que pour une session libre : la nouvelle
+	// l'est aussi.
+	reponse, err := s.enregistrer(ctx, pilote, dsn, c.sgbd, false)
 	if err != nil {
 		repondreErreur(w, codeDe(err), sansDSN(err.Error(), dsn))
 		return
@@ -590,7 +621,8 @@ func (s *serveur) ouvrirConnexion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := s.connexionDuProfil(&requete); err != nil {
+	baseImposee, err := s.connexionDuProfil(&requete)
+	if err != nil {
 		repondreErreur(w, codeDe(err), err.Error())
 		return
 	}
@@ -620,7 +652,7 @@ func (s *serveur) ouvrirConnexion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	reponse, err := s.enregistrer(ctx, pilote, dsn, sgbd)
+	reponse, err := s.enregistrer(ctx, pilote, dsn, sgbd, baseImposee)
 	if err != nil {
 		repondreErreur(w, codeDe(err), sansDSN(err.Error(), dsn))
 		return
@@ -639,6 +671,7 @@ func (s *serveur) enregistrer(
 	ctx context.Context,
 	pilote introspection.Introspecteur,
 	dsn, sgbd string,
+	baseImposee bool,
 ) (ReponseConnexion, error) {
 	descripteur, ok := pilote.(introspection.DescripteurServeur)
 	if !ok {
@@ -659,18 +692,19 @@ func (s *serveur) enregistrer(
 		dsn = introspection.AvecBase(dsn, serveurBase.Catalogue)
 	}
 
-	session, err := s.registre.ajouter(pilote, dsn, sgbd)
+	session, err := s.registre.ajouter(pilote, dsn, sgbd, baseImposee)
 	if err != nil {
 		_ = pilote.Fermer()
 		return ReponseConnexion{}, err
 	}
 
 	return ReponseConnexion{
-		Session:   session,
-		SGBD:      serveurBase.SGBD,
-		Version:   serveurBase.Version,
-		Catalogue: serveurBase.Catalogue,
-		Schemas:   serveurBase.Schemas,
+		Session:     session,
+		SGBD:        serveurBase.SGBD,
+		Version:     serveurBase.Version,
+		Catalogue:   serveurBase.Catalogue,
+		Schemas:     serveurBase.Schemas,
+		BaseImposee: baseImposee,
 	}, nil
 }
 

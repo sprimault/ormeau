@@ -14,6 +14,8 @@ import { TableTree } from './TableTree';
 /** Propriétés de l'arbre. */
 interface ProprietesArbre {
   bases: string[];
+  /** Vrai quand la session vient d’un profil qui nomme sa base. */
+  baseImposee: boolean;
   courante: string;
   tables: TableSommaire[];
   enCours: boolean;
@@ -40,6 +42,7 @@ interface ProprietesArbre {
  */
 export function DatabaseTree({
   bases,
+  baseImposee,
   courante,
   tables,
   enCours,
@@ -116,7 +119,7 @@ export function DatabaseTree({
 
       {listees.length === 1 ? (
         <p className="border-t border-slate-200 px-2 py-1 text-xs text-slate-500 dark:border-slate-800">
-          {t('inventory.singleDatabase')}
+          {t(baseImposee ? 'inventory.profileDatabase' : 'inventory.singleDatabase')}
         </p>
       ) : null}
     </div>

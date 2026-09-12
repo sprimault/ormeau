@@ -124,7 +124,7 @@ func dsnSur(base string) string {
 func sessionSur(t *testing.T, s *serveur, base string) string {
 	t.Helper()
 
-	id, err := s.registre.ajouter(&piloteDeTest{}, dsnSur(base), "postgres")
+	id, err := s.registre.ajouter(&piloteDeTest{}, dsnSur(base), "postgres", false)
 	if err != nil {
 		t.Fatalf("ajouter: %v", err)
 	}
@@ -523,7 +523,7 @@ func TestExtractionEtNomDeBase(t *testing.T) {
 
 			f := &fabriqueDeTest{}
 			s, routeur := extracteurDeTest(t, f)
-			session, err := s.registre.ajouter(&piloteDeTest{}, c.dsn, "postgres")
+			session, err := s.registre.ajouter(&piloteDeTest{}, c.dsn, "postgres", false)
 			if err != nil {
 				t.Fatalf("ajouter: %v", err)
 			}
@@ -779,7 +779,7 @@ func TestEnregistrerNommeLaBase(t *testing.T) {
 
 			s, _ := serveurDeTest(t)
 			pilote := &piloteDescripteur{catalogue: c.attendu}
-			reponse, err := s.enregistrer(t.Context(), pilote, c.dsn, "postgres")
+			reponse, err := s.enregistrer(t.Context(), pilote, c.dsn, "postgres", false)
 			if err != nil {
 				t.Fatalf("enregistrer : %v", err)
 			}
