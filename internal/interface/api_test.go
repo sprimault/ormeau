@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"slices"
@@ -268,6 +269,63 @@ func TestBasesNeDivulguePasLeDSN(t *testing.T) {
 		if strings.Contains(w.Body.String(), interdit) {
 			t.Errorf("%q ressort dans %q", interdit, w.Body.String())
 		}
+	}
+}
+
+// piloteColonnes ajoute à piloteDeTest la description d'une table, que tous les
+// dialectes n'ont pas.
+type piloteColonnes struct {
+	piloteDeTest
+	echecColonnes error
+}
+
+// Colonnes rend l'échec préparé.
+func (p *piloteColonnes) Colonnes(context.Context, string, string) ([]introspection.ColonneSommaire, error) {
+	return nil, p.echecColonnes
+}
+
+// TestLecturesNeDivulguentPasLeDSN étend TestBasesNeDivulguePasLeDSN aux deux
+// autres lectures de la session : une erreur de pilote qui cite sa chaîne de
+// connexion ne doit ressortir ni dans la réponse, ni dans le journal, qui
+// reçoit le même message.
+//
+// pgx ne cite pas son DSN sur une erreur de requête, et ces chemins tenaient
+// par ce seul hasard ; le pilote de test le cite, en clair et masqué.
+func TestLecturesNeDivulguentPasLeDSN(t *testing.T) {
+	t.Parallel()
+
+	echec := errors.New("connexion a " + dsnDeTest + " perdue, soit " + introspection.Masquer(dsnDeTest))
+	cas := []struct {
+		nom    string
+		chemin string
+	}{
+		{"inventaire", "/api/inventaire?session=%s&schemas=public"},
+		{"colonnes", "/api/colonnes?session=%s&schema=public&table=t_client"},
+	}
+
+	for _, c := range cas {
+		t.Run(c.nom, func(t *testing.T) {
+			t.Parallel()
+
+			s, routeur := serveurDeTest(t)
+			pilote := &piloteColonnes{piloteDeTest: piloteDeTest{echecListe: echec}, echecColonnes: echec}
+			session, err := s.registre.ajouter(pilote, dsnDeTest, "postgres", false)
+			if err != nil {
+				t.Fatalf("ajouter: %v", err)
+			}
+
+			w := httptest.NewRecorder()
+			routeur.ServeHTTP(w, requeteAPI(s, http.MethodGet, fmt.Sprintf(c.chemin, session), nil))
+
+			if w.Code != http.StatusBadGateway {
+				t.Fatalf("code %d, attendu %d", w.Code, http.StatusBadGateway)
+			}
+			for _, interdit := range []string{"secret", "bdd-interne", "gescom:"} {
+				if strings.Contains(w.Body.String(), interdit) {
+					t.Errorf("%q ressort dans %q", interdit, w.Body.String())
+				}
+			}
+		})
 	}
 }
 
