@@ -15,7 +15,7 @@ import type {
   ReferenceTable,
   Table,
 } from './calque';
-import type { Profil } from './config';
+import type { Profil, Session } from './config';
 import type { Decisions, Proposition } from './inference';
 import type { Avancement, Portee, TableSommaire } from './introspection';
 
@@ -134,6 +134,26 @@ export interface RequeteProfil {
  */
 export interface ReferenceProfil {
   nom: string;
+}
+/**
+ * ReponseSession porte le brouillon d'arbitrage d'une base, ou dit pourquoi il
+ * a été écarté.
+ * Les deux sont vides quand la base n'a jamais été arbitrée, ce qui n'est pas
+ * un incident : l'écran part du fichier de décisions.
+ */
+export interface ReponseSession {
+  session?: Session;
+  /**
+   * Ecartee dit pourquoi un brouillon existant ne s'applique plus. L'écran
+   * l'affiche : perdre un travail sans rien dire serait pire que le perdre.
+   */
+  ecartee?: string;
+}
+/**
+ * ReferenceSession désigne le brouillon à effacer.
+ */
+export interface ReferenceSession {
+  base: string;
 }
 /**
  * ReponseErreur est la forme unique des échecs d'API. Un code HTTP seul

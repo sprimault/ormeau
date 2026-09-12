@@ -209,6 +209,10 @@ const fr = {
   'arbitrage.state.absent': 'Aucun fichier de décisions pour cette base',
   'arbitrage.layerChanged':
     'Le calque a changé depuis le début de l’arbitrage : une extraction l’a réécrit. Les décisions en cours sont gardées ; celles qui ne visent plus rien seront signalées.',
+  // La raison vient du serveur, seul à savoir laquelle des deux empreintes a
+  // bougé.
+  'arbitrage.draftDiscarded':
+    'Le travail non enregistré de la dernière fois a été écarté : {raison}. L’écran repart du fichier de décisions.',
   'arbitrage.reload': 'Recharger le calque',
   'arbitrage.fileChanged':
     'Le fichier de décisions a changé sur disque depuis sa lecture. Le relire remplace les modifications en cours.',
@@ -505,6 +509,8 @@ const en: Record<MessageKey, string> = {
   'arbitrage.state.absent': 'No decisions file for this database',
   'arbitrage.layerChanged':
     'The layer changed since the review started: an extraction rewrote it. Current decisions are kept; those that no longer target anything will be reported.',
+  'arbitrage.draftDiscarded':
+    'Last time’s unsaved work was discarded: {raison}. The screen starts again from the decisions file.',
   'arbitrage.reload': 'Reload the layer',
   'arbitrage.fileChanged':
     'The decisions file changed on disk since it was read. Reading it again replaces the current changes.',

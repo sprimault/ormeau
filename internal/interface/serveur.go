@@ -208,6 +208,7 @@ func (s *serveur) routes() (http.Handler, error) {
 	mux.Handle("/api/preferences", s.protegerAPI(http.HandlerFunc(s.gererPreferences)))
 	mux.Handle("/api/repertoire", s.protegerAPI(http.HandlerFunc(s.changerRepertoire)))
 	mux.Handle("/api/profils", s.protegerAPI(http.HandlerFunc(s.gererProfils)))
+	mux.Handle("/api/session", s.protegerAPI(http.HandlerFunc(s.gererSession)))
 	mux.Handle("/api/connexion", s.protegerAPI(http.HandlerFunc(s.connexion)))
 	mux.Handle("/api/bases", s.protegerAPI(http.HandlerFunc(s.bases)))
 	mux.Handle("/api/base", s.protegerAPI(http.HandlerFunc(s.basculerBase)))

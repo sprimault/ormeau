@@ -24,6 +24,11 @@ const maxProfils = 50
 // langue, chiffres, espace et ponctuation courante.
 var nomProfil = regexp.MustCompile(`^[\p{L}\p{N} ._-]{1,60}$`)
 
+// nomBase accepte ce qui peut composer un nom de fichier de session sans en
+// sortir. Même expression que côté interface, et refusée plutôt que nettoyée :
+// un nettoyage se contourne, un refus non.
+var nomBase = regexp.MustCompile(`^[\p{L}\p{N}_-]{1,64}$`)
+
 // ErrProfilInconnu signale un nom qui ne figure pas dans le fichier.
 var ErrProfilInconnu = errors.New("profil inconnu")
 

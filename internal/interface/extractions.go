@@ -156,7 +156,7 @@ func (e *extractions) lancer(base, dsn, sgbd, repertoire string, portee introspe
 		Extraction: Extraction{
 			ID:       id,
 			Base:     base,
-			Fichier:  base + ".calque.json",
+			Fichier:  fichierCalque(base),
 			Schemas:  portee.Schemas,
 			NbTables: len(portee.TablesIncluses),
 			Etat:     EtatEnAttente,

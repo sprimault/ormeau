@@ -77,7 +77,8 @@ export {
 } from './calque';
 export type { TableSommaire, ColonneSommaire, Portee, Avancement } from './introspection';
 export { initTheme, themeInitial, useThemeStore, type Theme } from './theme';
-export type { Preferences, Profil } from './config';
+export type { Preferences, Profil, Session } from './config';
+export type { ReponseSession, ReferenceSession } from './api';
 export {
   brancherEnregistrement,
   usePreferencesStore,

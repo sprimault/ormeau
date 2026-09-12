@@ -136,6 +136,23 @@ type ReferenceProfil struct {
 	Nom string `json:"nom"`
 }
 
+// ReponseSession porte le brouillon d'arbitrage d'une base, ou dit pourquoi il
+// a été écarté.
+//
+// Les deux sont vides quand la base n'a jamais été arbitrée, ce qui n'est pas
+// un incident : l'écran part du fichier de décisions.
+type ReponseSession struct {
+	Session *config.Session `json:"session,omitempty"`
+	// Ecartee dit pourquoi un brouillon existant ne s'applique plus. L'écran
+	// l'affiche : perdre un travail sans rien dire serait pire que le perdre.
+	Ecartee string `json:"ecartee,omitempty"`
+}
+
+// ReferenceSession désigne le brouillon à effacer.
+type ReferenceSession struct {
+	Base string `json:"base"`
+}
+
 // ReponseErreur est la forme unique des échecs d'API. Un code HTTP seul
 // laisserait le front deviner ce qu'il affiche.
 type ReponseErreur struct {

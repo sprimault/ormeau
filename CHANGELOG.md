@@ -48,6 +48,11 @@ préambule reste en français : il n'est jamais publié.
   chiffré sur le poste, avec une clé qui s'y trouve aussi, ce qui protège d'une
   lecture accidentelle et pas de quelqu'un qui a accès à votre session —
   `SECURITY.md` le détaille. Écraser un profil existant demande confirmation.
+- **Le travail d'arbitrage non enregistré survit à un rechargement.** Les
+  décisions en cours et l'entité ouverte sont retenues, et retrouvées à la
+  réouverture de l'écran. Le fichier de décisions fait toujours foi : si la base
+  a été réextraite ou le fichier retouché entre-temps, le brouillon est écarté
+  et l'écran le dit.
 - **Le répertoire de travail se change depuis l'interface**, sans relancer le
   binaire. Le serveur valide le chemin saisi et renvoie le chemin résolu, liens
   suivis — c'est lui qui s'affiche, et non ce qui a été tapé. Une extraction en
@@ -83,6 +88,10 @@ préambule reste en français : il n'est jamais publié.
   with a key that lives there too, which guards against accidental reading and
   not against someone with access to your account — `SECURITY.md` has the
   details. Overwriting an existing profile asks for confirmation.
+- **Unsaved review work survives a page reload.** Current decisions and the open
+  entity are kept, and found again when the screen reopens. The decisions file
+  still has the final word: if the database was re-extracted or the file edited
+  meanwhile, the draft is discarded and the screen says so.
 - **The working directory can be changed from the interface**, without
   restarting the binary. The server validates the path and returns the resolved
   one, symlinks followed — that is what is displayed, not what was typed. An

@@ -73,6 +73,20 @@ func (c *calquesLus) lire(chemin string) (*calque.Physique, error) {
 	return physique, nil
 }
 
+// fichierCalque rend le nom du calque d'une base.
+//
+// Composé ici et nulle part ailleurs : trois endroits en avaient besoin — la
+// lecture, l'écriture d'une extraction et la validité d'un brouillon —, et une
+// convention de nommage répétée finit par diverger d'un seul côté.
+func fichierCalque(base string) string {
+	return base + ".calque.json"
+}
+
+// cheminCalque situe le calque d'une base dans un répertoire de travail.
+func cheminCalque(repertoire, base string) string {
+	return filepath.Join(repertoire, fichierCalque(base))
+}
+
 // calqueDeBase lit le calque d'une base dans le répertoire de travail, et
 // vérifie qu'il est celui que l'écran croit juger. Rend false quand il a déjà
 // répondu.
@@ -91,9 +105,9 @@ func (s *serveur) calqueDeBase(w http.ResponseWriter, base, empreinte string) (*
 		return nil, false
 	}
 
-	fichier := base + ".calque.json"
+	fichier := fichierCalque(base)
 	travail := s.repertoireCourant()
-	physique, err := s.calques.lire(filepath.Join(travail, fichier))
+	physique, err := s.calques.lire(cheminCalque(travail, base))
 	switch {
 	case errors.Is(err, fs.ErrNotExist):
 		repondreErreur(w, http.StatusNotFound, fmt.Sprintf(
@@ -148,7 +162,7 @@ func (s *serveur) calqueDeSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	repondreJSON(w, http.StatusOK, ReponseCalque{
-		Fichier:              introspection.BaseDuDSN(c.dsn) + ".calque.json",
+		Fichier:              fichierCalque(introspection.BaseDuDSN(c.dsn)),
 		ExtraitLe:            physique.Source.ExtraitLe,
 		Empreinte:            physique.Source.Empreinte,
 		Contenu:              string(contenu),

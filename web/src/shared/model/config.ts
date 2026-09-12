@@ -53,3 +53,36 @@ export interface Profil {
    */
   repertoire?: string;
 }
+
+//////////
+// source: sessions.go
+
+/**
+ * Session est un brouillon d'arbitrage, tel qu'on le retrouve en rouvrant
+ * l'écran.
+ * Elle ne retient que ce qui n'est pas encore dans le fichier de décisions :
+ * celui-ci fait foi, et une session rejouée par-dessus une version antérieure
+ * réintroduirait en silence des décisions retirées à la main.
+ * Jetable par définition — c'est ce que dit le LISEZMOI d'etat/. L'effacer ne
+ * perd qu'un travail non enregistré.
+ */
+export interface Session {
+  base: string;
+  /**
+   * EmpreinteCalque et EmpreinteDecisions disent de quel état ce brouillon
+   * découle. L'une des deux qui ne correspond plus rend la session caduque.
+   */
+  empreinte_calque: string;
+  empreinte_decisions: string;
+  /**
+   * Brouillon est opaque ici, et une chaîne plutôt qu'un json.RawMessage : ce
+   * paquet ne connaît pas le vocabulaire des décisions et n'a pas à le
+   * connaître pour le ranger. Une chaîne le dit, là où un message brut
+   * laisserait croire que la forme est vérifiée quelque part.
+   */
+  brouillon?: string;
+  /**
+   * EntiteOuverte est la table qualifiée que l'écran montrait.
+   */
+  entite_ouverte?: string;
+}
