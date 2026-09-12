@@ -135,7 +135,19 @@ génération produira, et enregistre les arbitrages dans `<base>.decisions.yaml`
 
 Elle écoute sur `127.0.0.1` seulement, sur un port tiré au lancement, et le
 jeton de l'URL ne sert qu'une fois. Les fichiers produits atterrissent dans le
-répertoire affiché — `--repertoire` en désigne un autre.
+répertoire affiché — `--repertoire` en désigne un autre, et l'écran permet d'en
+changer sans relancer.
+
+Une connexion s'enregistre en **profil** : donnez-lui un nom avant de vous
+connecter, et il est retenu une fois la connexion réussie. Un profil garde le
+répertoire de travail qui va avec, et retient le mot de passe si vous le
+demandez — chiffré sur le poste, avec les limites que
+[`SECURITY.fr.md`](SECURITY.fr.md) énonce.
+
+Profils, préférences d'affichage et brouillons d'arbitrage vivent dans le
+répertoire de configuration du système, jamais dans votre projet :
+[`docs/emplacements.fr.md`](docs/emplacements.fr.md) dit ce qui va où, et
+pourquoi.
 
 ### Sous Windows
 
@@ -255,6 +267,8 @@ chaque push et chaque pull request.
   niveaux, pourquoi deux langages
 - [`docs/construction.fr.md`](docs/construction.fr.md) — compilation croisée,
   images multi-arch, signature
+- [`docs/emplacements.fr.md`](docs/emplacements.fr.md) — où vont les fichiers du
+  projet, et où va ce qui ne regarde que votre poste
 - [`schemas/`](schemas/) — le contrat public, versionné à part
 - [`CONTRIBUTING.fr.md`](CONTRIBUTING.fr.md) — les règles sur lesquelles une
   pull request est jugée

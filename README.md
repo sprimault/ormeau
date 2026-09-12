@@ -136,7 +136,17 @@ your rulings to `<base>.decisions.yaml`.
 
 It listens on `127.0.0.1` only, on a port drawn at startup, and the token in the
 URL is good for a single use. Files land in the directory shown on screen;
-`--repertoire` points somewhere else.
+`--repertoire` points somewhere else, and the screen can change it without a
+restart.
+
+A connection can be saved as a **profile**: give it a name before connecting,
+and it is kept once the connection succeeds. A profile carries the working
+directory that goes with it, and remembers the password if you ask — encrypted
+on the machine, with the limits [`SECURITY.md`](SECURITY.md) spells out.
+
+Profiles, display preferences and review drafts live in the system
+configuration directory, never in your project:
+[`docs/emplacements.md`](docs/emplacements.md) says what goes where, and why.
 
 ### On Windows
 
@@ -253,6 +263,8 @@ request.
   why two languages
 - [`docs/construction.md`](docs/construction.md) — cross-compilation, multi-arch
   images, signing
+- [`docs/emplacements.md`](docs/emplacements.md) — where the project files go,
+  and where what concerns only your machine goes
 - [`schemas/`](schemas/) — the public contract, versioned separately
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — the rules a pull request is judged
   against

@@ -78,8 +78,11 @@ const fr = {
   'connection.server': 'Serveur',
   'connection.schemas': 'Schémas',
   'connection.schemas.empty': 'Aucun schéma exploitable dans cette base.',
+  // Vrai tant que la case du profil n'est pas cochée, et c'est ce que la
+  // phrase dit : l'affirmation d'origine — « jamais enregistré » — est devenue
+  // fausse le jour où les profils sont arrivés.
   'connection.password.hint':
-    'Le mot de passe n’est jamais enregistré : il vit le temps de la session.',
+    'Il vit le temps de la session, sauf si vous demandez à l’enregistrer dans un profil.',
 
   'inventory.title': 'Tables à extraire',
   'inventory.loading': 'Lecture du catalogue…',
@@ -395,7 +398,8 @@ const en: Record<MessageKey, string> = {
   'connection.server': 'Server',
   'connection.schemas': 'Schemas',
   'connection.schemas.empty': 'No usable schema in this database.',
-  'connection.password.hint': 'The password is never stored: it lives for the session only.',
+  'connection.password.hint':
+    'It lives for the session only, unless you ask to save it in a profile.',
 
   'inventory.title': 'Tables to extract',
   'inventory.loading': 'Reading the catalogue…',
