@@ -8,6 +8,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -227,7 +229,7 @@ func TestProfilCompleteLaConnexion(t *testing.T) {
 	t.Parallel()
 
 	s, _ := serveurDeTest(t)
-	if err := s.emplacements.EnregistrerProfil(config.Profil{
+	if _, err := s.emplacements.EnregistrerProfil(config.Profil{
 		Nom: "nas", SGBD: "postgres", Hote: "192.168.1.10", Port: 5432,
 		Utilisateur: "lecture", Base: "gescom",
 	}, "secret", true); err != nil {
@@ -256,7 +258,7 @@ func TestProfilSansDSNDepuisLOngletChaine(t *testing.T) {
 	t.Parallel()
 
 	s, _ := serveurDeTest(t)
-	if err := s.emplacements.EnregistrerProfil(config.Profil{
+	if _, err := s.emplacements.EnregistrerProfil(config.Profil{
 		Nom: "nas", SGBD: "postgres", Hote: "192.168.0.184", Port: 30432,
 		Utilisateur: "postgres", Base: "cadensio_main",
 	}, "secret", true); err != nil {
@@ -286,7 +288,7 @@ func TestDSNSaisiLEmporteSurLeProfil(t *testing.T) {
 	t.Parallel()
 
 	s, _ := serveurDeTest(t)
-	if err := s.emplacements.EnregistrerProfil(config.Profil{
+	if _, err := s.emplacements.EnregistrerProfil(config.Profil{
 		Nom: "nas", SGBD: "postgres", Hote: "192.168.0.184", Base: "cadensio_main",
 	}, "secret", true); err != nil {
 		t.Fatalf("enregistrement : %v", err)
@@ -366,7 +368,7 @@ func TestBaseImposeeVientDuProfilQuiLaNomme(t *testing.T) {
 		{"sans base", "", false},
 	} {
 		t.Run(c.nom, func(t *testing.T) {
-			if err := s.emplacements.EnregistrerProfil(config.Profil{
+			if _, err := s.emplacements.EnregistrerProfil(config.Profil{
 				Nom: c.nom, SGBD: "postgres", Hote: "h", Port: 5432, Base: c.base,
 			}, "", true); err != nil {
 				t.Fatalf("enregistrement : %v", err)
@@ -401,7 +403,7 @@ func TestMotDePasseSaisiLEmporte(t *testing.T) {
 	t.Parallel()
 
 	s, _ := serveurDeTest(t)
-	if err := s.emplacements.EnregistrerProfil(config.Profil{Nom: "nas", Hote: "h"},
+	if _, err := s.emplacements.EnregistrerProfil(config.Profil{Nom: "nas", Hote: "h"},
 		"ancien", true); err != nil {
 		t.Fatalf("enregistrement : %v", err)
 	}
@@ -415,6 +417,60 @@ func TestMotDePasseSaisiLEmporte(t *testing.T) {
 	}
 }
 
+// TestCleAbimeeNeBloquePasLaConnexion couvre une clé tronquée alors qu'un profil
+// porte un mot de passe : la connexion se prépare sans lui, comme pour une clé
+// absente, au lieu d'un refus qui citerait le chemin de la clé.
+func TestCleAbimeeNeBloquePasLaConnexion(t *testing.T) {
+	t.Parallel()
+
+	s, _ := serveurDeTest(t)
+	if _, err := s.emplacements.EnregistrerProfil(config.Profil{Nom: "nas", Hote: "h"},
+		"secret", true); err != nil {
+		t.Fatalf("enregistrement : %v", err)
+	}
+	cle := filepath.Join(s.emplacements.Racine(), "cle.bin")
+	if err := os.WriteFile(cle, []byte("abime"), 0o600); err != nil {
+		t.Fatalf("clé tronquée : %v", err)
+	}
+
+	requete := RequeteConnexion{Profil: "nas"}
+	if _, err := s.connexionDuProfil(&requete); err != nil {
+		t.Fatalf("connexion refusée : %v", err)
+	}
+	if requete.Hote != "h" || requete.MotDePasse != "" {
+		t.Errorf("requête %+v, attendue l'hôte du profil sans mot de passe", requete)
+	}
+}
+
+// TestRemplacementDeCleAnnonceALEnregistrement vérifie que l'écran reçoit
+// l'avertissement de perte au moment où il enregistre : c'est la seule fois où
+// il peut être dit, la clé neuve ne signalant plus rien ensuite.
+func TestRemplacementDeCleAnnonceALEnregistrement(t *testing.T) {
+	t.Parallel()
+
+	s, routeur := serveurDeTest(t)
+	if _, err := s.emplacements.EnregistrerProfil(config.Profil{Nom: "nas", Hote: "h"},
+		"secret", true); err != nil {
+		t.Fatalf("enregistrement : %v", err)
+	}
+	cle := filepath.Join(s.emplacements.Racine(), "cle.bin")
+	if err := os.WriteFile(cle, []byte("abime"), 0o600); err != nil {
+		t.Fatalf("clé tronquée : %v", err)
+	}
+
+	w := profilPoste(s, routeur, config.Profil{Nom: "paie", Hote: "h"}, "autre", true, false)
+	if w.Code != http.StatusOK {
+		t.Fatalf("code %d : %s", w.Code, w.Body.String())
+	}
+	var recu ReponseProfils
+	if err := json.Unmarshal(w.Body.Bytes(), &recu); err != nil {
+		t.Fatalf("réponse illisible : %v", err)
+	}
+	if !strings.Contains(recu.Avertissement, "perdus") {
+		t.Errorf("avertissement %q, attendu la perte des mots de passe", recu.Avertissement)
+	}
+}
+
 // TestProfilBasculeLeRepertoire vérifie qu'un profil emmène dans son projet, et
 // qu'un profil sans répertoire laisse le courant tel quel.
 func TestProfilBasculeLeRepertoire(t *testing.T) {
@@ -424,12 +480,12 @@ func TestProfilBasculeLeRepertoire(t *testing.T) {
 	ailleurs := t.TempDir()
 	depart := s.repertoireCourant()
 
-	if err := s.emplacements.EnregistrerProfil(config.Profil{
+	if _, err := s.emplacements.EnregistrerProfil(config.Profil{
 		Nom: "avec", Hote: "h", Repertoire: ailleurs,
 	}, "", true); err != nil {
 		t.Fatalf("enregistrement : %v", err)
 	}
-	if err := s.emplacements.EnregistrerProfil(config.Profil{Nom: "sans", Hote: "h"},
+	if _, err := s.emplacements.EnregistrerProfil(config.Profil{Nom: "sans", Hote: "h"},
 		"", true); err != nil {
 		t.Fatalf("enregistrement : %v", err)
 	}

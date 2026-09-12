@@ -120,29 +120,36 @@ func (e *Emplacements) LireProfils() ([]Profil, string, error) {
 		avertissements = append(avertissements,
 			fmt.Sprintf("profils ignorés, nom invalide : %s", strings.Join(ecartes, ", ")))
 	}
-	if a := e.avertirCleManquante(retenus); a != "" {
+	if a := e.avertirCleInutilisable(retenus); a != "" {
 		avertissements = append(avertissements, a)
 	}
 	return retenus, strings.Join(avertissements, " ; "), nil
 }
 
-// avertirCleManquante signale des mots de passe enregistrés que ce poste ne
-// pourra pas relire.
+// avertirCleInutilisable signale des mots de passe enregistrés que ce poste ne
+// pourra pas relire, faute d'une clé qui s'ouvre.
 //
 // Le cas courant est un ménage un peu large dans le répertoire de
-// configuration, ou un profils.yaml recopié depuis une autre machine. Les
-// profils restent utilisables — hôte, port, utilisateur, base et répertoire
-// valent encore —, seule la ressaisie du mot de passe revient. Dit une fois, au
-// chargement, et non à chaque tentative de connexion.
-func (e *Emplacements) avertirCleManquante(profils []Profil) string {
+// configuration, ou un profils.yaml recopié depuis une autre machine ; plus
+// rarement une clé tronquée. Les profils restent utilisables — hôte, port,
+// utilisateur, base et répertoire valent encore —, seule la ressaisie du mot
+// de passe revient. Dit une fois, au chargement, et non à chaque tentative de
+// connexion.
+func (e *Emplacements) avertirCleInutilisable(profils []Profil) string {
 	if !slices.ContainsFunc(profils, Profil.MotDePasseEnregistre) {
 		return ""
 	}
-	if _, err := e.cle(false); !errors.Is(err, ErrCleAbsente) {
+	var etat string
+	switch _, _, err := e.cle(false); {
+	case errors.Is(err, ErrCleAbsente):
+		etat = "est absent"
+	case errors.Is(err, ErrMotDePasseIndechiffrable):
+		etat = "est inutilisable"
+	default:
 		return ""
 	}
-	return fmt.Sprintf("mots de passe enregistrés illisibles : %s est absent, "+
-		"les profils restent utilisables sans eux", e.fichierCle())
+	return fmt.Sprintf("mots de passe enregistrés illisibles : %s %s, "+
+		"les profils restent utilisables sans eux", e.fichierCle(), etat)
 }
 
 // MotDePasseDuProfil rend le mot de passe en clair d'un profil enregistré.
@@ -174,34 +181,39 @@ func (e *Emplacements) MotDePasseDuProfil(nom string) (string, error) {
 // Le mot de passe vide efface celui qui était enregistré : c'est ce que produit
 // une case décochée, et laisser l'ancien en place ferait croire à un retrait
 // qui n'a pas eu lieu.
-func (e *Emplacements) EnregistrerProfil(p Profil, motDePasse string, remplacer bool) error {
+//
+// L'avertissement rendu dit qu'une clé inutilisable a été remplacée pour
+// chiffrer ce mot de passe. Le chiffrement vient après les refus : une clé ne
+// se remplace pas pour un enregistrement qui n'aura pas lieu.
+func (e *Emplacements) EnregistrerProfil(p Profil, motDePasse string, remplacer bool) (string, error) {
 	if !nomProfil.MatchString(p.Nom) {
-		return fmt.Errorf("nom de profil invalide: %q", p.Nom)
+		return "", fmt.Errorf("nom de profil invalide: %q", p.Nom)
 	}
-
-	chiffre, err := e.chiffrer(motDePasse)
-	if err != nil {
-		return err
-	}
-	p.MotDePasse = chiffre
 
 	profils, _, err := e.LireProfils()
 	if err != nil {
-		return err
+		return "", err
+	}
+	i := slices.IndexFunc(profils, func(q Profil) bool { return q.Nom == p.Nom })
+	switch {
+	case i >= 0 && !remplacer:
+		return "", ErrProfilExistant
+	case i < 0 && len(profils) >= maxProfils:
+		return "", ErrTropDeProfils
 	}
 
-	if i := slices.IndexFunc(profils, func(q Profil) bool { return q.Nom == p.Nom }); i >= 0 {
-		if !remplacer {
-			return ErrProfilExistant
-		}
+	chiffre, avertissement, err := e.chiffrer(motDePasse)
+	if err != nil {
+		return "", err
+	}
+	p.MotDePasse = chiffre
+
+	if i >= 0 {
 		profils[i] = p
 	} else {
-		if len(profils) >= maxProfils {
-			return ErrTropDeProfils
-		}
 		profils = append(profils, p)
 	}
-	return e.ecrireProfils(profils)
+	return avertissement, e.ecrireProfils(profils)
 }
 
 // SupprimerProfil retire un profil du fichier.

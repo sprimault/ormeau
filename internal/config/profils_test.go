@@ -39,7 +39,7 @@ func TestProfilEnregistrePuisRelu(t *testing.T) {
 	t.Parallel()
 
 	e := emplacementsDeTest(t)
-	if err := e.EnregistrerProfil(profilDeTest("gescom production"), "", true); err != nil {
+	if _, err := e.EnregistrerProfil(profilDeTest("gescom production"), "", true); err != nil {
 		t.Fatalf("enregistrement : %v", err)
 	}
 
@@ -65,7 +65,7 @@ func TestMotDePasseChiffreDansLeFichier(t *testing.T) {
 
 	e := emplacementsDeTest(t)
 	const secret = "M0tDeP4sse-Production"
-	if err := e.EnregistrerProfil(profilDeTest("nas"), secret, true); err != nil {
+	if _, err := e.EnregistrerProfil(profilDeTest("nas"), secret, true); err != nil {
 		t.Fatalf("enregistrement : %v", err)
 	}
 
@@ -93,10 +93,10 @@ func TestMotDePasseVideEfface(t *testing.T) {
 	t.Parallel()
 
 	e := emplacementsDeTest(t)
-	if err := e.EnregistrerProfil(profilDeTest("nas"), "secret", true); err != nil {
+	if _, err := e.EnregistrerProfil(profilDeTest("nas"), "secret", true); err != nil {
 		t.Fatalf("premier enregistrement : %v", err)
 	}
-	if err := e.EnregistrerProfil(profilDeTest("nas"), "", true); err != nil {
+	if _, err := e.EnregistrerProfil(profilDeTest("nas"), "", true); err != nil {
 		t.Fatalf("second enregistrement : %v", err)
 	}
 
@@ -116,7 +116,7 @@ func TestChiffrementDetecteUneRetouche(t *testing.T) {
 	t.Parallel()
 
 	e := emplacementsDeTest(t)
-	chiffre, err := e.chiffrer("secret")
+	chiffre, _, err := e.chiffrer("secret")
 	if err != nil {
 		t.Fatalf("chiffrement : %v", err)
 	}
@@ -134,7 +134,7 @@ func TestCleAbsenteNeVidePasLeProfil(t *testing.T) {
 	t.Parallel()
 
 	e := emplacementsDeTest(t)
-	if err := e.EnregistrerProfil(profilDeTest("nas"), "secret", true); err != nil {
+	if _, err := e.EnregistrerProfil(profilDeTest("nas"), "secret", true); err != nil {
 		t.Fatalf("enregistrement : %v", err)
 	}
 	if err := os.Remove(e.fichierCle()); err != nil {
@@ -153,6 +153,77 @@ func TestCleAbsenteNeVidePasLeProfil(t *testing.T) {
 	}
 }
 
+// TestCleAbimeeDegradeCommeUneCleAbsente couvre une clé tronquée : les profils
+// se chargent avec un avertissement, le mot de passe enregistré devient
+// indéchiffrable au lieu d'une erreur quelconque, et un nouvel enregistrement
+// tire une clé neuve plutôt que d'échouer ou d'annoncer un mot de passe
+// illisible.
+func TestCleAbimeeDegradeCommeUneCleAbsente(t *testing.T) {
+	t.Parallel()
+
+	e := emplacementsDeTest(t)
+	if _, err := e.EnregistrerProfil(profilDeTest("nas"), "secret", true); err != nil {
+		t.Fatalf("enregistrement : %v", err)
+	}
+	if err := os.WriteFile(e.fichierCle(), []byte("abime"), permFichier); err != nil {
+		t.Fatalf("clé tronquée : %v", err)
+	}
+
+	profils, avertissement, err := e.LireProfils()
+	if err != nil || len(profils) != 1 {
+		t.Fatalf("profils %+v, erreur %v", profils, err)
+	}
+	if !strings.Contains(avertissement, "inutilisable") {
+		t.Errorf("avertissement %q, attendu la clé inutilisable", avertissement)
+	}
+	if _, err := e.MotDePasseDuProfil("nas"); !errors.Is(err, ErrMotDePasseIndechiffrable) {
+		t.Errorf("erreur %v, attendue ErrMotDePasseIndechiffrable", err)
+	}
+
+	avertissement, err = e.EnregistrerProfil(profilDeTest("paie"), "autre", true)
+	if err != nil {
+		t.Fatalf("enregistrement avec une clé tronquée : %v", err)
+	}
+	if !strings.Contains(avertissement, "perdus") || !strings.Contains(avertissement, "cle.bin.invalide") {
+		t.Errorf("avertissement %q, attendu la perte et la clé mise de côté", avertissement)
+	}
+	if clair, err := e.MotDePasseDuProfil("paie"); err != nil || clair != "autre" {
+		t.Errorf("mot de passe relu %q, erreur %v", clair, err)
+	}
+	if cle, err := os.ReadFile(e.fichierCle()); err != nil || len(cle) != tailleCle {
+		t.Errorf("clé de %d octets, erreur %v", len(cle), err)
+	}
+	if ancienne, err := os.ReadFile(e.fichierCle() + ".invalide"); err != nil || string(ancienne) != "abime" {
+		t.Errorf("ancienne clé %q, erreur %v", ancienne, err)
+	}
+
+	// La clé neuve ne se remplace plus : l'avertissement ne revient pas.
+	if avertissement, err := e.EnregistrerProfil(profilDeTest("stock"), "encore", true); err != nil || avertissement != "" {
+		t.Errorf("avertissement %q, erreur %v", avertissement, err)
+	}
+}
+
+// Un enregistrement refusé ne remplace pas la clé : l'avertissement de perte
+// ne doit jamais accompagner une opération qui n'a pas eu lieu.
+func TestEnregistrementRefuseGardeLaCleAbimee(t *testing.T) {
+	t.Parallel()
+
+	e := emplacementsDeTest(t)
+	if _, err := e.EnregistrerProfil(profilDeTest("nas"), "secret", true); err != nil {
+		t.Fatalf("enregistrement : %v", err)
+	}
+	if err := os.WriteFile(e.fichierCle(), []byte("abime"), permFichier); err != nil {
+		t.Fatalf("clé tronquée : %v", err)
+	}
+
+	if _, err := e.EnregistrerProfil(profilDeTest("nas"), "autre", false); !errors.Is(err, ErrProfilExistant) {
+		t.Fatalf("erreur %v, attendue ErrProfilExistant", err)
+	}
+	if cle, err := os.ReadFile(e.fichierCle()); err != nil || string(cle) != "abime" {
+		t.Errorf("clé %q, erreur %v : remplacée pour un enregistrement refusé", cle, err)
+	}
+}
+
 // TestRemplacementDemandeConfirmation couvre le geste qu'on fait sans y penser
 // après avoir modifié un champ : écraser un profil de production n'a rien
 // d'anodin.
@@ -160,13 +231,13 @@ func TestRemplacementDemandeConfirmation(t *testing.T) {
 	t.Parallel()
 
 	e := emplacementsDeTest(t)
-	if err := e.EnregistrerProfil(profilDeTest("nas"), "", false); err != nil {
+	if _, err := e.EnregistrerProfil(profilDeTest("nas"), "", false); err != nil {
 		t.Fatalf("premier enregistrement : %v", err)
 	}
 
 	modifie := profilDeTest("nas")
 	modifie.Base = "paie"
-	if err := e.EnregistrerProfil(modifie, "", false); !errors.Is(err, ErrProfilExistant) {
+	if _, err := e.EnregistrerProfil(modifie, "", false); !errors.Is(err, ErrProfilExistant) {
 		t.Fatalf("erreur %v, attendue ErrProfilExistant", err)
 	}
 
@@ -176,7 +247,7 @@ func TestRemplacementDemandeConfirmation(t *testing.T) {
 		t.Fatalf("profils %+v, erreur %v", profils, err)
 	}
 
-	if err := e.EnregistrerProfil(modifie, "", true); err != nil {
+	if _, err := e.EnregistrerProfil(modifie, "", true); err != nil {
 		t.Fatalf("remplacement confirmé : %v", err)
 	}
 	profils, _, _ = e.LireProfils()
@@ -195,7 +266,7 @@ func TestCleManquanteAvertitUneFois(t *testing.T) {
 	t.Parallel()
 
 	e := emplacementsDeTest(t)
-	if err := e.EnregistrerProfil(profilDeTest("nas"), "secret", true); err != nil {
+	if _, err := e.EnregistrerProfil(profilDeTest("nas"), "secret", true); err != nil {
 		t.Fatalf("enregistrement : %v", err)
 	}
 	if err := os.Remove(e.fichierCle()); err != nil {
@@ -221,7 +292,7 @@ func TestPasDAvertissementSansMotDePasse(t *testing.T) {
 	t.Parallel()
 
 	e := emplacementsDeTest(t)
-	if err := e.EnregistrerProfil(profilDeTest("nas"), "", true); err != nil {
+	if _, err := e.EnregistrerProfil(profilDeTest("nas"), "", true); err != nil {
 		t.Fatalf("enregistrement : %v", err)
 	}
 
@@ -237,7 +308,7 @@ func TestProfilsRecopiesSansCle(t *testing.T) {
 	t.Parallel()
 
 	source := emplacementsDeTest(t)
-	if err := source.EnregistrerProfil(profilDeTest("nas"), "secret", true); err != nil {
+	if _, err := source.EnregistrerProfil(profilDeTest("nas"), "secret", true); err != nil {
 		t.Fatalf("enregistrement : %v", err)
 	}
 	contenu, err := os.ReadFile(source.FichierProfils())
@@ -250,7 +321,7 @@ func TestProfilsRecopiesSansCle(t *testing.T) {
 	if err := os.WriteFile(autre.FichierProfils(), contenu, permFichier); err != nil {
 		t.Fatalf("copie : %v", err)
 	}
-	if _, err := autre.chiffrer("pour tirer une cle differente"); err != nil {
+	if _, _, err := autre.chiffrer("pour tirer une cle differente"); err != nil {
 		t.Fatalf("clé de l'autre poste : %v", err)
 	}
 
@@ -270,7 +341,7 @@ func TestCleEcriteEn0600(t *testing.T) {
 	}
 
 	e := emplacementsDeTest(t)
-	if _, err := e.chiffrer("secret"); err != nil {
+	if _, _, err := e.chiffrer("secret"); err != nil {
 		t.Fatalf("chiffrement : %v", err)
 	}
 
@@ -290,7 +361,7 @@ func TestProfilsTriesParNom(t *testing.T) {
 
 	e := emplacementsDeTest(t)
 	for _, nom := range []string{"zebra", "Alpha", "milieu"} {
-		if err := e.EnregistrerProfil(profilDeTest(nom), "", true); err != nil {
+		if _, err := e.EnregistrerProfil(profilDeTest(nom), "", true); err != nil {
 			t.Fatalf("enregistrement de %s : %v", nom, err)
 		}
 	}
@@ -311,12 +382,12 @@ func TestProfilRemplaceSansDoubler(t *testing.T) {
 	t.Parallel()
 
 	e := emplacementsDeTest(t)
-	if err := e.EnregistrerProfil(profilDeTest("nas"), "", true); err != nil {
+	if _, err := e.EnregistrerProfil(profilDeTest("nas"), "", true); err != nil {
 		t.Fatalf("premier : %v", err)
 	}
 	modifie := profilDeTest("nas")
 	modifie.Base = "paie"
-	if err := e.EnregistrerProfil(modifie, "", true); err != nil {
+	if _, err := e.EnregistrerProfil(modifie, "", true); err != nil {
 		t.Fatalf("second : %v", err)
 	}
 
@@ -334,7 +405,7 @@ func TestSupprimerProfil(t *testing.T) {
 	t.Parallel()
 
 	e := emplacementsDeTest(t)
-	if err := e.EnregistrerProfil(profilDeTest("nas"), "", true); err != nil {
+	if _, err := e.EnregistrerProfil(profilDeTest("nas"), "", true); err != nil {
 		t.Fatalf("enregistrement : %v", err)
 	}
 
@@ -367,7 +438,7 @@ func TestNomDeProfilRefuse(t *testing.T) {
 			t.Parallel()
 
 			p := profilDeTest(valeur)
-			if err := e.EnregistrerProfil(p, "", true); err == nil {
+			if _, err := e.EnregistrerProfil(p, "", true); err == nil {
 				t.Errorf("nom %q accepté", valeur)
 			}
 		})

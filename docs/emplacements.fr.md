@@ -98,8 +98,13 @@ DBeaver ou SSMS, et [`SECURITY.fr.md`](../SECURITY.fr.md) le détaille. Qui a
 besoin davantage laisse la case décochée : le mot de passe est alors ressaisi à
 chaque connexion et n'est écrit nulle part.
 
-`cle.bin` effacée, ou `profils.yaml` recopié depuis une autre machine : les
-profils restent utilisables, sans leur mot de passe, et l'écran le dit une fois.
+`cle.bin` effacée ou abîmée, ou `profils.yaml` recopié depuis une autre
+machine : les profils restent utilisables, sans leur mot de passe, et l'écran le
+dit une fois.
+
+Une clé abîmée est remplacée au prochain mot de passe enregistré. L'écran
+prévient alors que les mots de passe chiffrés avec elle sont perdus, et
+l'ancienne reste à côté, en `cle.bin.invalide`.
 
 ### etat/
 
