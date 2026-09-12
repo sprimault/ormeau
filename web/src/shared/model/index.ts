@@ -75,6 +75,24 @@ export {
   CodeTraitDeduit,
   CodeTypeNonReconnu,
 } from './calque';
+export {
+  CodeActionInconnue,
+  CodeAriteIncoherente,
+  CodeChampRequisVide,
+  CodeColonneDupliquee,
+  CodeColonneIntrouvable,
+  CodeEmpreinteMalformee,
+  CodeGenreDefautInconnu,
+  CodePositionInvalide,
+  CodeSGBDInconnu,
+  CodeStatistiquesOrphelines,
+  CodeTableCibleIntrouvable,
+  CodeTableDupliquee,
+  CodeTableSansColonne,
+  CodeTypeEnumereIntrouvable,
+  CodeTypeHorsVocabulaire,
+  CodeVersionInconnue,
+} from './calque';
 export type { TableSommaire, ColonneSommaire, Portee, Avancement } from './introspection';
 export { initTheme, themeInitial, useThemeStore, type Theme } from './theme';
 export type { Preferences, Profil, Session } from './config';

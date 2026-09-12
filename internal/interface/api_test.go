@@ -276,12 +276,80 @@ func TestBasesNeDivulguePasLeDSN(t *testing.T) {
 // dialectes n'ont pas.
 type piloteColonnes struct {
 	piloteDeTest
+	colonnes      []introspection.ColonneSommaire
 	echecColonnes error
+	demande       string
 }
 
-// Colonnes rend l'échec préparé.
-func (p *piloteColonnes) Colonnes(context.Context, string, string) ([]introspection.ColonneSommaire, error) {
-	return nil, p.echecColonnes
+// Colonnes retient la table demandée et rend ce qui a été préparé.
+func (p *piloteColonnes) Colonnes(_ context.Context, schema, table string) ([]introspection.ColonneSommaire, error) {
+	p.demande = schema + "." + table
+	return p.colonnes, p.echecColonnes
+}
+
+// TestColonnesDecritLaTableDemandee couvre le dépliement d'une table dans
+// l'arbre : la table transmise au pilote, et ce qu'il rend.
+func TestColonnesDecritLaTableDemandee(t *testing.T) {
+	t.Parallel()
+
+	s, routeur := serveurDeTest(t)
+	pilote := &piloteColonnes{colonnes: []introspection.ColonneSommaire{
+		{Nom: "id", Position: 1, TypeBrut: "integer", ClePrimaire: true},
+		{Nom: "nom", Position: 2, TypeBrut: "text", Nullable: true},
+	}}
+	session, err := s.registre.ajouter(pilote, dsnDeTest, "postgres", false)
+	if err != nil {
+		t.Fatalf("ajouter: %v", err)
+	}
+
+	w := lire(s, routeur, "/api/colonnes?session="+session+"&schema=public&table=t_client")
+	attendreStatut(t, w, http.StatusOK)
+	recu := decoderReponse[ReponseColonnes](t, w)
+	if len(recu.Colonnes) != 2 || !recu.Colonnes[0].ClePrimaire || recu.Colonnes[1].Nom != "nom" {
+		t.Errorf("colonnes %+v", recu.Colonnes)
+	}
+	if pilote.demande != "public.t_client" {
+		t.Errorf("table transmise %q", pilote.demande)
+	}
+}
+
+// TestColonnesRefus couvre ce que l'écran ne doit jamais recevoir en silence :
+// une demande incomplète, et un dialecte qui ne sait pas décrire une table.
+func TestColonnesRefus(t *testing.T) {
+	t.Parallel()
+
+	s, routeur := serveurDeTest(t)
+	avec, err := s.registre.ajouter(&piloteColonnes{}, dsnDeTest, "postgres", false)
+	if err != nil {
+		t.Fatalf("ajouter: %v", err)
+	}
+	sans, err := s.registre.ajouter(&piloteDeTest{}, dsnDeTest, "postgres", false)
+	if err != nil {
+		t.Fatalf("ajouter: %v", err)
+	}
+
+	attendreStatut(t, lire(s, routeur, "/api/colonnes?session="+avec+"&schema=public"), http.StatusBadRequest)
+	attendreStatut(t, lire(s, routeur, "/api/colonnes?session="+avec+"&table=t_client"), http.StatusBadRequest)
+	attendreStatut(t, lire(s, routeur, "/api/colonnes?session="+sans+"&schema=public&table=t_client"),
+		http.StatusNotImplemented)
+}
+
+// TestColonnesSansColonneRendUneListeVide vérifie qu'une table sans colonne
+// visible rend un tableau, jamais null : le front le parcourt sans le tester.
+func TestColonnesSansColonneRendUneListeVide(t *testing.T) {
+	t.Parallel()
+
+	s, routeur := serveurDeTest(t)
+	session, err := s.registre.ajouter(&piloteColonnes{}, dsnDeTest, "postgres", false)
+	if err != nil {
+		t.Fatalf("ajouter: %v", err)
+	}
+
+	w := lire(s, routeur, "/api/colonnes?session="+session+"&schema=public&table=vide")
+	attendreStatut(t, w, http.StatusOK)
+	if !strings.Contains(w.Body.String(), `"colonnes":[]`) {
+		t.Errorf("corps %q, attendu une liste vide", w.Body.String())
+	}
 }
 
 // TestLecturesNeDivulguentPasLeDSN étend TestBasesNeDivulguePasLeDSN aux deux
