@@ -38,19 +38,27 @@ préambule reste en français : il n'est jamais publié.
 
 ### Modifié
 
-- **Le paquet PHP s'installe sur PHP 8.1, Symfony 5.4 à 8 et Doctrine ORM 2.11
+- **Le paquet PHP s'installe sur PHP 8.1, Symfony 5.4 à 8 et Doctrine ORM 2.14
   à 3**, au lieu de PHP 8.3, Symfony 7 et ORM 3 : une application qu'on reprend
   tourne rarement sur la version courante. Il ne se déclare plus compatible
   avec ORM 4, qui n'est pas publié.
+- **Le plancher d'ORM est 2.14, pas 2.11**, bien que `enumType` existe depuis
+  la 2.11. C'est une contrainte d'ORM constatée, pas un choix de confort : les
+  versions 2.11 à 2.13 refusent une classe de base mappée placée sous une
+  entité, ce que produit la génération d'une hiérarchie.
 
 ***
 
 ### Changed
 
-- **The PHP package installs on PHP 8.1, Symfony 5.4 to 8 and Doctrine ORM 2.11
+- **The PHP package installs on PHP 8.1, Symfony 5.4 to 8 and Doctrine ORM 2.14
   to 3**, instead of PHP 8.3, Symfony 7 and ORM 3: an application being taken
   over rarely runs the current release. It no longer claims compatibility with
   ORM 4, which is not released.
+- **The ORM floor is 2.14, not 2.11**, although `enumType` exists since 2.11.
+  This is an observed ORM constraint, not a convenience: versions 2.11 to 2.13
+  reject a mapped superclass placed below an entity, which generating a
+  hierarchy produces.
 
 ## [0.4.2] — 2026-09-13 — Ce qui ne doit pas sortir d'Ormeau
 
