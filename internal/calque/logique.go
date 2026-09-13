@@ -106,7 +106,9 @@ type Propriete struct {
 	Precision    *int   `json:"precision,omitempty"`
 	Echelle      *int   `json:"echelle,omitempty"`
 	Enumeration  string `json:"enumeration,omitempty"`
-	Defaut       string `json:"defaut,omitempty"`
+	// DEFAULT '' est un défaut : absent et vide doivent rester distinguables,
+	// comme pour la longueur.
+	Defaut *string `json:"defaut,omitempty"`
 	// Une colonne générée n'est ni insérable ni modifiable. Les pointeurs
 	// permettent de ne sérialiser que les cas qui s'écartent du défaut.
 	Insertable  *bool   `json:"insertable,omitempty"`

@@ -86,8 +86,9 @@ func affiner(corr correspondance, c *calque.Colonne) correspondance {
 			return correspondance{corr.php, "time_immutable"}
 		}
 	case calque.TypeEntier:
-		// Un bigint dépasse l'int 32 bits ; Doctrine le rend en string sur les
-		// plateformes 32 bits, d'où le type PHP élargi.
+		// Le type PHP d'un bigint dépend de la cible — DBAL 3 le rend en
+		// string, DBAL 4 en int — et c'est le générateur qui la connaît. Le
+		// int écrit ici n'est pas lu pour un type de sa table.
 		if strings.Contains(brut, "bigint") || strings.Contains(brut, "int8") {
 			return correspondance{"int", "bigint"}
 		}

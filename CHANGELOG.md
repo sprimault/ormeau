@@ -47,6 +47,13 @@ préambule reste en français : il n'est jamais publié.
   versions 2.11 à 2.13 refusent une classe de base mappée placée sous une
   entité, ce que produit la génération d'une hiérarchie.
 
+### Corrigé
+
+- **Un défaut vide survit à l'inférence.** Une colonne `DEFAULT ''` perdait son
+  défaut dans le calque logique, où il se confondait avec l'absence de défaut ;
+  la régénération du schéma l'aurait retiré. `version_ri` ne bouge pas : les
+  calques logiques se recalculent avec `ormeau inferer`.
+
 ***
 
 ### Changed
@@ -59,6 +66,13 @@ préambule reste en français : il n'est jamais publié.
   This is an observed ORM constraint, not a convenience: versions 2.11 to 2.13
   reject a mapped superclass placed below an entity, which generating a
   hierarchy produces.
+
+### Fixed
+
+- **An empty default survives inference.** A `DEFAULT ''` column lost its
+  default in the logical layer, where it was mistaken for no default at all;
+  regenerating the schema would have dropped it. `version_ri` stays put:
+  logical layers are recomputed with `ormeau inferer`.
 
 ## [0.4.2] — 2026-09-13 — Ce qui ne doit pas sortir d'Ormeau
 
