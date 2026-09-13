@@ -181,6 +181,50 @@ final class MappingTest extends TestCase
     }
 
     /**
+     * Des classes de l'utilisateur rangées dans des sous-répertoires, puis
+     * régénérées, se chargent encore : Doctrine résout chaque cible
+     * d'association, le parent d'une classe fille et la carte de la racine vers
+     * les classes rangées, et rien n'est recréé à la racine.
+     */
+    #[RunInSeparateProcess]
+    public function testDoctrineAccepteDesClassesRangees(): void
+    {
+        $cible = Cible::detecter();
+        $calque = (new LecteurCalque())->lire(Repertoires::REFERENCES . '/heritage-decide/logique.json');
+        $sortie = Repertoires::creer();
+
+        try {
+            (new GenerateurEntite())->generer($calque, $sortie, $cible);
+            Repertoires::ranger($sortie, 'Personne', 'Rh');
+            Repertoires::ranger($sortie, 'Salarie', 'Rh');
+            Repertoires::ranger($sortie, 'Adresse', 'Contact');
+            $rapport = (new GenerateurEntite())->generer($calque, $sortie, $cible);
+
+            self::assertSame([], $rapport->ecartees);
+            self::assertSame([], $rapport->divergences);
+            foreach (['Personne', 'Salarie', 'Adresse'] as $nom) {
+                self::assertFileDoesNotExist($sortie . '/' . $nom . '.php');
+            }
+
+            spl_autoload_register(static function (string $classe) use ($sortie): void {
+                if (str_starts_with($classe, 'App\\Entity\\')) {
+                    require $sortie . '/' . str_replace('\\', '/', substr($classe, strlen('App\\Entity\\'))) . '.php';
+                }
+            });
+            $gestionnaire = self::gestionnaire($sortie);
+            $metadonnees = $gestionnaire->getMetadataFactory()->getAllMetadata();
+
+            self::assertSame([], (new SchemaValidator($gestionnaire))->validateMapping());
+            self::assertNotEmpty((new SchemaTool($gestionnaire))->getCreateSchemaSql($metadonnees));
+            self::assertSame('App\\Entity\\Rh\\Salarie', $gestionnaire->getClassMetadata('App\\Entity\\Affectation')->getAssociationTargetClass('salarie'));
+            self::assertSame('App\\Entity\\Contact\\Adresse', $gestionnaire->getClassMetadata('App\\Entity\\Rh\\Personne')->getAssociationTargetClass('adresse'));
+            self::assertContains('App\\Entity\\Rh\\Personne', $gestionnaire->getClassMetadata('App\\Entity\\Rh\\Salarie')->parentClasses);
+        } finally {
+            Repertoires::supprimer($sortie);
+        }
+    }
+
+    /**
      * Les cas que la génération actuelle couvre.
      *
      * @return iterable<string, array{string}>

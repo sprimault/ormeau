@@ -55,14 +55,17 @@ final class RenduEntite
      *                                                 schémas, faute de quoi deux tables de même nom
      *                                                 se confondraient
      * @param array<string, Enumeration> $enumerations énumérations du calque par nom
+     * @param ClassesUtilisateur|null    $classes      où vivent les classes de l'utilisateur ; sans elle,
+     *                                                 chacune est supposée à la racine
      */
     public function __construct(
         Cible $cible,
         private readonly string $espaceDeNoms,
         private readonly bool $avecSchema,
         array $enumerations = [],
+        private readonly ?ClassesUtilisateur $classes = null,
     ) {
-        $this->membres = new RenduMembres($cible, $espaceDeNoms, $enumerations, $avecSchema);
+        $this->membres = new RenduMembres($cible, $espaceDeNoms, $enumerations, $avecSchema, $classes);
     }
 
     /**
@@ -171,7 +174,7 @@ final class RenduEntite
             $imports[] = $this->espaceDeNoms . '\\Trait\\' . $trait;
         }
         if ($parent !== null) {
-            $imports[] = $this->espaceDeNoms . '\\' . $parent->nom;
+            $imports[] = $this->classes?->qualifiee($parent->nom) ?? $this->espaceDeNoms . '\\' . $parent->nom;
         }
 
         $lignes = $this->entete(

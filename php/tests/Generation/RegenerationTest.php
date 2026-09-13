@@ -219,11 +219,104 @@ final class RegenerationTest extends TestCase
     }
 
     /**
+     * Une classe de l'utilisateur rangée dans un sous-répertoire est retrouvée
+     * par sa classe de base : rien n'est recréé à la racine, et la classe de
+     * base qui la vise importe son nom qualifié réel.
+     */
+    public function testUneClasseRangeeEstRetrouvee(): void
+    {
+        $this->generer(self::ventes());
+        $client = Repertoires::ranger($this->sortie, 'Client', 'Ventes');
+
+        $rapport = $this->generer(self::ventes());
+
+        self::assertFileDoesNotExist($this->sortie . '/Client.php');
+        self::assertSame([], $rapport->divergences);
+        self::assertContains([$client, EtatFichier::Conserve], array_map(static fn($f): array => [$f->chemin, $f->etat], $rapport->fichiers));
+        self::assertStringContainsString("use App\\Entity\\Ventes\\Client;\n", (string) file_get_contents($this->sortie . '/Base/CommandeBase.php'));
+    }
+
+    /**
+     * Une hiérarchie rangée d'un bloc garde sa carte, écrite en noms courts ;
+     * une classe fille rangée seule ne correspond plus à la carte de la
+     * racine, qui se signale avec la classe qualifiée attendue.
+     */
+    public function testUneHierarchieRangeeSuitSesClasses(): void
+    {
+        $this->generer(self::hierarchie(['Salarie' => 'S']));
+        Repertoires::ranger($this->sortie, 'Salarie', 'Rh');
+
+        self::assertSame(
+            ["attendu #[ORM\\DiscriminatorMap(['P' => Personne::class, 'S' => \\App\\Entity\\Rh\\Salarie::class])]"],
+            array_map(static fn($d): string => $d->attendu, $this->generer(self::hierarchie(['Salarie' => 'S']))->divergences),
+        );
+
+        Repertoires::ranger($this->sortie, 'Personne', 'Rh');
+        $rapport = $this->generer(self::hierarchie(['Salarie' => 'S']));
+
+        self::assertSame([], $rapport->divergences);
+        self::assertStringContainsString(
+            "use App\\Entity\\Rh\\Personne;\n",
+            (string) file_get_contents($this->sortie . '/Base/SalarieBase.php'),
+        );
+    }
+
+    /**
+     * Deux classes pour la même entité écartent l'entité, avec les deux
+     * fichiers : choisir serait deviner laquelle le projet utilise. L'entité
+     * qui la vise est écartée à son tour.
+     */
+    public function testDeuxClassesPourUneEntiteLEcartent(): void
+    {
+        $this->generer(self::ventes());
+        $copie = Repertoires::ranger($this->sortie, 'Client', 'Ventes', copier: true);
+
+        $rapport = $this->generer(self::ventes());
+
+        self::assertSame([
+            'Client' => sprintf('plusieurs classes Client héritent de ClientBase, n\'en garder qu\'une : %s/Client.php, %s', $this->sortie, $copie),
+            'Commande' => 'l\'association client vise Client (public.client), écartée',
+        ], array_column(array_map(static fn($e): array => [$e->nom, $e->raison], $rapport->ecartees), 1, 0));
+    }
+
+    /**
      * Génère un calque dans le répertoire du test, sous ORM 3.
      */
     private function generer(CalqueLogique $calque): Rapport
     {
         return (new GenerateurEntite())->generer($calque, $this->sortie, Cible::forcer(3));
+    }
+
+    /**
+     * Un calque d'un Client et d'une Commande qui le vise.
+     */
+    private static function ventes(): CalqueLogique
+    {
+        $id = ['nom' => 'id', 'colonne' => 'id', 'type_php' => 'int', 'type_doctrine' => 'integer', 'nullable' => false];
+
+        return CalqueLogique::depuisTableau([
+            'version_ri' => 1,
+            'empreinte_physique' => 'sha256:' . str_repeat('a', 64),
+            'espace_de_noms' => 'App\\Entity',
+            'entites' => [
+                [
+                    'nom' => 'Client',
+                    'table' => ['nom' => 'client', 'schema' => 'public'],
+                    'identifiant' => ['proprietes' => ['id'], 'strategie' => 'identite'],
+                    'proprietes' => [$id],
+                ],
+                [
+                    'nom' => 'Commande',
+                    'table' => ['nom' => 'commande', 'schema' => 'public'],
+                    'identifiant' => ['proprietes' => ['id'], 'strategie' => 'identite'],
+                    'proprietes' => [$id, ['nom' => 'clientId', 'colonne' => 'client_id', 'type_php' => 'int', 'type_doctrine' => 'integer', 'nullable' => false]],
+                    'associations' => [[
+                        'nom' => 'client', 'genre' => 'plusieurs_vers_un', 'cible' => 'Client', 'proprietaire' => true, 'origine' => 'contrainte',
+                        'jointure' => [['colonne' => 'client_id', 'colonne_referencee' => 'id', 'nullable' => false]],
+                    ]],
+                ],
+            ],
+        ]);
     }
 
     /**

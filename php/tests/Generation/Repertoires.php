@@ -80,6 +80,31 @@ final class Repertoires
     }
 
     /**
+     * Range une classe de l'utilisateur dans un sous-répertoire, comme le
+     * ferait un développeur : le fichier change de place et son espace de noms
+     * suit. Rend le nouveau chemin.
+     *
+     * @param string $racine     répertoire des entités
+     * @param string $nom        nom de la classe, à la racine
+     * @param string $sousEspace sous-répertoire, qui est aussi le segment d'espace de noms ajouté
+     * @param bool   $copier     laisser l'original en place, pour obtenir deux classes
+     */
+    public static function ranger(string $racine, string $nom, string $sousEspace, bool $copier = false): string
+    {
+        $source = (string) file_get_contents($racine . '/' . $nom . '.php');
+        $cible = $racine . '/' . $sousEspace . '/' . $nom . '.php';
+        if (!is_dir(dirname($cible))) {
+            mkdir(dirname($cible), 0o777, true);
+        }
+        file_put_contents($cible, str_replace("namespace App\\Entity;\n", "namespace App\\Entity\\" . $sousEspace . ";\n", $source));
+        if (!$copier) {
+            unlink($racine . '/' . $nom . '.php');
+        }
+
+        return $cible;
+    }
+
+    /**
      * Rend les fichiers d'une arborescence, chemin relatif vers contenu, triés.
      *
      * @return array<string, string>

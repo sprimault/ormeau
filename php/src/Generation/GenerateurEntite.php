@@ -62,9 +62,10 @@ final class GenerateurEntite
      * Base/, Enum/ et Trait/ appartiennent à l'outil : leurs fichiers sont
      * réécrits quand leur contenu change, laissés intacts sinon — un fichier
      * identique garde sa date, et un outil qui surveille le répertoire ne voit
-     * rien bouger. Les classes de l'utilisateur vont à la racine du répertoire,
-     * sont créées si elles manquent, et ne sont jamais réécrites : elles sont
-     * seulement relues pour signaler ce qui a divergé.
+     * rien bouger. Les classes de l'utilisateur sont créées à la racine du
+     * répertoire si elles manquent, retrouvées où le développeur les a rangées
+     * ensuite, et jamais réécrites : elles sont seulement relues pour signaler
+     * ce qui a divergé.
      *
      * @param CalqueLogique $calque     calque déjà lu et contrôlé
      * @param string        $repertoire racine des entités, src/Entity dans une application Symfony
@@ -105,8 +106,17 @@ final class GenerateurEntite
             $traits[$trait->nom] = $trait;
         }
 
+        // Les classes de l'utilisateur ont pu être rangées dans des
+        // sous-répertoires depuis la génération précédente : chacune est
+        // retrouvée par sa classe de base, et citée sous son nom qualifié réel.
+        $classes = ClassesUtilisateur::parcourir(
+            $repertoire,
+            $calque->espaceDeNoms,
+            array_map(static fn(Entite $e): string => $e->nom, $calque->entites),
+        );
+
         $schemas = array_unique(array_map(static fn(Entite $e): string => $e->table->schema, $calque->entites));
-        $rendu = new RenduEntite($cible, $calque->espaceDeNoms, count($schemas) > 1, $enumerations);
+        $rendu = new RenduEntite($cible, $calque->espaceDeNoms, count($schemas) > 1, $enumerations, $classes);
         $controle = new ControleClasseUtilisateur();
 
         $fichiers = [];
@@ -141,9 +151,18 @@ final class GenerateurEntite
         $hierarchies = new Hierarchies($calque->entites);
         $raisons = [];
         foreach ($calque->entites as $rang => $entite) {
-            $raisons[$rang] = $occurrences[strtolower($entite->nom)] > 1
-                ? sprintf('le nom %s est porté par plusieurs entités, à départager dans renommages', $entite->nom)
-                : $this->raisonDEcarter($entite, $refus) ?? $hierarchies->raison($entite);
+            $doublons = $classes->doublons($entite->nom);
+            $raisons[$rang] = match (true) {
+                $occurrences[strtolower($entite->nom)] > 1 => sprintf('le nom %s est porté par plusieurs entités, à départager dans renommages', $entite->nom),
+                // Choisir l'une des deux serait deviner laquelle le projet utilise.
+                $doublons !== [] => sprintf(
+                    'plusieurs classes %s héritent de %s, n\'en garder qu\'une : %s',
+                    $entite->nom,
+                    RenduEntite::nomBase($entite),
+                    implode(', ', $doublons),
+                ),
+                default => $this->raisonDEcarter($entite, $refus) ?? $hierarchies->raison($entite),
+            };
         }
         $raisons = $this->ecarterLesIdentitesEnChaine($calque->entites, $raisons);
         $raisons = $this->propagerLesEcarts($calque->entites, $raisons, $hierarchies);
@@ -166,8 +185,8 @@ final class GenerateurEntite
             $base = $repertoire . '/Base/' . RenduEntite::nomBase($entite) . '.php';
             $fichiers[] = new Fichier($base, $this->ecrire($base, $rendu->classeBase($entite, $hierarchies), $repertoire));
 
-            $racine = $hierarchies->racineHeritage($entite, $calque->espaceDeNoms);
-            $utilisateur = $repertoire . '/' . $entite->nom . '.php';
+            $racine = $hierarchies->racineHeritage($entite, $calque->espaceDeNoms, $classes);
+            $utilisateur = $classes->fichier($entite->nom, $repertoire);
             if (!is_file($utilisateur)) {
                 $this->ecrire($utilisateur, $rendu->classeUtilisateur($entite, $racine), $repertoire);
                 $fichiers[] = new Fichier($utilisateur, EtatFichier::Cree);
