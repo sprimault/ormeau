@@ -249,6 +249,9 @@ const (
 	CodeCasEnumerationOpaque = "cas_enumeration_opaque"
 	CodeTraitDeduit          = "trait_deduit"
 	CodeJointurePure         = "table_de_jointure"
+	// Une clé tirée d'une séquence dont le défaut ne nomme pas la séquence :
+	// l'identifiant reste à fournir par l'application.
+	CodeSequenceNonReconnue = "sequence_non_reconnue"
 	// Code conservé, sens inversé : il signalait un héritage appliqué, il
 	// signale désormais un héritage possible et non appliqué — l'entité est
 	// reliée à son parent par un-vers-un tant qu'aucune décision ne le déclare.

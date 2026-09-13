@@ -14,6 +14,7 @@ use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\ORM\Tools\SchemaValidator;
 use Ormeau\Doctrine\Calque\LecteurCalque;
+use Ormeau\Doctrine\Calque\StrategieIdentifiant;
 use Ormeau\Doctrine\Generation\Cible;
 use Ormeau\Doctrine\Generation\GenerateurEntite;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -67,8 +68,13 @@ final class MappingTest extends TestCase
             // Le validateur ne voit pas tout : Doctrine doit aussi savoir écrire
             // le DDL de l'ensemble, ce qui échoue sur une colonne de jointure
             // qui vise une colonne inexistante ou une table de jointure mal
-            // formée.
-            self::assertNotEmpty((new SchemaTool($gestionnaire))->getCreateSchemaSql($metadonnees));
+            // formée. SQLite n'a pas de séquence : une clé par séquence, rendue
+            // telle sous ORM 2, est contrôlée plus bas sur ses métadonnées, et
+            // son DDL relève de l'aller-retour contre PostgreSQL.
+            self::assertNotEmpty((new SchemaTool($gestionnaire))->getCreateSchemaSql(array_values(array_filter(
+                $metadonnees,
+                static fn(ClassMetadata $m): bool => !$m->isIdGeneratorSequence(),
+            ))));
 
             $ecartees = array_map(static fn($e): string => $e->nom, $rapport->ecartees);
             foreach ($calque->entites as $entite) {
@@ -80,6 +86,17 @@ final class MappingTest extends TestCase
                 $jointures = self::colonnesDeJointure($meta);
 
                 self::assertSame($entite->table->nom, $meta->getTableName(), $classe);
+                // Une clé par séquence : ORM 2 lit le nom de la séquence, ORM 3
+                // passe par IDENTITY, le générateur d'une classe de base
+                // mappée n'y étant pas repris.
+                if ($entite->identifiant?->strategie === StrategieIdentifiant::Sequence) {
+                    if ($cible->ormMajeure === 2) {
+                        self::assertTrue($meta->isIdGeneratorSequence(), $classe . ' : génération par séquence');
+                        self::assertSame($entite->identifiant->sequence, $meta->sequenceGeneratorDefinition['sequenceName'] ?? null, $classe . ' : nom de séquence');
+                    } else {
+                        self::assertTrue($meta->isIdGeneratorIdentity(), $classe . ' : génération par IDENTITY');
+                    }
+                }
                 self::assertSame($entite->commentaire, $meta->table['options']['comment'] ?? null, $classe . ' : commentaire de table');
 
                 // Une classe d'une hiérarchie décidée est jointe, hérite de son
@@ -313,6 +330,9 @@ final class MappingTest extends TestCase
     /**
      * Construit un gestionnaire d'entités sur les attributs du répertoire,
      * sans base : SQLite en mémoire ne sert qu'à fournir une plateforme.
+     *
+     * La plateforme PostgreSQL ne s'en passe pas : SchemaTool y lit
+     * current_schema() pour écrire le DDL, donc une vraie base.
      */
     private static function gestionnaire(string $repertoire): EntityManager
     {

@@ -14,6 +14,7 @@ use Ormeau\Doctrine\Calque\CalqueLogique;
 use Ormeau\Doctrine\Calque\Entite;
 use Ormeau\Doctrine\Calque\Enumeration;
 use Ormeau\Doctrine\Calque\Propriete;
+use Ormeau\Doctrine\Calque\StrategieIdentifiant;
 use RuntimeException;
 
 /**
@@ -163,7 +164,7 @@ final class GenerateurEntite
                     RenduEntite::nomBase($entite),
                     implode(', ', $doublons),
                 ),
-                default => $this->raisonDEcarter($entite, $refus) ?? $hierarchies->raison($entite),
+                default => $this->raisonDEcarter($entite, $refus, $cible) ?? $hierarchies->raison($entite),
             };
         }
         $raisons = $this->ecarterLesIdentitesEnChaine($calque->entites, $raisons);
@@ -223,13 +224,16 @@ final class GenerateurEntite
      *
      * Un nom qui ne s'écrit pas en PHP — classe, propriété, association — ou un
      * type qui ne se déclare pas écarte l'entité : recopié, il deviendrait du
-     * code dans le fichier produit.
+     * code dans le fichier produit. Un nom de séquence que Doctrine
+     * recopierait dans du SQL sans l'échapper l'écarte aussi, sous la cible
+     * qui le recopie.
      *
      * @param Entite                     $entite entité à examiner
      * @param array<string, string|null> $refus  raison du refus de chaque énumération (enum:Nom) et de
      *                                           chaque trait (trait:Nom), null quand il est écrit
+     * @param Cible                      $cible  version d'ORM visée
      */
-    private function raisonDEcarter(Entite $entite, array $refus): ?string
+    private function raisonDEcarter(Entite $entite, array $refus, Cible $cible): ?string
     {
         $raison = NomsPhp::raisonClasse($entite->nom);
         if ($raison !== null) {
@@ -237,6 +241,14 @@ final class GenerateurEntite
         }
         if ($entite->identifiant === null) {
             return 'la table n\'a pas de clé primaire, et Doctrine exige un identifiant';
+        }
+        // Sous ORM 2, la clé par séquence passe par NEXTVAL('<nom>'), que
+        // Doctrine écrit sans échapper le nom : une apostrophe y ferait une
+        // erreur SQL à chaque persist, ou une injection si le calque a été
+        // retouché. ORM 3 ne lit pas le nom (voir RenduMembres::propriete).
+        $sequence = $entite->identifiant->sequence;
+        if ($cible->ormMajeure === 2 && $entite->identifiant->strategie === StrategieIdentifiant::Sequence && $sequence !== null && str_contains($sequence, '\'')) {
+            return sprintf('la séquence %s porte une apostrophe, que Doctrine ORM 2 n\'échappe pas dans NEXTVAL : à renommer en base', $sequence);
         }
         $raison = self::refusProprietes($entite->proprietes);
         if ($raison !== null) {

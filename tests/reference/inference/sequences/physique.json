@@ -1,0 +1,235 @@
+{
+  "version_ri": 1,
+  "source": {
+    "sgbd": "postgres",
+    "version": "17.6",
+    "catalogue": "gescom",
+    "schema": "public",
+    "extrait_le": "2026-01-01T00:00:00Z",
+    "empreinte": "sha256:0000000000000000000000000000000000000000000000000000000000000017"
+  },
+  "tables": [
+    {
+      "nom": "avoir",
+      "schema": "gescom",
+      "commentaire": "serial hors du search_path de l'extraction : nom qualifié",
+      "colonnes": [
+        {
+          "nom": "id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false,
+          "defaut": {
+            "genre": "sequence",
+            "valeur": "nextval('gescom.avoir_id_seq'::regclass)"
+          }
+        },
+        {
+          "nom": "numero",
+          "position": 2,
+          "type_brut": "character varying(20)",
+          "type_normalise": "texte",
+          "longueur": 20,
+          "nullable": false
+        }
+      ],
+      "cle_primaire": {
+        "nom": "avoir_pkey",
+        "colonnes": ["id"]
+      }
+    },
+    {
+      "nom": "Majuscule",
+      "schema": "public",
+      "commentaire": "bigserial au nom en majuscules : PostgreSQL cite le nom de la séquence",
+      "colonnes": [
+        {
+          "nom": "Id",
+          "position": 1,
+          "type_brut": "bigint",
+          "type_normalise": "entier",
+          "nullable": false,
+          "defaut": {
+            "genre": "sequence",
+            "valeur": "nextval('\"Majuscule_Id_seq\"'::regclass)"
+          }
+        },
+        {
+          "nom": "numero",
+          "position": 2,
+          "type_brut": "character varying(20)",
+          "type_normalise": "texte",
+          "longueur": 20,
+          "nullable": false
+        }
+      ],
+      "cle_primaire": {
+        "nom": "Majuscule_pkey",
+        "colonnes": ["Id"]
+      }
+    },
+    {
+      "nom": "ancienne",
+      "schema": "public",
+      "commentaire": "forme restaurée d'une base antérieure à PostgreSQL 8.1",
+      "colonnes": [
+        {
+          "nom": "id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false,
+          "defaut": {
+            "genre": "sequence",
+            "valeur": "nextval(('ancienne_id_seq'::text)::regclass)"
+          }
+        },
+        {
+          "nom": "numero",
+          "position": 2,
+          "type_brut": "character varying(20)",
+          "type_normalise": "texte",
+          "longueur": 20,
+          "nullable": false
+        }
+      ],
+      "cle_primaire": {
+        "nom": "ancienne_pkey",
+        "colonnes": ["id"]
+      }
+    },
+    {
+      "nom": "apostrophe",
+      "schema": "public",
+      "commentaire": "séquence libre dont le nom porte une apostrophe, doublée dans le littéral",
+      "colonnes": [
+        {
+          "nom": "id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false,
+          "defaut": {
+            "genre": "sequence",
+            "valeur": "nextval('\"séq''bizarre\"'::regclass)"
+          }
+        },
+        {
+          "nom": "numero",
+          "position": 2,
+          "type_brut": "character varying(20)",
+          "type_normalise": "texte",
+          "longueur": 20,
+          "nullable": false
+        }
+      ],
+      "cle_primaire": {
+        "nom": "apostrophe_pkey",
+        "colonnes": ["id"]
+      }
+    },
+    {
+      "nom": "dynamique",
+      "schema": "public",
+      "commentaire": "séquence choisie à l'exécution : aucun nom à lire",
+      "colonnes": [
+        {
+          "nom": "id",
+          "position": 1,
+          "type_brut": "bigint",
+          "type_normalise": "entier",
+          "nullable": false,
+          "defaut": {
+            "genre": "sequence",
+            "valeur": "nextval((current_setting('app.seq'::text))::regclass)"
+          }
+        },
+        {
+          "nom": "numero",
+          "position": 2,
+          "type_brut": "character varying(20)",
+          "type_normalise": "texte",
+          "longueur": 20,
+          "nullable": false
+        }
+      ],
+      "cle_primaire": {
+        "nom": "dynamique_pkey",
+        "colonnes": ["id"]
+      }
+    },
+    {
+      "nom": "facture",
+      "schema": "public",
+      "commentaire": "serial dans le search_path de l'extraction : nom nu",
+      "colonnes": [
+        {
+          "nom": "id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false,
+          "defaut": {
+            "genre": "sequence",
+            "valeur": "nextval('facture_id_seq'::regclass)"
+          }
+        },
+        {
+          "nom": "numero",
+          "position": 2,
+          "type_brut": "character varying(20)",
+          "type_normalise": "texte",
+          "longueur": 20,
+          "nullable": false
+        }
+      ],
+      "cle_primaire": {
+        "nom": "facture_pkey",
+        "colonnes": ["id"]
+      }
+    }
+  ],
+  "sequences": [
+    {
+      "nom": "avoir_id_seq",
+      "schema": "gescom",
+      "increment": 1,
+      "minimum": 1,
+      "maximum": 2147483647,
+      "cyclique": false
+    },
+    {
+      "nom": "Majuscule_Id_seq",
+      "schema": "public",
+      "increment": 1,
+      "minimum": 1,
+      "maximum": 9223372036854775807,
+      "cyclique": false
+    },
+    {
+      "nom": "ancienne_id_seq",
+      "schema": "public",
+      "increment": 1,
+      "minimum": 1,
+      "maximum": 9223372036854775807,
+      "cyclique": false
+    },
+    {
+      "nom": "facture_id_seq",
+      "schema": "public",
+      "increment": 1,
+      "minimum": 1,
+      "maximum": 2147483647,
+      "cyclique": false
+    },
+    {
+      "nom": "séq'bizarre",
+      "schema": "public",
+      "increment": 1,
+      "minimum": 1,
+      "maximum": 9223372036854775807,
+      "cyclique": false
+    }
+  ]
+}

@@ -428,8 +428,22 @@ func inferrerIdentifiant(t *calque.Table, cible string, parColonne map[string]*c
 		case colonnePhysique.AutoIncrement:
 			identifiant.Strategie = calque.IdentifiantIdentite
 		case colonnePhysique.Defaut != nil && colonnePhysique.Defaut.Genre == calque.DefautSequence:
+			nom, lu := nomDeSequence(colonnePhysique.Defaut.Valeur)
+			if !lu {
+				// Laisser la stratégie sequence sans nom ferait choisir à
+				// Doctrine une séquence <table>_<colonne>_seq qui n'est
+				// peut-être pas celle-là.
+				avertissements = append(avertissements, calque.Avertissement{
+					Code:       calque.CodeSequenceNonReconnue,
+					Cible:      cible + "." + colonne,
+					Message:    "défaut « " + colonnePhysique.Defaut.Valeur + " » : aucun nom de séquence à lire, l'identifiant est laissé à l'application",
+					Resolution: calque.ResolutionParDefaut,
+					Confiance:  1,
+				})
+				continue
+			}
 			identifiant.Strategie = calque.IdentifiantSequence
-			identifiant.Sequence = colonnePhysique.Defaut.Valeur
+			identifiant.Sequence = nom
 		}
 	}
 

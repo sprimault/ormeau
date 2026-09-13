@@ -308,7 +308,13 @@ final class RenduMembres
         if ($identifiant !== null && in_array($propriete->nom, $identifiant->proprietes, true)) {
             $lignes[] = Emetteur::attribut('ORM\Id', [], $indentation);
             if ($generee) {
-                $sequence = $identifiant->strategie === StrategieIdentifiant::Sequence;
+                // La clé est dans une classe de base mappée. ORM 3 y ignore
+                // #[SequenceGenerator] et prend <table>_<colonne>_seq, mais son
+                // IDENTITY lit LASTVAL(), juste quel que soit le nom de la
+                // séquence. ORM 2 respecte le générateur, et son IDENTITY
+                // interroge currval sur le nom par défaut. Constaté sous
+                // ORM 2.14 et 3.6, contre PostgreSQL 17.
+                $sequence = $identifiant->strategie === StrategieIdentifiant::Sequence && $this->cible->ormMajeure === 2;
                 $lignes[] = Emetteur::attribut('ORM\GeneratedValue', ['strategy' => $sequence ? 'SEQUENCE' : 'IDENTITY'], $indentation);
                 if ($sequence && $identifiant->sequence !== null) {
                     $lignes[] = Emetteur::attribut('ORM\SequenceGenerator', ['sequenceName' => $identifiant->sequence], $indentation);

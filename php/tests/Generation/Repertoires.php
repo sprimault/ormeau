@@ -39,6 +39,7 @@ final class Repertoires
         'nommage-court',
         'prefixes',
         'relations-forcees',
+        'sequences',
         'singularisation',
         'traits',
         'types',

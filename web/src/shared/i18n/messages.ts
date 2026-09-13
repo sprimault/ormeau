@@ -326,6 +326,7 @@ const fr = {
   'warning.trait_deduit': 'Trait déduit',
   'warning.table_de_jointure': 'Table de jointure',
   'warning.heritage_deduit': 'Héritage possible',
+  'warning.sequence_non_reconnue': 'Séquence non reconnue',
 
   'error.network': 'Le serveur local ne répond pas.',
   'error.unknown': 'Échec inattendu.',
@@ -635,6 +636,7 @@ const en: Record<MessageKey, string> = {
   'warning.trait_deduit': 'Inferred trait',
   'warning.table_de_jointure': 'Join table',
   'warning.heritage_deduit': 'Possible inheritance',
+  'warning.sequence_non_reconnue': 'Unrecognized sequence',
 
   'error.network': 'The local server is not responding.',
   'error.unknown': 'Unexpected failure.',

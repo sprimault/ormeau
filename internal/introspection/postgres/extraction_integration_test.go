@@ -107,6 +107,20 @@ func TestExtraireLesCasTordus(t *testing.T) {
 		}
 	})
 
+	// L'expression reste verbatim : c'est l'inférence qui en lit le nom. Le
+	// schéma gescom n'étant pas dans le search_path de la session, le
+	// catalogue qualifie la séquence.
+	t.Run("serial", func(t *testing.T) {
+		c := colonneOuEchouer(t, p, "t_avoir", "avo_id")
+		if c.AutoIncrement {
+			t.Error("un serial n'est pas une colonne IDENTITY")
+		}
+		attendu := calque.Defaut{Genre: calque.DefautSequence, Valeur: "nextval('gescom.t_avoir_avo_id_seq'::regclass)"}
+		if c.Defaut == nil || *c.Defaut != attendu {
+			t.Errorf("defaut %+v, attendu %+v", c.Defaut, attendu)
+		}
+	})
+
 	t.Run("decimal garde precision et echelle", func(t *testing.T) {
 		c := colonneOuEchouer(t, p, "t_client", "cli_ca_ttc")
 		if c.TypeNormalise != calque.TypeDecimal {

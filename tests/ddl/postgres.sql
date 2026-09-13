@@ -83,6 +83,13 @@ CREATE TABLE t_facture (
     fac_total  numeric(12, 2) NOT NULL
 );
 
+-- Clé serial : la forme historique, un défaut nextval(...) sur une séquence
+-- et non une colonne IDENTITY. Le nom de séquence se lit dans l'expression.
+CREATE TABLE t_avoir (
+    avo_id     serial PRIMARY KEY,
+    avo_fac_id int NOT NULL
+);
+
 -- Type énuméré natif.
 CREATE TYPE canal AS ENUM ('web', 'telephone', 'agence');
 CREATE TABLE t_commande (

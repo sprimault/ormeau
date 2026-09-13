@@ -1,0 +1,44 @@
+<?php
+
+// Généré par Ormeau et réécrit à chaque génération : le code propre à Dynamique va dans Dynamique.php.
+
+declare(strict_types=1);
+
+namespace App\Entity\Base;
+
+use Doctrine\ORM\Mapping as ORM;
+
+#[ORM\MappedSuperclass]
+abstract class DynamiqueBase
+{
+    #[ORM\Id]
+    #[ORM\Column(name: 'id', type: 'bigint')]
+    protected string $id;
+
+    #[ORM\Column(name: 'numero', type: 'string', length: 20)]
+    protected string $numero;
+
+    public function getId(): string
+    {
+        return $this->id;
+    }
+
+    public function setId(string $id): static
+    {
+        $this->id = $id;
+
+        return $this;
+    }
+
+    public function getNumero(): string
+    {
+        return $this->numero;
+    }
+
+    public function setNumero(string $numero): static
+    {
+        $this->numero = $numero;
+
+        return $this;
+    }
+}

@@ -1,0 +1,12 @@
+créé Base/AvoirBase.php
+créé Avoir.php
+créé Base/MajusculeBase.php
+créé Majuscule.php
+créé Base/AncienneBase.php
+créé Ancienne.php
+créé Base/ApostropheBase.php
+créé Apostrophe.php
+créé Base/DynamiqueBase.php
+créé Dynamique.php
+créé Base/FactureBase.php
+créé Facture.php
