@@ -52,8 +52,8 @@ final class SchemaTest extends TestCase
     /**
      * Chaque champ d'un objet du schéma a sa propriété, et réciproquement.
      *
-     * @param list<string>          $cheminSchema clés à parcourir jusqu'à la définition
-     * @param class-string          $classe
+     * @param list<string> $cheminSchema clés à parcourir jusqu'à la définition
+     * @param class-string $classe       classe du modèle qui la représente
      */
     #[DataProvider('objets')]
     public function testLesChampsCorrespondent(array $cheminSchema, string $classe): void
@@ -100,8 +100,8 @@ final class SchemaTest extends TestCase
      * énumération PHP. Une valeur ajoutée d'un seul côté ferait refuser un
      * calque valide, ou accepter un calque que le binaire n'écrit pas.
      *
-     * @param list<string>              $cheminSchema
-     * @param class-string<BackedEnum> $vocabulaire
+     * @param list<string>             $cheminSchema clés à parcourir jusqu'à la propriété qui porte l'enum
+     * @param class-string<BackedEnum> $vocabulaire  énumération PHP qui doit en avoir les valeurs
      */
     #[DataProvider('vocabulaires')]
     public function testLesVocabulairesCorrespondent(array $cheminSchema, string $vocabulaire): void
@@ -135,7 +135,7 @@ final class SchemaTest extends TestCase
     /**
      * Rend la définition désignée par un chemin de clés dans le schéma.
      *
-     * @param list<string> $chemin
+     * @param list<string> $chemin clés à parcourir depuis la racine du schéma
      *
      * @return array<mixed>
      */

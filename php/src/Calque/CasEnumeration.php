@@ -32,7 +32,7 @@ final class CasEnumeration
      * La valeur est lue à part : c'est le seul champ du format qui admet deux
      * types, et Lecture n'en connaît qu'un par méthode.
      *
-     * @param array<mixed> $donnees
+     * @param array<mixed> $donnees objet JSON décodé du cas
      * @param string       $chemin  chemin de l'objet dans le calque, pour les messages
      *
      * @throws CalqueInvalide nom absent, valeur absente ou ni chaîne ni entier

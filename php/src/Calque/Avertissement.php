@@ -38,7 +38,7 @@ final class Avertissement
     /**
      * Construit l'avertissement depuis le JSON décodé.
      *
-     * @param array<mixed> $donnees
+     * @param array<mixed> $donnees objet JSON décodé de l'avertissement
      * @param string       $chemin  chemin de l'objet dans le calque, pour les messages
      *
      * @throws CalqueInvalide champ requis absent, résolution hors vocabulaire

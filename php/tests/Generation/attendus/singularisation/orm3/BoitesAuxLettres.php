@@ -1,0 +1,12 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Entity;
+
+use App\Entity\Base\BoitesAuxLettresBase;
+use Doctrine\ORM\Mapping as ORM;
+
+#[ORM\Entity]
+#[ORM\Table(name: 'boites_aux_lettres')]
+class BoitesAuxLettres extends BoitesAuxLettresBase {}

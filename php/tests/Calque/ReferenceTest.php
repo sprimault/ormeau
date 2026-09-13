@@ -76,7 +76,7 @@ final class ReferenceTest extends TestCase
     /**
      * Rend la liste d'un champ du JSON brut, vide quand il est absent.
      *
-     * @param array<mixed> $donnees
+     * @param array<mixed> $donnees objet du JSON brut qui porte la liste
      *
      * @return array<mixed>
      */

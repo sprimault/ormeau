@@ -257,13 +257,16 @@ pièce jointe d'une issue.
 ## État d'avancement
 
 L'extraction PostgreSQL et l'inférence fonctionnent : `ormeau extraire` puis
-`ormeau inferer` produisent les trois fichiers. La génération d'entités n'est
-pas écrite, et sa commande le dit.
+`ormeau inferer` produisent les trois fichiers. La génération d'entités est en
+cours : `bin/console ormeau:generer` écrit les entités qui n'ont ni association,
+ni énumération, ni trait, ni héritage, et écarte les autres en le disant.
 L'état par phase est dans [`ROADMAP.md`](ROADMAP.md).
 
 La CI exécute la suite de tests avec le détecteur de courses, `golangci-lint`,
 `gofmt`, `govulncheck`, `gosec` et un contrôle de validité des JSON Schema à
-chaque push et chaque pull request.
+chaque push et chaque pull request. Le paquet PHP y passe PHPUnit, PHPStan et
+PHP-CS-Fixer, et ses tests tournent sous quatre combinaisons de PHP, Symfony et
+Doctrine ORM, de PHP 8.1 avec Symfony 5.4 à PHP 8.4 avec Symfony 8.
 
 ## Pour aller plus loin
 

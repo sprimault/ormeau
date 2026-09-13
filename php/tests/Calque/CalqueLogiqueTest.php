@@ -276,8 +276,8 @@ final class CalqueLogiqueTest extends TestCase
     /**
      * Rend une copie des données sans le champ désigné par un chemin de clés.
      *
-     * @param array<mixed>     $donnees
-     * @param list<string|int> $chemin
+     * @param array<mixed>     $donnees calque de départ, laissé intact
+     * @param list<string|int> $chemin  clés à parcourir jusqu'au champ à retirer
      *
      * @return array<mixed>
      */

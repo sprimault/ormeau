@@ -66,7 +66,7 @@ final class Propriete
      * ne les écrit que pour les colonnes qui s'écartent du défaut, sans quoi
      * chaque régénération du calque grossirait le diff.
      *
-     * @param array<mixed> $donnees
+     * @param array<mixed> $donnees objet JSON décodé de la propriété
      * @param string       $chemin  chemin de l'objet dans le calque, pour les messages
      *
      * @throws CalqueInvalide champ requis absent, champ du mauvais type, origine hors vocabulaire

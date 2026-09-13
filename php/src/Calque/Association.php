@@ -52,7 +52,7 @@ final class Association
     /**
      * Construit l'association depuis le JSON décodé.
      *
-     * @param array<mixed> $donnees
+     * @param array<mixed> $donnees objet JSON décodé de l'association
      * @param string       $chemin  chemin de l'objet dans le calque, pour les messages
      *
      * @throws CalqueInvalide champ requis absent, genre ou origine hors vocabulaire

@@ -51,7 +51,7 @@ final class CalqueLogique
      * légitime. Le premier champ invalide arrête la lecture, avec son chemin
      * dans le message.
      *
-     * @param array<mixed> $donnees
+     * @param array<mixed> $donnees document JSON décodé, objet racine du calque
      *
      * @throws CalqueInvalide champ requis absent, du mauvais type, ou hors vocabulaire
      */

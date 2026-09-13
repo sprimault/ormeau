@@ -16,6 +16,8 @@
             <directory>tests</directory>
             <!-- Fixtures porte un noyau Symfony, pas des cas de test. -->
             <exclude>tests/Fixtures</exclude>
+            <!-- Entités attendues : du code produit, pas des tests. -->
+            <exclude>tests/Generation/attendus</exclude>
         </testsuite>
     </testsuites>
 
