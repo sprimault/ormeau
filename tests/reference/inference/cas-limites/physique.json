@@ -77,7 +77,7 @@
           "nullable": false,
           "defaut": {
             "genre": "sequence",
-            "valeur": "facture_id_seq"
+            "valeur": "nextval('facture_id_seq'::regclass)"
           }
         },
         {

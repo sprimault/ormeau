@@ -1,0 +1,11 @@
+créé Base/AvoirBase.php
+créé Avoir.php
+créé Base/MajusculeBase.php
+créé Majuscule.php
+créé Base/AncienneBase.php
+créé Ancienne.php
+créé Base/DynamiqueBase.php
+créé Dynamique.php
+créé Base/FactureBase.php
+créé Facture.php
+écartée Apostrophe : la séquence "séq'bizarre" porte une apostrophe, que Doctrine ORM 2 n'échappe pas dans NEXTVAL : à renommer en base

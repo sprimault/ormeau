@@ -1,0 +1,225 @@
+{
+  "version_ri": 1,
+  "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000017",
+  "espace_de_noms": "App\\Entity",
+  "entites": [
+    {
+      "nom": "Avoir",
+      "table": {
+        "nom": "avoir",
+        "schema": "gescom"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "sequence",
+        "sequence": "gescom.avoir_id_seq"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "numero",
+          "colonne": "numero",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 20,
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "serial hors du search_path de l'extraction : nom qualifié",
+      "origine": "nommage"
+    },
+    {
+      "nom": "Majuscule",
+      "table": {
+        "nom": "Majuscule",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "sequence",
+        "sequence": "\"Majuscule_Id_seq\""
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "Id",
+          "type_php": "int",
+          "type_doctrine": "bigint",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "numero",
+          "colonne": "numero",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 20,
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "bigserial au nom en majuscules : PostgreSQL cite le nom de la séquence",
+      "origine": "nommage"
+    },
+    {
+      "nom": "Ancienne",
+      "table": {
+        "nom": "ancienne",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "sequence",
+        "sequence": "ancienne_id_seq"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "numero",
+          "colonne": "numero",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 20,
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "forme restaurée d'une base antérieure à PostgreSQL 8.1",
+      "origine": "nommage"
+    },
+    {
+      "nom": "Apostrophe",
+      "table": {
+        "nom": "apostrophe",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "sequence",
+        "sequence": "\"séq'bizarre\""
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "numero",
+          "colonne": "numero",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 20,
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "séquence libre dont le nom porte une apostrophe, doublée dans le littéral",
+      "origine": "nommage"
+    },
+    {
+      "nom": "Dynamique",
+      "table": {
+        "nom": "dynamique",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "assignee"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "bigint",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "numero",
+          "colonne": "numero",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 20,
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "séquence choisie à l'exécution : aucun nom à lire",
+      "origine": "nommage"
+    },
+    {
+      "nom": "Facture",
+      "table": {
+        "nom": "facture",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "sequence",
+        "sequence": "facture_id_seq"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "numero",
+          "colonne": "numero",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 20,
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "serial dans le search_path de l'extraction : nom nu",
+      "origine": "nommage"
+    }
+  ],
+  "avertissements": [
+    {
+      "code": "sequence_non_reconnue",
+      "cible": "public.dynamique.id",
+      "message": "défaut « nextval((current_setting('app.seq'::text))::regclass) » : aucun nom de séquence à lire, l'identifiant est laissé à l'application",
+      "resolution": "par_defaut",
+      "confiance": 1
+    }
+  ]
+}
