@@ -33,8 +33,9 @@ import {
  * n'échoue quand le Go en ajoute un sans sa traduction, ni tsc ni le contrôle
  * des types générés. Ces listes sont ce qui le fait échouer.
  *
- * Trois listes et non un balayage des exports `Code*` : calque.ts porte aussi
- * les codes d'avertissement, qui se traduisent sous un autre préfixe.
+ * Des listes et non un balayage des exports `Code*` : calque.ts porte aussi
+ * les codes d'avertissement, qui se traduisent sous un autre préfixe. Les étapes
+ * d'extraction, elles, se balaient : voir shared/model/__tests__/etapes.test.ts.
  */
 describe('libellés de l’extraction', () => {
   it('traduit chaque code d’anomalie du calque', () => {
@@ -68,23 +69,4 @@ describe('libellés de l’extraction', () => {
     }
   });
 
-  it('traduit chaque étape d’extraction', () => {
-    // Recopiées de internal/introspection/suivi.go, faute de types générés :
-    // tygo émettrait avec elles Suivi et Passe, qui n'ont rien à faire côté
-    // front. Une passe ajoutée là-bas s'ajoute ici.
-    const etapes = [
-      'source',
-      'tables',
-      'colonnes',
-      'contraintes',
-      'index',
-      'sequences',
-      'types_enumeres',
-      'vues',
-    ];
-
-    for (const etape of etapes) {
-      expect(estCle(`extraction.step.${etape}`), etape).toBe(true);
-    }
-  });
 });
