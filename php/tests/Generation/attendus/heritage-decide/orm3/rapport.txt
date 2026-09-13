@@ -1,0 +1,10 @@
+créé Base/PersonneBase.php
+créé Personne.php
+créé Base/SalarieBase.php
+créé Salarie.php
+créé Base/PrestataireBase.php
+créé Prestataire.php
+créé Base/AdresseBase.php
+créé Adresse.php
+créé Base/AffectationBase.php
+créé Affectation.php

@@ -27,10 +27,11 @@ use RuntimeException;
  *    les attributs qui ont bougé, en conservant méthodes métier et formatage.
  *    Phase « Régénération par AST » de la feuille de route.
  *
- * Une entité se génère entière ou pas du tout. Ce que ce générateur ne sait pas
- * encore traduire — l'héritage — écarte l'entité avec sa raison, et l'écart se
- * propage à celles qui la visent : une entité privée d'une association perdrait
- * sa colonne de jointure, et Doctrine la chargerait sans rien dire.
+ * Une entité se génère entière ou pas du tout. Ce que Doctrine ne sait pas
+ * représenter écarte l'entité avec sa raison, et l'écart se propage à celles
+ * qui la visent — une entité privée d'une association perdrait sa colonne de
+ * jointure, et Doctrine la chargerait sans rien dire — comme à toute sa
+ * hiérarchie d'héritage.
  */
 final class GenerateurEntite
 {
@@ -139,29 +140,38 @@ final class GenerateurEntite
         // fichiers de Windows et macOS ignorent la casse.
         $occurrences = array_count_values(array_map(static fn(Entite $e): string => strtolower($e->nom), $calque->entites));
 
+        $hierarchies = new Hierarchies($calque->entites);
         $raisons = [];
         foreach ($calque->entites as $rang => $entite) {
             $raisons[$rang] = $occurrences[strtolower($entite->nom)] > 1
                 ? sprintf('le nom %s est porté par plusieurs entités, à départager dans renommages', $entite->nom)
-                : $this->raisonDEcarter($entite, $refus);
+                : $this->raisonDEcarter($entite, $refus) ?? $hierarchies->raison($entite);
         }
         $raisons = $this->ecarterLesIdentitesEnChaine($calque->entites, $raisons);
-        $raisons = $this->propagerLesEcarts($calque->entites, $raisons);
+        $raisons = $this->propagerLesEcarts($calque->entites, $raisons, $hierarchies);
 
         $omises = [];
+        $generees = [];
         foreach ($calque->entites as $rang => $entite) {
             if ($raisons[$rang] !== null) {
                 $ecartees[] = new EntiteEcartee($entite->nom, $raisons[$rang]);
                 continue;
             }
-            $entite = $this->sansCotesInversesOrphelins($entite, $calque->entites, $raisons, $omises);
+            $generees[] = $this->sansCotesInversesOrphelins($entite, $calque->entites, $raisons, $omises);
+        }
 
+        // Les hiérarchies se relisent sur les entités retenues : une classe
+        // fille appelle le constructeur de son parent selon les collections
+        // qui lui restent, côtés inverses omis déduits.
+        $hierarchies = new Hierarchies($generees);
+        foreach ($generees as $entite) {
             $base = $repertoire . '/Base/' . RenduEntite::nomBase($entite) . '.php';
-            $fichiers[] = new Fichier($base, $this->ecrire($base, $rendu->classeBase($entite)));
+            $fichiers[] = new Fichier($base, $this->ecrire($base, $rendu->classeBase($entite, $hierarchies)));
 
+            $racine = $hierarchies->racineHeritage($entite, $calque->espaceDeNoms);
             $utilisateur = $repertoire . '/' . $entite->nom . '.php';
             if (!is_file($utilisateur)) {
-                $this->ecrire($utilisateur, $rendu->classeUtilisateur($entite));
+                $this->ecrire($utilisateur, $rendu->classeUtilisateur($entite, $racine));
                 $fichiers[] = new Fichier($utilisateur, EtatFichier::Cree);
                 continue;
             }
@@ -177,6 +187,7 @@ final class GenerateurEntite
                 $entite->nom,
                 $rendu->classeBaseQualifiee($entite),
                 $rendu->argumentsTable($entite),
+                $racine,
             ));
         }
 
@@ -188,8 +199,8 @@ final class GenerateurEntite
      * peut.
      *
      * Les raisons nomment ce que l'utilisateur peut faire : une table sans clé
-     * se résout par une décision, un nom réservé par un renommage ; le reste
-     * attend une version du générateur.
+     * se résout par une décision, un nom réservé par un renommage. Ce qui
+     * tient à une hiérarchie d'héritage est dit par Hierarchies::raison().
      *
      * @param Entite                     $entite entité à examiner
      * @param array<string, string|null> $refus  raison du refus de chaque énumération (enum:Nom) et de
@@ -225,7 +236,7 @@ final class GenerateurEntite
             }
         }
 
-        return $entite->heritage !== null ? 'pas encore générées par ce paquet : héritage' : null;
+        return null;
     }
 
     /**
@@ -360,22 +371,26 @@ final class GenerateurEntite
 
     /**
      * Écarte toute entité dont une association propriétaire vise une entité
-     * écartée ou absente du calque, jusqu'à ce que plus rien ne bouge.
+     * écartée ou absente du calque, ou dont la hiérarchie compte une entité
+     * écartée, jusqu'à ce que plus rien ne bouge.
      *
      * Une classe de base qui importe une classe jamais écrite ne se charge
      * pas, et l'écart se propage : une entité qui vise Affectation, écartée
-     * pour son identité en chaîne, l'est à son tour. Chaque entité écartée a sa
-     * propre raison : elle nomme l'association, la cible et sa table, et la
-     * cause première se lit sur la ligne de la cible. Une entité absente sans
-     * explication ferait douter de l'outil entier.
+     * pour son identité en chaîne, l'est à son tour. Une hiérarchie se génère
+     * entière ou pas du tout, la carte de sa racine citant chaque classe.
+     * Chaque entité écartée a sa propre raison : elle nomme l'association ou
+     * la hiérarchie, la cible et sa table, et la cause première se lit sur la
+     * ligne de la cible. Une entité absente sans explication ferait douter de
+     * l'outil entier.
      *
-     * @param list<Entite>             $entites entités du calque, dans son ordre
-     * @param array<int, string|null> $raisons raison d'écarter chaque entité, par rang ; null
-     *                                          pour une entité générée
+     * @param list<Entite>             $entites     entités du calque, dans son ordre
+     * @param array<int, string|null> $raisons     raison d'écarter chaque entité, par rang ; null
+     *                                              pour une entité générée
+     * @param Hierarchies              $hierarchies hiérarchies d'héritage du calque
      *
      * @return array<int, string|null> les mêmes raisons, écarts propagés compris
      */
-    private function propagerLesEcarts(array $entites, array $raisons): array
+    private function propagerLesEcarts(array $entites, array $raisons, Hierarchies $hierarchies): array
     {
         $rangs = [];
         foreach ($entites as $rang => $entite) {
@@ -387,6 +402,15 @@ final class GenerateurEntite
             foreach ($entites as $rang => $entite) {
                 if ($raisons[$rang] !== null) {
                     continue;
+                }
+                $racine = $hierarchies->racine($entite);
+                foreach ($racine === null ? [] : $hierarchies->membres($racine) as $membre) {
+                    $rangMembre = array_search($membre, $entites, true);
+                    if ($rangMembre !== false && $raisons[$rangMembre] !== null) {
+                        $raisons[$rang] = sprintf('même hiérarchie que %s (%s), écartée', $membre->nom, self::table($membre));
+                        $stable = false;
+                        continue 2;
+                    }
                 }
                 foreach ($entite->associations as $association) {
                     // Un côté inverse ne porte aucune colonne : il est omis

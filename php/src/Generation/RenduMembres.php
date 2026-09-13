@@ -224,9 +224,10 @@ final class RenduMembres
     }
 
     /**
-     * Dit si une association porte une collection plutôt qu'un objet.
+     * Dit si une association porte une collection plutôt qu'un objet, et
+     * demande donc une initialisation dans le constructeur.
      */
-    private static function estCollection(Association $association): bool
+    public static function estCollection(Association $association): bool
     {
         return in_array($association->genre, [GenreAssociation::UnVersPlusieurs, GenreAssociation::PlusieursVersPlusieurs], true);
     }

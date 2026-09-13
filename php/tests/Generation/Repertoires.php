@@ -32,6 +32,7 @@ final class Repertoires
         'enumerations',
         'enumerations-decidees',
         'heritage',
+        'heritage-decide',
         'identifiants-penibles',
         'minimal',
         'nommage-court',

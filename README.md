@@ -255,9 +255,9 @@ nor an issue attachment.
 PostgreSQL extraction and inference both work: `ormeau extraire` then `ormeau
 inferer` produce the three files. Entity generation is under way:
 `bin/console ormeau:generer` writes the entities, their associations,
-enumerations and traits, and skips what Doctrine cannot represent, saying so;
-inheritance declared in the decisions file is still to be generated. The state
-per phase is in [`ROADMAP.md`](ROADMAP.md).
+enumerations and traits, and the inheritance declared in the decisions file,
+and skips what Doctrine cannot represent, saying so. The state per phase is in
+[`ROADMAP.md`](ROADMAP.md).
 
 CI runs the test suite with the race detector, `golangci-lint`, `gofmt`,
 `govulncheck`, `gosec` and a JSON Schema validity check on every push and pull

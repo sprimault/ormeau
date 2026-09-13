@@ -79,12 +79,19 @@ sans changer de nom.** `version_ri` ne bouge pas.
   la table racine), et le prérempli propose chaque hiérarchie que le schéma
   autorise, avec sa colonne candidate ou l'indication qu'aucune ne s'y prête.
   Une décision s'applique entière ou pas du tout, racine par racine.
+- **L'héritage déclaré est généré**, en héritage joint : la classe de la racine
+  porte la stratégie, la colonne discriminante et la carte des classes, et la
+  classe de base d'une classe fille hérite de son parent. La colonne
+  discriminante n'est pas une propriété, Doctrine refusant de la mapper deux
+  fois. Une racine déjà générée n'est pas modifiée : chaque attribut qui lui
+  manque est signalé en entier, prêt à recopier.
 - **Ce qui ne se génère pas entier est écarté, en le disant** : une table sans
   clé primaire, un nom réservé de PHP, deux entités de même nom, une entité
   dont une association propriétaire vise une entité écartée, une identité
-  dérivée en chaîne — que Doctrine refuse —, et pour l'instant les entités
-  d'un héritage déclaré. Un côté inverse vers une entité écartée est omis, et
-  l'omission figure dans le compte rendu.
+  dérivée en chaîne — que Doctrine refuse —, et une hiérarchie dont une table
+  fille ne nomme pas sa clé comme la racine, Doctrine joignant par ces noms.
+  Un côté inverse vers une entité écartée est omis, et l'omission figure dans
+  le compte rendu.
 
 ### Modifié
 
@@ -164,12 +171,18 @@ meaning without changing name.** `version_ri` stays put.
   table), and the pre-filled file proposes every hierarchy the schema allows,
   with its candidate column or a note that none fits. A decision applies whole
   or not at all, root by root.
+- **Declared inheritance is generated**, as joined inheritance: the root class
+  holds the strategy, the discriminator column and the class map, and a child
+  class's base class extends its parent. The discriminator column is not a
+  property, since Doctrine refuses to map it twice. A root generated earlier is
+  not modified: each attribute it lacks is reported in full, ready to copy.
 - **What cannot be generated whole is skipped, saying so**: a table without a
   primary key, a PHP reserved name, two entities with the same name, an entity
   whose owning association points at a skipped one, a chained derived identity
-  — which Doctrine rejects —, and for now the entities of a declared
-  inheritance. An inverse side pointing at a skipped entity is left out, and
-  the report says so.
+  — which Doctrine rejects —, and a hierarchy in which a child table names its
+  key differently from the root, since Doctrine joins on those names. An
+  inverse side pointing at a skipped entity is left out, and the report says
+  so.
 
 ### Changed
 

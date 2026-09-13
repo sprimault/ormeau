@@ -199,6 +199,101 @@ final class GenerateurEntiteTest extends TestCase
     }
 
     /**
+     * Une table fille dont la clé ne porte pas le nom de celle de la racine
+     * écarte toute la hiérarchie : Doctrine joint par les noms de la racine,
+     * et la carte de la racine citerait une classe absente. La raison nomme
+     * les colonnes et la sortie ; l'entité qui vise la classe fille a la sienne.
+     */
+    public function testEcarteUneHierarchieDontLaCleDUneFillePorteUnAutreNom(): void
+    {
+        $sortie = Repertoires::creer();
+        try {
+            $rapport = (new GenerateurEntite())->generer(self::calque([
+                self::entite('Personne', ['valeur_discriminante' => 'P', 'proprietes' => [self::propriete('id', 'integer'), self::propriete('nature', 'string')]]),
+                self::entite('Salarie', [
+                    'heritage' => self::heritage('Personne'),
+                    'valeur_discriminante' => 'S',
+                    'identifiant' => ['proprietes' => ['personneId'], 'strategie' => 'assignee'],
+                    'proprietes' => [self::propriete('personneId', 'integer', ['colonne' => 'personne_id'])],
+                ]),
+                self::entite('Contrat', ['associations' => [self::jointure('salarie', 'plusieurs_vers_un', 'Salarie', 'salarie_id')]]),
+            ]), $sortie, Cible::forcer(3));
+
+            self::assertSame([
+                'Personne' => 'même hiérarchie que Salarie (public.salarie), écartée',
+                'Salarie' => 'Doctrine joint public.salarie à public.personne par les colonnes de clé de la racine (id), '
+                    . 'que public.salarie nomme personne_id. Retirer public.salarie des valeurs de heritages',
+                'Contrat' => 'l\'association salarie vise Salarie (public.salarie), écartée',
+            ], array_column(array_map(static fn($e): array => [$e->nom, $e->raison], $rapport->ecartees), 1, 0));
+            self::assertSame([], Repertoires::lire($sortie));
+        } finally {
+            Repertoires::supprimer($sortie);
+        }
+    }
+
+    /**
+     * Ce qu'aucune inférence ne produit mais qu'un calque écrit à la main peut
+     * contenir — table unique, valeur manquante, parent absent — écarte la
+     * hiérarchie plutôt que d'écrire une carte fausse.
+     */
+    public function testEcarteUnHeritageQueLeCalqueNeDecritPasEntier(): void
+    {
+        $sortie = Repertoires::creer();
+        try {
+            $rapport = (new GenerateurEntite())->generer(self::calque([
+                self::entite('Vehicule', ['valeur_discriminante' => 'V']),
+                self::entite('Voiture', ['heritage' => ['strategie' => 'table_unique', 'parent' => 'Vehicule', 'colonne_discriminante' => 'genre'], 'valeur_discriminante' => 'C']),
+                self::entite('Animal', ['valeur_discriminante' => 'A']),
+                self::entite('Chien', ['heritage' => self::heritage('Animal')]),
+                self::entite('Rose', ['heritage' => self::heritage('Plante'), 'valeur_discriminante' => 'R']),
+            ]), $sortie, Cible::forcer(3));
+
+            self::assertSame([
+                'Vehicule' => 'même hiérarchie que Voiture (public.voiture), écartée',
+                'Voiture' => 'héritage en table unique, que ni l\'inférence ni les décisions ne produisent : ce paquet ne le génère pas',
+                'Animal' => 'même hiérarchie que Chien (public.chien), écartée',
+                'Chien' => 'la hiérarchie de Animal est incomplète : colonne discriminante ou valeur de Chien absente du calque',
+                'Rose' => 'le parent Plante est absent du calque',
+            ], array_column(array_map(static fn($e): array => [$e->nom, $e->raison], $rapport->ecartees), 1, 0));
+        } finally {
+            Repertoires::supprimer($sortie);
+        }
+    }
+
+    /**
+     * Une colonne discriminante retirée des propriétés par colonnes_ignorees
+     * reste déclarée sur la racine, sans le type ni la longueur qu'aucune
+     * propriété ne donne plus : Doctrine prend alors ses défauts.
+     */
+    public function testUneColonneDiscriminanteSansProprieteResteDeclaree(): void
+    {
+        $sortie = Repertoires::creer();
+        try {
+            (new GenerateurEntite())->generer(self::calque([
+                self::entite('Personne', ['valeur_discriminante' => 'P']),
+                self::entite('Salarie', ['heritage' => self::heritage('Personne'), 'valeur_discriminante' => 'S', 'identifiant' => ['proprietes' => ['id'], 'strategie' => 'assignee']]),
+            ]), $sortie, Cible::forcer(3));
+
+            self::assertStringContainsString(
+                "#[ORM\\DiscriminatorColumn(name: 'nature')]\n",
+                Repertoires::lire($sortie)['Personne.php'] ?? '',
+            );
+        } finally {
+            Repertoires::supprimer($sortie);
+        }
+    }
+
+    /**
+     * Un héritage joint décidé, sur la colonne discriminante nature.
+     *
+     * @return array<string, string>
+     */
+    private static function heritage(string $parent): array
+    {
+        return ['strategie' => 'jointe', 'parent' => $parent, 'colonne_discriminante' => 'nature', 'origine' => 'decision'];
+    }
+
+    /**
      * Une association propriétaire sur une colonne de jointure vers l'id de sa
      * cible.
      *
