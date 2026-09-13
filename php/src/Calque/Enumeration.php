@@ -36,7 +36,7 @@ final class Enumeration
      * Une énumération sans cas est refusée : PHP la compilerait, mais aucune
      * valeur lue en base ne pourrait s'y hydrater.
      *
-     * @param array<mixed> $donnees
+     * @param array<mixed> $donnees objet JSON décodé de l'énumération
      * @param string       $chemin  chemin de l'objet dans le calque, pour les messages
      *
      * @throws CalqueInvalide champ requis absent, aucun cas, type ou origine hors vocabulaire

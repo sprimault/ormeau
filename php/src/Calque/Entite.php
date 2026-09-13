@@ -49,7 +49,7 @@ final class Entite
      * les champs vides, et la génération itère dessus sans avoir à s'en
      * méfier.
      *
-     * @param array<mixed> $donnees
+     * @param array<mixed> $donnees objet JSON décodé de l'entité
      * @param string       $chemin  chemin de l'objet dans le calque, pour les messages
      *
      * @throws CalqueInvalide champ requis absent, élément imbriqué invalide

@@ -35,7 +35,7 @@ final class TableJointure
      * Construit la table de jointure depuis le JSON décodé. Les deux listes
      * sont requises, même vides : le format les écrit toujours.
      *
-     * @param array<mixed> $donnees
+     * @param array<mixed> $donnees objet JSON décodé de la table de jointure
      * @param string       $chemin  chemin de l'objet dans le calque, pour les messages
      *
      * @throws CalqueInvalide champ requis absent, appariement invalide

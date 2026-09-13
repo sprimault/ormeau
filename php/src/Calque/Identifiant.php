@@ -36,7 +36,7 @@ final class Identifiant
      * une entité sans identifiant se dit par l'absence de l'objet, pas par une
      * liste vide.
      *
-     * @param array<mixed> $donnees
+     * @param array<mixed> $donnees objet JSON décodé de l'identifiant
      * @param string       $chemin  chemin de l'objet dans le calque, pour les messages
      *
      * @throws CalqueInvalide propriétés absentes ou vides, stratégie hors vocabulaire

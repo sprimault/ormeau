@@ -1,0 +1,6 @@
+créé Base/TClientsBase.php
+créé TClients.php
+créé Base/TCommandesBase.php
+créé TCommandes.php
+créé Base/TPaysBase.php
+créé TPays.php

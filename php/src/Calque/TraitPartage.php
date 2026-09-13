@@ -33,7 +33,7 @@ final class TraitPartage
     /**
      * Construit le trait depuis le JSON décodé.
      *
-     * @param array<mixed> $donnees
+     * @param array<mixed> $donnees objet JSON décodé du trait
      * @param string       $chemin  chemin de l'objet dans le calque, pour les messages
      *
      * @throws CalqueInvalide nom ou propriétés absents, propriété invalide

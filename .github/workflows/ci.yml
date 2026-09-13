@@ -232,6 +232,12 @@ jobs:
       - name: Style
         run: vendor/bin/php-cs-fixer fix --dry-run --diff
 
+      # Les entités attendues sont exclues du style du paquet, mais le code
+      # produit doit se lire comme du code écrit à la main : il suit PER-CS,
+      # comme on l'attend d'un développeur.
+      - name: Style du code produit
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff --rules=@PER-CS2.0 --using-cache=no tests/Generation/attendus
+
       - name: Vulnérabilités des dépendances
         run: composer audit
 

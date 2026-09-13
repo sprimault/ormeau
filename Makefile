@@ -225,8 +225,13 @@ php-test:
 # composer audit interroge la base d'avis en direct : un lint vert le matin
 # peut être rouge l'après-midi sur le même lock. C'est voulu, une faille
 # n'attend pas la prochaine contribution.
+#
+# Le code produit a son propre contrôle : exclu du style du paquet, il doit
+# suivre PER-CS comme du code écrit à la main.
 php-lint:
-	cd php && composer analyse && vendor/bin/php-cs-fixer fix --dry-run --diff && composer audit
+	cd php && composer analyse && vendor/bin/php-cs-fixer fix --dry-run --diff \
+		&& vendor/bin/php-cs-fixer fix --dry-run --diff --rules=@PER-CS2.0 --using-cache=no tests/Generation/attendus \
+		&& composer audit
 
 # ── SGBD de test ────────────────────────────────────────────────────
 containers:

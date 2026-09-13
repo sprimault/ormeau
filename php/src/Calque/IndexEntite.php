@@ -33,7 +33,7 @@ final class IndexEntite
      * Construit l'index depuis le JSON décodé. Un index sans colonne est
      * refusé.
      *
-     * @param array<mixed> $donnees
+     * @param array<mixed> $donnees objet JSON décodé de l'index
      * @param string       $chemin  chemin de l'objet dans le calque, pour les messages
      *
      * @throws CalqueInvalide colonnes absentes ou vides, unicité absente

@@ -1,0 +1,5 @@
+créé Base/LigneCommandeBase.php
+créé LigneCommande.php
+écartée Journal : la table n'a pas de clé primaire, et Doctrine exige un identifiant
+écartée Facture : le nom Facture est porté par plusieurs entités, à départager dans renommages
+écartée Facture : le nom Facture est porté par plusieurs entités, à départager dans renommages

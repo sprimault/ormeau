@@ -36,6 +36,22 @@ préambule reste en français : il n'est jamais publié.
 
 ## [Non publié]
 
+### Ajouté
+
+- **`bin/console ormeau:generer` écrit des entités Doctrine**, en mode classe de
+  base : `Base/ClientBase.php` porte les propriétés, l'identifiant, les index et
+  les accesseurs, et se réécrit à chaque passage ; `Client.php` porte l'entité
+  et sa table, est créé une fois et n'est plus jamais modifié. Quand il ne
+  correspond plus au calque — une table renommée —, la commande nomme le
+  fichier, la ligne et la valeur attendue.
+- **La commande annonce la version de Doctrine ORM visée** en première ligne, et
+  `--cible-orm=2` ou `3` la force. Le type PHP d'une colonne en dépend : un
+  `bigint` est une chaîne sous ORM 2, un entier sous ORM 3.
+- **Ce qui ne se génère pas entier est écarté, en le disant** : une table sans
+  clé primaire, un nom réservé de PHP, deux entités de même nom, et pour
+  l'instant les entités qui portent des associations, des énumérations, des
+  traits ou un héritage.
+
 ### Modifié
 
 - **Le paquet PHP s'installe sur PHP 8.1, Symfony 5.4 à 8 et Doctrine ORM 2.14
@@ -67,11 +83,27 @@ préambule reste en français : il n'est jamais publié.
 
 - **`type_php` du calque logique** reste dans le format jusqu'à sa prochaine
   version, mais ne vaut que pour l'une des deux versions d'ORM. Le générateur
-  Doctrine le déduira de `type_doctrine`, `nullable` et `enumeration`, et ne le
-  lira que pour un type Doctrine qu'il ne connaît pas. Un outil tiers qui le
+  Doctrine le déduit de `type_doctrine`, `nullable` et `enumeration`, et ne le
+  lit que pour un type Doctrine qu'il ne connaît pas. Un outil tiers qui le
   consomme devrait faire de même.
 
 ***
+
+### Added
+
+- **`bin/console ormeau:generer` writes Doctrine entities**, in base-class mode:
+  `Base/ClientBase.php` holds the properties, identifier, indexes and
+  accessors, and is rewritten on every run; `Client.php` holds the entity and
+  its table, is created once and never modified again. When it no longer
+  matches the layer — a renamed table —, the command names the file, the line
+  and the expected value.
+- **The command announces the targeted Doctrine ORM version** on its first
+  line, and `--cible-orm=2` or `3` forces it. A column's PHP type depends on it:
+  a `bigint` is a string under ORM 2, an integer under ORM 3.
+- **What cannot be generated whole is skipped, saying so**: a table without a
+  primary key, a PHP reserved name, two entities with the same name, and for
+  now the entities that carry associations, enumerations, traits or
+  inheritance.
 
 ### Changed
 
@@ -104,8 +136,8 @@ préambule reste en français : il n'est jamais publié.
 
 - **`type_php` in the logical layer** stays in the format until its next
   version, but only holds for one of the two ORM versions. The Doctrine
-  generator will derive it from `type_doctrine`, `nullable` and `enumeration`,
-  and read it only for a Doctrine type it does not know. A third-party tool
+  generator derives it from `type_doctrine`, `nullable` and `enumeration`, and
+  reads it only for a Doctrine type it does not know. A third-party tool
   consuming it should do the same.
 
 ## [0.4.2] — 2026-09-13 — Ce qui ne doit pas sortir d'Ormeau

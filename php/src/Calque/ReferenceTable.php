@@ -29,7 +29,7 @@ final class ReferenceTable
     /**
      * Construit la référence depuis le JSON décodé.
      *
-     * @param array<mixed> $donnees
+     * @param array<mixed> $donnees objet JSON décodé de la référence
      * @param string       $chemin  chemin de l'objet dans le calque, pour les messages
      *
      * @throws CalqueInvalide nom ou schéma absent

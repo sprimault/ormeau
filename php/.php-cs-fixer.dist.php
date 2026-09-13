@@ -5,8 +5,11 @@
 
 declare(strict_types=1);
 
+// Les attendus de génération sont exclus : leur format est celui de
+// l'émetteur, et c'est leur test qui le fige, pas le style du paquet.
 $finder = PhpCsFixer\Finder::create()
-    ->in([__DIR__.'/src', __DIR__.'/tests']);
+    ->in([__DIR__.'/src', __DIR__.'/tests'])
+    ->exclude('Generation/attendus');
 
 // PER-CS plutôt que @Symfony : le paquet est un bundle, mais le code généré ne
 // l'est pas, et aligner les deux sur le standard PHP-FIG évite d'avoir à

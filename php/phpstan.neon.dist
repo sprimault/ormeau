@@ -4,6 +4,11 @@ parameters:
         - src
         - tests
 
+    # Les attendus de génération sont du code produit pour une application, pas
+    # du code du paquet : leurs classes de base ne sont pas chargeables ici.
+    excludePaths:
+        - tests/Generation/attendus
+
     # Un docblock n'est pas une garantie, et ce paquet lit précisément les
     # entités d'un client : @var string sur une propriété qui contient autre
     # chose est le cas normal, pas l'exception.

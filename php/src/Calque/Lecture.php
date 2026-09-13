@@ -30,7 +30,9 @@ final class Lecture
     /**
      * Lit une chaîne requise.
      *
-     * @param array<mixed> $donnees
+     * @param array<mixed> $donnees objet JSON décodé qui porte le champ
+     * @param string       $cle     nom du champ, tel que le format l'écrit
+     * @param string       $chemin  chemin de l'objet dans le calque, vide à la racine
      *
      * @throws CalqueInvalide
      */
@@ -47,7 +49,9 @@ final class Lecture
     /**
      * Lit une chaîne facultative.
      *
-     * @param array<mixed> $donnees
+     * @param array<mixed> $donnees objet JSON décodé qui porte le champ
+     * @param string       $cle     nom du champ, tel que le format l'écrit
+     * @param string       $chemin  chemin de l'objet dans le calque, vide à la racine
      *
      * @throws CalqueInvalide
      */
@@ -64,7 +68,9 @@ final class Lecture
      * Lit un entier requis. Un nombre à virgule est refusé, même s'il tombe
      * juste : 1.0 dans un calque ne vient pas du binaire.
      *
-     * @param array<mixed> $donnees
+     * @param array<mixed> $donnees objet JSON décodé qui porte le champ
+     * @param string       $cle     nom du champ, tel que le format l'écrit
+     * @param string       $chemin  chemin de l'objet dans le calque, vide à la racine
      *
      * @throws CalqueInvalide
      */
@@ -81,7 +87,9 @@ final class Lecture
     /**
      * Lit un entier facultatif. Absent et zéro restent distinguables.
      *
-     * @param array<mixed> $donnees
+     * @param array<mixed> $donnees objet JSON décodé qui porte le champ
+     * @param string       $cle     nom du champ, tel que le format l'écrit
+     * @param string       $chemin  chemin de l'objet dans le calque, vide à la racine
      *
      * @throws CalqueInvalide
      */
@@ -98,7 +106,9 @@ final class Lecture
      * Lit un nombre requis. json_decode rend 1 en entier et 0.5 en flottant,
      * les deux sont acceptés.
      *
-     * @param array<mixed> $donnees
+     * @param array<mixed> $donnees objet JSON décodé qui porte le champ
+     * @param string       $cle     nom du champ, tel que le format l'écrit
+     * @param string       $chemin  chemin de l'objet dans le calque, vide à la racine
      *
      * @throws CalqueInvalide
      */
@@ -115,7 +125,10 @@ final class Lecture
     /**
      * Lit un booléen, requis quand aucun défaut n'est donné.
      *
-     * @param array<mixed> $donnees
+     * @param array<mixed> $donnees objet JSON décodé qui porte le champ
+     * @param string       $cle     nom du champ, tel que le format l'écrit
+     * @param string       $chemin  chemin de l'objet dans le calque, vide à la racine
+     * @param bool|null    $defaut  valeur du champ absent ; null le rend requis
      *
      * @throws CalqueInvalide
      */
@@ -142,8 +155,10 @@ final class Lecture
      *
      * @template T of BackedEnum
      *
-     * @param array<mixed>    $donnees
-     * @param class-string<T> $vocabulaire
+     * @param array<mixed>    $donnees     objet JSON décodé qui porte le champ
+     * @param string          $cle         nom du champ, tel que le format l'écrit
+     * @param string          $chemin      chemin de l'objet dans le calque, vide à la racine
+     * @param class-string<T> $vocabulaire énumération PHP dont les valeurs forment le vocabulaire
      *
      * @return T
      *
@@ -170,8 +185,10 @@ final class Lecture
      *
      * @template T of BackedEnum
      *
-     * @param array<mixed>    $donnees
-     * @param class-string<T> $vocabulaire
+     * @param array<mixed>    $donnees     objet JSON décodé qui porte le champ
+     * @param string          $cle         nom du champ, tel que le format l'écrit
+     * @param string          $chemin      chemin de l'objet dans le calque, vide à la racine
+     * @param class-string<T> $vocabulaire énumération PHP dont les valeurs forment le vocabulaire
      *
      * @return T|null
      *
@@ -189,7 +206,10 @@ final class Lecture
     /**
      * Lit une liste de chaînes, vide quand elle est facultative et absente.
      *
-     * @param array<mixed> $donnees
+     * @param array<mixed> $donnees objet JSON décodé qui porte le champ
+     * @param string       $cle     nom du champ, tel que le format l'écrit
+     * @param string       $chemin  chemin de l'objet dans le calque, vide à la racine
+     * @param bool         $requise refuser la liste absente plutôt que la rendre vide
      *
      * @return list<string>
      *
@@ -213,8 +233,11 @@ final class Lecture
      *
      * @template T
      *
-     * @param array<mixed>                            $donnees
-     * @param callable(array<mixed>, string): T $construire
+     * @param array<mixed>                      $donnees    objet JSON décodé qui porte la liste
+     * @param string                            $cle        nom du champ, tel que le format l'écrit
+     * @param string                            $chemin     chemin de l'objet dans le calque, vide à la racine
+     * @param callable(array<mixed>, string): T $construire construit un élément depuis son objet et son chemin
+     * @param bool                              $requise    refuser la liste absente plutôt que la rendre vide
      *
      * @return list<T>
      *
@@ -240,8 +263,11 @@ final class Lecture
      *
      * @template T
      *
-     * @param array<mixed>                      $donnees
-     * @param callable(array<mixed>, string): T $construire
+     * @param array<mixed>                      $donnees    objet JSON décodé qui porte le champ
+     * @param string                            $cle        nom du champ, tel que le format l'écrit
+     * @param string                            $chemin     chemin de l'objet dans le calque, vide à la racine
+     * @param callable(array<mixed>, string): T $construire construit l'objet depuis son tableau et son chemin
+     * @param bool                              $requis     refuser le champ absent plutôt que rendre null
      *
      * @return ($requis is true ? T : T|null)
      *
@@ -264,7 +290,9 @@ final class Lecture
     /**
      * Vérifie qu'une liste a au moins un élément, là où le format l'exige.
      *
-     * @param list<mixed> $liste
+     * @param list<mixed> $liste  liste déjà lue
+     * @param string      $cle    nom du champ, pour le message
+     * @param string      $chemin chemin de l'objet dans le calque, vide à la racine
      *
      * @throws CalqueInvalide
      */
@@ -278,7 +306,10 @@ final class Lecture
     /**
      * Rend la liste d'un champ.
      *
-     * @param array<mixed> $donnees
+     * @param array<mixed> $donnees objet JSON décodé qui porte le champ
+     * @param string       $cle     nom du champ, tel que le format l'écrit
+     * @param string       $chemin  chemin de l'objet dans le calque, vide à la racine
+     * @param bool         $requise refuser la liste absente plutôt que la rendre vide
      *
      * @return list<mixed>
      *
@@ -304,7 +335,9 @@ final class Lecture
      * Un null explicite compte comme absent : le binaire omet les champs vides,
      * il n'écrit jamais null.
      *
-     * @param array<mixed> $donnees
+     * @param array<mixed> $donnees objet JSON décodé qui porte le champ
+     * @param string       $cle     nom du champ, tel que le format l'écrit
+     * @param string       $chemin  chemin de l'objet dans le calque, vide à la racine
      *
      * @throws CalqueInvalide
      */

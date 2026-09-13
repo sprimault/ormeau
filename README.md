@@ -253,13 +253,16 @@ nor an issue attachment.
 ## Status
 
 PostgreSQL extraction and inference both work: `ormeau extraire` then `ormeau
-inferer` produce the three files. Entity generation is not written, and its
-command says so. The state per
-phase is in [`ROADMAP.md`](ROADMAP.md).
+inferer` produce the three files. Entity generation is under way:
+`bin/console ormeau:generer` writes the entities that carry no association,
+enumeration, trait or inheritance, and skips the others, saying so. The state
+per phase is in [`ROADMAP.md`](ROADMAP.md).
 
 CI runs the test suite with the race detector, `golangci-lint`, `gofmt`,
 `govulncheck`, `gosec` and a JSON Schema validity check on every push and pull
-request.
+request. The PHP package goes through PHPUnit, PHPStan and PHP-CS-Fixer, and its
+tests run under four combinations of PHP, Symfony and Doctrine ORM, from PHP 8.1
+with Symfony 5.4 to PHP 8.4 with Symfony 8.
 
 ## Going further
 

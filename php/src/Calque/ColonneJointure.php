@@ -34,7 +34,7 @@ final class ColonneJointure
     /**
      * Construit l'appariement depuis le JSON décodé.
      *
-     * @param array<mixed> $donnees
+     * @param array<mixed> $donnees objet JSON décodé de l'appariement
      * @param string       $chemin  chemin de l'objet dans le calque, pour les messages
      *
      * @throws CalqueInvalide colonne absente, action hors vocabulaire

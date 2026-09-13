@@ -40,7 +40,7 @@ final class Heritage
     /**
      * Construit l'héritage depuis le JSON décodé.
      *
-     * @param array<mixed> $donnees
+     * @param array<mixed> $donnees objet JSON décodé de l'héritage
      * @param string       $chemin  chemin de l'objet dans le calque, pour les messages
      *
      * @throws CalqueInvalide stratégie absente ou hors vocabulaire, parent absent
