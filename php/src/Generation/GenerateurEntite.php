@@ -135,7 +135,9 @@ final class GenerateurEntite
             }
         }
         foreach ($traits as $nom => $trait) {
-            $refus['trait:' . $nom] = NomsPhp::raisonClasse((string) $nom) ?? self::refusProprietes($trait->proprietes);
+            $refus['trait:' . $nom] = NomsPhp::raisonClasse((string) $nom)
+                ?? self::refusProprietes($trait->proprietes)
+                ?? self::refusEnumerations($trait->proprietes, $refus);
             if ($refus['trait:' . $nom] === null) {
                 $chemin = $repertoire . '/Trait/' . $nom . '.php';
                 $fichiers[] = new Fichier($chemin, $this->ecrire($chemin, $rendu->traitPartage($trait), $repertoire));
@@ -255,20 +257,8 @@ final class GenerateurEntite
                 return sprintf('le trait %s n\'est pas généré : %s', $trait, $refus['trait:' . $trait]);
             }
         }
-        foreach ($entite->proprietes as $propriete) {
-            $enumeration = $propriete->enumeration;
-            if ($enumeration === null) {
-                continue;
-            }
-            if (!array_key_exists('enum:' . $enumeration, $refus)) {
-                return sprintf('l\'énumération %s de la propriété %s est absente du calque', $enumeration, $propriete->nom);
-            }
-            if ($refus['enum:' . $enumeration] !== null) {
-                return sprintf('l\'énumération %s n\'est pas générée : %s', $enumeration, $refus['enum:' . $enumeration]);
-            }
-        }
 
-        return null;
+        return self::refusEnumerations($entite->proprietes, $refus);
     }
 
     /**
@@ -509,6 +499,36 @@ final class GenerateurEntite
     }
 
     /**
+     * Dit pourquoi l'énumération d'une des propriétés ne peut pas être
+     * utilisée, ou null : absente du calque, ou refusée à l'écriture.
+     *
+     * Le nom d'énumération devient un import, un type et un enumType::class :
+     * seul un nom que le calque déclare et que la génération a écrit sort de
+     * là. Le contrôle vaut pour une entité comme pour un trait, les deux
+     * passant par le même rendu des membres.
+     *
+     * @param list<Propriete>            $proprietes propriétés d'une entité ou d'un trait
+     * @param array<string, string|null> $refus      raison du refus de chaque énumération (enum:Nom), null quand elle est écrite
+     */
+    private static function refusEnumerations(array $proprietes, array $refus): ?string
+    {
+        foreach ($proprietes as $propriete) {
+            $enumeration = $propriete->enumeration;
+            if ($enumeration === null) {
+                continue;
+            }
+            if (!array_key_exists('enum:' . $enumeration, $refus)) {
+                return sprintf('l\'énumération %s de la propriété %s est absente du calque', $enumeration, $propriete->nom);
+            }
+            if ($refus['enum:' . $enumeration] !== null) {
+                return sprintf('l\'énumération %s n\'est pas générée : %s', $enumeration, $refus['enum:' . $enumeration]);
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Écrit un fichier quand son contenu diffère de ce qui est sur disque.
      *
      * Le chemin est vérifié une fois résolu, avant toute création de
@@ -556,6 +576,10 @@ final class GenerateurEntite
      * La partie qui existe déjà est résolue par realpath(), liens compris ; ce
      * qui reste à créer ne doit contenir ni « . » ni « .. ». Un fichier existant
      * est résolu lui-même : un lien qui mène ailleurs est refusé.
+     *
+     * file_exists() suit les liens : un lien pendant passerait pour un segment
+     * à créer, et file_put_contents() créerait sa cible, où qu'elle soit. La
+     * partie à créer ne contient donc aucun lien.
      */
     private static function resteSous(string $chemin, string $racine): bool
     {
@@ -569,7 +593,7 @@ final class GenerateurEntite
         while (!file_exists($existant)) {
             $segment = basename($existant);
             $parent = dirname($existant);
-            if ($segment === '.' || $segment === '..' || $parent === $existant) {
+            if ($segment === '.' || $segment === '..' || $parent === $existant || is_link($existant)) {
                 return false;
             }
             array_unshift($aCreer, $segment);

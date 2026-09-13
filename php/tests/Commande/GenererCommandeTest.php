@@ -87,16 +87,54 @@ final class GenererCommandeTest extends TestCase
     }
 
     /**
-     * Exécute la commande sur le cas de référence cas-limites et rend sa
-     * sortie.
+     * Un nom venu du calque s'affiche tel quel : une balise dans un nom de
+     * table ou d'entité ne fait pas lever le formateur de la console au milieu
+     * du compte rendu.
+     */
+    public function testUnNomDuCalqueNEstPasPrisPourUneBaliseDeLaConsole(): void
+    {
+        $entree = Repertoires::creer();
+        try {
+            $calque = $entree . '/balises.logique.json';
+            file_put_contents($calque, json_encode([
+                'version_ri' => 1,
+                'empreinte_physique' => 'sha256:' . str_repeat('b', 64),
+                'espace_de_noms' => 'App\\Entity',
+                'entites' => [[
+                    'nom' => '</info>',
+                    'table' => ['nom' => 't', 'schema' => 'public'],
+                    'proprietes' => [],
+                ]],
+                'avertissements' => [[
+                    'code' => 'table_sans_cle_primaire',
+                    'cible' => 'public.<error></info>',
+                    'message' => 'm',
+                    'resolution' => 'aucune',
+                    'confiance' => 1,
+                ]],
+            ], JSON_THROW_ON_ERROR));
+
+            $sortie = $this->executer([], $calque);
+
+            self::assertStringContainsString('écartée  </info> : ', $sortie);
+            self::assertStringContainsString('  table_sans_cle_primaire public.<error></info> — m', $sortie);
+        } finally {
+            Repertoires::supprimer($entree);
+        }
+    }
+
+    /**
+     * Exécute la commande sur un calque, le cas de référence cas-limites à
+     * défaut, et rend sa sortie.
      *
      * @param array<string, string> $options
+     * @param string                $calque  calque logique à générer
      */
-    private function executer(array $options): string
+    private function executer(array $options, string $calque = Repertoires::REFERENCES . '/cas-limites/logique.json'): string
     {
         $testeur = new CommandTester(new GenererCommande(new LecteurCalque(), new GenerateurEntite()));
         $code = $testeur->execute(array_merge([
-            'calque' => Repertoires::REFERENCES . '/cas-limites/logique.json',
+            'calque' => $calque,
             '--repertoire' => $this->sortie,
         ], $options));
 

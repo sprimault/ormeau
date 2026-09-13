@@ -43,6 +43,19 @@ préambule reste en français : il n'est jamais publié.
   n'est plus nécessaire. Un projet qui l'a déjà ajoutée peut la retirer ; la
   garder ne change rien.
 
+### Sécurité
+
+- **Un calque logique modifié à la main ne peut plus injecter de code par un
+  trait.** Le nom d'énumération d'une propriété de trait était recopié sans
+  contrôle dans `Trait/`, où il s'exécutait au chargement de l'entité. Un trait
+  dont une énumération est absente du calque ou refusée n'est plus écrit, et
+  les entités qui l'utilisent sont écartées.
+- **Un lien symbolique pendant ne fait plus écrire hors du répertoire des
+  entités.** Posé à la place d'un fichier à générer, il faisait créer sa cible
+  ailleurs.
+- **`ormeau:generer` n'interrompt plus son compte rendu** sur un nom de table
+  ou d'entité qui contient une balise de la console, comme `<error></info>`.
+
 ***
 
 ### Changed
@@ -51,6 +64,19 @@ préambule reste en français : il n'est jamais publié.
   sprimault/ormeau-doctrine` is enough, and the `composer config repositories`
   line is no longer needed. A project that already added it can remove it;
   keeping it changes nothing.
+
+### Security
+
+- **A hand-edited logical layer can no longer inject code through a trait.**
+  The enumeration name of a trait property was copied unchecked into `Trait/`,
+  where it ran when the entity was loaded. A trait whose enumeration is missing
+  from the layer or refused is no longer written, and the entities using it are
+  skipped.
+- **A dangling symbolic link no longer causes writes outside the entities
+  directory.** Placed where a generated file goes, it had its target created
+  elsewhere.
+- **`ormeau:generer` no longer breaks off its report** on a table or entity
+  name containing a console tag, such as `<error></info>`.
 
 ## [0.5.0] — 2026-09-13 — Génération Doctrine
 

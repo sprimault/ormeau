@@ -132,7 +132,9 @@ final class GenerateurEntiteTest extends TestCase
     /**
      * Une entité qui nomme un trait ou une énumération absents du calque, ou
      * que PHP refuse d'écrire, est écartée avec le nom en cause ; le fichier
-     * refusé n'est pas écrit.
+     * refusé n'est pas écrit. Un trait dont une propriété nomme une
+     * énumération absente n'est pas écrit non plus, et l'entité qui l'utilise
+     * est écartée.
      */
     public function testEcarteUneEntiteDontLeTraitOuLEnumerationNeSEcritPas(): void
     {
@@ -143,16 +145,20 @@ final class GenerateurEntiteTest extends TestCase
             $enumReservee['proprietes'][] = self::propriete('etat', 'string', ['enumeration' => 'Match']);
             $casReserve = self::entite('Facture');
             $casReserve['proprietes'][] = self::propriete('mode', 'string', ['enumeration' => 'Mode']);
+            $traitSansEnum = self::entite('Livraison', ['traits' => ['Suivi']]);
 
-            $rapport = (new GenerateurEntite())->generer(self::calque([$sansTrait, $enumReservee, $casReserve], [
+            $rapport = (new GenerateurEntite())->generer(self::calque([$sansTrait, $enumReservee, $casReserve, $traitSansEnum], [
                 ['nom' => 'Match', 'type_support' => 'string', 'cas' => [['nom' => 'Oui', 'valeur' => 'O']], 'origine' => 'decision'],
                 ['nom' => 'Mode', 'type_support' => 'string', 'cas' => [['nom' => 'Class', 'valeur' => 'C']], 'origine' => 'decision'],
+            ], [
+                ['nom' => 'Suivi', 'proprietes' => [self::propriete('etat', 'string', ['enumeration' => 'Etat'])]],
             ]), $sortie, Cible::forcer(3));
 
             self::assertSame([
                 'Client' => 'le trait Horodatage est absent du calque',
                 'Commande' => 'l\'énumération Match n\'est pas générée : Match est un mot réservé de PHP',
                 'Facture' => 'l\'énumération Mode n\'est pas générée : Class est un mot réservé de PHP',
+                'Livraison' => 'le trait Suivi n\'est pas généré : l\'énumération Etat de la propriété etat est absente du calque',
             ], array_column(array_map(static fn($e): array => [$e->nom, $e->raison], $rapport->ecartees), 1, 0));
             self::assertSame([], Repertoires::lire($sortie));
         } finally {
@@ -182,6 +188,9 @@ final class GenerateurEntiteTest extends TestCase
                     'nom' => 'fantome', 'genre' => 'un_vers_plusieurs', 'cible' => 'X::class); system(\'id\'); (Y', 'proprietaire' => false,
                     'mappee_par' => 'ligne', 'origine' => 'contrainte',
                 ]]]),
+                self::entite('Adresse', ['traits' => ['Suivi']]),
+            ], [], [
+                ['nom' => 'Suivi', 'proprietes' => [self::propriete('etat', 'string', ['enumeration' => 'Y;system(\'id\');use \\Foo'])]],
             ]), $sortie, Cible::forcer(3));
 
             self::assertSame([
@@ -190,6 +199,7 @@ final class GenerateurEntiteTest extends TestCase
                 'Client' => 'propriété refusée : « nom; system(\'id\') » n\'est pas un identifiant PHP',
                 'Facture' => 'propriété refusée : « int; system(\'id\') » n\'est pas un type PHP',
                 'Commande' => 'association refusée : « client; system(\'id\') » n\'est pas un identifiant PHP',
+                'Adresse' => 'le trait Suivi n\'est pas généré : l\'énumération Y;system(\'id\');use \\Foo de la propriété etat est absente du calque',
             ], array_column(array_map(static fn($e): array => [$e->nom, $e->raison], $rapport->ecartees), 1, 0));
             self::assertSame(['Ligne::fantome : côté inverse d\'une entité absente du calque'], array_map(
                 static fn($o): string => $o->entite . '::' . $o->association . ' : ' . $o->raison,
@@ -255,6 +265,41 @@ final class GenerateurEntiteTest extends TestCase
             self::assertSame([], Repertoires::lire($ailleurs));
         } finally {
             unlink($sortie . '/Base');
+            Repertoires::supprimer($sortie);
+            Repertoires::supprimer($ailleurs);
+        }
+    }
+
+    /**
+     * Un lien pendant à la place d'un fichier à écrire est refusé : suivi, il
+     * créerait sa cible hors du répertoire des entités, que file_exists() ne
+     * voit pas puisqu'elle n'existe pas encore.
+     */
+    public function testUnLienPendantALaPlaceDUnFichierEstRefuse(): void
+    {
+        if (PHP_OS_FAMILY === 'Windows') {
+            self::markTestSkipped('un lien symbolique exige des droits particuliers sous Windows');
+        }
+
+        $sortie = Repertoires::creer();
+        $ailleurs = Repertoires::creer();
+        $lien = $sortie . '/Base/ClientBase.php';
+        try {
+            mkdir($sortie . '/Base');
+            symlink($ailleurs . '/ClientBase.php', $lien);
+
+            try {
+                (new GenerateurEntite())->generer(self::calque([self::entite('Client')]), $sortie, Cible::forcer(3));
+                self::fail('un lien pendant doit être refusé');
+            } catch (RuntimeException $e) {
+                self::assertStringStartsWith('Écriture refusée, le fichier sortirait du répertoire des entités', $e->getMessage());
+                self::assertStringEndsWith('/Base/ClientBase.php', $e->getMessage());
+            }
+            self::assertSame([], Repertoires::lire($ailleurs));
+        } finally {
+            if (is_link($lien)) {
+                unlink($lien);
+            }
             Repertoires::supprimer($sortie);
             Repertoires::supprimer($ailleurs);
         }
@@ -445,12 +490,13 @@ final class GenerateurEntiteTest extends TestCase
     }
 
     /**
-     * Un calque réduit aux entités et énumérations données.
+     * Un calque réduit aux entités, énumérations et traits donnés.
      *
      * @param list<array<string, mixed>> $entites      entités du calque
      * @param list<array<string, mixed>> $enumerations énumérations du calque
+     * @param list<array<string, mixed>> $traits       traits du calque
      */
-    private static function calque(array $entites, array $enumerations = []): CalqueLogique
+    private static function calque(array $entites, array $enumerations = [], array $traits = []): CalqueLogique
     {
         return CalqueLogique::depuisTableau([
             'version_ri' => 1,
@@ -458,6 +504,7 @@ final class GenerateurEntiteTest extends TestCase
             'espace_de_noms' => 'App\\Entity',
             'entites' => $entites,
             'enumerations' => $enumerations,
+            'traits' => $traits,
         ]);
     }
 
