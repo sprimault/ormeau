@@ -78,6 +78,10 @@ final class GenererCommande extends Command
      * s'affichent sans changer le code de retour : ils disent quoi reprendre,
      * ils n'empêchent pas le reste d'être écrit.
      *
+     * Tout texte venu du calque passe par OutputFormatter::escape : une balise
+     * dans un nom de table, `<error></info>` par exemple, ferait lever le
+     * formateur au milieu du compte rendu, fichiers déjà écrits.
+     *
      * @return int 0 si la génération est allée au bout
      *
      * @throws InvalidArgumentException chemin absent, --cible-orm hors de 2 et 3, ORM introuvable
@@ -106,10 +110,19 @@ final class GenererCommande extends Command
             $sortie->writeln($etat . str_repeat(' ', 9 - Helper::width($etat)) . $fichier->chemin);
         }
         foreach ($rapport->ecartees as $ecartee) {
-            $sortie->writeln(sprintf('<comment>écartée  %s : %s</comment>', $ecartee->nom, OutputFormatter::escape($ecartee->raison)));
+            $sortie->writeln(sprintf(
+                '<comment>écartée  %s : %s</comment>',
+                OutputFormatter::escape($ecartee->nom),
+                OutputFormatter::escape($ecartee->raison),
+            ));
         }
         foreach ($rapport->omises as $omise) {
-            $sortie->writeln(sprintf('<comment>omise    %s::%s : %s</comment>', $omise->entite, $omise->association, OutputFormatter::escape($omise->raison)));
+            $sortie->writeln(sprintf(
+                '<comment>omise    %s::%s : %s</comment>',
+                OutputFormatter::escape($omise->entite),
+                OutputFormatter::escape($omise->association),
+                OutputFormatter::escape($omise->raison),
+            ));
         }
         foreach ($rapport->divergences as $divergence) {
             $sortie->writeln('<comment>à reprendre ' . OutputFormatter::escape($divergence->message()) . '</comment>');
@@ -120,8 +133,8 @@ final class GenererCommande extends Command
             foreach ($calque->avertissements as $avertissement) {
                 $sortie->writeln(sprintf(
                     '  %s %s — %s',
-                    $avertissement->code,
-                    $avertissement->cible,
+                    OutputFormatter::escape($avertissement->code),
+                    OutputFormatter::escape($avertissement->cible),
                     OutputFormatter::escape($avertissement->message),
                 ));
             }
