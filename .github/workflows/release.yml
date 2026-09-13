@@ -31,9 +31,15 @@ jobs:
   # part sans lui : ni binaires, ni brouillon, ni image. Sans cet ordre, un
   # composer require de la nouvelle version échouerait pendant que la release
   # l'annonce déjà.
+  #
+  # secrets: inherit est nécessaire même si la clé est un secret de
+  # l'environnement : sans lui, le workflow appelé reçoit un secret vide,
+  # constaté à la première publication. Le dépôt n'a aucun secret propre, et la
+  # règle de l'environnement continue de n'admettre que master et v*.
   miroir:
     name: Miroir du paquet PHP
     uses: ./.github/workflows/miroir.yml
+    secrets: inherit
 
   binaires:
     name: Binaires
