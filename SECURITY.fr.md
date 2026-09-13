@@ -14,8 +14,8 @@ Aucune adresse de contact n'est publiée, et il n'existe pas d'autre canal.
 
 ## Versions prises en charge
 
-Ormeau en est à ses débuts et rien n'est encore publié. Quand des versions
-existeront, seule la dernière sera corrigée ; il n'y aura pas de rétroportage.
+Seule la dernière version publiée est corrigée, sans rétroportage vers les
+précédentes.
 
 ## Périmètre
 

@@ -92,10 +92,13 @@ vous n'avez pas décommenté. Il porte les renommages que l'outil propose.
 
 gescom.logique.json : 12 entité(s), 31 association(s), 2 énumération(s), 1 trait(s)
 
-3 avertissement(s) :
-  table_sans_cle_primaire  public.t_log_import   aucune clé primaire : Doctrine refusera cette entité en l'état
-  prefixe_detecte          public                préfixe T_ commun aux 12 tables, conservé ; prefixes_a_retirer le retirerait
-  singulier_ambigu         public.categories     categories rendu Category par la règle anglaise ; le français donnerait Categorie
+2 avertissement(s) :
+  prefixe_detecte          public                           préfixe T_ commun aux 12 tables, conservé ; prefixes_a_retirer le retirerait des noms de classes
+  table_sans_cle_primaire  public.t_log_import              aucune clé primaire : Doctrine refusera cette entité en l'état
+
+Par code :
+  prefixe_detecte          1
+  table_sans_cle_primaire  1
 ```
 
 You uncomment what suits you in `gescom.decisions.yaml`, run it again, and your
@@ -251,7 +254,7 @@ nor an issue attachment.
 
 PostgreSQL extraction and inference both work: `ormeau extraire` then `ormeau
 inferer` produce the three files. Entity generation is not written, and its
-command returns an error naming the phase that will bring it. The state per
+command says so. The state per
 phase is in [`ROADMAP.md`](ROADMAP.md).
 
 CI runs the test suite with the race detector, `golangci-lint`, `gofmt`,

@@ -14,8 +14,7 @@ No contact address is published, and there is no alternative channel.
 
 ## Supported versions
 
-Ormeau is at an early stage and nothing is published yet. Once releases exist,
-only the latest tag will be fixed; there will be no backport to earlier tags.
+Only the latest published release is fixed, with no backport to earlier ones.
 
 ## Scope
 

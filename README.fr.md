@@ -92,10 +92,13 @@ vous n'avez pas décommenté. Il porte les renommages que l'outil propose.
 
 gescom.logique.json : 12 entité(s), 31 association(s), 2 énumération(s), 1 trait(s)
 
-3 avertissement(s) :
-  table_sans_cle_primaire  public.t_log_import   aucune clé primaire : Doctrine refusera cette entité en l'état
-  prefixe_detecte          public                préfixe T_ commun aux 12 tables, conservé ; prefixes_a_retirer le retirerait
-  singulier_ambigu         public.categories     categories rendu Category par la règle anglaise ; le français donnerait Categorie
+2 avertissement(s) :
+  prefixe_detecte          public                           préfixe T_ commun aux 12 tables, conservé ; prefixes_a_retirer le retirerait des noms de classes
+  table_sans_cle_primaire  public.t_log_import              aucune clé primaire : Doctrine refusera cette entité en l'état
+
+Par code :
+  prefixe_detecte          1
+  table_sans_cle_primaire  1
 ```
 
 On décommente ce qui convient dans `gescom.decisions.yaml`, on relance, et les
@@ -255,7 +258,7 @@ pièce jointe d'une issue.
 
 L'extraction PostgreSQL et l'inférence fonctionnent : `ormeau extraire` puis
 `ormeau inferer` produisent les trois fichiers. La génération d'entités n'est
-pas écrite, et sa commande retourne une erreur nommant la phase qui l'apportera.
+pas écrite, et sa commande le dit.
 L'état par phase est dans [`ROADMAP.md`](ROADMAP.md).
 
 La CI exécute la suite de tests avec le détecteur de courses, `golangci-lint`,
