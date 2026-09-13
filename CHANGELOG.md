@@ -36,6 +36,19 @@ préambule reste en français : il n'est jamais publié.
 
 ## [Non publié]
 
+## [0.4.2] — 2026-09-13 — Ce qui ne doit pas sortir d'Ormeau
+
+**Deux entrées acceptées jusqu'ici sont refusées.** `version_ri` ne bouge pas :
+calques et fichiers de décisions restent lisibles tels quels. Un script qui
+passe l'une de ces entrées échouera désormais :
+
+- `--echantillonner` ou `--cardinalite-max` sur `ormeau extraire` : les retirer,
+  ils n'avaient aucun effet ;
+- une chaîne de connexion ambiguë — un mot de passe contenant `/`, `?` ou `#`
+  non encodé dans une URL, ou une valeur précédée d'un blanc et contenant `=`
+  (`user= password=…`, `password = abc==`) : encoder le mot de passe, le mettre
+  entre apostrophes, ou passer par `--hote`, `--utilisateur` et `ORMEAU_MDP`.
+
 ### Corrigé
 
 - **Un mot de passe pouvait s'afficher en clair dans une erreur de
@@ -58,6 +71,17 @@ préambule reste en français : il n'est jamais publié.
   `--cardinalite-max` suit.
 
 ***
+
+**Two inputs accepted until now are refused.** `version_ri` stays put: layers
+and decisions files remain readable as they are. A script passing one of these
+inputs will now fail:
+
+- `--echantillonner` or `--cardinalite-max` on `ormeau extraire`: remove them,
+  they had no effect;
+- an ambiguous connection string — a password holding an unencoded `/`, `?` or
+  `#` in a URL, or a value preceded by a blank and containing `=`
+  (`user= password=…`, `password = abc==`): encode the password, quote it, or
+  use `--hote`, `--utilisateur` and `ORMEAU_MDP`.
 
 ### Fixed
 
