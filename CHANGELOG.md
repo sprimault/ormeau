@@ -36,6 +36,22 @@ préambule reste en français : il n'est jamais publié.
 
 ## [Non publié]
 
+### Modifié
+
+- **Le paquet PHP est sur Packagist** : `composer require --dev
+  sprimault/ormeau-doctrine` suffit, et la ligne `composer config repositories`
+  n'est plus nécessaire. Un projet qui l'a déjà ajoutée peut la retirer ; la
+  garder ne change rien.
+
+***
+
+### Changed
+
+- **The PHP package is on Packagist**: `composer require --dev
+  sprimault/ormeau-doctrine` is enough, and the `composer config repositories`
+  line is no longer needed. A project that already added it can remove it;
+  keeping it changes nothing.
+
 ## [0.5.0] — 2026-09-13 — Génération Doctrine
 
 **Trois changements touchent les calques et les fichiers de décisions déjà

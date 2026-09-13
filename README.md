@@ -110,12 +110,10 @@ Between releases, `go install github.com/sprimault/ormeau/cmd/ormeau@master`.
 
 ### Generating entities
 
-The Symfony bundle is its own Composer package, `sprimault/ormeau-doctrine`,
-published from a read-only mirror of `php/`. It is not on Packagist yet, hence
-the repository line:
+The Symfony bundle is its own Composer package on Packagist,
+`sprimault/ormeau-doctrine`, published from a read-only mirror of `php/`:
 
 ```console
-$ composer config repositories.ormeau vcs https://github.com/sprimault/ormeau-doctrine
 $ composer require --dev sprimault/ormeau-doctrine
 ```
 

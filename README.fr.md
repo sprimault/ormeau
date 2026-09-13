@@ -110,12 +110,11 @@ Entre deux versions, `go install github.com/sprimault/ormeau/cmd/ormeau@master`.
 
 ### Générer les entités
 
-Le bundle Symfony est un paquet Composer à part, `sprimault/ormeau-doctrine`,
-publié depuis un miroir en lecture seule de `php/`. Il n'est pas encore sur
-Packagist, d'où la ligne de dépôt :
+Le bundle Symfony est un paquet Composer à part, sur Packagist,
+`sprimault/ormeau-doctrine`, publié depuis un miroir en lecture seule de
+`php/` :
 
 ```console
-$ composer config repositories.ormeau vcs https://github.com/sprimault/ormeau-doctrine
 $ composer require --dev sprimault/ormeau-doctrine
 ```
 

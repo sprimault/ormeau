@@ -114,6 +114,11 @@ diverged; that gets investigated, not overwritten.
 The mirror only carries versions in which the package works: it starts at
 0.5.0, and no earlier tag will be pushed to it.
 
+Packagist reads the mirror, not the main repository. A webhook on the mirror,
+on the push event, notifies it on every push by `miroir.yml`: a tag shows up on
+Packagist without adding anything to publishing. The webhook carries as its
+secret the API token of the Packagist account that maintains the package.
+
 ### What guards the write access
 
 - The key is a **deploy key** of the mirror: it cannot write to any other

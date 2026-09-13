@@ -13,10 +13,7 @@ les régénère sans écraser le travail fait dessus entre-temps.
 
 ## Installation
 
-Pas encore sur Packagist : le dépôt se déclare d'abord.
-
 ```console
-$ composer config repositories.ormeau vcs https://github.com/sprimault/ormeau-doctrine
 $ composer require --dev sprimault/ormeau-doctrine
 $ bin/console ormeau:generer gescom.logique.json
 ```

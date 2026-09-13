@@ -117,6 +117,11 @@ ne s'écrase pas.
 Le miroir ne porte que des versions où le paquet fonctionne : il commence à la
 0.5.0, et aucun tag antérieur n'y sera poussé.
 
+Packagist lit le miroir, pas le dépôt principal. Un webhook du miroir, sur
+l'événement push, le prévient à chaque poussée de `miroir.yml` : un tag
+apparaît sur Packagist sans rien ajouter à la publication. Le webhook porte
+en secret le jeton d'API du compte Packagist qui maintient le paquet.
+
 ### Ce qui protège l'écriture
 
 - La clé est une **clé de déploiement** du miroir : elle n'écrit sur aucun autre
