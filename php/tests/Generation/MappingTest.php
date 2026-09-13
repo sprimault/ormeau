@@ -81,10 +81,30 @@ final class MappingTest extends TestCase
 
                 self::assertSame($entite->table->nom, $meta->getTableName(), $classe);
 
+                // Une classe d'une hiérarchie décidée est jointe, hérite de son
+                // parent et porte sa valeur : Doctrine ajouterait sinon sa
+                // propre colonne dtype, absente de la base.
+                $discriminante = self::colonneDiscriminante($meta);
+                if ($entite->valeurDiscriminante !== null) {
+                    self::assertSame(ClassMetadata::INHERITANCE_TYPE_JOINED, $meta->inheritanceType, $classe);
+                    self::assertSame($entite->valeurDiscriminante, (string) $meta->discriminatorValue, $classe);
+                    self::assertNotNull($discriminante, $classe);
+                }
+                if ($entite->heritage !== null) {
+                    self::assertContains($calque->espaceDeNoms . '\\' . $entite->heritage->parent, $meta->parentClasses, $classe);
+                    self::assertSame($entite->heritage->colonneDiscriminante, $discriminante, $classe);
+                }
+
                 // Chaque propriété du calque est un champ sur sa colonne, sauf
                 // celle dont la colonne porte une association de la clé
-                // primaire : l'identité passe alors par l'association.
+                // primaire : l'identité passe alors par l'association. La
+                // colonne discriminante n'est pas un champ non plus, Doctrine
+                // refusant de la mapper deux fois.
                 foreach ($entite->proprietes as $propriete) {
+                    if ($propriete->colonne === $discriminante) {
+                        self::assertFalse($meta->hasField($propriete->nom), $classe . '::' . $propriete->nom . ' mappe la colonne discriminante');
+                        continue;
+                    }
                     if ($meta->hasField($propriete->nom)) {
                         self::assertSame($propriete->colonne, $meta->getColumnName($propriete->nom), $classe . '::' . $propriete->nom);
                         continue;
@@ -169,6 +189,23 @@ final class MappingTest extends TestCase
         foreach (Repertoires::CAS as $cas) {
             yield $cas => [$cas];
         }
+    }
+
+    /**
+     * Rend le nom de la colonne discriminante d'une entité, ou null hors
+     * héritage.
+     *
+     * ORM 2 la décrit par un tableau, ORM 3 par un objet aux propriétés
+     * publiques. Convertie en tableau, elle se lit de la même façon sous les
+     * deux, sans l'accès par clé qu'ORM 3 déprécie.
+     *
+     * @param ClassMetadata<object> $meta métadonnées de l'entité
+     */
+    private static function colonneDiscriminante(ClassMetadata $meta): ?string
+    {
+        $colonne = $meta->discriminatorColumn;
+
+        return $colonne === null ? null : (string) ((array) $colonne)['name'];
     }
 
     /**

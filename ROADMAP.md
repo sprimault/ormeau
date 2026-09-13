@@ -10,7 +10,7 @@ générateur.
 | 2 — Introspection PostgreSQL | terminée |
 | 3 — Inférence et calque logique | terminée, hors clés étrangères implicites |
 | 4 — Interface | terminée |
-| 5 — Génération Doctrine | entités, associations, énumérations et traits générés ; héritage à écrire |
+| 5 — Génération Doctrine | entités, associations, énumérations, traits et héritage générés |
 | 6 à 10 | non commencées |
 | 11 — Publication | faite pour l'essentiel, hors Packagist |
 
@@ -67,7 +67,7 @@ les phases suivantes. L'écran de connexion, lui, ne bougera plus.
 ## Phase 5 — Génération Doctrine
 
 Paquet PHP, commande `ormeau:generer`, mode classe de base séparée. Attributs,
-énumérations natives, traits d'horodatage.
+énumérations natives, traits d'horodatage, héritage joint déclaré par décision.
 
 Plancher : PHP 8.1, Symfony 5.4 à 8, Doctrine ORM 2.14 à 3. C'est le périmètre
 des applications que l'outil vise — une reprise de legacy tourne rarement sur la

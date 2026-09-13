@@ -154,11 +154,93 @@ final class RegenerationTest extends TestCase
     }
 
     /**
+     * Un héritage décidé après une première génération ne touche pas la
+     * classe de la racine, déjà écrite : chaque attribut qui lui manque se
+     * signale en entier, prêt à recopier. La classe fille n'a rien à
+     * reprendre, sa classe de base régénérée hérite désormais de la racine.
+     */
+    public function testUnHeritageDecideApresCoupSeSignaleSurLaRacine(): void
+    {
+        $this->generer(self::hierarchie([]));
+        $personne = $this->sortie . '/Personne.php';
+        $avant = (string) file_get_contents($personne);
+
+        $rapport = $this->generer(self::hierarchie(['Salarie' => 'S']));
+
+        self::assertSame($avant, file_get_contents($personne));
+        self::assertStringContainsString('abstract class SalarieBase extends Personne', (string) file_get_contents($this->sortie . '/Base/SalarieBase.php'));
+        self::assertSame([
+            $personne . " ligne 10 : attribut #[ORM\\InheritanceType('JOINED')] absent, Personne est la racine d'un héritage",
+            $personne . " ligne 10 : attribut #[ORM\\DiscriminatorColumn(name: 'nature', type: 'string', length: 1)] absent, Personne est la racine d'un héritage",
+            $personne . " ligne 10 : attribut #[ORM\\DiscriminatorMap(['P' => Personne::class, 'S' => Salarie::class])] absent, Personne est la racine d'un héritage",
+        ], array_map(static fn($d): string => $d->message(), $rapport->divergences));
+    }
+
+    /**
+     * Une classe fille déclarée après la création de la racine change sa
+     * carte, et seule la carte se signale ; un héritage retiré laisse des
+     * attributs qui ne désignent plus rien.
+     */
+    public function testUneCarteQuiNeCorrespondPlusSeSignale(): void
+    {
+        $this->generer(self::hierarchie(['Salarie' => 'S']));
+        $personne = $this->sortie . '/Personne.php';
+        $carte = "#[ORM\\DiscriminatorMap(['P' => Personne::class, 'S' => Salarie::class])]";
+
+        self::assertSame(
+            [$personne . ' ligne 14 : ' . $carte . ", attendu #[ORM\\DiscriminatorMap(['P' => Personne::class, 'S' => Salarie::class, 'C' => Cadre::class])]"],
+            array_map(static fn($d): string => $d->message(), $this->generer(self::hierarchie(['Salarie' => 'S', 'Cadre' => 'C']))->divergences),
+        );
+        self::assertSame(
+            array_fill(0, 3, 'Personne n\'est la racine d\'aucun héritage déclaré, attribut à retirer'),
+            array_map(static fn($d): string => $d->attendu, $this->generer(self::hierarchie([]))->divergences),
+        );
+    }
+
+    /**
      * Génère un calque dans le répertoire du test, sous ORM 3.
      */
     private function generer(CalqueLogique $calque): Rapport
     {
         return (new GenerateurEntite())->generer($calque, $this->sortie, Cible::forcer(3));
+    }
+
+    /**
+     * Un calque d'une Personne et de classes filles directes, déclarées
+     * héritières avec leur valeur discriminante ; sans classe fille, aucun
+     * héritage.
+     *
+     * @param array<string, string> $filles valeur discriminante de chaque classe fille, par nom
+     */
+    private static function hierarchie(array $filles): CalqueLogique
+    {
+        $id = ['nom' => 'id', 'colonne' => 'id', 'type_php' => 'int', 'type_doctrine' => 'integer', 'nullable' => false];
+        $entites = [[
+            'nom' => 'Personne',
+            'table' => ['nom' => 'personne', 'schema' => 'public'],
+            'identifiant' => ['proprietes' => ['id'], 'strategie' => 'identite'],
+            'proprietes' => [$id, ['nom' => 'nature', 'colonne' => 'nature', 'type_php' => 'string', 'type_doctrine' => 'string', 'nullable' => false, 'longueur' => 1]],
+        ]];
+        if ($filles !== []) {
+            $entites[0]['valeur_discriminante'] = 'P';
+        }
+        foreach ($filles as $nom => $valeur) {
+            $entites[] = [
+                'nom' => $nom,
+                'table' => ['nom' => strtolower($nom), 'schema' => 'public'],
+                'heritage' => ['strategie' => 'jointe', 'parent' => 'Personne', 'colonne_discriminante' => 'nature', 'origine' => 'decision'],
+                'valeur_discriminante' => $valeur,
+                'identifiant' => ['proprietes' => ['id'], 'strategie' => 'assignee'],
+                'proprietes' => [$id],
+            ];
+        }
+
+        return CalqueLogique::depuisTableau([
+            'version_ri' => 1,
+            'empreinte_physique' => 'sha256:' . str_repeat('a', 64),
+            'espace_de_noms' => 'App\\Entity',
+            'entites' => $entites,
+        ]);
     }
 
     /**

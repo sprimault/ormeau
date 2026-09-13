@@ -59,6 +59,46 @@
           "a_la_suppression": "cascade"
         }
       ]
+    },
+    {
+      "nom": "adresse",
+      "schema": "public",
+      "commentaire": "Vise la racine : la collection vit dans la classe de base de personne",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false, "auto_increment": true },
+        { "nom": "personne_id", "position": 2, "type_brut": "integer", "type_normalise": "entier", "nullable": false },
+        { "nom": "ville", "position": 3, "type_brut": "character varying(60)", "type_normalise": "texte", "longueur": 60, "nullable": false }
+      ],
+      "cle_primaire": { "nom": "adresse_pkey", "colonnes": ["id"] },
+      "cles_etrangeres": [
+        {
+          "nom": "adresse_personne_fkey",
+          "colonnes": ["personne_id"],
+          "table_cible": "personne",
+          "schema_cible": "public",
+          "colonnes_cibles": ["id"]
+        }
+      ]
+    },
+    {
+      "nom": "affectation",
+      "schema": "public",
+      "commentaire": "Identifiée par salarie : possible une fois salarie déclaré enfant, sa clé devenant celle de personne",
+      "colonnes": [
+        { "nom": "salarie_id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false },
+        { "nom": "debut", "position": 2, "type_brut": "date", "type_normalise": "date", "nullable": false },
+        { "nom": "service", "position": 3, "type_brut": "character varying(60)", "type_normalise": "texte", "longueur": 60, "nullable": false }
+      ],
+      "cle_primaire": { "nom": "affectation_pkey", "colonnes": ["salarie_id", "debut"] },
+      "cles_etrangeres": [
+        {
+          "nom": "affectation_salarie_fkey",
+          "colonnes": ["salarie_id"],
+          "table_cible": "salarie",
+          "schema_cible": "public",
+          "colonnes_cibles": ["id"]
+        }
+      ]
     }
   ]
 }

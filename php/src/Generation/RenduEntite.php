@@ -102,10 +102,15 @@ final class RenduEntite
 
     /**
      * Rend le source de la classe de l'utilisateur : l'entité, sa table, et
-     * rien d'autre. Elle n'est écrite qu'une fois, et ce qu'on y ajoute ensuite
-     * appartient à l'utilisateur.
+     * pour la racine d'un héritage la stratégie, la colonne discriminante et
+     * la carte des classes. Elle n'est écrite qu'une fois, et ce qu'on y
+     * ajoute ensuite appartient à l'utilisateur.
+     *
+     * @param Entite              $entite  entité à rendre
+     * @param RacineHeritage|null $racine  ce que déclare la racine d'un héritage ; null pour toute
+     *                                     autre entité
      */
-    public function classeUtilisateur(Entite $entite): string
+    public function classeUtilisateur(Entite $entite, ?RacineHeritage $racine = null): string
     {
         $lignes = [
             '<?php',
@@ -119,6 +124,7 @@ final class RenduEntite
             '',
             Emetteur::attribut('ORM\Entity', [], ''),
             Emetteur::attribut('ORM\Table', $this->argumentsTable($entite), ''),
+            ...array_values($racine?->attributs() ?? []),
             'class ' . $entite->nom . ' extends ' . self::nomBase($entite) . ' {}',
         ];
 
@@ -132,14 +138,29 @@ final class RenduEntite
      * Le constructeur n'existe que s'il y a une collection à initialiser. Une
      * classe de l'utilisateur qui déclare le sien doit appeler
      * parent::__construct(), comme pour toute classe parente.
+     *
+     * Dans une hiérarchie, la classe de base d'une classe fille hérite de la
+     * classe de l'utilisateur de son parent — SalarieBase extends Personne —,
+     * sans redéclarer l'identifiant, et la racine ne mappe pas sa colonne
+     * discriminante : Doctrine refuse l'un et l'autre (voir Hierarchies). Un
+     * constructeur appelle celui de l'ancêtre qui en a un, sans quoi les
+     * collections de la racine resteraient non initialisées sur un new Salarie.
      */
-    public function classeBase(Entite $entite): string
+    public function classeBase(Entite $entite, Hierarchies $hierarchies): string
     {
-        $rendu = $this->membres->rendre($entite->proprietes, $entite->identifiant, $entite->associations);
+        $parent = $hierarchies->parent($entite);
+        $rendu = $this->membres->rendre(
+            $hierarchies->proprietesDeclarees($entite),
+            $parent === null ? $entite->identifiant : null,
+            $entite->associations,
+        );
 
         $imports = ['Doctrine\ORM\Mapping as ORM', ...$rendu['imports']];
         foreach ($entite->traits as $trait) {
             $imports[] = $this->espaceDeNoms . '\\Trait\\' . $trait;
+        }
+        if ($parent !== null) {
+            $imports[] = $this->espaceDeNoms . '\\' . $parent->nom;
         }
 
         $lignes = $this->entete($this->espaceDeNoms . '\\Base', $imports);
@@ -151,7 +172,7 @@ final class RenduEntite
                 '',
             );
         }
-        $lignes[] = 'abstract class ' . self::nomBase($entite);
+        $lignes[] = 'abstract class ' . self::nomBase($entite) . ($parent === null ? '' : ' extends ' . $parent->nom);
         $lignes[] = '{';
 
         $blocs = [];
@@ -164,6 +185,10 @@ final class RenduEntite
                 static fn(string $nom): string => $i . $i . '$this->' . $nom . ' = new ArrayCollection();',
                 $rendu['collections'],
             );
+            $aUnConstructeur = static fn(Entite $e): bool => array_filter($e->associations, RenduMembres::estCollection(...)) !== [];
+            if ($hierarchies->ancetreAvecConstructeur($entite, $aUnConstructeur)) {
+                array_unshift($initialisations, $i . $i . 'parent::__construct();');
+            }
             $rendu['membres'][] = implode("\n", [$i . 'public function __construct()', $i . '{', ...$initialisations, $i . '}']);
         }
         $lignes[] = implode("\n\n", [...$blocs, ...$rendu['membres'], ...$rendu['accesseurs']]);

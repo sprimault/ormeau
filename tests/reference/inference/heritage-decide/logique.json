@@ -52,6 +52,14 @@
           "proprietaire": false,
           "mappee_par": "personne",
           "origine": "contrainte"
+        },
+        {
+          "nom": "adresse",
+          "genre": "un_vers_plusieurs",
+          "cible": "Adresse",
+          "proprietaire": false,
+          "mappee_par": "personne",
+          "origine": "contrainte"
         }
       ],
       "origine": "nommage"
@@ -91,6 +99,16 @@
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 20,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "affectation",
+          "genre": "un_vers_plusieurs",
+          "cible": "Affectation",
+          "proprietaire": false,
+          "mappee_par": "salarie",
           "origine": "contrainte"
         }
       ],
@@ -146,9 +164,133 @@
         }
       ],
       "origine": "nommage"
+    },
+    {
+      "nom": "Adresse",
+      "table": {
+        "nom": "adresse",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "personneId",
+          "colonne": "personne_id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "ville",
+          "colonne": "ville",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 60,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "personne",
+          "genre": "plusieurs_vers_un",
+          "cible": "Personne",
+          "proprietaire": true,
+          "inversee_par": "adresse",
+          "jointure": [
+            {
+              "colonne": "personne_id",
+              "colonne_referencee": "id",
+              "nullable": false
+            }
+          ],
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "Affectation",
+      "table": {
+        "nom": "affectation",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "salarieId",
+          "debut"
+        ],
+        "strategie": "assignee"
+      },
+      "proprietes": [
+        {
+          "nom": "salarieId",
+          "colonne": "salarie_id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "debut",
+          "colonne": "debut",
+          "type_php": "\\DateTimeImmutable",
+          "type_doctrine": "date_immutable",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "service",
+          "colonne": "service",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 60,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "salarie",
+          "genre": "plusieurs_vers_un",
+          "cible": "Salarie",
+          "proprietaire": true,
+          "inversee_par": "affectation",
+          "jointure": [
+            {
+              "colonne": "salarie_id",
+              "colonne_referencee": "id",
+              "nullable": false
+            }
+          ],
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
     }
   ],
   "avertissements": [
+    {
+      "code": "cle_primaire_composite",
+      "cible": "public.affectation",
+      "message": "clé primaire sur salarieId, debut",
+      "resolution": "par_defaut",
+      "confiance": 1
+    },
     {
       "code": "heritage_deduit",
       "cible": "public.prestataire",

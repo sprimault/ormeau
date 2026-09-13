@@ -259,9 +259,8 @@ pièce jointe d'une issue.
 L'extraction PostgreSQL et l'inférence fonctionnent : `ormeau extraire` puis
 `ormeau inferer` produisent les trois fichiers. La génération d'entités est en
 cours : `bin/console ormeau:generer` écrit les entités, leurs associations,
-leurs énumérations et leurs traits, et écarte en le disant ce que Doctrine ne
-sait pas représenter ; l'héritage déclaré dans le fichier de décisions reste à
-générer.
+leurs énumérations et leurs traits, et l'héritage déclaré dans le fichier de
+décisions, et écarte en le disant ce que Doctrine ne sait pas représenter.
 L'état par phase est dans [`ROADMAP.md`](ROADMAP.md).
 
 La CI exécute la suite de tests avec le détecteur de courses, `golangci-lint`,

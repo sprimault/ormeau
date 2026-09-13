@@ -57,11 +57,14 @@ final class Emetteur
      *
      * Les arguments sont nommés, dans l'ordre donné : c'est ce qui rend le code
      * stable d'une régénération à l'autre, et lisible sans connaître l'ordre
-     * des paramètres du constructeur de l'attribut.
+     * des paramètres du constructeur de l'attribut. Seul un attribut à valeur
+     * unique, comme #[ORM\InheritanceType('JOINED')], prend un argument
+     * positionnel, écrit comme on l'écrirait à la main.
      *
-     * @param string                      $nom         nom de l'attribut, tel qu'il s'écrit après #[
-     * @param array<string, mixed>        $arguments   arguments nommés ; un argument null est omis
-     * @param string                      $indentation indentation de la ligne de l'attribut
+     * @param string                   $nom         nom de l'attribut, tel qu'il s'écrit après #[
+     * @param array<array-key, mixed>  $arguments   arguments nommés, ou positionnels sous une clé
+     *                                              entière ; un argument null est omis
+     * @param string                   $indentation indentation de la ligne de l'attribut
      */
     public static function attribut(string $nom, array $arguments, string $indentation): string
     {
@@ -71,7 +74,7 @@ final class Emetteur
                 continue;
             }
             /** @var array<array-key, mixed>|bool|Code|float|int|string $valeur */
-            $parties[] = $cle . ': ' . self::litteral($valeur);
+            $parties[] = (is_int($cle) ? '' : $cle . ': ') . self::litteral($valeur);
         }
 
         if ($parties === []) {
