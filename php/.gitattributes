@@ -1,0 +1,16 @@
+# Ce qui n'entre pas dans l'archive que Composer télécharge depuis le miroir,
+# où ce répertoire devient la racine du dépôt.
+#
+# Les tests lisent ../../tests/reference et ../../schemas, absents du miroir :
+# ils ne tournent que dans le dépôt principal. L'outillage de validation et le
+# lock n'ont rien à faire dans le vendor/ d'un projet.
+#
+# LICENSE et NOTICE n'y sont pas, et ne doivent jamais y être : Apache 2.0 les
+# exige avec toute distribution, et l'archive est la distribution.
+/tests export-ignore
+/composer.lock export-ignore
+/phpstan.neon.dist export-ignore
+/phpunit.xml.dist export-ignore
+/.php-cs-fixer.dist.php export-ignore
+/.php-cs-fixer.produit.php export-ignore
+/.gitattributes export-ignore

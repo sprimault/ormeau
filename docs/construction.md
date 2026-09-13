@@ -96,6 +96,113 @@ handling production credentials has no business running as root.
 The container remains a fallback: it still has to reach the database, which the
 native binary does with no network configuration.
 
+## The PHP package mirror
+
+Composer only reads a VCS repository whose `composer.json` sits at its root. The
+package lives in `php/`, so it is published to
+[sprimault/ormeau-doctrine](https://github.com/sprimault/ormeau-doctrine), where
+`php/` becomes the root. That repository is a read-only mirror: no issues, no
+pull requests, and nothing is written to it by hand.
+
+`.github/workflows/miroir.yml` pushes `git subtree split --prefix=php` to it on
+every push to `master`, and for every `v*` tag when called from `release.yml`.
+The split is deterministic, and the split of an older commit is an ancestor of
+the split of a newer one: the mirror always moves forward by fast-forward, and
+**nothing is ever force-pushed to it**. A rejection means the mirror has
+diverged; that gets investigated, not overwritten.
+
+The mirror only carries versions in which the package works: it starts at
+0.5.0, and no earlier tag will be pushed to it.
+
+### What guards the write access
+
+- The key is a **deploy key** of the mirror: it cannot write to any other
+  repository.
+- Its private half is the `MIROIR_CLE` secret of the main repository's
+  **`miroir` environment**, whose deployment rule only admits `master` and `v*`
+  tags. A workflow triggered by a pull request runs on another ref: GitHub does
+  not open the environment to it, whatever its file says.
+- On the mirror, two rules: `master` cannot be deleted or force-pushed, and only
+  the deploy key updates it, the owner included; a `v*` tag cannot be moved,
+  and only the key creates one. The owner can delete a tag: the recovery below
+  requires it.
+
+One-time setup, by the owner of both repositories, in a temporary directory:
+never in the repository, where a `git add` would pick it up, nor in `~/.ssh`,
+where it would remain a key able to write to the mirror. Once handed over, it
+only exists in the secret; lost or due for rotation, it is replaced by a new
+one, on both sides.
+
+```bash
+cd "$(mktemp -d)"
+ssh-keygen -t ed25519 -N "" -C "miroir ormeau-doctrine" -f miroir
+gh repo deploy-key add miroir.pub --repo sprimault/ormeau-doctrine --allow-write --title "miroir.yml"
+gh secret set MIROIR_CLE --env miroir --repo sprimault/ormeau < miroir
+rm miroir miroir.pub
+```
+
+Under PowerShell, `-N ""` does not reach `ssh-keygen`: leave it out, and
+confirm an empty passphrase twice. The `<` redirection does not exist either;
+pass the key through `((Get-Content miroir) -join "`n") | gh secret set …`,
+which keeps LF line endings, without which ssh rejects the key on the runner.
+
+### Publishing a version
+
+The tag is set **before** the closing pull request is merged, so that no window
+separates announcing the version from its availability:
+
+1. The pull request that dates the `CHANGELOG` section is green.
+2. The tag is set on its head and pushed:
+   `git tag vX.Y.Z <PR head> && git push origin vX.Y.Z`.
+3. `release.yml` first pushes the tag to the mirror, and checks that Composer
+   resolves `sprimault/ormeau-doctrine:X.Y.Z` from the real mirror. Binaries,
+   draft release and image wait for that proof.
+4. The pull request is merged: the README announcing the version reaches
+   `master` after the mirror carries it.
+5. The draft is reviewed and published.
+
+### If publishing fails
+
+As long as the draft is not published, the number can be reused. After that,
+never: a project may have locked the tag's commit, and a fix takes the next
+number.
+
+- **The mirror job fails before pushing the tag** (missing secret, rejected
+  push): the tag only exists on the main repository, and nothing else has gone
+  out. Delete the tag, fix the pull request, set the tag again on its new head:
+
+  ```bash
+  git push origin :refs/tags/vX.Y.Z && git tag -d vX.Y.Z
+  ```
+
+- **A job fails after the mirror tag, for a transient reason** (network,
+  runner): re-run the failed jobs. The split is the same, and pushing an
+  identical tag again changes nothing.
+
+  ```bash
+  gh run rerun <run id> --failed
+  ```
+
+- **The fix needs a commit**: the split changes, and the mirror tag cannot move.
+  Delete the tag on both sides and the draft if there is one, fix, set the tag
+  again:
+
+  ```bash
+  gh api -X DELETE repos/sprimault/ormeau-doctrine/git/refs/tags/vX.Y.Z
+  gh release delete vX.Y.Z --yes
+  git push origin :refs/tags/vX.Y.Z && git tag -d vX.Y.Z
+  ```
+
+  The same deletion applies to a pull request abandoned after the tag was set.
+
+- **The mirror's `master` rejects the fast-forward**: something was written to
+  it that does not come from the split. The mirror rule only allows the key, so
+  the key has been used elsewhere. Revoke it (delete the deploy key, add a new
+  one), compare `git ls-remote` with the local split of `master`, and only then
+  put the mirror's `master` back on the split — the one case where a force push
+  is allowed, done by hand by the owner, with the rule disabled for the
+  duration.
+
 ## Signing: the two frictions
 
 They do not prevent publishing, but they are better documented than discovered.

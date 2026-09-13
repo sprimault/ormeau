@@ -70,7 +70,10 @@ project's real test suite.
 ## Getting set up
 
 You need Go (the version pinned in `go.mod`) and Docker for the test
-containers. PHP 8.1 and Composer are only needed to work on `php/`.
+containers. PHP 8.1 and Composer are only needed to work on `php/`, which is
+published as a mirror to `sprimault/ormeau-doctrine`: contributions to it happen
+here, never on the mirror, which is rewritten on every merge. The mechanism and
+how a version is published are described in [`docs/construction.md`](docs/construction.md).
 
 ```bash
 make outils        # golangci-lint, govulncheck, gosec

@@ -1,0 +1,79 @@
+# Miroir du paquet PHP : php/ devient la racine de sprimault/ormeau-doctrine,
+# le seul dépôt que Composer sait lire. Il cherche composer.json à la racine,
+# et un dépôt VCS pointé sur celui-ci échoue.
+#
+# Lancé par un push sur master, et appelé par release.yml pour un tag, avant
+# toute autre étape de la publication. Jamais par une pull request, et c'est la
+# première des deux barrières autour de la clé : elle écrit sur le miroir.
+#
+# La seconde ne dépend pas de ce fichier. La clé est un secret de
+# l'environnement « miroir », dont la règle de déploiement n'admet que master
+# et les tags v* : un workflow déclenché par une PR, même ajouté un jour par
+# erreur, tourne sur une autre référence, et GitHub ne lui ouvre pas
+# l'environnement. Une clé de déploiement, enfin, n'écrit que sur le dépôt qui
+# la porte.
+name: Miroir
+
+on:
+  push:
+    branches: [master]
+  workflow_call:
+
+permissions:
+  contents: read
+
+# Deux pushes rapprochés sur master se suivent au lieu de se croiser : le second
+# porte un split dont le premier est ancêtre, et passe en avance rapide.
+concurrency:
+  group: miroir-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  miroir:
+    name: Miroir du paquet PHP
+    runs-on: ubuntu-latest
+    environment: miroir
+    steps:
+      # Toute l'histoire : le split se calcule sur elle, et un checkout
+      # superficiel produirait une histoire tronquée, donc d'autres SHA.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # La clé d'hôte est épinglée, telle que GitHub la publie
+      # (api.github.com/meta) : accepter la première venue ferait confiance à
+      # quiconque répond sur github.com au moment du push.
+      - name: Pousser le split
+        env:
+          MIROIR_CLE: ${{ secrets.MIROIR_CLE }}
+        run: |
+          if [ -z "$MIROIR_CLE" ]; then
+            echo "Secret MIROIR_CLE absent de l'environnement miroir : voir docs/construction.fr.md, « Le miroir du paquet PHP »." >&2
+            exit 1
+          fi
+          ssh_dir="$RUNNER_TEMP/ssh"
+          mkdir -p "$ssh_dir" && chmod 700 "$ssh_dir"
+          printf '%s\n' "$MIROIR_CLE" > "$ssh_dir/cle" && chmod 600 "$ssh_dir/cle"
+          echo 'github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl' > "$ssh_dir/hotes"
+          export GIT_SSH_COMMAND="ssh -i $ssh_dir/cle -o IdentitiesOnly=yes -o UserKnownHostsFile=$ssh_dir/hotes -o StrictHostKeyChecking=yes"
+          tools/miroir/miroir.sh git@github.com:sprimault/ormeau-doctrine.git "$GITHUB_REF" "$GITHUB_SHA"
+
+      # La preuve que la publication attend : Composer résout la version depuis
+      # le vrai miroir, comme le fera un projet. no-api passe par git plutôt
+      # que par l'API GitHub, dont le quota anonyme ferait échouer la
+      # vérification pour une raison sans rapport.
+      - name: Vérifier que Composer résout la version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          projet="$RUNNER_TEMP/consommateur"
+          mkdir -p "$projet" && cd "$projet"
+          cat > composer.json <<EOF
+          {
+            "repositories": [{"type": "vcs", "url": "https://github.com/sprimault/ormeau-doctrine", "no-api": true}],
+            "require": {"sprimault/ormeau-doctrine": "$version"}
+          }
+          EOF
+          composer update --dry-run --no-interaction --no-scripts --no-plugins --ignore-platform-reqs 2>&1 | tee sortie.txt
+          grep -F "sprimault/ormeau-doctrine (v$version)" sortie.txt

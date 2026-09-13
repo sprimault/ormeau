@@ -3,6 +3,11 @@
   "description": "Génère et synchronise des entités Doctrine à partir d'un calque Ormeau",
   "type": "symfony-bundle",
   "license": "Apache-2.0",
+  "homepage": "https://github.com/sprimault/ormeau",
+  "support": {
+    "issues": "https://github.com/sprimault/ormeau/issues",
+    "source": "https://github.com/sprimault/ormeau/tree/master/php"
+  },
   "require": {
     "php": ">=8.1",
     "nikic/php-parser": "^5.0",
