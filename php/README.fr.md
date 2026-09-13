@@ -3,13 +3,33 @@
 # ormeau-doctrine
 
 Le bundle Symfony d'[Ormeau](https://github.com/sprimault/ormeau) : il génère
-des entités Doctrine à partir du calque logique que produit `ormeau inferer`, et
-les régénère sans écraser le travail fait dessus entre-temps.
+des entités Doctrine à partir d'une base legacy, et les régénère six mois plus
+tard sans écraser le code écrit dessus entre-temps.
+
+Doctrine a retiré `doctrine:mapping:import`, et rien d'officiel ne l'a
+remplacé. Ormeau reprend une vraie base legacy — préfixes `T_`, clés étrangères
+jamais déclarées, booléens en `char(1)` — et produit des associations là où une
+traduction littérale laisserait des colonnes entières.
 
 > [!IMPORTANT]
 > Ce dépôt est un **miroir en lecture seule** du répertoire `php/` de
 > [sprimault/ormeau](https://github.com/sprimault/ormeau), réécrit à chaque
 > fusion. Issues, pull requests et documentation vivent dans le dépôt principal.
+
+## Ce qu'il lui faut
+
+Le bundle ne lit pas la base. Il lit un calque logique produit par le binaire
+`ormeau`, un seul fichier à télécharger depuis les
+[versions](https://github.com/sprimault/ormeau/releases/latest), sans rien
+d'autre à installer. PostgreSQL pour l'instant :
+
+```console
+$ ormeau extraire --dsn "postgres://app:secret@srv:5432/gescom" --sortie gescom.calque.json
+$ ormeau inferer gescom.calque.json
+```
+
+`ormeau inferer` écrit `gescom.logique.json`, et un fichier de décisions où
+l'on tranche ce que l'outil ne peut pas décider seul.
 
 ## Installation
 
