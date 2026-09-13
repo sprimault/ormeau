@@ -264,6 +264,6 @@ func TestUsageDecritLesCommandes(t *testing.T) {
 		}
 	}
 	if !strings.Contains(usage, "--echantillonner") && strings.Contains(usage, "--dsn") {
-		t.Log("l'usage ne mentionne pas --echantillonner ; à revoir quand la phase 7 arrivera")
+		t.Log("l'usage ne mentionne pas --echantillonner ; à revoir avec l'échantillonnage")
 	}
 }

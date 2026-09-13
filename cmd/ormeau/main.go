@@ -105,5 +105,5 @@ func diffuser(args []string) error {
 	_ = dsn
 	_ = format
 
-	return fmt.Errorf("à implémenter : phase 8 de la feuille de route")
+	return fmt.Errorf("à implémenter : phase « Diff » de la feuille de route")
 }

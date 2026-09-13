@@ -40,6 +40,20 @@ que le système de fichiers embarqué porte un `index.html` non vide. Sans lui, 
 garde-fou reposerait sur la seule dépendance du Makefile, et un bundle absent se
 découvrirait à l'ouverture d'une interface blanche.
 
+## Compilation locale
+
+L'antivirus d'un poste Windows peut mettre en quarantaine les exécutables
+temporaires qu'écrit l'éditeur de liens : la compilation échoue alors sur un
+accès refusé, sans rapport apparent avec le code. Le remède est de faire pointer
+`GOTMPDIR` et `GOCACHE` dans `.tmp/`, à l'intérieur du dépôt — mais dans
+`makefile.local`, que le Makefile inclut s'il existe et que git ignore, et non
+dans le Makefile versionné : c'est une contrainte de ce poste, pas une décision
+du projet. [`CONTRIBUTING.fr.md`](../CONTRIBUTING.fr.md) donne les lignes à
+recopier.
+
+`make build` écrit dans `.tmp/` ; `dist/` reste réservé aux artefacts de
+publication.
+
 ## Images Docker
 
 Les binaires étant déjà croisés, l'image multi-arch se construit **sans
@@ -98,6 +112,7 @@ premier lancement. La signature est techniquement faisable depuis Linux avec
 Gatekeeper le bloque au premier lancement. La notarisation exige un Mac et un
 compte développeur Apple payant.
 
-Dans les deux cas, le README explique le contournement. Un avertissement de
-sécurité inexpliqué sur un outil qui réclame un mot de passe de base de données
-arrête net un utilisateur prudent — et il a raison de s'arrêter.
+Dans les deux cas, le README prévient de l'avertissement et montre comment
+vérifier l'archive avant de la lancer. Un avertissement de sécurité inexpliqué
+sur un outil qui réclame un mot de passe de base de données arrête net un
+utilisateur prudent — et il a raison de s'arrêter.

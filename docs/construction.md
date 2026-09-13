@@ -42,11 +42,15 @@ would surface as a blank interface.
 
 ## Local builds
 
-`GOTMPDIR` points at `.tmp/gobuild`, inside the repository, and the Makefile
-exports it. Otherwise antivirus software on a Windows workstation quarantines the
-temporary executables the linker writes to `%TEMP%`, and the build fails on an
-access-denied error with no apparent connection to the code. `make build` writes
-to `.tmp/` for the same reason; `dist/` stays reserved for release artefacts.
+Antivirus software on a Windows workstation may quarantine the temporary
+executables the linker writes, and the build then fails on an access-denied
+error with no apparent connection to the code. The fix is to point `GOTMPDIR`
+and `GOCACHE` into `.tmp/`, inside the repository — but in `makefile.local`,
+which the Makefile includes when present and git ignores, not in the versioned
+Makefile: it is a constraint of that workstation, not a project decision.
+[`CONTRIBUTING.md`](../CONTRIBUTING.md) gives the lines to copy.
+
+`make build` writes to `.tmp/`; `dist/` stays reserved for release artefacts.
 
 ## Docker images
 
@@ -104,6 +108,6 @@ requires a paid code-signing certificate.
 Gatekeeper blocks it on first launch. Notarization requires a Mac and a paid Apple
 developer account.
 
-In both cases the README explains the workaround. An unexplained security warning
-on a tool that asks for a database password stops a careful user dead — and they
-are right to stop.
+In both cases the README warns about it and shows how to verify the archive
+before running it. An unexplained security warning on a tool that asks for a
+database password stops a careful user dead — and they are right to stop.

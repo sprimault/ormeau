@@ -13,5 +13,12 @@ sans base de données, et ce sont eux le vrai jeu de tests du projet.
 Quand une heuristique est ajoutée, on ajoute d'abord le calque physique qui la
 déclenche.
 
-La mise à jour groupée des attendus se fait avec `go test ./... -maj-attendus`,
-jamais automatiquement : un attendu régénéré sans être relu ne teste plus rien.
+La mise à jour groupée des attendus se fait derrière un drapeau, jamais
+automatiquement : un attendu régénéré sans être relu ne teste plus rien. Seuls
+deux paquets le déclarent, et chacun se lance à part — un `./...` échouerait sur
+tous les autres :
+
+```bash
+go test ./internal/inference/ -maj-attendus   # calques logiques attendus, aussi `make maj-attendus`
+go test ./internal/calque/ -maj-attendus      # sérialisation du calque physique
+```

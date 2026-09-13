@@ -143,8 +143,3 @@ func BaseDesDecisions(chemin string) string {
 	}
 	return strings.TrimSuffix(nom, filepath.Ext(nom))
 }
-
-// Reste à écrire avec les heuristiques (phase 3) : la vérification des cibles,
-// qui signale les décisions ne correspondant à rien dans le calque physique.
-// C'est le signal que la base a bougé sous le fichier — et une vérification qui
-// ne rend rien parce qu'elle n'est pas écrite dirait exactement l'inverse.
