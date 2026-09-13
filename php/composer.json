@@ -1,7 +1,17 @@
 {
   "name": "sprimault/ormeau-doctrine",
-  "description": "Génère et synchronise des entités Doctrine à partir d'un calque Ormeau",
+  "description": "Generates Doctrine entities from a legacy database, through the Ormeau layer, and regenerates them without overwriting your code",
   "type": "symfony-bundle",
+  "keywords": [
+    "doctrine",
+    "doctrine-orm",
+    "symfony-bundle",
+    "entity-generator",
+    "reverse-engineering",
+    "legacy",
+    "database",
+    "mapping-import"
+  ],
   "license": "Apache-2.0",
   "homepage": "https://github.com/sprimault/ormeau",
   "support": {
