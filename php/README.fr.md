@@ -41,6 +41,18 @@ $ bin/console ormeau:generer gescom.logique.json
 La chaîne complète — extraire le calque, inférer, arbitrer, générer — est
 décrite dans le [README principal](https://github.com/sprimault/ormeau/blob/master/README.fr.md).
 
+## D'où vient le nom
+
+Un ormeau, c'est un jeune orme — et un coquillage à la coquille nacrée, faite de
+couches superposées. Il commence aussi par ORM, ce qui tombe bien pour un outil
+qui produit des entités ORM.
+
+Le format pivot s'appelle un **calque**, au sens du décalque : une copie fidèle
+du catalogue, sans interprétation. En linguistique, un calque est aussi un
+emprunt structurel d'une langue vers une autre — « gratte-ciel » calqué sur
+*skyscraper*. C'est exactement l'opération : emprunter la structure d'un schéma
+relationnel dans le système de types d'un autre langage.
+
 ## Licence
 
 Apache 2.0 — voir [`LICENSE`](LICENSE). Les entités qu'Ormeau génère vous
