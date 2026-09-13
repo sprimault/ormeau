@@ -28,6 +28,7 @@ final class Repertoires
         'associations',
         'cas-limites',
         'cible-ignoree',
+        'colonnes-ignorees',
         'decisions',
         'decisions-invalides',
         'enumerations',

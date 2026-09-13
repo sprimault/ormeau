@@ -183,7 +183,12 @@ func reconnaitreHeritage(t *calque.Table) *calque.CleEtrangere {
 // inferrerAssociations rend les associations que porte une entité : une par
 // clé étrangère déclarée, et une par relation forcée. Leurs côtés inverses
 // viennent après, quand toutes les entités existent.
-func inferrerAssociations(t *calque.Table, s *schemaLogique, parColonne map[string]*calque.Propriete) ([]calque.Association, []calque.Avertissement) {
+//
+// Une clé étrangère dont une colonne est écartée ne donne rien, et le côté
+// inverse ne se déduit donc pas non plus : elle est notée dans parties pour
+// chacune de ses colonnes écartées. Une relation forcée sur une telle colonne
+// n'arrive pas jusqu'ici, verifierRelationsForcees l'a refusée.
+func inferrerAssociations(t *calque.Table, s *schemaLogique, parColonne map[string]*calque.Propriete, ecartees map[string]bool, parties map[string][]string) ([]calque.Association, []calque.Avertissement) {
 	cible := t.Schema + "." + t.Nom
 
 	var associations []calque.Association
@@ -212,6 +217,16 @@ func inferrerAssociations(t *calque.Table, s *schemaLogique, parColonne map[stri
 		}
 
 		nomCible, connue := s.nomsParTable[fk.SchemaCible+"."+fk.TableCible]
+		if citees := slices.DeleteFunc(slices.Clone(fk.Colonnes), func(c string) bool { return !ecartees[c] }); len(citees) > 0 {
+			partie := "clé étrangère vers " + fk.SchemaCible + "." + fk.TableCible
+			if connue {
+				partie = "association " + nomAssociation(fk, nomCible)
+			}
+			for _, colonne := range citees {
+				parties[colonne] = append(parties[colonne], partie)
+			}
+			continue
+		}
 		if !connue {
 			// La cible est hors du calque — portée restreinte, ou table
 			// ignorée. L'association ne se génère pas, mais la colonne reste

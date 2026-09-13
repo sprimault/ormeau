@@ -41,7 +41,20 @@ préambule reste en français : il n'est jamais publié.
 `ormeau:generer` ; le calque physique n'a pas à être extrait de nouveau.
 `version_ri` ne bouge pas.
 
+**Une colonne ignorée emporte désormais ses index et son association**, ce
+qui change l'entité régénérée d'un projet dont le fichier de décisions ignore
+une colonne indexée ou une clé étrangère. `migrations:diff` propose de
+supprimer une colonne ignorée : la retirer du diff avant de l'appliquer.
+
 ### Corrigé
+
+- **`colonnes_ignorees` retire ce qui cite la colonne.** Un index ou une
+  unicité sur une colonne ignorée restait dans l'entité, et `schema:create`
+  échouait sur la colonne introuvable. Une clé étrangère ignorée gardait son
+  association, qui écrivait la colonne et la déclarait non nullable. Index,
+  unicité et association partent avec la colonne, l'avertissement
+  `colonne_ignoree` les nomme, et une relation forcée sur une colonne ignorée
+  est refusée.
 
 - **Le nom de séquence d'une clé `serial` est lu dans le défaut.** Le logique
   recopiait l'expression entière, `nextval('facture_id_seq'::regclass)`, dans
@@ -85,7 +98,20 @@ préambule reste en français : il n'est jamais publié.
 `ormeau:generer` again; the physical layer does not need to be re-extracted.
 `version_ri` does not change.
 
+**An ignored column now takes its indexes and its association with it**,
+which changes the regenerated entity of a project whose decisions file ignores
+an indexed column or a foreign key. `migrations:diff` proposes to drop an
+ignored column: remove it from the diff before applying it.
+
 ### Fixed
+
+- **`colonnes_ignorees` removes what refers to the column.** An index or a
+  unique constraint on an ignored column stayed in the entity, and
+  `schema:create` failed on the missing column. An ignored foreign key kept its
+  association, which wrote the column and declared it non-nullable. Index,
+  unique constraint and association now go with the column, the
+  `colonne_ignoree` warning names them, and a forced relation on an ignored
+  column is refused.
 
 - **The sequence name of a `serial` key is read from the default.** The
   logical layer copied the whole expression, `nextval('facture_id_seq'::regclass)`,

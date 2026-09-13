@@ -21,6 +21,7 @@
 package inference
 
 import (
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -121,13 +122,17 @@ func espaceDeNoms(d *Decisions) string {
 }
 
 // colonnesEcartees rend les colonnes que l'utilisateur a retirées de l'entité,
-// et les avertissements que cet arbitrage produit.
+// et les refus que cet arbitrage produit.
 //
 // Deux refus, tous deux signalés plutôt qu'appliqués en silence. Une colonne de
 // clé primaire reste : Doctrine refuse une entité sans identifiant, et la
 // retirer donnerait un modèle que rien ne peut charger. Une colonne inconnue
 // signale que la base a bougé sous le fichier de décisions — c'est précisément
 // ce qu'on veut apprendre en régénérant six mois plus tard.
+//
+// L'avertissement d'une colonne effectivement écartée s'écrit plus tard, par
+// signalerColonnesEcartees : il nomme ce qui part avec elle, et ce n'est connu
+// qu'une fois les index et les associations passés.
 func colonnesEcartees(t *calque.Table, d *Decisions) (map[string]bool, []calque.Avertissement) {
 	demandees := d.ColonnesIgnorees[t.Schema+"."+t.Nom]
 	if len(demandees) == 0 {
@@ -137,13 +142,6 @@ func colonnesEcartees(t *calque.Table, d *Decisions) (map[string]bool, []calque.
 	presentes := make(map[string]bool, len(t.Colonnes))
 	for i := range t.Colonnes {
 		presentes[t.Colonnes[i].Nom] = true
-	}
-
-	identifiantes := map[string]bool{}
-	if t.ClePrimaire != nil {
-		for _, colonne := range t.ClePrimaire.Colonnes {
-			identifiantes[colonne] = true
-		}
 	}
 
 	cible := t.Schema + "." + t.Nom
@@ -160,7 +158,7 @@ func colonnesEcartees(t *calque.Table, d *Decisions) (map[string]bool, []calque.
 				Resolution: calque.ResolutionAucune,
 				Confiance:  1,
 			})
-		case identifiantes[colonne]:
+		case dansClePrimaire(t, colonne):
 			avertissements = append(avertissements, calque.Avertissement{
 				Code:       calque.CodeClePrimaireGardee,
 				Cible:      cible + "." + colonne,
@@ -170,16 +168,50 @@ func colonnesEcartees(t *calque.Table, d *Decisions) (map[string]bool, []calque.
 			})
 		default:
 			ecartees[colonne] = true
-			avertissements = append(avertissements, calque.Avertissement{
-				Code:       calque.CodeColonneIgnoree,
-				Cible:      cible + "." + colonne,
-				Message:    colonne + " est retirée de l'entité ; le calque physique la garde",
-				Resolution: calque.ResolutionForceeParDecision,
-				Confiance:  1,
-			})
 		}
 	}
 	return ecartees, avertissements
+}
+
+// ecarteeParDecision dit si colonnes_ignorees retire la colonne de son entité,
+// selon la même règle que colonnesEcartees : une colonne de clé primaire reste.
+func ecarteeParDecision(t *calque.Table, d *Decisions, colonne string) bool {
+	return slices.Contains(d.ColonnesIgnorees[t.Schema+"."+t.Nom], colonne) && !dansClePrimaire(t, colonne)
+}
+
+// dansClePrimaire dit si la colonne appartient à la clé primaire déclarée.
+func dansClePrimaire(t *calque.Table, colonne string) bool {
+	return t.ClePrimaire != nil && slices.Contains(t.ClePrimaire.Colonnes, colonne)
+}
+
+// signalerColonnesEcartees écrit un avertissement par colonne écartée, qui
+// nomme ce qui est parti avec elle.
+//
+// Le message dit aussi ce que Doctrine en fera : une colonne présente en base
+// et absente de l'entité, migrations:diff la propose à la suppression. Ormeau
+// ne peut pas l'empêcher, aucun filtre de schéma ne visant une colonne ; le
+// taire laisserait appliquer un diff qui efface des données.
+func signalerColonnesEcartees(t *calque.Table, ecartees map[string]bool, parties map[string][]string) []calque.Avertissement {
+	var avertissements []calque.Avertissement
+	for i := range t.Colonnes {
+		colonne := t.Colonnes[i].Nom
+		if !ecartees[colonne] {
+			continue
+		}
+		message := colonne + " est retirée de l'entité ; le calque physique la garde"
+		if len(parties[colonne]) > 0 {
+			message += ". Avec elle : " + strings.Join(parties[colonne], ", ")
+		}
+		message += ". migrations:diff proposera de supprimer la colonne : à retirer du diff avant de l'appliquer"
+		avertissements = append(avertissements, calque.Avertissement{
+			Code:       calque.CodeColonneIgnoree,
+			Cible:      t.Schema + "." + t.Nom + "." + colonne,
+			Message:    message,
+			Resolution: calque.ResolutionForceeParDecision,
+			Confiance:  1,
+		})
+	}
+	return avertissements
 }
 
 // inferrerEntite traduit une table en classe.
@@ -266,7 +298,11 @@ func inferrerEntite(t *calque.Table, d *Decisions, prefixes []string, schema *sc
 		}
 	}
 
-	associations, avs := inferrerAssociations(t, schema, parColonne)
+	// Ce qui cite une colonne écartée part avec elle : Doctrine ne sait ni
+	// indexer ni joindre une colonne que l'entité ne mappe pas, et une
+	// association gardée écrirait la colonne qu'on a demandé d'ignorer.
+	parties := map[string][]string{}
+	associations, avs := inferrerAssociations(t, schema, parColonne, ecartees, parties)
 	avertissements = append(avertissements, avs...)
 	entite.Associations = associations
 
@@ -274,8 +310,9 @@ func inferrerEntite(t *calque.Table, d *Decisions, prefixes []string, schema *sc
 	avertissements = append(avertissements, avs...)
 	entite.Identifiant = identifiant
 
-	entite.Index = reporterIndex(t)
+	entite.Index = reporterIndex(t, ecartees, parties)
 	marquerUniques(t, parColonne)
+	avertissements = append(avertissements, signalerColonnesEcartees(t, ecartees, parties)...)
 
 	return entite, avertissements
 }
@@ -475,7 +512,30 @@ func inferrerIdentifiant(t *calque.Table, cible string, parColonne map[string]*c
 // propriété seule, et sans ça elles ne seraient nulle part. Une unicité que le
 // catalogue expose déjà comme index — le cas de PostgreSQL, qui en crée un du
 // même nom — n'est pas reprise deux fois.
-func reporterIndex(t *calque.Table) []calque.IndexEntite {
+//
+// Un index qui cite une colonne écartée part entier, noté dans parties pour
+// chacune de ses colonnes écartées : lui retirer la seule colonne en changerait
+// le sens, et une unicité sur (nom, siret) réduite à nom serait fausse.
+func reporterIndex(t *calque.Table, ecartees map[string]bool, parties map[string][]string) []calque.IndexEntite {
+	var index []calque.IndexEntite
+	for _, idx := range indexReportables(t) {
+		cite := false
+		for _, colonne := range idx.Colonnes {
+			if ecartees[colonne] {
+				cite = true
+				parties[colonne] = append(parties[colonne], "index "+idx.Nom)
+			}
+		}
+		if !cite {
+			index = append(index, idx)
+		}
+	}
+	return index
+}
+
+// indexReportables rend ce que le physique déclare d'indexable sur la table :
+// ses index, puis ses unicités composites qu'il n'expose pas déjà comme index.
+func indexReportables(t *calque.Table) []calque.IndexEntite {
 	var index []calque.IndexEntite
 	connus := make(map[string]bool, len(t.Index))
 

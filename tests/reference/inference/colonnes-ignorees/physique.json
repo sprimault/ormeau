@@ -1,0 +1,221 @@
+{
+  "version_ri": 1,
+  "source": {
+    "sgbd": "postgres",
+    "version": "17.6",
+    "catalogue": "gescom",
+    "schema": "public",
+    "extrait_le": "2026-01-01T00:00:00Z",
+    "empreinte": "sha256:0000000000000000000000000000000000000000000000000000000000000018"
+  },
+  "tables": [
+    {
+      "nom": "article",
+      "schema": "public",
+      "colonnes": [
+        {
+          "nom": "code",
+          "position": 1,
+          "type_brut": "character varying(20)",
+          "type_normalise": "texte",
+          "longueur": 20,
+          "nullable": false
+        },
+        {
+          "nom": "version",
+          "position": 2,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false
+        },
+        {
+          "nom": "libelle",
+          "position": 3,
+          "type_brut": "character varying(80)",
+          "type_normalise": "texte",
+          "longueur": 80,
+          "nullable": false
+        }
+      ],
+      "cle_primaire": {
+        "nom": "article_pkey",
+        "colonnes": ["code", "version"]
+      }
+    },
+    {
+      "nom": "client",
+      "schema": "public",
+      "colonnes": [
+        {
+          "nom": "id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true
+        },
+        {
+          "nom": "nom",
+          "position": 2,
+          "type_brut": "character varying(80)",
+          "type_normalise": "texte",
+          "longueur": 80,
+          "nullable": false
+        },
+        {
+          "nom": "raison_sociale",
+          "position": 3,
+          "type_brut": "character varying(120)",
+          "type_normalise": "texte",
+          "longueur": 120,
+          "nullable": true
+        },
+        {
+          "nom": "siret",
+          "position": 4,
+          "type_brut": "character(14)",
+          "type_normalise": "texte",
+          "longueur": 14,
+          "nullable": true
+        }
+      ],
+      "cle_primaire": {
+        "nom": "client_pkey",
+        "colonnes": ["id"]
+      },
+      "unicites": [
+        {
+          "nom": "client_nom_siret_key",
+          "colonnes": ["nom", "siret"]
+        }
+      ],
+      "index": [
+        {
+          "nom": "client_nom_idx",
+          "colonnes": ["nom"],
+          "unique": false,
+          "methode": "btree"
+        },
+        {
+          "nom": "client_nom_siret_key",
+          "colonnes": ["nom", "siret"],
+          "unique": true,
+          "methode": "btree"
+        },
+        {
+          "nom": "client_raison_sociale_idx",
+          "colonnes": ["raison_sociale"],
+          "unique": false,
+          "methode": "btree"
+        }
+      ]
+    },
+    {
+      "nom": "commande",
+      "schema": "public",
+      "colonnes": [
+        {
+          "nom": "id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true
+        },
+        {
+          "nom": "client_id",
+          "position": 2,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": true
+        },
+        {
+          "nom": "reference_client",
+          "position": 3,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": true
+        },
+        {
+          "nom": "numero",
+          "position": 4,
+          "type_brut": "character varying(20)",
+          "type_normalise": "texte",
+          "longueur": 20,
+          "nullable": false
+        }
+      ],
+      "cle_primaire": {
+        "nom": "commande_pkey",
+        "colonnes": ["id"]
+      },
+      "cles_etrangeres": [
+        {
+          "nom": "commande_client_id_fkey",
+          "colonnes": ["client_id"],
+          "table_cible": "client",
+          "schema_cible": "public",
+          "colonnes_cibles": ["id"],
+          "a_la_suppression": "set_null"
+        }
+      ]
+    },
+    {
+      "nom": "ligne",
+      "schema": "public",
+      "colonnes": [
+        {
+          "nom": "id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true
+        },
+        {
+          "nom": "commande_id",
+          "position": 2,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false
+        },
+        {
+          "nom": "article_code",
+          "position": 3,
+          "type_brut": "character varying(20)",
+          "type_normalise": "texte",
+          "longueur": 20,
+          "nullable": false
+        },
+        {
+          "nom": "article_version",
+          "position": 4,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false
+        }
+      ],
+      "cle_primaire": {
+        "nom": "ligne_pkey",
+        "colonnes": ["id"]
+      },
+      "cles_etrangeres": [
+        {
+          "nom": "ligne_article_fkey",
+          "colonnes": ["article_code", "article_version"],
+          "table_cible": "article",
+          "schema_cible": "public",
+          "colonnes_cibles": ["code", "version"]
+        },
+        {
+          "nom": "ligne_commande_id_fkey",
+          "colonnes": ["commande_id"],
+          "table_cible": "commande",
+          "schema_cible": "public",
+          "colonnes_cibles": ["id"],
+          "a_la_suppression": "cascade"
+        }
+      ]
+    }
+  ]
+}
