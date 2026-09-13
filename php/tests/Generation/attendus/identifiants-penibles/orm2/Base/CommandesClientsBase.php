@@ -6,7 +6,6 @@ declare(strict_types=1);
 
 namespace App\Entity\Base;
 
-use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\MappedSuperclass]
@@ -18,7 +17,7 @@ abstract class CommandesClientsBase
     protected ?int $nCommande = null;
 
     #[ORM\Column(name: '`Date de création`', type: 'datetime_immutable')]
-    protected DateTimeImmutable $dateDeCréation;
+    protected \DateTimeImmutable $dateDeCréation;
 
     #[ORM\Column(name: '`CA TTC`', type: 'decimal', precision: 12, scale: 2, nullable: true)]
     protected ?string $caTtc = null;
@@ -28,12 +27,12 @@ abstract class CommandesClientsBase
         return $this->nCommande;
     }
 
-    public function getDateDeCréation(): DateTimeImmutable
+    public function getDateDeCréation(): \DateTimeImmutable
     {
         return $this->dateDeCréation;
     }
 
-    public function setDateDeCréation(DateTimeImmutable $dateDeCréation): static
+    public function setDateDeCréation(\DateTimeImmutable $dateDeCréation): static
     {
         $this->dateDeCréation = $dateDeCréation;
 

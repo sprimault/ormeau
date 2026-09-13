@@ -63,6 +63,7 @@ export {
   CodeClePrimaireGardee,
   CodeCollision,
   CodeColonneIgnoree,
+  CodeDecisionInvalide,
   CodeDecisionOrpheline,
   CodeDefautIncompatible,
   CodeFKImpliciteProbable,

@@ -127,6 +127,11 @@ sans changer de nom.** `version_ri` ne bouge pas.
   présence, type et valeurs des vocabulaires fermés, jusqu'aux objets
   imbriqués. Un calque invalide est refusé avec le chemin du champ fautif —
   `entites[12].proprietes[3].type_doctrine` — au lieu d'échouer plus loin.
+- **Une classe globale n'est plus importée dans le code produit** :
+  `\DateTimeImmutable` au lieu de `use DateTimeImmutable;`. PHP-CS-Fixer, en
+  règles `@Symfony`, la requalifiait dans le projet, et chaque régénération la
+  réimportait. La CI vérifie désormais que `@Symfony` ne trouve rien à corriger
+  dans ce que le générateur réécrit.
 
 ### Corrigé
 
@@ -147,6 +152,23 @@ sans changer de nom.** `version_ri` ne bouge pas.
   Doctrine le déduit de `type_doctrine`, `nullable` et `enumeration`, et ne le
   lit que pour un type Doctrine qu'il ne connaît pas. Un outil tiers qui le
   consomme devrait faire de même.
+
+### Sécurité
+
+- **Un fichier de décisions ne peut plus faire écrire du code ni des fichiers
+  hors de leur place.** Un renommage, un nom d'énumération ou de cas, un nom
+  de relation forcée et l'espace de noms étaient recopiés tels quels dans le
+  code produit et dans le chemin des fichiers écrits : `../../public/index`
+  écrivait hors du répertoire des entités, et un nom contenant du code
+  l'injectait. Le fichier de décisions se reçoit par une pull request et
+  l'interface l'écrit : c'est un vecteur, pas seulement une faute de frappe.
+  L'inférence refuse désormais tout nom que PHP refuserait à sa place,
+  forme et mots réservés compris (avertissement `decision_invalide`), et
+  garde le nom qu'elle aurait produit ; une décision jusqu'ici appliquée avec
+  un tel nom est donc ignorée. Le générateur revérifie chaque nom du calque
+  logique, écarte ce qui le porte, arrête tout sur un espace de noms refusé,
+  et vérifie que chaque chemin écrit reste, une fois résolu, sous le
+  répertoire des entités.
 
 ***
 
@@ -238,6 +260,11 @@ meaning without changing name.** `version_ri` stays put.
   presence, type and closed-vocabulary values, down to nested objects. An
   invalid layer is refused with the path of the faulty field —
   `entites[12].proprietes[3].type_doctrine` — instead of failing further on.
+- **A global class is no longer imported in generated code**:
+  `\DateTimeImmutable` instead of `use DateTimeImmutable;`. PHP-CS-Fixer, with
+  `@Symfony` rules, requalified it in the project, and every regeneration
+  imported it again. CI now checks that `@Symfony` finds nothing to fix in what
+  the generator rewrites.
 
 ### Fixed
 
@@ -258,6 +285,22 @@ meaning without changing name.** `version_ri` stays put.
   generator derives it from `type_doctrine`, `nullable` and `enumeration`, and
   reads it only for a Doctrine type it does not know. A third-party tool
   consuming it should do the same.
+
+### Security
+
+- **A decisions file can no longer have code or files written out of place.**
+  A rename, an enumeration or case name, a forced relation name and the
+  namespace were copied verbatim into the generated code and into the paths of
+  written files: `../../public/index` wrote outside the entities directory,
+  and a name containing code injected it. The decisions file arrives through a
+  pull request and the interface writes it: it is an attack vector, not just a
+  possible typo. Inference now refuses any name PHP would refuse in its place,
+  shape and reserved words included (`decision_invalide` warning), and keeps
+  the name it would have produced; a decision applied so far with such a name
+  is therefore ignored. The generator checks every name of the logical layer
+  again, skips whatever carries an invalid one, stops altogether on a refused
+  namespace, and checks that every written path, once resolved, stays under
+  the entities directory.
 
 ## [0.4.2] — 2026-09-13 — Ce qui ne doit pas sortir d'Ormeau
 

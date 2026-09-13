@@ -6,7 +6,6 @@ declare(strict_types=1);
 
 namespace App\Entity\Base;
 
-use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\MappedSuperclass]
@@ -21,10 +20,10 @@ abstract class ArticleBase
     protected string $libelle;
 
     #[ORM\Column(name: 'cree_le', type: 'datetime_immutable')]
-    protected DateTimeImmutable $creeLe;
+    protected \DateTimeImmutable $creeLe;
 
     #[ORM\Column(name: 'supprime_le', type: 'datetime_immutable', nullable: true)]
-    protected ?DateTimeImmutable $supprimeLe = null;
+    protected ?\DateTimeImmutable $supprimeLe = null;
 
     public function getId(): ?int
     {
@@ -43,24 +42,24 @@ abstract class ArticleBase
         return $this;
     }
 
-    public function getCreeLe(): DateTimeImmutable
+    public function getCreeLe(): \DateTimeImmutable
     {
         return $this->creeLe;
     }
 
-    public function setCreeLe(DateTimeImmutable $creeLe): static
+    public function setCreeLe(\DateTimeImmutable $creeLe): static
     {
         $this->creeLe = $creeLe;
 
         return $this;
     }
 
-    public function getSupprimeLe(): ?DateTimeImmutable
+    public function getSupprimeLe(): ?\DateTimeImmutable
     {
         return $this->supprimeLe;
     }
 
-    public function setSupprimeLe(?DateTimeImmutable $supprimeLe): static
+    public function setSupprimeLe(?\DateTimeImmutable $supprimeLe): static
     {
         $this->supprimeLe = $supprimeLe;
 

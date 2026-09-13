@@ -333,6 +333,11 @@ export const CodeCollision = "collision_de_nom";
  */
 export const CodeDecisionOrpheline = "decision_sans_cible";
 /**
+ * Une décision dont le nom serait refusé par PHP là où la génération
+ * l'écrit : elle est ignorée, et le nom inféré reste.
+ */
+export const CodeDecisionInvalide = "decision_invalide";
+/**
  * Codes d'avertissement. Stables entre versions : ils servent de filtre en CI.
  */
 export const CodeTableIgnoree = "table_ignoree";

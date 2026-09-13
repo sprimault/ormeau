@@ -6,8 +6,6 @@ declare(strict_types=1);
 
 namespace App\Entity\Base;
 
-use DateInterval;
-use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\MappedSuperclass]
@@ -27,16 +25,16 @@ abstract class EventailBase
     protected ?string $noteLibre = null;
 
     #[ORM\Column(name: 'instant_local', type: 'datetime_immutable', nullable: true)]
-    protected ?DateTimeImmutable $instantLocal = null;
+    protected ?\DateTimeImmutable $instantLocal = null;
 
     #[ORM\Column(name: 'instant_absolu', type: 'datetimetz_immutable', nullable: true)]
-    protected ?DateTimeImmutable $instantAbsolu = null;
+    protected ?\DateTimeImmutable $instantAbsolu = null;
 
     #[ORM\Column(name: 'jour', type: 'date_immutable', nullable: true)]
-    protected ?DateTimeImmutable $jour = null;
+    protected ?\DateTimeImmutable $jour = null;
 
     #[ORM\Column(name: 'duree', type: 'dateinterval', nullable: true)]
-    protected ?DateInterval $duree = null;
+    protected ?\DateInterval $duree = null;
 
     /** @var array<mixed>|null */
     #[ORM\Column(name: 'charge_utile', type: 'json', nullable: true)]
@@ -102,48 +100,48 @@ abstract class EventailBase
         return $this;
     }
 
-    public function getInstantLocal(): ?DateTimeImmutable
+    public function getInstantLocal(): ?\DateTimeImmutable
     {
         return $this->instantLocal;
     }
 
-    public function setInstantLocal(?DateTimeImmutable $instantLocal): static
+    public function setInstantLocal(?\DateTimeImmutable $instantLocal): static
     {
         $this->instantLocal = $instantLocal;
 
         return $this;
     }
 
-    public function getInstantAbsolu(): ?DateTimeImmutable
+    public function getInstantAbsolu(): ?\DateTimeImmutable
     {
         return $this->instantAbsolu;
     }
 
-    public function setInstantAbsolu(?DateTimeImmutable $instantAbsolu): static
+    public function setInstantAbsolu(?\DateTimeImmutable $instantAbsolu): static
     {
         $this->instantAbsolu = $instantAbsolu;
 
         return $this;
     }
 
-    public function getJour(): ?DateTimeImmutable
+    public function getJour(): ?\DateTimeImmutable
     {
         return $this->jour;
     }
 
-    public function setJour(?DateTimeImmutable $jour): static
+    public function setJour(?\DateTimeImmutable $jour): static
     {
         $this->jour = $jour;
 
         return $this;
     }
 
-    public function getDuree(): ?DateInterval
+    public function getDuree(): ?\DateInterval
     {
         return $this->duree;
     }
 
-    public function setDuree(?DateInterval $duree): static
+    public function setDuree(?\DateInterval $duree): static
     {
         $this->duree = $duree;
 

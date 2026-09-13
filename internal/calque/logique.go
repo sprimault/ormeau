@@ -237,6 +237,9 @@ const (
 	CodeTypeNonReconnu       = "type_non_reconnu"
 	CodeCollision            = "collision_de_nom"
 	CodeDecisionOrpheline    = "decision_sans_cible"
+	// Une décision dont le nom serait refusé par PHP là où la génération
+	// l'écrit : elle est ignorée, et le nom inféré reste.
+	CodeDecisionInvalide     = "decision_invalide"
 	CodeTableIgnoree         = "table_ignoree"
 	CodeColonneIgnoree       = "colonne_ignoree"
 	CodeClePrimaireGardee    = "cle_primaire_non_ignorable"

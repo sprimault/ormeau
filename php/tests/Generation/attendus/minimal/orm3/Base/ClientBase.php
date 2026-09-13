@@ -6,7 +6,6 @@ declare(strict_types=1);
 
 namespace App\Entity\Base;
 
-use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\MappedSuperclass]
@@ -32,7 +31,7 @@ abstract class ClientBase
     protected bool $actif = true;
 
     #[ORM\Column(name: 'cree_le', type: 'datetimetz_immutable')]
-    protected DateTimeImmutable $creeLe;
+    protected \DateTimeImmutable $creeLe;
 
     public function getId(): ?int
     {
@@ -87,12 +86,12 @@ abstract class ClientBase
         return $this;
     }
 
-    public function getCreeLe(): DateTimeImmutable
+    public function getCreeLe(): \DateTimeImmutable
     {
         return $this->creeLe;
     }
 
-    public function setCreeLe(DateTimeImmutable $creeLe): static
+    public function setCreeLe(\DateTimeImmutable $creeLe): static
     {
         $this->creeLe = $creeLe;
 

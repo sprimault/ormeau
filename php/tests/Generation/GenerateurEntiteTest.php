@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace Ormeau\Doctrine\Tests\Generation;
 
+use InvalidArgumentException;
 use LogicException;
 use Ormeau\Doctrine\Calque\CalqueLogique;
 use Ormeau\Doctrine\Generation\Cible;
@@ -14,6 +15,7 @@ use Ormeau\Doctrine\Generation\GenerateurEntite;
 use Ormeau\Doctrine\Generation\ModeRegeneration;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 /**
  * Le mode de régénération, et ce qui fait écarter une entité plutôt que la
@@ -150,11 +152,111 @@ final class GenerateurEntiteTest extends TestCase
             self::assertSame([
                 'Client' => 'le trait Horodatage est absent du calque',
                 'Commande' => 'l\'énumération Match n\'est pas générée : Match est un mot réservé de PHP',
-                'Facture' => 'l\'énumération Mode n\'est pas générée : un cas ne peut pas s\'appeler class',
+                'Facture' => 'l\'énumération Mode n\'est pas générée : Class est un mot réservé de PHP',
             ], array_column(array_map(static fn($e): array => [$e->nom, $e->raison], $rapport->ecartees), 1, 0));
             self::assertSame([], Repertoires::lire($sortie));
         } finally {
             Repertoires::supprimer($sortie);
+        }
+    }
+
+    /**
+     * Un calque logique modifié à la main ne fait écrire ni code ni fichier
+     * hors de sa place : chaque nom qui deviendrait une ligne de code ou un
+     * chemin écarte ce qui le porte, et un côté inverse vers une entité absente
+     * est omis. Rien ne s'écrit hors du répertoire des entités.
+     */
+    public function testUnCalqueModifieALaMainNInjecteRienEtNEcritPasAilleurs(): void
+    {
+        $parent = Repertoires::creer();
+        $sortie = $parent . '/Entity';
+        try {
+            $rapport = (new GenerateurEntite())->generer(self::calque([
+                self::entite('../../public/index'),
+                self::entite('Die'),
+                self::entite('Enum'),
+                self::entite('Client', ['proprietes' => [self::propriete('id', 'integer'), self::propriete('nom; system(\'id\')', 'string')]]),
+                self::entite('Facture', ['proprietes' => [self::propriete('id', 'integer'), self::propriete('total', 'inconnu', ['type_php' => 'int; system(\'id\')'])]]),
+                self::entite('Commande', ['associations' => [self::jointure('client; system(\'id\')', 'plusieurs_vers_un', 'Enum', 'client_id')]]),
+                self::entite('Ligne', ['associations' => [[
+                    'nom' => 'fantome', 'genre' => 'un_vers_plusieurs', 'cible' => 'X::class); system(\'id\'); (Y', 'proprietaire' => false,
+                    'mappee_par' => 'ligne', 'origine' => 'contrainte',
+                ]]]),
+            ]), $sortie, Cible::forcer(3));
+
+            self::assertSame([
+                '../../public/index' => '« ../../public/index » n\'est pas un identifiant PHP, à renommer dans renommages',
+                'Die' => 'Die est un mot réservé de PHP, à renommer dans renommages',
+                'Client' => 'propriété refusée : « nom; system(\'id\') » n\'est pas un identifiant PHP',
+                'Facture' => 'propriété refusée : « int; system(\'id\') » n\'est pas un type PHP',
+                'Commande' => 'association refusée : « client; system(\'id\') » n\'est pas un identifiant PHP',
+            ], array_column(array_map(static fn($e): array => [$e->nom, $e->raison], $rapport->ecartees), 1, 0));
+            self::assertSame(['Ligne::fantome : côté inverse d\'une entité absente du calque'], array_map(
+                static fn($o): string => $o->entite . '::' . $o->association . ' : ' . $o->raison,
+                $rapport->omises,
+            ));
+            self::assertSame(['Entity/Base/EnumBase.php', 'Entity/Base/LigneBase.php', 'Entity/Enum.php', 'Entity/Ligne.php'], array_keys(Repertoires::lire($parent)));
+            foreach (Repertoires::lire($parent) as $source) {
+                self::assertStringNotContainsString('system', $source);
+            }
+        } finally {
+            Repertoires::supprimer($parent);
+        }
+    }
+
+    /**
+     * Un espace de noms que PHP refuse arrête la génération avant la première
+     * écriture : tous les fichiers en dépendent.
+     */
+    public function testUnEspaceDeNomsRefuseNEcritRien(): void
+    {
+        $sortie = Repertoires::creer();
+        try {
+            $calque = CalqueLogique::depuisTableau([
+                'version_ri' => 1,
+                'empreinte_physique' => 'sha256:' . str_repeat('b', 64),
+                'espace_de_noms' => 'App\\Entity;system(\'id\')',
+                'entites' => [self::entite('Client')],
+            ]);
+
+            try {
+                (new GenerateurEntite())->generer($calque, $sortie, Cible::forcer(3));
+                self::fail('un espace de noms refusé doit arrêter la génération');
+            } catch (InvalidArgumentException $e) {
+                self::assertStringContainsString('« Entity;system(\'id\') » n\'est pas un identifiant PHP', $e->getMessage());
+            }
+            self::assertSame([], Repertoires::lire($sortie));
+        } finally {
+            Repertoires::supprimer($sortie);
+        }
+    }
+
+    /**
+     * Le chemin écrit est vérifié une fois résolu, indépendamment des noms :
+     * un lien symbolique posé à la place de Base/ ne fait pas écrire ailleurs.
+     */
+    public function testUnLienQuiSortDuRepertoireDesEntitesEstRefuse(): void
+    {
+        if (PHP_OS_FAMILY === 'Windows') {
+            self::markTestSkipped('un lien symbolique exige des droits particuliers sous Windows');
+        }
+
+        $sortie = Repertoires::creer();
+        $ailleurs = Repertoires::creer();
+        try {
+            symlink($ailleurs, $sortie . '/Base');
+
+            try {
+                (new GenerateurEntite())->generer(self::calque([self::entite('Client')]), $sortie, Cible::forcer(3));
+                self::fail('un fichier qui sortirait du répertoire des entités doit être refusé');
+            } catch (RuntimeException $e) {
+                self::assertStringStartsWith('Écriture refusée, le fichier sortirait du répertoire des entités', $e->getMessage());
+            }
+            self::assertSame([], Repertoires::lire($ailleurs));
+        } finally {
+            unlink($sortie . '/Base');
+            Repertoires::supprimer($sortie);
+            Repertoires::supprimer($ailleurs);
         }
     }
 

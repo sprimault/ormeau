@@ -1,0 +1,53 @@
+{
+  "version_ri": 1,
+  "source": {
+    "sgbd": "postgres",
+    "version": "16.2",
+    "catalogue": "gescom",
+    "schema": "public",
+    "extrait_le": "2026-01-01T00:00:00Z",
+    "empreinte": "sha256:0000000000000000000000000000000000000000000000000000000000000016"
+  },
+  "tables": [
+    {
+      "nom": "client",
+      "schema": "public",
+      "commentaire": "Visée par des décisions dont les noms ne sont pas du PHP",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false, "auto_increment": true },
+        { "nom": "canal", "position": 2, "type_brut": "character varying(20)", "type_normalise": "texte", "longueur": 20, "nullable": false },
+        { "nom": "actif", "position": 3, "type_brut": "character(1)", "type_normalise": "texte", "longueur": 1, "nullable": false },
+        { "nom": "parrain_ref", "position": 4, "type_brut": "integer", "type_normalise": "entier", "nullable": true }
+      ],
+      "cle_primaire": { "nom": "client_pkey", "colonnes": ["id"] },
+      "verifications": [
+        {
+          "nom": "ck_client_canal",
+          "expression": "CHECK ((((canal)::text = ANY ((ARRAY['DIRECT'::character varying, 'WEB'::character varying])::text[]))))"
+        },
+        {
+          "nom": "ck_client_actif",
+          "expression": "CHECK ((actif = ANY (ARRAY['O'::bpchar, 'N'::bpchar])))"
+        }
+      ]
+    },
+    {
+      "nom": "commande",
+      "schema": "public",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false, "auto_increment": true },
+        { "nom": "client_id", "position": 2, "type_brut": "integer", "type_normalise": "entier", "nullable": false }
+      ],
+      "cle_primaire": { "nom": "commande_pkey", "colonnes": ["id"] },
+      "cles_etrangeres": [
+        {
+          "nom": "commande_client_fkey",
+          "colonnes": ["client_id"],
+          "table_cible": "client",
+          "schema_cible": "public",
+          "colonnes_cibles": ["id"]
+        }
+      ]
+    }
+  ]
+}

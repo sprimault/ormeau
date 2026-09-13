@@ -6,7 +6,6 @@ declare(strict_types=1);
 
 namespace App\Entity\Base;
 
-use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\MappedSuperclass]
@@ -18,19 +17,19 @@ abstract class JournalBase
     protected ?int $id = null;
 
     #[ORM\Column(name: 'created_at', type: 'datetimetz_immutable')]
-    protected DateTimeImmutable $createdAt;
+    protected \DateTimeImmutable $createdAt;
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getCreatedAt(): DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(DateTimeImmutable $createdAt): static
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
 

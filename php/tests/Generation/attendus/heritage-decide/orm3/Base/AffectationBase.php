@@ -7,7 +7,6 @@ declare(strict_types=1);
 namespace App\Entity\Base;
 
 use App\Entity\Salarie;
-use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\MappedSuperclass]
@@ -15,7 +14,7 @@ abstract class AffectationBase
 {
     #[ORM\Id]
     #[ORM\Column(name: 'debut', type: 'date_immutable')]
-    protected DateTimeImmutable $debut;
+    protected \DateTimeImmutable $debut;
 
     #[ORM\Column(name: 'service', type: 'string', length: 60)]
     protected string $service;
@@ -26,12 +25,12 @@ abstract class AffectationBase
     #[ORM\JoinColumn(name: 'salarie_id', referencedColumnName: 'id', nullable: false)]
     protected Salarie $salarie;
 
-    public function getDebut(): DateTimeImmutable
+    public function getDebut(): \DateTimeImmutable
     {
         return $this->debut;
     }
 
-    public function setDebut(DateTimeImmutable $debut): static
+    public function setDebut(\DateTimeImmutable $debut): static
     {
         $this->debut = $debut;
 
