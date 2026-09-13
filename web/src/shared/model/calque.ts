@@ -144,6 +144,10 @@ export interface Propriete {
   precision?: number /* int */;
   echelle?: number /* int */;
   enumeration?: string;
+  /**
+   * DEFAULT '' est un défaut : absent et vide doivent rester distinguables,
+   * comme pour la longueur.
+   */
   defaut?: string;
   /**
    * Une colonne générée n'est ni insérable ni modifiable. Les pointeurs

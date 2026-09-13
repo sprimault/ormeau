@@ -350,7 +350,8 @@ func inferrerPropriete(c *calque.Colonne, cibleTable string, d *Decisions) (calq
 		propriete.Modifiable = &faux
 	}
 	if c.Defaut != nil && c.Defaut.Genre == calque.DefautLitteral {
-		propriete.Defaut = c.Defaut.Valeur
+		valeur := c.Defaut.Valeur
+		propriete.Defaut = &valeur
 	}
 
 	if requalifiee {
@@ -360,15 +361,19 @@ func inferrerPropriete(c *calque.Colonne, cibleTable string, d *Decisions) (calq
 		// qui ne compile pas : private bool $actif = 'O'.
 		propriete.Longueur, propriete.Precision, propriete.Echelle = nil, nil, nil
 
-		if propriete.Defaut != "" {
+		if propriete.Defaut != nil {
+			valeur := *propriete.Defaut
+			if valeur == "" {
+				valeur = "''"
+			}
 			avertissements = append(avertissements, calque.Avertissement{
 				Code:       calque.CodeDefautIncompatible,
 				Cible:      cible,
-				Message:    "défaut " + propriete.Defaut + " écarté, incompatible avec le type " + corr.doctrine + " décidé",
+				Message:    "défaut " + valeur + " écarté, incompatible avec le type " + corr.doctrine + " décidé",
 				Resolution: calque.ResolutionForceeParDecision,
 				Confiance:  1,
 			})
-			propriete.Defaut = ""
+			propriete.Defaut = nil
 		}
 	}
 

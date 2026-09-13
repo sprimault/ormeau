@@ -92,6 +92,49 @@ func TestTrierAvertissementsDepartageParCode(t *testing.T) {
 	}
 }
 
+// TestDefautVideEcarteParUnTypeForce vérifie qu'un DEFAULT '' tombe avec la
+// requalification, et que le message le montre.
+//
+// Tant que le défaut était une chaîne, le vide passait pour une absence : il
+// n'était ni reporté, ni signalé en tombant. Et sans apostrophes, le message
+// dirait « défaut  écarté », qui se lit comme une coquille.
+func TestDefautVideEcarteParUnTypeForce(t *testing.T) {
+	t.Parallel()
+
+	physique := &calque.Physique{
+		VersionRI: calque.VersionCourante,
+		Tables: []calque.Table{{
+			Nom:    "client",
+			Schema: "public",
+			Colonnes: []calque.Colonne{
+				{Nom: "id", Position: 1, TypeBrut: "integer", TypeNormalise: calque.TypeEntier},
+				{
+					Nom: "actif", Position: 2, TypeBrut: "character(1)", TypeNormalise: calque.TypeTexte,
+					Defaut: &calque.Defaut{Genre: calque.DefautLitteral, Valeur: ""},
+				},
+			},
+			ClePrimaire: &calque.ClePrimaire{Nom: "client_pkey", Colonnes: []string{"id"}},
+		}},
+	}
+	decisions := &Decisions{TypesForces: map[string]string{"public.client.actif": "boolean"}}
+
+	logique, avertissements := Inferer(physique, decisions)
+
+	actif := logique.Entites[0].Proprietes[1]
+	if actif.Defaut != nil {
+		t.Errorf("defaut = %q, attendu aucun apres requalification", *actif.Defaut)
+	}
+	var message string
+	for _, a := range avertissements {
+		if a.Code == calque.CodeDefautIncompatible {
+			message = a.Message
+		}
+	}
+	if message != "défaut '' écarté, incompatible avec le type boolean décidé" {
+		t.Errorf("message = %q", message)
+	}
+}
+
 // TestCapitaliserChaineVide vérifie que le mot vide ne fait pas paniquer.
 //
 // Il arrive dès qu'un identifiant se réduit à des séparateurs, ce qu'une base

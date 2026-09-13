@@ -101,6 +101,16 @@
           "nullable": false,
           "longueur": 32,
           "origine": "contrainte"
+        },
+        {
+          "nom": "libelle",
+          "colonne": "libelle",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 40,
+          "defaut": "",
+          "origine": "contrainte"
         }
       ],
       "origine": "nommage"

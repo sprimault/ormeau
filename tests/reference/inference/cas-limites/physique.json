@@ -87,6 +87,18 @@
           "type_normalise": "texte",
           "longueur": 32,
           "nullable": false
+        },
+        {
+          "nom": "libelle",
+          "position": 3,
+          "type_brut": "character varying(40)",
+          "type_normalise": "texte",
+          "longueur": 40,
+          "nullable": false,
+          "defaut": {
+            "genre": "litteral",
+            "valeur": ""
+          }
         }
       ],
       "cle_primaire": {
