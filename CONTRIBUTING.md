@@ -70,7 +70,7 @@ project's real test suite.
 ## Getting set up
 
 You need Go (the version pinned in `go.mod`) and Docker for the test
-containers. PHP 8.3 and Composer are only needed to work on `php/`.
+containers. PHP 8.1 and Composer are only needed to work on `php/`.
 
 ```bash
 make outils        # golangci-lint, govulncheck, gosec

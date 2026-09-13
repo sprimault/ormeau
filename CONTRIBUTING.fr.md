@@ -74,7 +74,7 @@ fichiers sont le vrai jeu de tests du projet.
 ## Mise en route
 
 Il faut Go (la version épinglée dans `go.mod`) et Docker pour les conteneurs de
-test. PHP 8.3 et Composer ne servent que pour travailler sur `php/`.
+test. PHP 8.1 et Composer ne servent que pour travailler sur `php/`.
 
 ```bash
 make outils        # golangci-lint, govulncheck, gosec

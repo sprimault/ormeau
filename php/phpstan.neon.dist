@@ -8,3 +8,10 @@ parameters:
     # entités d'un client : @var string sur une propriété qui contient autre
     # chose est le cas normal, pas l'exception.
     treatPhpDocTypesAsCertain: false
+
+    # La plage que le paquet promet. Sans elle, PHPStan analyse pour la version
+    # qui l'exécute et laisse passer une classe readonly ou une constante typée
+    # que PHP 8.1 refuse.
+    phpVersion:
+        min: 80100
+        max: 80499
