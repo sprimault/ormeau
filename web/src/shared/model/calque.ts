@@ -304,10 +304,6 @@ export const CodeTypeNonReconnu = "type_non_reconnu";
 /**
  * Codes d'avertissement. Stables entre versions : ils servent de filtre en CI.
  */
-export const CodeNomNonSingularisable = "nom_non_singularisable";
-/**
- * Codes d'avertissement. Stables entre versions : ils servent de filtre en CI.
- */
 export const CodeCollision = "collision_de_nom";
 /**
  * Codes d'avertissement. Stables entre versions : ils servent de filtre en CI.
