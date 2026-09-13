@@ -12,7 +12,7 @@ générateur.
 | 4 — Interface | terminée |
 | 5 — Génération Doctrine | terminée |
 | 6 à 10 | non commencées |
-| 11 — Publication | faite pour l'essentiel, hors Packagist (miroir du paquet PHP en place) |
+| 11 — Publication | faite |
 
 ## Phase 1 — Le calque physique
 
@@ -127,10 +127,9 @@ README bilingue, documentation d'installation, avertissement d'usage, subtree
 split vers Packagist, image Docker multi-arch, binaires de version.
 
 Faite en avance : publier une version dès qu'il y avait un usage réel valait
-mieux que d'attendre la fin. Le split est en place depuis la phase 5 :
-`php/` est publié en miroir dans `sprimault/ormeau-doctrine`, installable par un
-dépôt VCS Composer. Reste Packagist, qui ne demandera plus que d'y inscrire ce
-miroir.
+mieux que d'attendre la fin. Le split est en place depuis la phase 5 : `php/`
+est publié en miroir dans `sprimault/ormeau-doctrine`, inscrit sur Packagist
+et mis à jour à chaque push du miroir.
 
 ## Hors périmètre v1
 
