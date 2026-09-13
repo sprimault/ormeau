@@ -46,6 +46,10 @@ préambule reste en français : il n'est jamais publié.
   la 2.11. C'est une contrainte d'ORM constatée, pas un choix de confort : les
   versions 2.11 à 2.13 refusent une classe de base mappée placée sous une
   entité, ce que produit la génération d'une hiérarchie.
+- **Le paquet PHP contrôle chaque champ du calque logique à la lecture** :
+  présence, type et valeurs des vocabulaires fermés, jusqu'aux objets
+  imbriqués. Un calque invalide est refusé avec le chemin du champ fautif —
+  `entites[12].proprietes[3].type_doctrine` — au lieu d'échouer plus loin.
 
 ### Corrigé
 
@@ -79,6 +83,10 @@ préambule reste en français : il n'est jamais publié.
   This is an observed ORM constraint, not a convenience: versions 2.11 to 2.13
   reject a mapped superclass placed below an entity, which generating a
   hierarchy produces.
+- **The PHP package checks every field of the logical layer when reading it**:
+  presence, type and closed-vocabulary values, down to nested objects. An
+  invalid layer is refused with the path of the faulty field —
+  `entites[12].proprietes[3].type_doctrine` — instead of failing further on.
 
 ### Fixed
 

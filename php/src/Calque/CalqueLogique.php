@@ -8,75 +8,80 @@ declare(strict_types=1);
 namespace Ormeau\Doctrine\Calque;
 
 /**
- * Représentation en mémoire d'un calque logique.
+ * Représentation en mémoire d'un calque logique : ce que la génération
+ * traduit, et rien d'autre.
  *
- * Les entités sont laissées en tableaux à ce stade : les objets typés viendront
- * quand la génération sera écrite et qu'on saura ce dont elle a réellement
- * besoin. Rule of three avant de figer une hiérarchie de valeurs.
+ * Contrairement au calque physique, il n'est pas neutre : il parle le
+ * vocabulaire de la famille Hibernate — entités, associations avec côté
+ * propriétaire, héritage. Ce biais est assumé, et c'est ce qui permet au
+ * générateur de traduire sans décider.
+ *
+ * Chaque objet imbriqué est typé et contrôlé à la lecture : un calque qui passe
+ * ici a ses champs requis, dans le bon type, avec des valeurs connues de chaque
+ * vocabulaire fermé. La génération n'a pas à revérifier.
  */
 final class CalqueLogique
 {
     /**
-     * Privé : un calque se construit depuis un tableau décodé, jamais champ par
-     * champ. C'est ce qui garantit que les contrôles de depuisTableau ont eu
-     * lieu.
-     *
-     * @param list<array<string, mixed>> $entites
-     * @param list<array<string, mixed>> $enumerations
-     * @param list<array<string, mixed>> $traits
-     * @param list<array<string, mixed>> $avertissements
+     * @param int                 $versionRi         version du format, déjà contrôlée par le lecteur
+     * @param string              $empreintePhysique empreinte du calque physique dont ce jugement
+     *                                               découle ; elle dit si la base a bougé sans
+     *                                               relire les entités
+     * @param string              $espaceDeNoms      espace de noms des entités générées
+     * @param list<Entite>        $entites           classes à générer, dans l'ordre du calque
+     * @param list<Enumeration>   $enumerations      énumérations PHP que des propriétés désignent
+     * @param list<TraitPartage>  $traits            traits que des entités nomment
+     * @param list<Avertissement> $avertissements    ce que l'inférence n'a pas résolu
      */
-    private function __construct(
+    public function __construct(
         public readonly int $versionRi,
         public readonly string $empreintePhysique,
         public readonly string $espaceDeNoms,
         public readonly array $entites,
-        public readonly array $enumerations,
-        public readonly array $traits,
-        public readonly array $avertissements,
+        public readonly array $enumerations = [],
+        public readonly array $traits = [],
+        public readonly array $avertissements = [],
     ) {}
 
     /**
      * Construit un calque depuis le JSON décodé.
      *
      * Les champs optionnels du format — énumérations, traits, avertissements —
-     * valent le tableau vide quand ils sont absents : leur absence est
-     * légitime, seuls les champs requis sont contrôlés.
+     * valent la liste vide quand ils sont absents : leur absence est
+     * légitime. Le premier champ invalide arrête la lecture, avec son chemin
+     * dans le message.
      *
-     * @param array<string, mixed> $donnees
+     * @param array<mixed> $donnees
      *
-     * @throws CalqueInvalide champ requis absent
+     * @throws CalqueInvalide champ requis absent, du mauvais type, ou hors vocabulaire
      */
     public static function depuisTableau(array $donnees): self
     {
-        foreach (['empreinte_physique', 'espace_de_noms', 'entites'] as $requis) {
-            if (!isset($donnees[$requis])) {
-                throw new CalqueInvalide(sprintf('Champ %s absent du calque', $requis));
-            }
-        }
+        $versionRi = Lecture::entier($donnees, 'version_ri', '');
+        $empreintePhysique = Lecture::chaine($donnees, 'empreinte_physique', '');
+        $espaceDeNoms = Lecture::chaine($donnees, 'espace_de_noms', '');
+        $entites = Lecture::objets($donnees, 'entites', '', Entite::depuisTableau(...), requise: true);
+        $enumerations = Lecture::objets($donnees, 'enumerations', '', Enumeration::depuisTableau(...));
+        $traits = Lecture::objets($donnees, 'traits', '', TraitPartage::depuisTableau(...));
+        $avertissements = Lecture::objets($donnees, 'avertissements', '', Avertissement::depuisTableau(...));
 
-        return new self(
-            $donnees['version_ri'],
-            $donnees['empreinte_physique'],
-            $donnees['espace_de_noms'],
-            $donnees['entites'],
-            $donnees['enumerations'] ?? [],
-            $donnees['traits'] ?? [],
-            $donnees['avertissements'] ?? [],
-        );
+        return new self($versionRi, $empreintePhysique, $espaceDeNoms, $entites, $enumerations, $traits, $avertissements);
     }
 
     /**
-     * Les avertissements sont une sortie de premier ordre : la commande de
-     * génération les affiche, et la CI peut filtrer sur leur code.
+     * Rend les avertissements dont la confiance atteint le seuil.
      *
-     * @return list<array<string, mixed>>
+     * Sert à la CI : elle échoue sur les avertissements sûrs et laisse passer
+     * les incertains. Le résultat est une liste réindexée, que json_encode rend
+     * en tableau et non en objet.
+     *
+     * @return list<Avertissement>
      */
     public function avertissementsAuDessusDe(float $confiance): array
     {
         return array_values(array_filter(
             $this->avertissements,
-            static fn(array $a): bool => ($a['confiance'] ?? 0.0) >= $confiance,
+            static fn(Avertissement $a): bool => $a->confiance >= $confiance,
         ));
     }
 }

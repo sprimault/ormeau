@@ -30,6 +30,9 @@ final class KernelDeTest extends Kernel
     use MicroKernelTrait;
 
     /**
+     * Charge FrameworkBundle et le paquet, et rien d'autre : un bundle de plus
+     * pourrait enregistrer les commandes à la place de celui qu'on teste.
+     *
      * @return iterable<BundleInterface>
      */
     public function registerBundles(): iterable
