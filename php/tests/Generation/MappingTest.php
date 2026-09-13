@@ -11,6 +11,7 @@ use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\ORMSetup;
+use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\ORM\Tools\SchemaValidator;
 use Ormeau\Doctrine\Calque\LecteurCalque;
 use Ormeau\Doctrine\Generation\Cible;
@@ -63,6 +64,12 @@ final class MappingTest extends TestCase
 
             self::assertSame([], (new SchemaValidator($gestionnaire))->validateMapping());
 
+            // Le validateur ne voit pas tout : Doctrine doit aussi savoir écrire
+            // le DDL de l'ensemble, ce qui échoue sur une colonne de jointure
+            // qui vise une colonne inexistante ou une table de jointure mal
+            // formée.
+            self::assertNotEmpty((new SchemaTool($gestionnaire))->getCreateSchemaSql($metadonnees));
+
             $ecartees = array_map(static fn($e): string => $e->nom, $rapport->ecartees);
             foreach ($calque->entites as $entite) {
                 if (in_array($entite->nom, $ecartees, true)) {
@@ -70,13 +77,37 @@ final class MappingTest extends TestCase
                 }
                 $classe = $calque->espaceDeNoms . '\\' . $entite->nom;
                 $meta = $gestionnaire->getClassMetadata($classe);
+                $jointures = self::colonnesDeJointure($meta);
 
                 self::assertSame($entite->table->nom, $meta->getTableName(), $classe);
-                self::assertSame(
-                    array_map(static fn($p): string => $p->colonne, $entite->proprietes),
-                    array_map(static fn(string $champ): string => $meta->getColumnName($champ), array_map(static fn($p): string => $p->nom, $entite->proprietes)),
-                    $classe,
-                );
+
+                // Chaque propriété du calque est un champ sur sa colonne, sauf
+                // celle dont la colonne porte une association de la clé
+                // primaire : l'identité passe alors par l'association.
+                foreach ($entite->proprietes as $propriete) {
+                    if ($meta->hasField($propriete->nom)) {
+                        self::assertSame($propriete->colonne, $meta->getColumnName($propriete->nom), $classe . '::' . $propriete->nom);
+                        continue;
+                    }
+                    self::assertArrayHasKey($propriete->colonne, $jointures, $classe . '::' . $propriete->nom . ' absente sans être une jointure');
+                    self::assertContains($jointures[$propriete->colonne], $meta->getIdentifierFieldNames(), $classe . '::' . $propriete->nom);
+                }
+
+                // Une colonne, un seul écrivain : un champ posé sur une colonne
+                // de jointure ne l'écrit pas, sans quoi l'association l'écrase
+                // en silence à l'insertion — Doctrine l'accepte, et le
+                // validateur ne dit rien.
+                foreach (array_keys($meta->fieldMappings) as $champ) {
+                    $colonne = $meta->getColumnName($champ);
+                    if (isset($jointures[$colonne])) {
+                        self::assertSame([true, true], self::lectureSeule($meta, $champ), $classe . '::' . $champ . ' écrit la colonne de ' . $jointures[$colonne]);
+                    }
+                }
+
+                foreach ($entite->associations as $association) {
+                    self::assertTrue($meta->hasAssociation($association->nom), $classe . '::' . $association->nom);
+                    self::assertSame($calque->espaceDeNoms . '\\' . $association->cible, $meta->getAssociationTargetClass($association->nom));
+                }
                 self::assertCount(
                     count(array_filter($entite->index, static fn($i): bool => $i->unique)),
                     $meta->table['uniqueConstraints'] ?? [],
@@ -128,6 +159,47 @@ final class MappingTest extends TestCase
         foreach (Repertoires::CAS as $cas) {
             yield $cas => [$cas];
         }
+    }
+
+    /**
+     * Rend, pour chaque colonne de jointure portée par l'entité, le nom de
+     * l'association qui l'écrit.
+     *
+     * ORM 2 décrit une association par un tableau, ORM 3 par un objet dont
+     * seul le côté propriétaire d'un objet porte des colonnes de jointure.
+     *
+     * @param ClassMetadata<object> $meta métadonnées de l'entité
+     *
+     * @return array<string, string>
+     */
+    private static function colonnesDeJointure(ClassMetadata $meta): array
+    {
+        $colonnes = [];
+        foreach ($meta->associationMappings as $nom => $mapping) {
+            $jointures = is_array($mapping) ? ($mapping['joinColumns'] ?? []) : (property_exists($mapping, 'joinColumns') ? $mapping->joinColumns : []);
+            foreach ($jointures as $jointure) {
+                $colonnes[is_array($jointure) ? $jointure['name'] : $jointure->name] = $nom;
+            }
+        }
+
+        return $colonnes;
+    }
+
+    /**
+     * Rend [non insérable, non modifiable] pour un champ mappé, sous ORM 2 ou 3.
+     *
+     * @param ClassMetadata<object> $meta  métadonnées de l'entité
+     * @param string                $champ nom de la propriété mappée
+     *
+     * @return array{bool, bool}
+     */
+    private static function lectureSeule(ClassMetadata $meta, string $champ): array
+    {
+        $mapping = $meta->fieldMappings[$champ];
+
+        return is_array($mapping)
+            ? [(bool) ($mapping['notInsertable'] ?? false), (bool) ($mapping['notUpdatable'] ?? false)]
+            : [(bool) $mapping->notInsertable, (bool) $mapping->notUpdatable];
     }
 
     /**

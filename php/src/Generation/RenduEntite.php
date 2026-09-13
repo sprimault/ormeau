@@ -49,7 +49,7 @@ final class RenduEntite
         private readonly bool $avecSchema,
         array $enumerations = [],
     ) {
-        $this->membres = new RenduMembres($cible, $espaceDeNoms, $enumerations);
+        $this->membres = new RenduMembres($cible, $espaceDeNoms, $enumerations, $avecSchema);
     }
 
     /**
@@ -126,12 +126,16 @@ final class RenduEntite
     }
 
     /**
-     * Rend le source de la classe de base : traits, propriétés mappées, index,
-     * puis accesseurs.
+     * Rend le source de la classe de base : traits, propriétés mappées,
+     * associations, index, constructeur des collections, puis accesseurs.
+     *
+     * Le constructeur n'existe que s'il y a une collection à initialiser. Une
+     * classe de l'utilisateur qui déclare le sien doit appeler
+     * parent::__construct(), comme pour toute classe parente.
      */
     public function classeBase(Entite $entite): string
     {
-        $rendu = $this->membres->rendre($entite->proprietes, $entite->identifiant);
+        $rendu = $this->membres->rendre($entite->proprietes, $entite->identifiant, $entite->associations);
 
         $imports = ['Doctrine\ORM\Mapping as ORM', ...$rendu['imports']];
         foreach ($entite->traits as $trait) {
@@ -154,7 +158,15 @@ final class RenduEntite
         if ($entite->traits !== []) {
             $blocs[] = implode("\n", array_map(static fn(string $t): string => Emetteur::INDENTATION . 'use ' . $t . ';', $entite->traits));
         }
-        $lignes[] = implode("\n\n", [...$blocs, ...$rendu['proprietes'], ...$rendu['accesseurs']]);
+        if ($rendu['collections'] !== []) {
+            $i = Emetteur::INDENTATION;
+            $initialisations = array_map(
+                static fn(string $nom): string => $i . $i . '$this->' . $nom . ' = new ArrayCollection();',
+                $rendu['collections'],
+            );
+            $rendu['membres'][] = implode("\n", [$i . 'public function __construct()', $i . '{', ...$initialisations, $i . '}']);
+        }
+        $lignes[] = implode("\n\n", [...$blocs, ...$rendu['membres'], ...$rendu['accesseurs']]);
         $lignes[] = '}';
 
         return implode("\n", $lignes) . "\n";
@@ -171,7 +183,7 @@ final class RenduEntite
         $lignes = $this->entete($this->espaceDeNoms . '\\Trait', ['Doctrine\ORM\Mapping as ORM', ...$rendu['imports']]);
         $lignes[] = 'trait ' . $trait->nom;
         $lignes[] = '{';
-        $lignes[] = implode("\n\n", [...$rendu['proprietes'], ...$rendu['accesseurs']]);
+        $lignes[] = implode("\n\n", [...$rendu['membres'], ...$rendu['accesseurs']]);
         $lignes[] = '}';
 
         return implode("\n", $lignes) . "\n";
