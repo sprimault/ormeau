@@ -23,7 +23,10 @@ use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 final class OrmeauDoctrineExtension extends Extension
 {
     /**
-     * @param array<array<string, mixed>> $configs
+     * Enregistre les services déclarés dans config/services.php.
+     *
+     * @param array<array<string, mixed>> $configs configuration de l'application pour ce paquet,
+     *                                            ignorée : il n'expose aucun réglage
      */
     public function load(array $configs, ContainerBuilder $container): void
     {

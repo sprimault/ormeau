@@ -22,7 +22,11 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(LecteurCalque::class)]
 final class LecteurCalqueTest extends TestCase
 {
-    /** @var list<string> */
+    /**
+     * Fichiers écrits par le test en cours, supprimés à la fin de chaque test.
+     *
+     * @var list<string>
+     */
     private array $temporaires = [];
 
     /**
@@ -45,15 +49,36 @@ final class LecteurCalqueTest extends TestCase
             'version_ri' => 1,
             'empreinte_physique' => 'sha256:' . str_repeat('a', 64),
             'espace_de_noms' => 'App\\Entity',
-            'entites' => [['nom' => 'Client']],
+            'entites' => [[
+                'nom' => 'Client',
+                'table' => ['nom' => 'clients', 'schema' => 'public'],
+                'proprietes' => [],
+            ]],
         ]);
 
         $calque = (new LecteurCalque())->lire($chemin);
 
         self::assertSame(1, $calque->versionRi);
         self::assertSame('App\\Entity', $calque->espaceDeNoms);
-        self::assertCount(1, $calque->entites);
+        self::assertSame('clients', $calque->entites[0]->table->nom);
         self::assertSame([], $calque->avertissements);
+    }
+
+    /**
+     * Un JSON valide qui n'est pas un objet — un nombre, une chaîne — n'est pas
+     * un calque, et le dit sans erreur de type.
+     */
+    public function testRefuseUnDocumentSansObjetRacine(): void
+    {
+        $chemin = tempnam(sys_get_temp_dir(), 'ormeau');
+        self::assertNotFalse($chemin);
+        $this->temporaires[] = $chemin;
+        file_put_contents($chemin, '42');
+
+        $this->expectException(CalqueInvalide::class);
+        $this->expectExceptionMessageMatches('/objet racine/');
+
+        (new LecteurCalque())->lire($chemin);
     }
 
     /**

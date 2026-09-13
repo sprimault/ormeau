@@ -36,7 +36,10 @@ final class LecteurCalque
      * entités silencieusement fausses. L'inverse est accepté — une version
      * antérieure ne contient rien d'inconnu.
      *
-     * @throws CalqueInvalide fichier illisible, version absente ou non gérée, champ requis absent
+     * @throws CalqueInvalide fichier illisible, document sans objet racine,
+     *                        version absente ou non gérée, champ requis
+     *                        absent, du mauvais type ou hors vocabulaire —
+     *                        le message nomme le chemin du champ
      * @throws JsonException JSON mal formé, laissé tel quel : le message du
      *                       décodeur situe l'erreur mieux qu'une réécriture
      */
@@ -48,6 +51,9 @@ final class LecteurCalque
         }
 
         $donnees = json_decode($contenu, true, 64, JSON_THROW_ON_ERROR);
+        if (!is_array($donnees)) {
+            throw new CalqueInvalide(sprintf('Calque sans objet racine : %s', $chemin));
+        }
 
         $version = $donnees['version_ri'] ?? null;
         if (!is_int($version)) {

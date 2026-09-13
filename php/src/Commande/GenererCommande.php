@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Ormeau\Doctrine\Commande;
 
 use InvalidArgumentException;
+use JsonException;
+use Ormeau\Doctrine\Calque\CalqueInvalide;
 use Ormeau\Doctrine\Calque\LecteurCalque;
 use Ormeau\Doctrine\Generation\GenerateurEntite;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -29,6 +31,9 @@ final class GenererCommande extends Command
 {
     /**
      * Reçoit le lecteur et le générateur par le conteneur de Symfony.
+     *
+     * @param LecteurCalque    $lecteur    lit et contrôle le calque logique avant toute écriture
+     * @param GenerateurEntite $generateur écrit les entités, dans le mode de régénération retenu
      */
     public function __construct(
         private readonly LecteurCalque $lecteur,
@@ -48,7 +53,18 @@ final class GenererCommande extends Command
     }
 
     /**
+     * Lit le calque, puis écrit les entités et affiche un chemin par fichier
+     * écrit.
+     *
+     * Le calque est lu entièrement avant la première écriture : un calque
+     * invalide arrête la commande sans avoir touché au répertoire. Les
+     * exceptions du lecteur remontent telles quelles, et la console de Symfony
+     * affiche leur message, qui nomme le champ fautif.
+     *
      * @return int 0 si les entités ont été écrites
+     *
+     * @throws CalqueInvalide calque illisible, d'une version inconnue, ou invalide
+     * @throws JsonException  fichier qui n'est pas du JSON
      */
     protected function execute(InputInterface $entree, OutputInterface $sortie): int
     {

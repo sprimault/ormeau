@@ -38,10 +38,18 @@ final class SynchroniserCommande extends Command
     }
 
     /**
+     * Compare le calque physique aux entités existantes.
+     *
+     * Pas encore écrite : la commande est enregistrée dès maintenant pour que
+     * son nom et son argument soient ceux du jalon « Diff », mais elle échoue
+     * franchement plutôt que de rendre 0 et de laisser une CI passer.
+     *
      * @return int 0 si les entités correspondent à la base, non nul sinon
+     *
+     * @throws LogicException tant que la comparaison n'est pas écrite
      */
     protected function execute(InputInterface $entree, OutputInterface $sortie): int
     {
-        throw new LogicException('A implementer : jalon diff.');
+        throw new LogicException('À implémenter : phase « Diff » de la feuille de route.');
     }
 }
