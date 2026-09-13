@@ -284,6 +284,37 @@ final class GenerateurEntiteTest extends TestCase
     }
 
     /**
+     * Un commentaire de table ou de colonne écrit pour fermer un docblock
+     * n'injecte aucun code dans les fichiers produits : partout où il
+     * atterrit — docblock de classe, docblock de propriété, options de
+     * l'attribut —, il reste un commentaire ou une chaîne.
+     */
+    public function testUnCommentaireDeBaseNInjectePasDeCodeDansLesFichiersProduits(): void
+    {
+        $injection = "Fiche */ system('id'); /*";
+        $sortie = Repertoires::creer();
+        try {
+            (new GenerateurEntite())->generer(self::calque([
+                self::entite('Client', [
+                    'commentaire' => $injection,
+                    'proprietes' => [self::propriete('id', 'integer'), self::propriete('nom', 'string', ['commentaire' => $injection])],
+                ]),
+            ]), $sortie, Cible::forcer(3));
+
+            foreach (Repertoires::lire($sortie) as $fichier => $source) {
+                $code = array_filter(
+                    token_get_all($source),
+                    static fn($j): bool => is_array($j) && !in_array($j[0], [T_COMMENT, T_DOC_COMMENT, T_CONSTANT_ENCAPSED_STRING], true),
+                );
+                self::assertNotContains('system', array_map(static fn(array $j): string => $j[1], $code), $fichier);
+                self::assertStringContainsString("Fiche *\\/ system('id'); /*.", $source, $fichier);
+            }
+        } finally {
+            Repertoires::supprimer($sortie);
+        }
+    }
+
+    /**
      * Un héritage joint décidé, sur la colonne discriminante nature.
      *
      * @return array<string, string>

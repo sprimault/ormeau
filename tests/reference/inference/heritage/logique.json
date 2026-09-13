@@ -111,6 +111,7 @@
           "origine": "contrainte"
         }
       ],
+      "commentaire": "La clé primaire est aussi une clé étrangère : héritage possible, un-vers-un sans décision",
       "origine": "nommage"
     },
     {
@@ -221,6 +222,7 @@
           "origine": "contrainte"
         }
       ],
+      "commentaire": "La FK est dans la PK composite sans la couvrir : ce n'est pas de l'héritage",
       "origine": "nommage"
     }
   ],

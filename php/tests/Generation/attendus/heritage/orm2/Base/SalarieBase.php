@@ -1,5 +1,7 @@
 <?php
 
+// Généré par Ormeau et réécrit à chaque génération : le code propre à Salarie va dans Salarie.php.
+
 declare(strict_types=1);
 
 namespace App\Entity\Base;
@@ -13,6 +15,7 @@ abstract class SalarieBase
     #[ORM\Column(name: 'matricule', type: 'string', length: 20)]
     protected string $matricule;
 
+    /** Fait partie de l'identifiant : à renseigner avant persist(). */
     #[ORM\Id]
     #[ORM\OneToOne(targetEntity: Personne::class, inversedBy: 'salarie')]
     #[ORM\JoinColumn(name: 'id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]

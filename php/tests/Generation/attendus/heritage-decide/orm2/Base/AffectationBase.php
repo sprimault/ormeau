@@ -1,5 +1,7 @@
 <?php
 
+// Généré par Ormeau et réécrit à chaque génération : le code propre à Affectation va dans Affectation.php.
+
 declare(strict_types=1);
 
 namespace App\Entity\Base;
@@ -18,6 +20,7 @@ abstract class AffectationBase
     #[ORM\Column(name: 'service', type: 'string', length: 60)]
     protected string $service;
 
+    /** Fait partie de l'identifiant : à renseigner avant persist(). */
     #[ORM\Id]
     #[ORM\ManyToOne(targetEntity: Salarie::class, inversedBy: 'affectation')]
     #[ORM\JoinColumn(name: 'salarie_id', referencedColumnName: 'id', nullable: false)]

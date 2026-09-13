@@ -1,5 +1,7 @@
 <?php
 
+// Généré par Ormeau et réécrit à chaque génération : le code propre à LigneCommande va dans LigneCommande.php.
+
 declare(strict_types=1);
 
 namespace App\Entity\Base;
@@ -14,11 +16,13 @@ abstract class LigneCommandeBase
     #[ORM\Column(name: 'quantite', type: 'integer')]
     protected int $quantite;
 
+    /** Fait partie de l'identifiant : à renseigner avant persist(). */
     #[ORM\Id]
     #[ORM\ManyToOne(targetEntity: Commande::class, inversedBy: 'ligneCommande')]
     #[ORM\JoinColumn(name: 'commande_id', referencedColumnName: 'id', nullable: false)]
     protected Commande $commande;
 
+    /** Fait partie de l'identifiant : à renseigner avant persist(). */
     #[ORM\Id]
     #[ORM\ManyToOne(targetEntity: Article::class, inversedBy: 'ligneCommande')]
     #[ORM\JoinColumn(name: 'article_id', referencedColumnName: 'id', nullable: false)]

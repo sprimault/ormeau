@@ -62,6 +62,7 @@
           "origine": "contrainte"
         }
       ],
+      "commentaire": "La racine porte la colonne qui dit quelle classe chaque ligne instancie",
       "origine": "nommage"
     },
     {
@@ -112,6 +113,7 @@
           "origine": "contrainte"
         }
       ],
+      "commentaire": "Déclaré enfant de personne par le fichier de décisions",
       "origine": "nommage"
     },
     {
@@ -163,6 +165,7 @@
           "origine": "contrainte"
         }
       ],
+      "commentaire": "Absent des valeurs décidées : garde son un-vers-un",
       "origine": "nommage"
     },
     {
@@ -221,6 +224,7 @@
           "origine": "contrainte"
         }
       ],
+      "commentaire": "Vise la racine : la collection vit dans la classe de base de personne",
       "origine": "nommage"
     },
     {
@@ -280,6 +284,7 @@
           "origine": "contrainte"
         }
       ],
+      "commentaire": "Identifiée par salarie : possible une fois salarie déclaré enfant, sa clé devenant celle de personne",
       "origine": "nommage"
     }
   ],

@@ -21,7 +21,7 @@
     {
       "nom": "salarie",
       "schema": "public",
-      "commentaire": "La clé primaire est aussi une clé étrangère : héritage par jointure",
+      "commentaire": "La clé primaire est aussi une clé étrangère : héritage possible, un-vers-un sans décision",
       "colonnes": [
         { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false },
         { "nom": "matricule", "position": 2, "type_brut": "character varying(20)", "type_normalise": "texte", "longueur": 20, "nullable": false }

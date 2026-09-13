@@ -201,9 +201,10 @@ func inferrerEntite(t *calque.Table, d *Decisions, prefixes []string, schema *sc
 	nomsPris[nom] = cible
 
 	entite := calque.Entite{
-		Nom:     nom,
-		Table:   calque.ReferenceTable{Nom: t.Nom, Schema: t.Schema},
-		Origine: origine,
+		Nom:         nom,
+		Table:       calque.ReferenceTable{Nom: t.Nom, Schema: t.Schema},
+		Commentaire: t.Commentaire,
+		Origine:     origine,
 	}
 
 	ecartees, avs := colonnesEcartees(t, d)

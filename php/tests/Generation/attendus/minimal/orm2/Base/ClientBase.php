@@ -1,5 +1,7 @@
 <?php
 
+// Généré par Ormeau et réécrit à chaque génération : le code propre à Client va dans Client.php.
+
 declare(strict_types=1);
 
 namespace App\Entity\Base;
@@ -16,6 +18,7 @@ abstract class ClientBase
     #[ORM\Column(name: 'id', type: 'integer')]
     protected ?int $id = null;
 
+    /** Dénomination légale. */
     #[ORM\Column(name: 'raison_sociale', type: 'string', length: 120, options: ['comment' => 'Dénomination légale'])]
     protected string $raisonSociale;
 

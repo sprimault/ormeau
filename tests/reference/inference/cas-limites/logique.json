@@ -27,6 +27,7 @@
           "origine": "contrainte"
         }
       ],
+      "commentaire": "Table de trace historique, jamais contrainte",
       "origine": "nommage"
     },
     {

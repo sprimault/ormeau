@@ -33,6 +33,7 @@ final class Entite
      *                                                 racine comprise ; présente dans une hiérarchie
      *                                                 décidée seulement, et c'est l'entité qu'elle
      *                                                 identifie — la colonne appartient à l'héritage
+     * @param string|null         $commentaire         commentaire de la table, tel que le catalogue le rend
      */
     public function __construct(
         public readonly string $nom,
@@ -45,6 +46,7 @@ final class Entite
         public readonly array $index = [],
         public readonly ?Origine $origine = null,
         public readonly ?string $valeurDiscriminante = null,
+        public readonly ?string $commentaire = null,
     ) {}
 
     /**
@@ -71,7 +73,8 @@ final class Entite
         $index = Lecture::objets($donnees, 'index', $chemin, IndexEntite::depuisTableau(...));
         $origine = Lecture::valeurOptionnelle($donnees, 'origine', $chemin, Origine::class);
         $valeurDiscriminante = Lecture::chaineOptionnelle($donnees, 'valeur_discriminante', $chemin);
+        $commentaire = Lecture::chaineOptionnelle($donnees, 'commentaire', $chemin);
 
-        return new self($nom, $table, $proprietes, $heritage, $traits, $identifiant, $associations, $index, $origine, $valeurDiscriminante);
+        return new self($nom, $table, $proprietes, $heritage, $traits, $identifiant, $associations, $index, $origine, $valeurDiscriminante, $commentaire);
     }
 }

@@ -74,6 +74,7 @@
           "origine": "contrainte"
         }
       ],
+      "commentaire": "Mêmes colonnes d'horodatage que client : le trait est partagé",
       "origine": "nommage"
     },
     {
@@ -123,6 +124,7 @@
           "origine": "contrainte"
         }
       ],
+      "commentaire": "Colonnes françaises, et une suppression logique : autre signature",
       "origine": "nommage"
     },
     {
@@ -155,6 +157,7 @@
           "origine": "contrainte"
         }
       ],
+      "commentaire": "Une seule colonne d'horodatage : rien à factoriser",
       "origine": "nommage"
     }
   ],

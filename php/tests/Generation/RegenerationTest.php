@@ -101,8 +101,29 @@ final class RegenerationTest extends TestCase
         self::assertSame($avant, file_get_contents($client));
         self::assertCount(1, $rapport->divergences);
         self::assertSame(
-            $client . " ligne 11 : #[ORM\\Table(name: 't_clients')], la table s'appelle maintenant t_client",
+            $client . " ligne 13 : #[ORM\\Table(name: 't_clients')], la table s'appelle maintenant t_client",
             $rapport->divergences[0]->message(),
+        );
+    }
+
+    /**
+     * Un commentaire de table ajouté, changé ou retiré en base se signale sur
+     * #[ORM\Table], qui le porte pour schema:create ; le docblock de la classe
+     * appartient à l'utilisateur et n'est pas relu.
+     */
+    public function testUnCommentaireDeTableChangeSeSignale(): void
+    {
+        $this->generer(self::calque('client', commentaire: 'Fiche client'));
+        $client = $this->sortie . '/Client.php';
+        $actuel = "#[ORM\\Table(name: 'client', options: ['comment' => 'Fiche client'])]";
+
+        self::assertSame(
+            [$client . ' ligne 14 : ' . $actuel . ", le commentaire de la table est maintenant 'Fiche d\\'un client'"],
+            array_map(static fn($d): string => $d->message(), $this->generer(self::calque('client', commentaire: "Fiche d'un client"))->divergences),
+        );
+        self::assertSame(
+            [$client . ' ligne 14 : ' . $actuel . ', la table n\'a plus de commentaire'],
+            array_map(static fn($d): string => $d->message(), $this->generer(self::calque('client'))->divergences),
         );
     }
 
@@ -170,9 +191,9 @@ final class RegenerationTest extends TestCase
         self::assertSame($avant, file_get_contents($personne));
         self::assertStringContainsString('abstract class SalarieBase extends Personne', (string) file_get_contents($this->sortie . '/Base/SalarieBase.php'));
         self::assertSame([
-            $personne . " ligne 10 : attribut #[ORM\\InheritanceType('JOINED')] absent, Personne est la racine d'un héritage",
-            $personne . " ligne 10 : attribut #[ORM\\DiscriminatorColumn(name: 'nature', type: 'string', length: 1)] absent, Personne est la racine d'un héritage",
-            $personne . " ligne 10 : attribut #[ORM\\DiscriminatorMap(['P' => Personne::class, 'S' => Salarie::class])] absent, Personne est la racine d'un héritage",
+            $personne . " ligne 12 : attribut #[ORM\\InheritanceType('JOINED')] absent, Personne est la racine d'un héritage",
+            $personne . " ligne 12 : attribut #[ORM\\DiscriminatorColumn(name: 'nature', type: 'string', length: 1)] absent, Personne est la racine d'un héritage",
+            $personne . " ligne 12 : attribut #[ORM\\DiscriminatorMap(['P' => Personne::class, 'S' => Salarie::class])] absent, Personne est la racine d'un héritage",
         ], array_map(static fn($d): string => $d->message(), $rapport->divergences));
     }
 
@@ -188,7 +209,7 @@ final class RegenerationTest extends TestCase
         $carte = "#[ORM\\DiscriminatorMap(['P' => Personne::class, 'S' => Salarie::class])]";
 
         self::assertSame(
-            [$personne . ' ligne 14 : ' . $carte . ", attendu #[ORM\\DiscriminatorMap(['P' => Personne::class, 'S' => Salarie::class, 'C' => Cadre::class])]"],
+            [$personne . ' ligne 16 : ' . $carte . ", attendu #[ORM\\DiscriminatorMap(['P' => Personne::class, 'S' => Salarie::class, 'C' => Cadre::class])]"],
             array_map(static fn($d): string => $d->message(), $this->generer(self::hierarchie(['Salarie' => 'S', 'Cadre' => 'C']))->divergences),
         );
         self::assertSame(
@@ -247,7 +268,7 @@ final class RegenerationTest extends TestCase
      * Un calque d'une entité Client sur la table donnée, avec ou sans colonne
      * email.
      */
-    private static function calque(string $table, bool $avecEmail = false): CalqueLogique
+    private static function calque(string $table, bool $avecEmail = false, ?string $commentaire = null): CalqueLogique
     {
         $proprietes = [['nom' => 'id', 'colonne' => 'id', 'type_php' => 'int', 'type_doctrine' => 'integer', 'nullable' => false]];
         if ($avecEmail) {
@@ -258,12 +279,13 @@ final class RegenerationTest extends TestCase
             'version_ri' => 1,
             'empreinte_physique' => 'sha256:' . str_repeat('a', 64),
             'espace_de_noms' => 'App\\Entity',
-            'entites' => [[
+            'entites' => [array_filter([
                 'nom' => 'Client',
                 'table' => ['nom' => $table, 'schema' => 'public'],
                 'identifiant' => ['proprietes' => ['id'], 'strategie' => 'identite'],
                 'proprietes' => $proprietes,
-            ]],
+                'commentaire' => $commentaire,
+            ], static fn($valeur): bool => $valeur !== null)],
         ]);
     }
 }

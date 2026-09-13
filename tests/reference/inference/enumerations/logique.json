@@ -109,6 +109,7 @@
           "origine": "contrainte"
         }
       ],
+      "commentaire": "Un CHECK portant sur deux colonnes ne décrit pas une énumération",
       "origine": "nommage"
     }
   ],

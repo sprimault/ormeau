@@ -1,5 +1,7 @@
 <?php
 
+// Généré par Ormeau et réécrit à chaque génération : le code propre à Client va dans Client.php.
+
 declare(strict_types=1);
 
 namespace App\Entity\Base;
@@ -17,6 +19,7 @@ abstract class ClientBase
     #[ORM\Column(name: 'id', type: 'integer')]
     protected ?int $id = null;
 
+    /** Type énuméré natif : le cas le plus sûr. */
     #[ORM\Column(
         name: 'statut',
         type: 'string',
@@ -25,6 +28,7 @@ abstract class ClientBase
     )]
     protected StatutClient $statut;
 
+    /** Valeurs fermées par un CHECK. */
     #[ORM\Column(
         name: 'canal',
         type: 'string',
@@ -34,6 +38,7 @@ abstract class ClientBase
     )]
     protected CanalDeVente $canal;
 
+    /** O/N : des cas nommés O et N n'apprendraient rien. */
     #[ORM\Column(
         name: 'actif',
         type: 'string',

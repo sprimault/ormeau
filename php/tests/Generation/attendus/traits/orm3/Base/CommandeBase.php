@@ -1,5 +1,7 @@
 <?php
 
+// Généré par Ormeau et réécrit à chaque génération : le code propre à Commande va dans Commande.php.
+
 declare(strict_types=1);
 
 namespace App\Entity\Base;
