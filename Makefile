@@ -227,10 +227,13 @@ php-test:
 # n'attend pas la prochaine contribution.
 #
 # Le code produit a son propre contrôle : exclu du style du paquet, il doit
-# suivre PER-CS comme du code écrit à la main.
+# suivre PER-CS comme du code écrit à la main. Ce que l'outil réécrit à chaque
+# passage ne doit en outre rien donner à corriger à @Symfony, sans quoi chaque
+# régénération produit un diff dans les projets qui suivent ces règles.
 php-lint:
 	cd php && composer analyse && vendor/bin/php-cs-fixer fix --dry-run --diff \
 		&& vendor/bin/php-cs-fixer fix --dry-run --diff --rules=@PER-CS2.0 --using-cache=no tests/Generation/attendus \
+		&& composer style-produit-symfony \
 		&& composer audit
 
 # ── SGBD de test ────────────────────────────────────────────────────

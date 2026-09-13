@@ -1,0 +1,225 @@
+{
+  "version_ri": 1,
+  "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000016",
+  "espace_de_noms": "App\\Entity",
+  "entites": [
+    {
+      "nom": "Client",
+      "table": {
+        "nom": "client",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "canal",
+          "colonne": "canal",
+          "type_php": "ClientCanal",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 20,
+          "enumeration": "ClientCanal",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "actif",
+          "colonne": "actif",
+          "type_php": "OuiNon",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 1,
+          "enumeration": "OuiNon",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "parrainRef",
+          "colonne": "parrain_ref",
+          "type_php": "?int",
+          "type_doctrine": "integer",
+          "nullable": true,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "client",
+          "genre": "plusieurs_vers_un",
+          "cible": "Client",
+          "proprietaire": true,
+          "inversee_par": "clientClient",
+          "jointure": [
+            {
+              "colonne": "parrain_ref",
+              "colonne_referencee": "id",
+              "nullable": true
+            }
+          ],
+          "origine": "decision"
+        },
+        {
+          "nom": "clientClient",
+          "genre": "un_vers_plusieurs",
+          "cible": "Client",
+          "proprietaire": false,
+          "mappee_par": "client",
+          "origine": "decision"
+        },
+        {
+          "nom": "commande",
+          "genre": "un_vers_plusieurs",
+          "cible": "Commande",
+          "proprietaire": false,
+          "mappee_par": "client",
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "Visée par des décisions dont les noms ne sont pas du PHP",
+      "origine": "nommage"
+    },
+    {
+      "nom": "Commande",
+      "table": {
+        "nom": "commande",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "clientId",
+          "colonne": "client_id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "client",
+          "genre": "plusieurs_vers_un",
+          "cible": "Client",
+          "proprietaire": true,
+          "inversee_par": "commande",
+          "jointure": [
+            {
+              "colonne": "client_id",
+              "colonne_referencee": "id",
+              "nullable": false
+            }
+          ],
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    }
+  ],
+  "enumerations": [
+    {
+      "nom": "ClientCanal",
+      "type_support": "string",
+      "cas": [
+        {
+          "nom": "Direct",
+          "valeur": "DIRECT"
+        },
+        {
+          "nom": "Web",
+          "valeur": "WEB"
+        }
+      ],
+      "origine": "verification"
+    },
+    {
+      "nom": "OuiNon",
+      "type_support": "string",
+      "cas": [
+        {
+          "nom": "N",
+          "valeur": "N"
+        },
+        {
+          "nom": "Oui",
+          "valeur": "O"
+        }
+      ],
+      "origine": "decision"
+    }
+  ],
+  "avertissements": [
+    {
+      "code": "decision_invalide",
+      "cible": "public",
+      "message": "espace_de_noms refusé : « App\\Entity;system('id') » n'est pas un espace de noms PHP : « Entity;system('id') » n'est pas un identifiant PHP ; App\\Entity conservé",
+      "resolution": "ignoree",
+      "confiance": 1
+    },
+    {
+      "code": "decision_invalide",
+      "cible": "public.client",
+      "message": "renommage refusé : « ../../public/index » n'est pas un identifiant PHP ; nom inféré conservé",
+      "resolution": "ignoree",
+      "confiance": 1
+    },
+    {
+      "code": "cas_enumeration_opaque",
+      "cible": "public.client.actif",
+      "message": "la valeur N donne un cas nommé N ; enumerations permet de l'apparier à un nom lisible",
+      "resolution": "par_defaut",
+      "confiance": 0.4
+    },
+    {
+      "code": "decision_invalide",
+      "cible": "public.client.actif",
+      "message": "cas de la valeur « N » refusé : class est un mot réservé de PHP ; nom par défaut",
+      "resolution": "ignoree",
+      "confiance": 1
+    },
+    {
+      "code": "decision_invalide",
+      "cible": "public.client.canal",
+      "message": "énumération refusée : Match est un mot réservé de PHP",
+      "resolution": "ignoree",
+      "confiance": 1
+    },
+    {
+      "code": "decision_invalide",
+      "cible": "public.client.parrain_ref",
+      "message": "nom de relation refusé : « parrain; system('id') » n'est pas un identifiant PHP ; nom par défaut",
+      "resolution": "ignoree",
+      "confiance": 1
+    },
+    {
+      "code": "decision_invalide",
+      "cible": "public.commande",
+      "message": "renommage refusé : List est un mot réservé de PHP ; nom inféré conservé",
+      "resolution": "ignoree",
+      "confiance": 1
+    }
+  ]
+}

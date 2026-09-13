@@ -6,7 +6,6 @@ declare(strict_types=1);
 
 namespace App\Entity\Base;
 
-use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\MappedSuperclass]
@@ -25,7 +24,7 @@ abstract class FournisseurBase
     protected string $libelle;
 
     #[ORM\Column(name: 'heure_livraison', type: 'time_immutable', nullable: true)]
-    protected ?DateTimeImmutable $heureLivraison = null;
+    protected ?\DateTimeImmutable $heureLivraison = null;
 
     public function getCodePays(): string
     {
@@ -63,12 +62,12 @@ abstract class FournisseurBase
         return $this;
     }
 
-    public function getHeureLivraison(): ?DateTimeImmutable
+    public function getHeureLivraison(): ?\DateTimeImmutable
     {
         return $this->heureLivraison;
     }
 
-    public function setHeureLivraison(?DateTimeImmutable $heureLivraison): static
+    public function setHeureLivraison(?\DateTimeImmutable $heureLivraison): static
     {
         $this->heureLivraison = $heureLivraison;
 

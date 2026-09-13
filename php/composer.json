@@ -28,7 +28,8 @@
   "scripts": {
     "test": "phpunit",
     "analyse": "phpstan analyse",
-    "style": "php-cs-fixer fix --dry-run --diff"
+    "style": "php-cs-fixer fix --dry-run --diff",
+    "style-produit-symfony": "php-cs-fixer fix --dry-run --diff --config=.php-cs-fixer.produit.php --using-cache=no; code=$?; [ $code -ne 8 ] || echo \"PHP-CS-Fixer en règles @Symfony corrige ce que le générateur réécrit à chaque passage (Base/, Enum/, Trait/) : chaque régénération produirait ce diff dans un projet qui suit ces règles. Si composer.lock vient de changer, c'est PHP-CS-Fixer qui a changé d'avis, pas le générateur : lire la règle en cause avant de toucher au rendu.\" >&2; exit $code"
   },
   "config": {
     "sort-packages": true

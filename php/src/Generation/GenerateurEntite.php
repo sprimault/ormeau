@@ -7,11 +7,13 @@ declare(strict_types=1);
 
 namespace Ormeau\Doctrine\Generation;
 
+use InvalidArgumentException;
 use LogicException;
 use Ormeau\Doctrine\Calque\Association;
 use Ormeau\Doctrine\Calque\CalqueLogique;
 use Ormeau\Doctrine\Calque\Entite;
 use Ormeau\Doctrine\Calque\Enumeration;
+use Ormeau\Doctrine\Calque\Propriete;
 use RuntimeException;
 
 /**
@@ -35,23 +37,6 @@ use RuntimeException;
  */
 final class GenerateurEntite
 {
-    /**
-     * Noms que PHP refuse pour une classe, en minuscules.
-     *
-     * L'inférence peut en produire un — une table list ou match —, et le
-     * générateur ne renomme pas : c'est une décision, qui va dans renommages.
-     */
-    private const NOMS_RESERVES = [
-        'abstract', 'and', 'array', 'as', 'bool', 'break', 'callable', 'case', 'catch', 'class', 'clone',
-        'const', 'continue', 'declare', 'default', 'do', 'echo', 'else', 'elseif', 'empty', 'enddeclare',
-        'endfor', 'endforeach', 'endif', 'endswitch', 'endwhile', 'enum', 'eval', 'exit', 'extends', 'false',
-        'final', 'finally', 'float', 'fn', 'for', 'foreach', 'function', 'global', 'goto', 'if', 'implements',
-        'include', 'include_once', 'instanceof', 'insteadof', 'int', 'interface', 'isset', 'iterable', 'list',
-        'match', 'mixed', 'namespace', 'never', 'new', 'null', 'object', 'or', 'parent', 'print', 'private',
-        'protected', 'public', 'readonly', 'require', 'require_once', 'return', 'self', 'static', 'string',
-        'switch', 'throw', 'trait', 'true', 'try', 'unset', 'use', 'var', 'void', 'while', 'xor', 'yield',
-    ];
-
     /**
      * Retient le mode de régénération, la classe de base séparée à défaut.
      *
@@ -85,8 +70,10 @@ final class GenerateurEntite
      * @param string        $repertoire racine des entités, src/Entity dans une application Symfony
      * @param Cible         $cible      version d'ORM visée, qui fixe le type PHP de certaines colonnes
      *
-     * @throws LogicException   mode de régénération qui n'est pas encore écrit
-     * @throws RuntimeException répertoire ou fichier qui ne s'écrit pas
+     * @throws LogicException           mode de régénération qui n'est pas encore écrit
+     * @throws InvalidArgumentException espace de noms que PHP refuse : aucun fichier n'est écrit
+     * @throws RuntimeException         répertoire ou fichier qui ne s'écrit pas, ou qui sortirait du
+     *                                  répertoire des entités
      */
     public function generer(CalqueLogique $calque, string $repertoire, Cible $cible): Rapport
     {
@@ -95,6 +82,18 @@ final class GenerateurEntite
                 'Génération en mode %s : à implémenter, phase « Régénération par AST » de la feuille de route.',
                 $this->mode->value,
             ));
+        }
+
+        // Tous les fichiers en dépendent : un espace de noms refusé arrête la
+        // génération avant la première écriture, au lieu d'écarter tout.
+        $raison = NomsPhp::raisonEspaceDeNoms($calque->espaceDeNoms);
+        if ($raison !== null) {
+            throw new InvalidArgumentException(sprintf('Espace de noms refusé, rien n\'est écrit : %s.', $raison));
+        }
+
+        $repertoire = rtrim($repertoire, '/\\');
+        if (!is_dir($repertoire) && !@mkdir($repertoire, 0o777, true) && !is_dir($repertoire)) {
+            throw new RuntimeException(sprintf('Répertoire impossible à créer : %s', $repertoire));
         }
 
         $enumerations = [];
@@ -109,7 +108,6 @@ final class GenerateurEntite
         $schemas = array_unique(array_map(static fn(Entite $e): string => $e->table->schema, $calque->entites));
         $rendu = new RenduEntite($cible, $calque->espaceDeNoms, count($schemas) > 1, $enumerations);
         $controle = new ControleClasseUtilisateur();
-        $repertoire = rtrim($repertoire, '/\\');
 
         $fichiers = [];
         $ecartees = [];
@@ -123,14 +121,14 @@ final class GenerateurEntite
             $refus['enum:' . $nom] = $this->refusEnumeration($enumeration);
             if ($refus['enum:' . $nom] === null) {
                 $chemin = $repertoire . '/Enum/' . $nom . '.php';
-                $fichiers[] = new Fichier($chemin, $this->ecrire($chemin, $rendu->enumeration($enumeration)));
+                $fichiers[] = new Fichier($chemin, $this->ecrire($chemin, $rendu->enumeration($enumeration), $repertoire));
             }
         }
         foreach ($traits as $nom => $trait) {
-            $refus['trait:' . $nom] = self::estReserve($nom) ? sprintf('%s est un mot réservé de PHP', $nom) : null;
+            $refus['trait:' . $nom] = NomsPhp::raisonClasse((string) $nom) ?? self::refusProprietes($trait->proprietes);
             if ($refus['trait:' . $nom] === null) {
                 $chemin = $repertoire . '/Trait/' . $nom . '.php';
-                $fichiers[] = new Fichier($chemin, $this->ecrire($chemin, $rendu->traitPartage($trait)));
+                $fichiers[] = new Fichier($chemin, $this->ecrire($chemin, $rendu->traitPartage($trait), $repertoire));
             }
         }
 
@@ -166,12 +164,12 @@ final class GenerateurEntite
         $hierarchies = new Hierarchies($generees);
         foreach ($generees as $entite) {
             $base = $repertoire . '/Base/' . RenduEntite::nomBase($entite) . '.php';
-            $fichiers[] = new Fichier($base, $this->ecrire($base, $rendu->classeBase($entite, $hierarchies)));
+            $fichiers[] = new Fichier($base, $this->ecrire($base, $rendu->classeBase($entite, $hierarchies), $repertoire));
 
             $racine = $hierarchies->racineHeritage($entite, $calque->espaceDeNoms);
             $utilisateur = $repertoire . '/' . $entite->nom . '.php';
             if (!is_file($utilisateur)) {
-                $this->ecrire($utilisateur, $rendu->classeUtilisateur($entite, $racine));
+                $this->ecrire($utilisateur, $rendu->classeUtilisateur($entite, $racine), $repertoire);
                 $fichiers[] = new Fichier($utilisateur, EtatFichier::Cree);
                 continue;
             }
@@ -202,17 +200,32 @@ final class GenerateurEntite
      * se résout par une décision, un nom réservé par un renommage. Ce qui
      * tient à une hiérarchie d'héritage est dit par Hierarchies::raison().
      *
+     * Un nom qui ne s'écrit pas en PHP — classe, propriété, association — ou un
+     * type qui ne se déclare pas écarte l'entité : recopié, il deviendrait du
+     * code dans le fichier produit.
+     *
      * @param Entite                     $entite entité à examiner
      * @param array<string, string|null> $refus  raison du refus de chaque énumération (enum:Nom) et de
      *                                           chaque trait (trait:Nom), null quand il est écrit
      */
     private function raisonDEcarter(Entite $entite, array $refus): ?string
     {
-        if (self::estReserve($entite->nom)) {
-            return sprintf('%s est un mot réservé de PHP, à renommer dans renommages', $entite->nom);
+        $raison = NomsPhp::raisonClasse($entite->nom);
+        if ($raison !== null) {
+            return $raison . ', à renommer dans renommages';
         }
         if ($entite->identifiant === null) {
             return 'la table n\'a pas de clé primaire, et Doctrine exige un identifiant';
+        }
+        $raison = self::refusProprietes($entite->proprietes);
+        if ($raison !== null) {
+            return $raison;
+        }
+        foreach ($entite->associations as $association) {
+            $raison = NomsPhp::raisonMembre($association->nom);
+            if ($raison !== null) {
+                return sprintf('association refusée : %s', $raison);
+            }
         }
 
         foreach ($entite->traits as $trait) {
@@ -332,7 +345,9 @@ final class GenerateurEntite
     private function sansCotesInversesOrphelins(Entite $entite, array $entites, array $raisons, array &$omises): Entite
     {
         $ecartees = [];
+        $connues = [];
         foreach ($entites as $rang => $autre) {
+            $connues[$autre->nom] = true;
             if ($raisons[$rang] !== null) {
                 $ecartees[$autre->nom] = $autre;
             }
@@ -341,15 +356,16 @@ final class GenerateurEntite
         $gardees = [];
         foreach ($entite->associations as $association) {
             $cible = $ecartees[$association->cible] ?? null;
-            if ($association->proprietaire || $cible === null) {
+            if ($association->proprietaire || ($cible === null && isset($connues[$association->cible]))) {
                 $gardees[] = $association;
                 continue;
             }
-            $omises[] = new AssociationOmise($entite->nom, $association->nom, sprintf(
-                'côté inverse de %s (%s), écartée',
-                $cible->nom,
-                self::table($cible),
-            ));
+            // Une cible absente du calque ne s'écrit pas plus qu'une cible
+            // écartée : son nom deviendrait un Cible::class sans classe, et un
+            // nom quelconque, du code.
+            $omises[] = new AssociationOmise($entite->nom, $association->nom, $cible === null
+                ? 'côté inverse d\'une entité absente du calque'
+                : sprintf('côté inverse de %s (%s), écartée', $cible->nom, self::table($cible)));
         }
         if (count($gardees) === count($entite->associations)) {
             return $entite;
@@ -442,19 +458,31 @@ final class GenerateurEntite
     }
 
     /**
-     * Dit pourquoi une énumération ne peut pas être écrite, ou null.
-     *
-     * Deux refus de PHP : un nom réservé pour l'énumération, et un cas nommé
-     * class, le seul nom de cas qu'il interdit.
+     * Dit pourquoi une énumération ne peut pas être écrite, ou null : son nom,
+     * ou celui d'un de ses cas, que PHP refuserait.
      */
     private function refusEnumeration(Enumeration $enumeration): ?string
     {
-        if (self::estReserve($enumeration->nom)) {
-            return sprintf('%s est un mot réservé de PHP', $enumeration->nom);
-        }
+        $raison = NomsPhp::raisonClasse($enumeration->nom);
         foreach ($enumeration->cas as $cas) {
-            if (strtolower($cas->nom) === 'class') {
-                return 'un cas ne peut pas s\'appeler class';
+            $raison ??= NomsPhp::raisonCas($cas->nom);
+        }
+
+        return $raison;
+    }
+
+    /**
+     * Dit pourquoi une des propriétés ne peut pas être écrite, ou null : un
+     * nom qui n'est pas un identifiant, ou un type qui ne se déclare pas.
+     *
+     * @param list<Propriete> $proprietes propriétés d'une entité ou d'un trait
+     */
+    private static function refusProprietes(array $proprietes): ?string
+    {
+        foreach ($proprietes as $propriete) {
+            $raison = NomsPhp::raisonMembre($propriete->nom) ?? NomsPhp::raisonType($propriete->typePhp);
+            if ($raison !== null) {
+                return sprintf('propriété refusée : %s', $raison);
             }
         }
 
@@ -462,20 +490,27 @@ final class GenerateurEntite
     }
 
     /**
-     * Dit si PHP refuse un nom de classe, d'énumération ou de trait.
-     */
-    private static function estReserve(string $nom): bool
-    {
-        return in_array(strtolower($nom), self::NOMS_RESERVES, true);
-    }
-
-    /**
      * Écrit un fichier quand son contenu diffère de ce qui est sur disque.
      *
-     * @throws RuntimeException répertoire ou fichier qui ne s'écrit pas
+     * Le chemin est vérifié une fois résolu, avant toute création de
+     * répertoire : il doit rester sous le répertoire des entités. Les noms
+     * sont déjà contrôlés, et ce contrôle ne s'y fie pas — un lien
+     * symbolique posé à la place de Base/, ou un nom qui passerait la
+     * validation, aboutirait ailleurs que là où le chemin construit le laisse
+     * croire.
+     *
+     * @param string $chemin  fichier à écrire
+     * @param string $contenu source du fichier
+     * @param string $racine  répertoire des entités, existant
+     *
+     * @throws RuntimeException répertoire ou fichier qui ne s'écrit pas, ou qui sortirait de la racine
      */
-    private function ecrire(string $chemin, string $contenu): EtatFichier
+    private function ecrire(string $chemin, string $contenu, string $racine): EtatFichier
     {
+        if (!self::resteSous($chemin, $racine)) {
+            throw new RuntimeException(sprintf('Écriture refusée, le fichier sortirait du répertoire des entités : %s', $chemin));
+        }
+
         if (is_file($chemin)) {
             if (file_get_contents($chemin) === $contenu) {
                 return EtatFichier::Inchange;
@@ -494,5 +529,40 @@ final class GenerateurEntite
         }
 
         return $etat;
+    }
+
+    /**
+     * Dit si un chemin, une fois résolu, reste sous la racine.
+     *
+     * La partie qui existe déjà est résolue par realpath(), liens compris ; ce
+     * qui reste à créer ne doit contenir ni « . » ni « .. ». Un fichier existant
+     * est résolu lui-même : un lien qui mène ailleurs est refusé.
+     */
+    private static function resteSous(string $chemin, string $racine): bool
+    {
+        $racine = realpath($racine);
+        if ($racine === false) {
+            return false;
+        }
+
+        $aCreer = [];
+        $existant = $chemin;
+        while (!file_exists($existant)) {
+            $segment = basename($existant);
+            $parent = dirname($existant);
+            if ($segment === '.' || $segment === '..' || $parent === $existant) {
+                return false;
+            }
+            array_unshift($aCreer, $segment);
+            $existant = $parent;
+        }
+
+        $resolu = realpath($existant);
+        if ($resolu === false) {
+            return false;
+        }
+        $complet = implode(DIRECTORY_SEPARATOR, [$resolu, ...$aCreer]);
+
+        return str_starts_with($complet, rtrim($racine, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR);
     }
 }

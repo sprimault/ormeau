@@ -238,6 +238,13 @@ jobs:
       - name: Style du code produit
         run: vendor/bin/php-cs-fixer fix --dry-run --diff --rules=@PER-CS2.0 --using-cache=no tests/Generation/attendus
 
+      # Ce que l'outil réécrit à chaque passage ne doit rien donner à corriger
+      # aux règles @Symfony, les plus répandues dans les projets visés : sinon
+      # chaque régénération y produit un diff sur des fichiers que personne n'a
+      # touchés. Les classes de l'utilisateur, écrites une fois, n'en sont pas.
+      - name: Code produit sous @Symfony
+        run: composer style-produit-symfony
+
       - name: Vulnérabilités des dépendances
         run: composer audit
 

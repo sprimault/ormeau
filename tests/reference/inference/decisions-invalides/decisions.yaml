@@ -1,0 +1,32 @@
+# Un fichier de décisions n'est pas plus sûr qu'une saisie : il se reçoit par
+# une pull request, et l'interface l'écrit. Chaque nom ci-dessous finirait tel
+# quel dans le code produit ou dans le chemin d'un fichier. Tous sont refusés,
+# et l'inférence garde ce qu'elle aurait produit.
+
+# Sortirait de la déclaration namespace.
+espace_de_noms: App\Entity;system('id')
+
+renommages:
+  # Écrirait hors du répertoire des entités.
+  public.client: ../../public/index
+  # Bien formé, mais PHP refuse ce nom pour une classe.
+  public.commande: List
+
+enumerations:
+  # Nom réservé : la décision entière est refusée, le CHECK garde son énumération.
+  - colonne: public.client.canal
+    nom: Match
+  # Le nom passe, un seul cas est refusé : class est le seul mot qu'un cas ne
+  # peut pas porter, avec __halt_compiler.
+  - colonne: public.client.actif
+    nom: OuiNon
+    cas:
+      O: Oui
+      N: class
+
+relations_forcees:
+  # Deviendrait un nom de propriété, et une ligne de code.
+  - source: public.client.parrain_ref
+    cible: public.client.id
+    genre: plusieurs_vers_un
+    nom: parrain; system('id')

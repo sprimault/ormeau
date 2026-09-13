@@ -29,6 +29,7 @@ final class Repertoires
         'cas-limites',
         'cible-ignoree',
         'decisions',
+        'decisions-invalides',
         'enumerations',
         'enumerations-decidees',
         'heritage',

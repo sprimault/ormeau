@@ -250,9 +250,8 @@ final class RenduMembres
      *
      * Une propriété énumérée prend le type de l'énumération. Une clé produite
      * par la base est nullable en PHP même quand la colonne ne l'est pas : elle
-     * vaut null tant que l'entité n'est pas persistée. Une classe qualifiée
-     * s'importe, comme on l'écrirait à la main : DateTimeImmutable, pas
-     * \DateTimeImmutable à chaque déclaration.
+     * vaut null tant que l'entité n'est pas persistée. Une classe d'un espace
+     * de noms s'importe, une classe globale reste qualifiée.
      *
      * @return array{string, string|null}
      */
@@ -264,8 +263,12 @@ final class RenduMembres
 
         $nullable = $nu !== 'mixed' && ($propriete->nullable || $this->estGeneree($propriete, $identifiant));
 
+        // \DateTimeImmutable et non un import : c'est aussi courant à la main,
+        // mais PHP-CS-Fixer en règles @Symfony requalifie une classe globale
+        // importée, et chaque régénération la réimporterait — un diff à chaque
+        // passage sur des fichiers que personne n'a touchés.
         $import = null;
-        if (str_starts_with($nu, '\\')) {
+        if (str_contains(ltrim($nu, '\\'), '\\')) {
             $import = ltrim($nu, '\\');
             $nu = self::nomCourt($import);
         }

@@ -38,6 +38,7 @@ func Inferer(p *calque.Physique, d *Decisions) (*calque.Logique, []calque.Averti
 	if d == nil {
 		d = &Decisions{}
 	}
+	d, avertissements := sansNomsInvalides(d, p.Source.Schema)
 
 	logique := &calque.Logique{
 		VersionRI:         calque.VersionCourante,
@@ -45,7 +46,6 @@ func Inferer(p *calque.Physique, d *Decisions) (*calque.Logique, []calque.Averti
 		EspaceDeNoms:      espaceDeNoms(d),
 	}
 
-	var avertissements []calque.Avertissement
 	ignorees := ensemble(d.TablesIgnorees)
 	nomsPris := map[string]string{}
 
