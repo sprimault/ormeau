@@ -63,9 +63,11 @@ les phases suivantes. L'écran de connexion, lui, ne bougera plus.
 Paquet PHP, commande `ormeau:generer`, mode classe de base séparée. Attributs,
 énumérations natives, traits d'horodatage.
 
-Plancher : PHP 8.1, Symfony 5.4 à 8, Doctrine ORM 2.11 à 3. C'est le périmètre
+Plancher : PHP 8.1, Symfony 5.4 à 8, Doctrine ORM 2.14 à 3. C'est le périmètre
 des applications que l'outil vise — une reprise de legacy tourne rarement sur la
-version courante. La 2.11 est la première version d'ORM qui accepte `enumType`.
+version courante. ORM accepte `enumType` dès la 2.11, mais les versions 2.11 à
+2.13 refusent une classe de base mappée placée sous une entité, ce que produit
+la génération d'une hiérarchie : le plancher suit cette contrainte constatée.
 
 La forme du code produit dépend de la version d'ORM installée dans l'application
 cible : elle est détectée, non configurée, et annoncée en tête d'exécution.

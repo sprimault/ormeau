@@ -240,9 +240,9 @@ jobs:
   # reste pour sa version de PHP, et ne lance que les tests — l'analyse et le
   # style ne dépendent pas des versions installées.
   #
-  # Le bas de la plage est ORM 2.11 exactement : c'est la première version qui
-  # accepte enumType, et une promesse de plancher qui n'est testée qu'au-dessus
-  # n'en est pas une.
+  # Le bas de la plage est ORM 2.14 exactement : les versions antérieures
+  # refusent une classe de base mappée placée sous une entité. Une promesse de
+  # plancher qui n'est testée qu'au-dessus n'en est pas une.
   #
   # Symfony se fixe par SYMFONY_REQUIRE, que lit Flex, et non en exigeant
   # framework-bundle : celui de la 5.4 accepte http-kernel 6.4, et Composer
@@ -258,11 +258,11 @@ jobs:
           - nom: compat-php81-symfony54-orm2
             php: '8.1'
             symfony: '5.4.*'
-            orm: '~2.11.0'
+            orm: '~2.14.0'
           - nom: compat-php82-symfony64-orm2
             php: '8.2'
             symfony: '6.4.*'
-            orm: '^2.11'
+            orm: '^2.14'
           - nom: compat-php83-symfony74-orm3
             php: '8.3'
             symfony: '7.4.*'
