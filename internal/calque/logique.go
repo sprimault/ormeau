@@ -220,7 +220,6 @@ const (
 	CodeClePrimaireComposite = "cle_primaire_composite"
 	CodeFKImpliciteProbable  = "fk_implicite_probable"
 	CodeTypeNonReconnu       = "type_non_reconnu"
-	CodeNomNonSingularisable = "nom_non_singularisable"
 	CodeCollision            = "collision_de_nom"
 	CodeDecisionOrpheline    = "decision_sans_cible"
 	CodeTableIgnoree         = "table_ignoree"

@@ -68,7 +68,6 @@ export {
   CodeFKImpliciteProbable,
   CodeHeritageDeduit,
   CodeJointurePure,
-  CodeNomNonSingularisable,
   CodePrefixeDetecte,
   CodeTableIgnoree,
   CodeTableSansClePrimaire,
