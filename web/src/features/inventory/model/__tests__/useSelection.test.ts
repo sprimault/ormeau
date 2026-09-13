@@ -19,6 +19,7 @@ function table(nom: string, reference_vers: string[] = [], schema = 'public'): T
   };
 }
 
+/** Références en cascade — commandes vers clients et produits, clients vers pays — et une table isolée. */
 const inventaire = [
   table('commandes', ['public.clients', 'public.produits']),
   table('clients', ['public.pays']),

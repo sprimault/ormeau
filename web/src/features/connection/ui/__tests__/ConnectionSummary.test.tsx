@@ -8,6 +8,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useLangStore } from '@/shared/i18n';
 import { ConnectionSummary } from '../ConnectionSummary';
 
+/** Serveur MariaDB, pour que la variante lue à la connexion s'affiche et non le préfixe saisi. */
 const serveur = {
   session: 'jeton-de-session',
   sgbd: 'mariadb',

@@ -24,6 +24,9 @@ use Ormeau\Doctrine\Calque\CalqueLogique;
  */
 final class GenerateurEntite
 {
+    /**
+     * Retient le mode de régénération, la classe de base séparée à défaut.
+     */
     public function __construct(
         private readonly ModeRegeneration $mode = ModeRegeneration::ClasseDeBase,
     ) {}
@@ -44,7 +47,7 @@ final class GenerateurEntite
     public function generer(CalqueLogique $calque, string $repertoire): array
     {
         throw new LogicException(sprintf(
-            'Generation en mode %s : a implementer.',
+            'Génération en mode %s : à implémenter.',
             $this->mode->value,
         ));
     }

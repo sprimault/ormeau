@@ -107,6 +107,29 @@ surcharge le DSN visé par les tests d'intégration.
 Avant d'ouvrir une pull request, lancer au moins `make lint` et `make test`. La
 CI les exécute aussi, mais après coup, quand la branche est déjà poussée.
 
+## Style du code
+
+Tout fichier source — `.go`, `.php`, `.ts`, `.tsx` — commence par cet en-tête :
+
+```go
+// Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
+// SPDX-License-Identifier: Apache-2.0
+```
+
+En Go, une ligne vide le sépare du commentaire de paquet, sans quoi il en
+deviendrait la documentation. En PHP, il suit `<?php` et précède
+`declare(strict_types=1)`.
+
+**Les explications sont en français** : commentaires, godoc, docblocks, TSDoc,
+messages d'erreur. Les identifiants suivent le vocabulaire du paquet qu'on
+touche — le calque parle français (`Colonne`, `CleEtrangere`), et un paquet ne
+mélange pas les deux langues.
+
+**Toute déclaration a sa documentation**, tests et données de test compris :
+une ligne quand elle est évidente, un paragraphe quand il y a une décision à
+retrouver plus tard. Un commentaire dit pourquoi, jamais ce que la ligne
+suivante fait déjà.
+
 ## Commits et pull requests
 
 Le préfixe conventionnel est exigé — `feat:`, `fix:`, `test:`, `docs:`,

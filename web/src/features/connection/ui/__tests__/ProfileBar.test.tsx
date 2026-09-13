@@ -9,6 +9,7 @@ import { useLangStore } from '@/shared/i18n';
 import type { ProfilResume } from '@/shared/model';
 import { ProfileBar } from '../ProfileBar';
 
+/** Profils de la barre, l'un avec mot de passe enregistré. */
 const PROFILS: ProfilResume[] = [
   {
     profil: { nom: 'gescom production', hote: '192.168.0.184', base: 'gescom' },

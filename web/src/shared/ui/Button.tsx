@@ -16,6 +16,7 @@ interface ProprietesBouton extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
 }
 
+/** Classes Tailwind de chaque variante, état désactivé et thème sombre compris. */
 const classes: Record<Variante, string> = {
   primaire:
     'bg-ormeau-600 text-white hover:bg-ormeau-700 disabled:bg-slate-400 dark:disabled:bg-slate-700',
@@ -23,6 +24,7 @@ const classes: Record<Variante, string> = {
     'border border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800',
 };
 
+/** Classes Tailwind de chaque taille. */
 const tailles: Record<Taille, string> = {
   normale: 'px-3 py-1.5 text-sm',
   petite: 'px-2 py-0.5 text-xs',

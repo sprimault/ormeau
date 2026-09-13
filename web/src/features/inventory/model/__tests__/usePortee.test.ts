@@ -12,7 +12,9 @@ function table(schema: string, nom: string): TableSommaire {
   return { schema, nom, nb_colonnes: 1, lignes_estimees: 0, cle_primaire: true };
 }
 
+/** Schémas du serveur ; la portée ne doit retenir que ceux des tables cochées. */
 const schemas = ['audit', 'public', 'ventes'];
+/** Tables réparties sur les trois schémas, deux dans le même. */
 const tables = [
   table('audit', 'journal'),
   table('public', 'clients'),

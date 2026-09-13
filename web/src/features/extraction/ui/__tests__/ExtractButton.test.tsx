@@ -14,6 +14,7 @@ import { ExtractButton } from '../ExtractButton';
 
 vi.mock('../../api/extractionApi', () => ({ lancerExtraction: vi.fn() }));
 
+/** Portée affichée, que le lancement doit transmettre telle quelle. */
 const portee: Portee = { schemas: ['public'], tables_incluses: ['public.clients'] };
 
 /** Tâche d'une base dans un état donné. */

@@ -12,8 +12,10 @@ import { ExtractionItem } from '../ExtractionItem';
 
 vi.mock('../../api/extractionApi', () => ({ retirerExtraction: vi.fn() }));
 
+/** Instant de départ, repris par `rendre` pour situer « maintenant ». */
 const debut = '2026-09-11T10:00:00Z';
 
+/** Extraction de douze tables en cours, que chaque cas fait avancer ou finir. */
 const gescom: Extraction = {
   id: 'tache-1',
   base: 'gescom',

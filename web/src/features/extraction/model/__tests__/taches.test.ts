@@ -6,8 +6,10 @@ import { describe, expect, it } from 'vitest';
 import type { Extraction } from '@/shared/model';
 import { estTerminal, fichierCalque, remplacements, secondesEcoulees } from '../taches';
 
+/** Instant de départ, fixe pour que les durées calculées soient exactes. */
 const debut = '2026-09-11T10:00:00.000Z';
 
+/** Tâche en cours, point de départ que chaque cas modifie. */
 const gescom: Extraction = {
   id: 'tache-1',
   base: 'gescom',

@@ -12,10 +12,12 @@ import type { EtatExclusions } from '../../model/useExclusions';
 import type { EtatSelection } from '../../model/useSelection';
 import { DatabaseTree } from '../DatabaseTree';
 
+/** Inventaire minimal de la base ouverte. */
 const tables: TableSommaire[] = [
   { schema: 'public', nom: 'clients', nb_colonnes: 4, lignes_estimees: 12, cle_primaire: true },
 ];
 
+/** Sélection vide, aux actions observables. */
 const selection: EtatSelection = {
   selection: new Set(),
   manquantes: [],
@@ -25,6 +27,7 @@ const selection: EtatSelection = {
   toutEffacer: vi.fn(),
 };
 
+/** Aucune colonne écartée. */
 const exclusions: EtatExclusions = {
   ignorees: {},
   total: 0,
@@ -33,6 +36,7 @@ const exclusions: EtatExclusions = {
   basculer: vi.fn(),
 };
 
+/** Aucune colonne chargée. */
 const colonnes: Colonnes = {
   etat: () => ({ colonnes: undefined, enCours: false, erreur: null }),
   charger: vi.fn(),

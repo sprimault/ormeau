@@ -81,6 +81,7 @@ function table(nom: string, reste: Partial<TableSommaire> = {}, schema = 'public
   };
 }
 
+/** Deux schémas : une table qui en référence une autre, une commentée, une sans clé primaire. */
 const inventaire = [
   table('commandes', {
     reference_vers: ['public.clients'],

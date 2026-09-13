@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 /** Écran demandé par l'adresse. */
 export type Onglet = { ecran: 'selection' } | { ecran: 'arbitrage'; base: string };
 
+/** Début du fragment qui ouvre l'arbitrage d'une base ; le nom encodé suit. */
 const PREFIXE_ARBITRAGE = '#arbitrage/';
 
 /**

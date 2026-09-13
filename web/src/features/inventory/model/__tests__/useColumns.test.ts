@@ -12,6 +12,7 @@ import { useColumns } from '../useColumns';
 
 vi.mock('../../api/inventoryApi', () => ({ lireColonnes: vi.fn() }));
 
+/** Colonnes qu'une table rend au dépliement. */
 const colonnes: ColonneSommaire[] = [
   { nom: 'id', position: 1, type_brut: 'integer', nullable: false, cle_primaire: true },
 ];

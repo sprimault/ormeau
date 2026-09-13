@@ -17,6 +17,7 @@ vi.mock('../../api/connectionApi', () => ({
   lireBases: vi.fn(),
 }));
 
+/** Réponse du serveur à une première connexion. */
 const gescom: ReponseConnexion = {
   session: 'session-1',
   sgbd: 'postgres',
@@ -25,6 +26,7 @@ const gescom: ReponseConnexion = {
   schemas: ['public'],
 };
 
+/** Même serveur, autre base : la session que rend une bascule sans ressaisie. */
 const paie: ReponseConnexion = { ...gescom, session: 'session-2', catalogue: 'paie' };
 
 describe('useConnection', () => {

@@ -10,6 +10,7 @@ import type { ColonneSommaire } from '@/shared/model';
 import type { EtatExclusions } from '../../model/useExclusions';
 import { ColumnList } from '../ColumnList';
 
+/** Colonnes affichées sous une table dépliée. */
 const colonnes: ColonneSommaire[] = [
   { nom: 'id', position: 1, type_brut: 'integer', nullable: false, cle_primaire: true },
   {

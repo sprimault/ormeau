@@ -102,6 +102,28 @@ overrides the DSN the integration tests target.
 Before opening a pull request, run at least `make lint` and `make test`. CI
 runs them too, but it does so after the branch is already pushed.
 
+## Code style
+
+Every source file — `.go`, `.php`, `.ts`, `.tsx` — starts with this header:
+
+```go
+// Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
+// SPDX-License-Identifier: Apache-2.0
+```
+
+In Go, a blank line separates it from the package comment, otherwise it would
+become the package documentation. In PHP, it follows `<?php` and comes before
+`declare(strict_types=1)`.
+
+**Explanations are written in French**: comments, godoc, docblocks, TSDoc, error
+messages. Identifiers follow the vocabulary of the package you touch — the layer
+speaks French (`Colonne`, `CleEtrangere`), and a package does not mix the two
+languages.
+
+**Every declaration is documented**, tests and test data included: one line
+when it is obvious, a paragraph when there is a decision to find again later. A
+comment says why, never what the next line already does.
+
 ## Commits and pull requests
 
 The conventional prefix is required — `feat:`, `fix:`, `test:`, `docs:`,

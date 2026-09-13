@@ -27,6 +27,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 )]
 final class GenererCommande extends Command
 {
+    /**
+     * Reçoit le lecteur et le générateur par le conteneur de Symfony.
+     */
     public function __construct(
         private readonly LecteurCalque $lecteur,
         private readonly GenerateurEntite $generateur,
@@ -52,7 +55,7 @@ final class GenererCommande extends Command
         $chemin = $entree->getArgument('calque');
         $repertoire = $entree->getOption('repertoire');
         if (!is_string($chemin) || !is_string($repertoire)) {
-            throw new InvalidArgumentException('Le calque et le repertoire sont des chemins de fichier.');
+            throw new InvalidArgumentException('Le calque et le répertoire sont des chemins de fichier.');
         }
 
         $calque = $this->lecteur->lire($chemin);

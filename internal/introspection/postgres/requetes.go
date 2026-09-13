@@ -241,8 +241,6 @@ WHERE n.nspname = ANY ($1)
 ORDER BY n.nspname, t.typname, e.enumsortorder
 `
 
-// requeteInventaire alimente l'arbre de sélection. Une seule requête, aucune
-// lecture de données : reltuples est une estimation du planificateur.
 // requeteColonnesSommaire décrit une table pour l'écran de sélection. Elle ne
 // remplace pas requeteColonnes, qui alimente le calque : celle-ci ne rend que
 // ce qui aide à décider si une colonne mérite une propriété.
@@ -266,6 +264,10 @@ WHERE n.nspname = $1
 ORDER BY a.attnum
 `
 
+// requeteInventaire alimente l'arbre de sélection. Une seule requête, aucune
+// lecture de données : le nombre de lignes vient de reltuples, l'estimation que
+// le planificateur tient à jour, et non d'un COUNT qui parcourrait chaque table
+// d'une base de production pour afficher un ordre de grandeur.
 const requeteInventaire = `
 SELECT n.nspname                                  AS schema,
        c.relname                                  AS nom,

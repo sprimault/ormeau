@@ -12,6 +12,7 @@ import { useBrouillonDecisions } from '../useBrouillonDecisions';
 
 vi.mock('../../api/decisionsApi', () => ({ lireDecisions: vi.fn() }));
 
+/** Fichier de décisions existant, non retouché, qui écarte une colonne. */
 const fichier: ReponseDecisions = {
   existe: true,
   decisions: { colonnes_ignorees: { 'public.clients': ['photo'] } },
