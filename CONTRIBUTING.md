@@ -139,7 +139,9 @@ read alongside it.
 
 What a change brings also goes into [`CHANGELOG.md`](CHANGELOG.md), under
 `## [Non publié]`, in the same pull request: the section is reviewed there, when
-it matters, and the release takes its notes from it.
+it matters, and the release takes its notes from it. `make php-changelog` then
+carries over the part that concerns the PHP package, from 0.5.0 on: CI rejects
+a copy that is out of date.
 
 ## Never attach a layer from a production database
 

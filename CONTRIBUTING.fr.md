@@ -146,7 +146,9 @@ code, là où il sera relu avec lui.
 Ce qu'un changement apporte s'écrit aussi dans
 [`CHANGELOG.md`](CHANGELOG.md), sous `## [Non publié]`, dans la même pull
 request : la section y est relue au moment où elle compte, et la publication en
-tire les notes de la version.
+tire les notes de la version. `make php-changelog` en reporte ensuite la partie
+qui concerne le paquet PHP, à partir de la 0.5.0 : la CI refuse une copie qui
+n'est pas à jour.
 
 ## Ne jamais joindre un calque issu d'une base de production
 

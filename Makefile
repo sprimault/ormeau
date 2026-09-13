@@ -1,4 +1,4 @@
-.PHONY: dev test cover maj-attendus lint outils vulncheck sec build binaries web-build web-types web-types-check web-lint web-test php-test php-lint image image-push clean
+.PHONY: dev test cover maj-attendus lint outils vulncheck sec build binaries web-build web-types web-types-check web-lint web-test php-changelog php-test php-lint image image-push clean
 
 # Répertoire de travail local, ignoré par git : sorties de `make build`,
 # profils de couverture, tout ce qui ne se publie pas.
@@ -219,6 +219,15 @@ web-types-check:
 	echo "Types generes conformes aux structures Go"
 
 # ── Paquet Doctrine ─────────────────────────────────────────────────
+# Le journal du paquet s'arrête à la 0.5.0 : le miroir commence là, et les
+# versions antérieures n'y ont jamais existé. La CI rejoue la cible et refuse
+# un php/CHANGELOG.md qui en diffère. Le retour chariot est retiré parce qu'une
+# copie Windows en core.autocrlf en porte, et qu'une ligne vide n'y serait plus
+# reconnue.
+php-changelog:
+	awk '{ sub(/\r$$/, "") } /^## \[0\.4\.2\]/ { exit } /^$$/ { vides++; next } { while (vides) { print ""; vides-- } print }' \
+		CHANGELOG.md > php/CHANGELOG.md
+
 php-test:
 	cd php && composer install --no-interaction && composer test
 

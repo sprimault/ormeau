@@ -39,7 +39,9 @@ $ bin/console ormeau:generer gescom.logique.json
 ```
 
 The whole workflow — extracting the layer, inferring, arbitrating, generating —
-is described in the [main README](https://github.com/sprimault/ormeau#readme).
+is described in the [main README](https://github.com/sprimault/ormeau#readme),
+and what each version changes in the
+[changelog](https://github.com/sprimault/ormeau/blob/master/CHANGELOG.md).
 
 ## Where the name comes from
 

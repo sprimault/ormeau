@@ -217,7 +217,11 @@ jobs:
 
       # php/ devient la racine du miroir, et Apache 2.0 exige LICENSE et NOTICE
       # avec toute distribution : les copies doivent suivre les originaux.
-      - name: Licence du paquet
+      # CHANGELOG.md y est pour Dependabot et Renovate, qui cherchent les notes
+      # à la racine du dépôt source déclaré sur Packagist ; il s'arrête à la
+      # 0.5.0, première version du miroir. L'écrire au split rendrait celui-ci
+      # non déterministe, et le miroir n'avancerait plus en avance rapide.
+      - name: Fichiers recopiés dans le paquet
         run: |
           for fichier in LICENSE NOTICE; do
             if ! cmp -s "../$fichier" "$fichier"; then
@@ -225,6 +229,11 @@ jobs:
               exit 1
             fi
           done
+          make -C .. -s php-changelog
+          if ! git diff --quiet -- CHANGELOG.md; then
+            echo "::error file=php/CHANGELOG.md::php/CHANGELOG.md ne suit pas CHANGELOG.md. Le régénérer : make php-changelog"
+            exit 1
+          fi
 
       - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
         with:
