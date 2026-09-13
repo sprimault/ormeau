@@ -258,8 +258,9 @@ pièce jointe d'une issue.
 
 L'extraction PostgreSQL et l'inférence fonctionnent : `ormeau extraire` puis
 `ormeau inferer` produisent les trois fichiers. La génération d'entités est en
-cours : `bin/console ormeau:generer` écrit les entités qui n'ont ni association,
-ni énumération, ni trait, ni héritage, et écarte les autres en le disant.
+cours : `bin/console ormeau:generer` écrit les entités, leurs énumérations et
+leurs traits, et écarte en le disant celles qui portent une association ou un
+héritage.
 L'état par phase est dans [`ROADMAP.md`](ROADMAP.md).
 
 La CI exécute la suite de tests avec le détecteur de courses, `golangci-lint`,

@@ -254,8 +254,8 @@ nor an issue attachment.
 
 PostgreSQL extraction and inference both work: `ormeau extraire` then `ormeau
 inferer` produce the three files. Entity generation is under way:
-`bin/console ormeau:generer` writes the entities that carry no association,
-enumeration, trait or inheritance, and skips the others, saying so. The state
+`bin/console ormeau:generer` writes the entities, their enumerations and their
+traits, and skips those carrying an association or inheritance, saying so. The state
 per phase is in [`ROADMAP.md`](ROADMAP.md).
 
 CI runs the test suite with the race detector, `golangci-lint`, `gofmt`,

@@ -47,10 +47,14 @@ préambule reste en français : il n'est jamais publié.
 - **La commande annonce la version de Doctrine ORM visée** en première ligne, et
   `--cible-orm=2` ou `3` la force. Le type PHP d'une colonne en dépend : un
   `bigint` est une chaîne sous ORM 2, un entier sous ORM 3.
+- **Les énumérations et les traits du calque sont générés** : `Enum/` porte des
+  énumérations adossées, reliées aux colonnes par `enumType`, et un défaut
+  initialise la propriété avec son cas ; `Trait/` porte les colonnes
+  d'horodatage partagées, que les classes de base utilisent. Les deux sont
+  réécrits à chaque passage, comme les classes de base.
 - **Ce qui ne se génère pas entier est écarté, en le disant** : une table sans
   clé primaire, un nom réservé de PHP, deux entités de même nom, et pour
-  l'instant les entités qui portent des associations, des énumérations, des
-  traits ou un héritage.
+  l'instant les entités qui portent des associations ou un héritage.
 
 ### Modifié
 
@@ -100,10 +104,14 @@ préambule reste en français : il n'est jamais publié.
 - **The command announces the targeted Doctrine ORM version** on its first
   line, and `--cible-orm=2` or `3` forces it. A column's PHP type depends on it:
   a `bigint` is a string under ORM 2, an integer under ORM 3.
+- **The layer's enumerations and traits are generated**: `Enum/` holds backed
+  enumerations, tied to their columns through `enumType`, and a default
+  initialises the property with its case; `Trait/` holds the shared timestamp
+  columns, which the base classes use. Both are rewritten on every run, like
+  the base classes.
 - **What cannot be generated whole is skipped, saying so**: a table without a
   primary key, a PHP reserved name, two entities with the same name, and for
-  now the entities that carry associations, enumerations, traits or
-  inheritance.
+  now the entities that carry associations or inheritance.
 
 ### Changed
 

@@ -93,25 +93,104 @@ final class GenerateurEntiteTest extends TestCase
     }
 
     /**
-     * Un calque réduit aux entités données.
-     *
-     * @param list<array<string, mixed>> $entites
+     * Un défaut sur une colonne énumérée initialise la propriété avec le cas
+     * qui porte cette valeur, y compris pour une énumération adossée à des
+     * entiers, où le calque écrit le défaut en texte. La colonne garde le
+     * défaut dans le type stocké.
      */
-    private static function calque(array $entites): CalqueLogique
+    public function testUnDefautEnumereInitialiseAvecLeCas(): void
+    {
+        $sortie = Repertoires::creer();
+        try {
+            $client = self::entite('Client');
+            $client['proprietes'][] = self::propriete('statut', 'string', ['enumeration' => 'Statut', 'defaut' => 'A']);
+            $client['proprietes'][] = self::propriete('niveau', 'integer', ['enumeration' => 'Niveau', 'defaut' => '2']);
+            $client['proprietes'][] = self::propriete('canal', 'string', ['enumeration' => 'Statut', 'defaut' => 'Z', 'nullable' => true]);
+
+            (new GenerateurEntite())->generer(self::calque([$client], [
+                ['nom' => 'Statut', 'type_support' => 'string', 'cas' => [['nom' => 'Actif', 'valeur' => 'A']], 'origine' => 'verification'],
+                ['nom' => 'Niveau', 'type_support' => 'int', 'cas' => [['nom' => 'Un', 'valeur' => 1], ['nom' => 'Deux', 'valeur' => 2]], 'origine' => 'verification'],
+            ]), $sortie, Cible::forcer(3));
+
+            $base = Repertoires::lire($sortie)['Base/ClientBase.php'];
+            self::assertStringContainsString("enumType: Statut::class, options: ['default' => 'A'])]\n    protected Statut \$statut = Statut::Actif;", $base);
+            self::assertStringContainsString("enumType: Niveau::class, options: ['default' => 2])]\n    protected Niveau \$niveau = Niveau::Deux;", $base);
+            self::assertStringContainsString('protected ?Statut $canal = null;', $base);
+            self::assertStringContainsString("enum Niveau: int\n{\n    case Un = 1;\n    case Deux = 2;\n}", Repertoires::lire($sortie)['Enum/Niveau.php']);
+        } finally {
+            Repertoires::supprimer($sortie);
+        }
+    }
+
+    /**
+     * Une entité qui nomme un trait ou une énumération absents du calque, ou
+     * que PHP refuse d'écrire, est écartée avec le nom en cause ; le fichier
+     * refusé n'est pas écrit.
+     */
+    public function testEcarteUneEntiteDontLeTraitOuLEnumerationNeSEcritPas(): void
+    {
+        $sortie = Repertoires::creer();
+        try {
+            $sansTrait = self::entite('Client', ['traits' => ['Horodatage']]);
+            $enumReservee = self::entite('Commande');
+            $enumReservee['proprietes'][] = self::propriete('etat', 'string', ['enumeration' => 'Match']);
+            $casReserve = self::entite('Facture');
+            $casReserve['proprietes'][] = self::propriete('mode', 'string', ['enumeration' => 'Mode']);
+
+            $rapport = (new GenerateurEntite())->generer(self::calque([$sansTrait, $enumReservee, $casReserve], [
+                ['nom' => 'Match', 'type_support' => 'string', 'cas' => [['nom' => 'Oui', 'valeur' => 'O']], 'origine' => 'decision'],
+                ['nom' => 'Mode', 'type_support' => 'string', 'cas' => [['nom' => 'Class', 'valeur' => 'C']], 'origine' => 'decision'],
+            ]), $sortie, Cible::forcer(3));
+
+            self::assertSame([
+                'Client' => 'le trait Horodatage est absent du calque',
+                'Commande' => 'l\'énumération Match n\'est pas générée : Match est un mot réservé de PHP',
+                'Facture' => 'l\'énumération Mode n\'est pas générée : un cas ne peut pas s\'appeler class',
+            ], array_column(array_map(static fn($e): array => [$e->nom, $e->raison], $rapport->ecartees), 1, 0));
+            self::assertSame([], Repertoires::lire($sortie));
+        } finally {
+            Repertoires::supprimer($sortie);
+        }
+    }
+
+    /**
+     * Un calque réduit aux entités et énumérations données.
+     *
+     * @param list<array<string, mixed>> $entites      entités du calque
+     * @param list<array<string, mixed>> $enumerations énumérations du calque
+     */
+    private static function calque(array $entites, array $enumerations = []): CalqueLogique
     {
         return CalqueLogique::depuisTableau([
             'version_ri' => 1,
             'empreinte_physique' => 'sha256:' . str_repeat('b', 64),
             'espace_de_noms' => 'App\\Entity',
             'entites' => $entites,
+            'enumerations' => $enumerations,
         ]);
+    }
+
+    /**
+     * Une propriété non nullable du type Doctrine donné, modifiable par les
+     * champs donnés.
+     *
+     * @param array<string, mixed> $modifications champs à ajouter ou remplacer
+     *
+     * @return array<string, mixed>
+     */
+    private static function propriete(string $nom, string $typeDoctrine, array $modifications = []): array
+    {
+        return array_merge(
+            ['nom' => $nom, 'colonne' => $nom, 'type_php' => 'string', 'type_doctrine' => $typeDoctrine, 'nullable' => false],
+            $modifications,
+        );
     }
 
     /**
      * Une entité à clé IDENTITY, modifiable par les champs donnés ; un champ
      * à null est retiré.
      *
-     * @param array<string, mixed> $modifications
+     * @param array<string, mixed> $modifications champs à ajouter ou remplacer ; null en retire un
      *
      * @return array<string, mixed>
      */

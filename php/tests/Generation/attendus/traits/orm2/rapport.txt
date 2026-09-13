@@ -1,0 +1,9 @@
+créé Trait/Horodatage.php
+créé Base/ClientBase.php
+créé Client.php
+créé Base/CommandeBase.php
+créé Commande.php
+créé Base/ArticleBase.php
+créé Article.php
+créé Base/JournalBase.php
+créé Journal.php

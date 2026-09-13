@@ -10,6 +10,7 @@ namespace Ormeau\Doctrine\Generation;
 use LogicException;
 use Ormeau\Doctrine\Calque\CalqueLogique;
 use Ormeau\Doctrine\Calque\Entite;
+use Ormeau\Doctrine\Calque\Enumeration;
 use RuntimeException;
 
 /**
@@ -26,9 +27,9 @@ use RuntimeException;
  *    Phase « Régénération par AST » de la feuille de route.
  *
  * Une entité se génère entière ou pas du tout. Ce que ce générateur ne sait pas
- * encore traduire — associations, héritage, traits, énumérations — écarte
- * l'entité avec sa raison : une entité sans ses associations perdrait ses
- * colonnes de jointure, et Doctrine la chargerait sans rien dire.
+ * encore traduire — associations, héritage — écarte l'entité avec sa raison :
+ * une entité sans ses associations perdrait ses colonnes de jointure, et
+ * Doctrine la chargerait sans rien dire.
  */
 final class GenerateurEntite
 {
@@ -68,14 +69,15 @@ final class GenerateurEntite
     }
 
     /**
-     * Écrit les entités du calque dans le répertoire donné.
+     * Écrit les énumérations, les traits et les entités du calque dans le
+     * répertoire donné.
      *
-     * Les classes de base vont dans Base/ et sont réécrites quand leur contenu
-     * change, laissées intactes sinon : un fichier identique garde sa date, et
-     * un outil qui surveille le répertoire ne voit rien bouger. Les classes de
-     * l'utilisateur vont à la racine du répertoire, sont créées si elles
-     * manquent, et ne sont jamais réécrites : elles sont seulement relues pour
-     * signaler ce qui a divergé.
+     * Base/, Enum/ et Trait/ appartiennent à l'outil : leurs fichiers sont
+     * réécrits quand leur contenu change, laissés intacts sinon — un fichier
+     * identique garde sa date, et un outil qui surveille le répertoire ne voit
+     * rien bouger. Les classes de l'utilisateur vont à la racine du répertoire,
+     * sont créées si elles manquent, et ne sont jamais réécrites : elles sont
+     * seulement relues pour signaler ce qui a divergé.
      *
      * @param CalqueLogique $calque     calque déjà lu et contrôlé
      * @param string        $repertoire racine des entités, src/Entity dans une application Symfony
@@ -93,10 +95,42 @@ final class GenerateurEntite
             ));
         }
 
+        $enumerations = [];
+        foreach ($calque->enumerations as $enumeration) {
+            $enumerations[$enumeration->nom] = $enumeration;
+        }
+        $traits = [];
+        foreach ($calque->traits as $trait) {
+            $traits[$trait->nom] = $trait;
+        }
+
         $schemas = array_unique(array_map(static fn(Entite $e): string => $e->table->schema, $calque->entites));
-        $rendu = new RenduEntite($cible, $calque->espaceDeNoms, count($schemas) > 1);
+        $rendu = new RenduEntite($cible, $calque->espaceDeNoms, count($schemas) > 1, $enumerations);
         $controle = new ControleClasseUtilisateur();
         $repertoire = rtrim($repertoire, '/\\');
+
+        $fichiers = [];
+        $ecartees = [];
+        $divergences = [];
+
+        // Énumérations et traits d'abord : les classes de base les importent.
+        // Un nom que PHP refuse n'est pas écrit, et les entités qui s'en
+        // servent sont écartées plus bas avec cette raison.
+        $refus = [];
+        foreach ($enumerations as $nom => $enumeration) {
+            $refus['enum:' . $nom] = $this->refusEnumeration($enumeration);
+            if ($refus['enum:' . $nom] === null) {
+                $chemin = $repertoire . '/Enum/' . $nom . '.php';
+                $fichiers[] = new Fichier($chemin, $this->ecrire($chemin, $rendu->enumeration($enumeration)));
+            }
+        }
+        foreach ($traits as $nom => $trait) {
+            $refus['trait:' . $nom] = self::estReserve($nom) ? sprintf('%s est un mot réservé de PHP', $nom) : null;
+            if ($refus['trait:' . $nom] === null) {
+                $chemin = $repertoire . '/Trait/' . $nom . '.php';
+                $fichiers[] = new Fichier($chemin, $this->ecrire($chemin, $rendu->traitPartage($trait)));
+            }
+        }
 
         // Deux entités de même nom viennent d'une collision que l'inférence a
         // signalée sans la trancher. Aucune des deux ne s'écrit : choisir celle
@@ -104,14 +138,10 @@ final class GenerateurEntite
         // fichiers de Windows et macOS ignorent la casse.
         $occurrences = array_count_values(array_map(static fn(Entite $e): string => strtolower($e->nom), $calque->entites));
 
-        $fichiers = [];
-        $ecartees = [];
-        $divergences = [];
-
         foreach ($calque->entites as $entite) {
             $raison = $occurrences[strtolower($entite->nom)] > 1
                 ? sprintf('le nom %s est porté par plusieurs entités, à départager dans renommages', $entite->nom)
-                : $this->raisonDEcarter($entite);
+                : $this->raisonDEcarter($entite, $refus);
             if ($raison !== null) {
                 $ecartees[] = new EntiteEcartee($entite->nom, $raison);
                 continue;
@@ -151,14 +181,39 @@ final class GenerateurEntite
      * Les raisons nomment ce que l'utilisateur peut faire : une table sans clé
      * se résout par une décision, un nom réservé par un renommage ; le reste
      * attend une version du générateur.
+     *
+     * @param Entite                     $entite entité à examiner
+     * @param array<string, string|null> $refus  raison du refus de chaque énumération (enum:Nom) et de
+     *                                           chaque trait (trait:Nom), null quand il est écrit
      */
-    private function raisonDEcarter(Entite $entite): ?string
+    private function raisonDEcarter(Entite $entite, array $refus): ?string
     {
-        if (in_array(strtolower($entite->nom), self::NOMS_RESERVES, true)) {
+        if (self::estReserve($entite->nom)) {
             return sprintf('%s est un mot réservé de PHP, à renommer dans renommages', $entite->nom);
         }
         if ($entite->identifiant === null) {
             return 'la table n\'a pas de clé primaire, et Doctrine exige un identifiant';
+        }
+
+        foreach ($entite->traits as $trait) {
+            if (!array_key_exists('trait:' . $trait, $refus)) {
+                return sprintf('le trait %s est absent du calque', $trait);
+            }
+            if ($refus['trait:' . $trait] !== null) {
+                return sprintf('le trait %s n\'est pas généré : %s', $trait, $refus['trait:' . $trait]);
+            }
+        }
+        foreach ($entite->proprietes as $propriete) {
+            $enumeration = $propriete->enumeration;
+            if ($enumeration === null) {
+                continue;
+            }
+            if (!array_key_exists('enum:' . $enumeration, $refus)) {
+                return sprintf('l\'énumération %s de la propriété %s est absente du calque', $enumeration, $propriete->nom);
+            }
+            if ($refus['enum:' . $enumeration] !== null) {
+                return sprintf('l\'énumération %s n\'est pas générée : %s', $enumeration, $refus['enum:' . $enumeration]);
+            }
         }
 
         $manques = [];
@@ -168,17 +223,36 @@ final class GenerateurEntite
         if ($entite->heritage !== null) {
             $manques[] = 'héritage';
         }
-        if ($entite->traits !== []) {
-            $manques[] = 'traits';
+
+        return $manques === [] ? null : 'pas encore générées par ce paquet : ' . implode(', ', $manques);
+    }
+
+    /**
+     * Dit pourquoi une énumération ne peut pas être écrite, ou null.
+     *
+     * Deux refus de PHP : un nom réservé pour l'énumération, et un cas nommé
+     * class, le seul nom de cas qu'il interdit.
+     */
+    private function refusEnumeration(Enumeration $enumeration): ?string
+    {
+        if (self::estReserve($enumeration->nom)) {
+            return sprintf('%s est un mot réservé de PHP', $enumeration->nom);
         }
-        foreach ($entite->proprietes as $propriete) {
-            if ($propriete->enumeration !== null) {
-                $manques[] = 'énumérations';
-                break;
+        foreach ($enumeration->cas as $cas) {
+            if (strtolower($cas->nom) === 'class') {
+                return 'un cas ne peut pas s\'appeler class';
             }
         }
 
-        return $manques === [] ? null : 'pas encore générées par ce paquet : ' . implode(', ', $manques);
+        return null;
+    }
+
+    /**
+     * Dit si PHP refuse un nom de classe, d'énumération ou de trait.
+     */
+    private static function estReserve(string $nom): bool
+    {
+        return in_array(strtolower($nom), self::NOMS_RESERVES, true);
     }
 
     /**

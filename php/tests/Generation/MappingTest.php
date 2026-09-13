@@ -87,10 +87,31 @@ final class MappingTest extends TestCase
                     $meta->table['indexes'] ?? [],
                     $classe . ' : index',
                 );
+
+                foreach ($entite->proprietes as $propriete) {
+                    if ($propriete->enumeration !== null) {
+                        self::assertSame(
+                            $calque->espaceDeNoms . '\\Enum\\' . $propriete->enumeration,
+                            self::enumType($meta, $propriete->nom),
+                            $classe . '::' . $propriete->nom,
+                        );
+                    }
+                }
+
+                // Les colonnes d'un trait sont mappées sur chaque entité qui
+                // l'utilise, comme si elles y étaient déclarées.
+                foreach ($calque->traits as $trait) {
+                    if (!in_array($trait->nom, $entite->traits, true)) {
+                        continue;
+                    }
+                    foreach ($trait->proprietes as $propriete) {
+                        self::assertSame($propriete->colonne, $meta->getColumnName($propriete->nom), $classe . ' : trait ' . $trait->nom);
+                    }
+                }
             }
             self::assertCount(
                 count(array_filter($metadonnees, static fn(ClassMetadata $m): bool => !$m->isMappedSuperclass)),
-                array_filter($rapport->fichiers, static fn($f): bool => !str_contains($f->chemin, '/Base/')),
+                array_filter($rapport->fichiers, static fn($f): bool => dirname($f->chemin) === $sortie),
             );
         } finally {
             Repertoires::supprimer($sortie);
@@ -107,6 +128,22 @@ final class MappingTest extends TestCase
         foreach (Repertoires::CAS as $cas) {
             yield $cas => [$cas];
         }
+    }
+
+    /**
+     * Rend l'enumType d'un champ mappé.
+     *
+     * ORM 2 décrit un champ par un tableau, ORM 3 par un objet FieldMapping :
+     * le test tourne sous les deux.
+     *
+     * @param ClassMetadata<object> $meta  métadonnées de l'entité
+     * @param string                $champ nom de la propriété mappée
+     */
+    private static function enumType(ClassMetadata $meta, string $champ): ?string
+    {
+        $mapping = $meta->fieldMappings[$champ];
+
+        return is_array($mapping) ? ($mapping['enumType'] ?? null) : $mapping->enumType;
     }
 
     /**
