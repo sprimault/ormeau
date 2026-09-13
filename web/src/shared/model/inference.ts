@@ -54,6 +54,32 @@ export interface Decisions {
   types_forces?: { [key: string]: string};
   relations_forcees?: RelationForcee[];
   enumerations?: EnumerationForcee[];
+  /**
+   * Heritages déclare les hiérarchies que le schéma autorise sans les
+   * imposer. Clé : la table racine qualifiée.
+   * 	heritages:
+   * 	  public.personne:
+   * 	    colonne_discriminante: nature
+   * 	    valeurs:
+   * 	      public.personne: P
+   * 	      public.salarie: S
+   * Sans décision, une table dont la clé primaire est aussi une clé étrangère
+   * est reliée à son parent par un-vers-un. L'héritage ne se déduit pas :
+   * Doctrine exige une colonne discriminante que la base doit porter, et
+   * « un salarié est une personne » n'est pas « un salarié a une personne ».
+   * La décision s'applique entière ou pas du tout, racine par racine.
+   */
+  heritages?: { [key: string]: HeritageDecide};
+}
+/**
+ * HeritageDecide déclare une hiérarchie depuis sa table racine.
+ * Valeurs donne la valeur discriminante de chaque classe concrète, racine
+ * comprise : Doctrine en exige une par classe. Une table enfant absente des
+ * valeurs reste hors de la hiérarchie, reliée par un-vers-un.
+ */
+export interface HeritageDecide {
+  colonne_discriminante: string;
+  valeurs: { [key: string]: string};
 }
 /**
  * RelationForcee déclare une association que l'heuristique n'a pas vue — la clé

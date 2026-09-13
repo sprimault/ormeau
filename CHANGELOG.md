@@ -36,6 +36,23 @@ préambule reste en français : il n'est jamais publié.
 
 ## [Non publié]
 
+**L'héritage n'est plus déduit, et le code `heritage_deduit` a changé de sens
+sans changer de nom.** `version_ri` ne bouge pas.
+
+- **Un filtre de CI sur `heritage_deduit` ne verra rien.** Le code, sa
+  résolution (`par_defaut`) et sa confiance sont les mêmes qu'avant ; seul son
+  sens s'inverse. Il signalait un héritage appliqué, il signale désormais un
+  héritage possible et non appliqué. Rien dans les données ne distingue l'avant
+  de l'après.
+- **Un calque logique recalculé perd ses héritages.** Une table dont la clé
+  primaire est aussi une clé étrangère est reliée à la table visée par un
+  un-vers-un, qui fonctionne sur la base telle qu'elle est. Pour retrouver un
+  héritage Doctrine, le déclarer dans le fichier de décisions (`heritages`) :
+  la table racine, sa colonne discriminante, et une valeur par classe, racine
+  comprise. Doctrine exige cette colonne ; si la base ne la porte pas, elle est
+  à créer. Le message de l'avertissement dit la marche à suivre et cite les
+  colonnes candidates.
+
 ### Ajouté
 
 - **`bin/console ormeau:generer` écrit des entités Doctrine**, en mode classe de
@@ -58,10 +75,16 @@ préambule reste en français : il n'est jamais publié.
   hors clé primaire, sa propriété reste en lecture seule ; dans la clé
   primaire, l'identifiant passe par l'association. Le côté inverse n'a que son
   accesseur, puisque Doctrine n'écrit que le côté propriétaire.
+- **Le fichier de décisions déclare les héritages** (`heritages`, indexé par
+  la table racine), et le prérempli propose chaque hiérarchie que le schéma
+  autorise, avec sa colonne candidate ou l'indication qu'aucune ne s'y prête.
+  Une décision s'applique entière ou pas du tout, racine par racine.
 - **Ce qui ne se génère pas entier est écarté, en le disant** : une table sans
   clé primaire, un nom réservé de PHP, deux entités de même nom, une entité
-  dont une association vise une entité écartée, et pour l'instant les entités
-  qui portent un héritage.
+  dont une association propriétaire vise une entité écartée, une identité
+  dérivée en chaîne — que Doctrine refuse —, et pour l'instant les entités
+  d'un héritage déclaré. Un côté inverse vers une entité écartée est omis, et
+  l'omission figure dans le compte rendu.
 
 ### Modifié
 
@@ -100,6 +123,21 @@ préambule reste en français : il n'est jamais publié.
 
 ***
 
+**Inheritance is no longer inferred, and the `heritage_deduit` code changed
+meaning without changing name.** `version_ri` stays put.
+
+- **A CI filter on `heritage_deduit` will not notice.** The code, its
+  resolution (`par_defaut`) and its confidence are the same as before; only its
+  meaning is reversed. It used to flag an applied inheritance; it now flags a
+  possible, unapplied one. Nothing in the data tells the before from the after.
+- **A recomputed logical layer loses its inheritances.** A table whose primary
+  key is also a foreign key is tied to the target table by a one-to-one, which
+  works on the database as it is. To get a Doctrine inheritance back, declare it
+  in the decisions file (`heritages`): the root table, its discriminator column,
+  and one value per class, root included. Doctrine requires that column; if the
+  database does not have it, it must be created. The warning message says what
+  to do and names the candidate columns.
+
 ### Added
 
 - **`bin/console ormeau:generer` writes Doctrine entities**, in base-class mode:
@@ -122,10 +160,16 @@ préambule reste en français : il n'est jamais publié.
   property stays read-only; inside the primary key, the identifier goes
   through the association. The inverse side only gets its getter, since
   Doctrine only writes the owning side.
+- **The decisions file declares inheritances** (`heritages`, keyed by the root
+  table), and the pre-filled file proposes every hierarchy the schema allows,
+  with its candidate column or a note that none fits. A decision applies whole
+  or not at all, root by root.
 - **What cannot be generated whole is skipped, saying so**: a table without a
   primary key, a PHP reserved name, two entities with the same name, an entity
-  whose association points at a skipped one, and for now the entities that
-  carry inheritance.
+  whose owning association points at a skipped one, a chained derived identity
+  — which Doctrine rejects —, and for now the entities of a declared
+  inheritance. An inverse side pointing at a skipped entity is left out, and
+  the report says so.
 
 ### Changed
 

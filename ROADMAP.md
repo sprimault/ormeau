@@ -29,9 +29,15 @@ Conteneur de test et DDL de référence couvrant les cas difficiles.
 ## Phase 3 — Inférence et calque logique
 
 Entités, propriétés, associations. Heuristiques de base : table de jointure pure,
-suffixe `_id`, héritage par clé primaire étrangère, énumérations depuis un type
-natif ou un `CHECK`, traits d'horodatage. Avertissements avec code, cible,
-confiance et origine. Fichier de décisions lu et prioritaire.
+suffixe `_id`, énumérations depuis un type natif ou un `CHECK`, traits
+d'horodatage. Avertissements avec code, cible, confiance et origine. Fichier de
+décisions lu et prioritaire.
+
+L'héritage par clé primaire étrangère est **proposé, pas appliqué**, depuis la
+phase 5 : le schéma autorise aussi bien « un salarié est une personne » que
+« un salarié a une personne », et Doctrine exige une colonne discriminante que
+les bases reprises ne portent pas. Sans décision, la table est reliée à son
+parent par un-vers-un ; `heritages` déclare la hiérarchie et sa colonne.
 
 Préfixes et singularisation sont **proposés, pas appliqués** : ils changent ce
 qu'un nom désigne, et une base ne dit pas sa langue. Ils alimentent le fichier de

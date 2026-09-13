@@ -1,0 +1,64 @@
+{
+  "version_ri": 1,
+  "source": {
+    "sgbd": "postgres",
+    "version": "16.2",
+    "catalogue": "rh",
+    "schema": "public",
+    "extrait_le": "2026-01-01T00:00:00Z",
+    "empreinte": "sha256:0000000000000000000000000000000000000000000000000000000000000015"
+  },
+  "tables": [
+    {
+      "nom": "personne",
+      "schema": "public",
+      "commentaire": "La racine porte la colonne qui dit quelle classe chaque ligne instancie",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false, "auto_increment": true },
+        { "nom": "nom", "position": 2, "type_brut": "character varying(80)", "type_normalise": "texte", "longueur": 80, "nullable": false },
+        { "nom": "nature", "position": 3, "type_brut": "character(1)", "type_normalise": "texte", "longueur": 1, "nullable": false }
+      ],
+      "cle_primaire": { "nom": "personne_pkey", "colonnes": ["id"] }
+    },
+    {
+      "nom": "salarie",
+      "schema": "public",
+      "commentaire": "Déclaré enfant de personne par le fichier de décisions",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false },
+        { "nom": "matricule", "position": 2, "type_brut": "character varying(20)", "type_normalise": "texte", "longueur": 20, "nullable": false }
+      ],
+      "cle_primaire": { "nom": "salarie_pkey", "colonnes": ["id"] },
+      "cles_etrangeres": [
+        {
+          "nom": "salarie_id_fkey",
+          "colonnes": ["id"],
+          "table_cible": "personne",
+          "schema_cible": "public",
+          "colonnes_cibles": ["id"],
+          "a_la_suppression": "cascade"
+        }
+      ]
+    },
+    {
+      "nom": "prestataire",
+      "schema": "public",
+      "commentaire": "Absent des valeurs décidées : garde son un-vers-un",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false },
+        { "nom": "societe", "position": 2, "type_brut": "character varying(120)", "type_normalise": "texte", "longueur": 120, "nullable": false }
+      ],
+      "cle_primaire": { "nom": "prestataire_pkey", "colonnes": ["id"] },
+      "cles_etrangeres": [
+        {
+          "nom": "prestataire_id_fkey",
+          "colonnes": ["id"],
+          "table_cible": "personne",
+          "schema_cible": "public",
+          "colonnes_cibles": ["id"],
+          "a_la_suppression": "cascade"
+        }
+      ]
+    }
+  ]
+}

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Entity\Base;
 
+use App\Entity\Prestataire;
+use App\Entity\Salarie;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\MappedSuperclass]
@@ -16,6 +18,12 @@ abstract class PersonneBase
 
     #[ORM\Column(name: 'nom', type: 'string', length: 80)]
     protected string $nom;
+
+    #[ORM\OneToOne(targetEntity: Salarie::class, mappedBy: 'personne')]
+    protected ?Salarie $salarie = null;
+
+    #[ORM\OneToOne(targetEntity: Prestataire::class, mappedBy: 'personne')]
+    protected ?Prestataire $prestataire = null;
 
     public function getId(): ?int
     {
@@ -32,5 +40,15 @@ abstract class PersonneBase
         $this->nom = $nom;
 
         return $this;
+    }
+
+    public function getSalarie(): ?Salarie
+    {
+        return $this->salarie;
+    }
+
+    public function getPrestataire(): ?Prestataire
+    {
+        return $this->prestataire;
     }
 }

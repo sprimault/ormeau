@@ -36,15 +36,19 @@ const (
 // l'entité est un constat — la table est là —, et l'héritage comme les
 // associations portent chacun la leur.
 type Entite struct {
-	Nom          string         `json:"nom"`
-	Table        ReferenceTable `json:"table"`
-	Heritage     *Heritage      `json:"heritage,omitempty"`
-	Traits       []string       `json:"traits,omitempty"`
-	Identifiant  *Identifiant   `json:"identifiant,omitempty"`
-	Proprietes   []Propriete    `json:"proprietes"`
-	Associations []Association  `json:"associations,omitempty"`
-	Index        []IndexEntite  `json:"index,omitempty"`
-	Origine      Origine        `json:"origine,omitempty"`
+	Nom      string         `json:"nom"`
+	Table    ReferenceTable `json:"table"`
+	Heritage *Heritage      `json:"heritage,omitempty"`
+	// La valeur que la colonne discriminante prend pour cette classe, racine
+	// comprise : c'est l'entité qu'elle identifie, quand la colonne appartient
+	// à la relation d'héritage. Absente hors d'une hiérarchie décidée.
+	ValeurDiscriminante string        `json:"valeur_discriminante,omitempty"`
+	Traits              []string      `json:"traits,omitempty"`
+	Identifiant         *Identifiant  `json:"identifiant,omitempty"`
+	Proprietes          []Propriete   `json:"proprietes"`
+	Associations        []Association `json:"associations,omitempty"`
+	Index               []IndexEntite `json:"index,omitempty"`
+	Origine             Origine       `json:"origine,omitempty"`
 }
 
 // ReferenceTable qualifie la table d'origine, sous son nom de catalogue.
@@ -53,7 +57,10 @@ type ReferenceTable struct {
 	Schema string `json:"schema"`
 }
 
-// Heritage décrit une hiérarchie déduite du schéma.
+// Heritage décrit une hiérarchie déclarée par décision. Le schéma la rend
+// possible — une clé primaire qui est aussi une clé étrangère —, il ne
+// l'impose pas : « un salarié est une personne » et « un salarié a une
+// personne » sont deux modèles qu'il autorise également.
 type Heritage struct {
 	Strategie            StrategieHeritage `json:"strategie"`
 	Parent               string            `json:"parent"`
@@ -97,8 +104,8 @@ const (
 // Origine porte celle du type, pas celle du nom : la colonne existe, seule sa
 // traduction en couple type PHP / type Doctrine est un jugement.
 type Propriete struct {
-	Nom          string `json:"nom"`
-	Colonne      string `json:"colonne"`
+	Nom     string `json:"nom"`
+	Colonne string `json:"colonne"`
 	// Obsolète, retiré à la prochaine version du format : le type PHP dépend
 	// de la version de Doctrine du projet, qu'un calque ne connaît pas. Un
 	// générateur ne doit le lire que pour un type Doctrine hors de sa table.
@@ -236,5 +243,8 @@ const (
 	CodeCasEnumerationOpaque = "cas_enumeration_opaque"
 	CodeTraitDeduit          = "trait_deduit"
 	CodeJointurePure         = "table_de_jointure"
-	CodeHeritageDeduit       = "heritage_deduit"
+	// Code conservé, sens inversé : il signalait un héritage appliqué, il
+	// signale désormais un héritage possible et non appliqué — l'entité est
+	// reliée à son parent par un-vers-un tant qu'aucune décision ne le déclare.
+	CodeHeritageDeduit = "heritage_deduit"
 )

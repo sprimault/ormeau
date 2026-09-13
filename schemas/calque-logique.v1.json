@@ -32,6 +32,10 @@
         "nom": { "type": "string" },
         "table": { "$ref": "#/$defs/referenceTable" },
         "heritage": { "$ref": "#/$defs/heritage" },
+        "valeur_discriminante": {
+          "description": "Valeur de la colonne discriminante pour cette classe, racine comprise. Présente seulement dans une hiérarchie déclarée par décision : la colonne est dans heritage.colonne_discriminante des enfants.",
+          "type": "string"
+        },
         "traits": { "type": "array", "items": { "type": "string" } },
         "identifiant": { "$ref": "#/$defs/identifiant" },
         "proprietes": { "type": "array", "items": { "$ref": "#/$defs/propriete" } },

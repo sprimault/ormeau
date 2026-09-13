@@ -1,0 +1,14 @@
+# Déclarer un héritage que le schéma autorise sans l'imposer.
+#
+# salarie et prestataire ont une clé primaire qui est aussi une clé étrangère
+# vers personne. Sans décision, ils y sont reliés par un-vers-un. Ici, seul
+# salarie est déclaré enfant : la racine porte la colonne nature, et chaque
+# classe concrète reçoit sa valeur, racine comprise. prestataire, absent des
+# valeurs, garde son un-vers-un et son avertissement.
+
+heritages:
+  public.personne:
+    colonne_discriminante: nature
+    valeurs:
+      public.personne: P
+      public.salarie: S

@@ -34,6 +34,24 @@
           "origine": "contrainte"
         }
       ],
+      "associations": [
+        {
+          "nom": "salarie",
+          "genre": "un_vers_un",
+          "cible": "Salarie",
+          "proprietaire": false,
+          "mappee_par": "personne",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "prestataire",
+          "genre": "un_vers_un",
+          "cible": "Prestataire",
+          "proprietaire": false,
+          "mappee_par": "personne",
+          "origine": "contrainte"
+        }
+      ],
       "origine": "nommage"
     },
     {
@@ -41,11 +59,6 @@
       "table": {
         "nom": "salarie",
         "schema": "public"
-      },
-      "heritage": {
-        "strategie": "jointe",
-        "parent": "Personne",
-        "origine": "contrainte"
       },
       "identifiant": {
         "proprietes": [
@@ -74,6 +87,22 @@
       ],
       "associations": [
         {
+          "nom": "personne",
+          "genre": "un_vers_un",
+          "cible": "Personne",
+          "proprietaire": true,
+          "inversee_par": "salarie",
+          "jointure": [
+            {
+              "colonne": "id",
+              "colonne_referencee": "id",
+              "nullable": false,
+              "a_la_suppression": "cascade"
+            }
+          ],
+          "origine": "contrainte"
+        },
+        {
           "nom": "affectation",
           "genre": "un_vers_plusieurs",
           "cible": "Affectation",
@@ -89,11 +118,6 @@
       "table": {
         "nom": "prestataire",
         "schema": "public"
-      },
-      "heritage": {
-        "strategie": "jointe",
-        "parent": "Personne",
-        "origine": "contrainte"
       },
       "identifiant": {
         "proprietes": [
@@ -117,6 +141,24 @@
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 120,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "personne",
+          "genre": "un_vers_un",
+          "cible": "Personne",
+          "proprietaire": true,
+          "inversee_par": "prestataire",
+          "jointure": [
+            {
+              "colonne": "id",
+              "colonne_referencee": "id",
+              "nullable": false,
+              "a_la_suppression": "cascade"
+            }
+          ],
           "origine": "contrainte"
         }
       ],
@@ -193,14 +235,14 @@
     {
       "code": "heritage_deduit",
       "cible": "public.prestataire",
-      "message": "clé primaire portant une clé étrangère vers Personne : héritage par jointure",
+      "message": "clé primaire portant une clé étrangère vers Personne : reliée par un-vers-un, sans héritage. Pour un héritage Doctrine, déclarer heritages: public.personne dans le fichier de décisions, avec une colonne_discriminante et une valeur par classe, racine comprise ; aucune colonne de public.personne ne s'y prête, elle serait à créer en base",
       "resolution": "par_defaut",
       "confiance": 0.7
     },
     {
       "code": "heritage_deduit",
       "cible": "public.salarie",
-      "message": "clé primaire portant une clé étrangère vers Personne : héritage par jointure",
+      "message": "clé primaire portant une clé étrangère vers Personne : reliée par un-vers-un, sans héritage. Pour un héritage Doctrine, déclarer heritages: public.personne dans le fichier de décisions, avec une colonne_discriminante et une valeur par classe, racine comprise ; aucune colonne de public.personne ne s'y prête, elle serait à créer en base",
       "resolution": "par_defaut",
       "confiance": 0.7
     }

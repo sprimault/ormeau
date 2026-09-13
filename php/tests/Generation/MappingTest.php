@@ -104,7 +104,17 @@ final class MappingTest extends TestCase
                     }
                 }
 
+                // Chaque association du calque est mappée, sauf un côté inverse
+                // que le rapport déclare omis — et celui-là ne l'est pas.
+                $omises = array_map(
+                    static fn($o): string => $o->association,
+                    array_filter($rapport->omises, static fn($o): bool => $o->entite === $entite->nom),
+                );
                 foreach ($entite->associations as $association) {
+                    if (in_array($association->nom, $omises, true)) {
+                        self::assertFalse($meta->hasAssociation($association->nom), $classe . '::' . $association->nom . ' omise mais mappée');
+                        continue;
+                    }
                     self::assertTrue($meta->hasAssociation($association->nom), $classe . '::' . $association->nom);
                     self::assertSame($calque->espaceDeNoms . '\\' . $association->cible, $meta->getAssociationTargetClass($association->nom));
                 }

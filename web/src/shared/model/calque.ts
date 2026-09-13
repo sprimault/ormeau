@@ -58,6 +58,12 @@ export interface Entite {
   nom: string;
   table: ReferenceTable;
   heritage?: Heritage;
+  /**
+   * La valeur que la colonne discriminante prend pour cette classe, racine
+   * comprise : c'est l'entité qu'elle identifie, quand la colonne appartient
+   * à la relation d'héritage. Absente hors d'une hiérarchie décidée.
+   */
+  valeur_discriminante?: string;
   traits?: string[];
   identifiant?: Identifiant;
   proprietes: Propriete[];
@@ -73,7 +79,10 @@ export interface ReferenceTable {
   schema: string;
 }
 /**
- * Heritage décrit une hiérarchie déduite du schéma.
+ * Heritage décrit une hiérarchie déclarée par décision. Le schéma la rend
+ * possible — une clé primaire qui est aussi une clé étrangère —, il ne
+ * l'impose pas : « un salarié est une personne » et « un salarié a une
+ * personne » sont deux modèles qu'il autorise également.
  */
 export interface Heritage {
   strategie: StrategieHeritage;
@@ -355,7 +364,9 @@ export const CodeTraitDeduit = "trait_deduit";
  */
 export const CodeJointurePure = "table_de_jointure";
 /**
- * Codes d'avertissement. Stables entre versions : ils servent de filtre en CI.
+ * Code conservé, sens inversé : il signalait un héritage appliqué, il
+ * signale désormais un héritage possible et non appliqué — l'entité est
+ * reliée à son parent par un-vers-un tant qu'aucune décision ne le déclare.
  */
 export const CodeHeritageDeduit = "heritage_deduit";
 

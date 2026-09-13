@@ -97,6 +97,9 @@ final class AttendusTest extends TestCase
         foreach ($rapport->ecartees as $ecartee) {
             $lignes[] = 'écartée ' . $ecartee->nom . ' : ' . $ecartee->raison;
         }
+        foreach ($rapport->omises as $omise) {
+            $lignes[] = 'omise ' . $omise->entite . '::' . $omise->association . ' : ' . $omise->raison;
+        }
         foreach ($rapport->divergences as $divergence) {
             $lignes[] = 'à reprendre ' . $divergence->message();
         }

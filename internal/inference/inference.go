@@ -11,8 +11,9 @@
 // Nommage — retrait des préfixes, singularisation française et anglaise.
 // Associations — client_id devient une propriété client typée Client, avec
 // côté propriétaire et côté inverse cohérents. Table de jointure pure, qui
-// devient une association et non une entité. Héritage quand la clé primaire
-// est aussi une clé étrangère. Énumérations depuis un CHECK. Traits pour
+// devient une association et non une entité. Héritage proposé quand la clé
+// primaire est aussi une clé étrangère, appliqué sur décision. Énumérations
+// depuis un CHECK. Traits pour
 // created_at et updated_at.
 //
 // Chacune produira soit un élément portant son origine, soit un avertissement,
@@ -69,6 +70,7 @@ func Inferer(p *calque.Physique, d *Decisions) (*calque.Logique, []calque.Averti
 	schema := analyser(p, d, prefixes)
 	schema.enumerations = enumerationsDuSchema(p, d)
 	avertissements = append(avertissements, verifierRelationsForcees(p, d, schema)...)
+	avertissements = append(avertissements, verifierHeritages(d, schema)...)
 
 	for i := range p.Tables {
 		t := &p.Tables[i]
@@ -234,18 +236,29 @@ func inferrerEntite(t *calque.Table, d *Decisions, prefixes []string, schema *sc
 		parColonne[entite.Proprietes[i].Colonne] = &entite.Proprietes[i]
 	}
 
+	// Une clé primaire étrangère ne donne un héritage que sur décision ; sans
+	// elle, la clé devient un un-vers-un avec les autres associations, et
+	// l'avertissement dit comment déclarer l'héritage. La valeur discriminante
+	// va sur chaque classe d'une hiérarchie décidée, racine comprise.
+	retenu, decide := schema.heritages[cible]
+	if decide {
+		entite.ValeurDiscriminante = retenu.valeur
+	}
 	if fk := schema.parents[cible]; fk != nil {
 		parent, connu := schema.nomsParTable[fk.SchemaCible+"."+fk.TableCible]
-		if connu {
+		switch {
+		case decide && !retenu.racine:
 			entite.Heritage = &calque.Heritage{
-				Strategie: calque.HeritageJointe,
-				Parent:    parent,
-				Origine:   calque.OrigineContrainte,
+				Strategie:            calque.HeritageJointe,
+				Parent:               parent,
+				ColonneDiscriminante: retenu.colonne,
+				Origine:              calque.OrigineDecision,
 			}
+		case connu:
 			avertissements = append(avertissements, calque.Avertissement{
 				Code:       calque.CodeHeritageDeduit,
 				Cible:      cible,
-				Message:    "clé primaire portant une clé étrangère vers " + parent + " : héritage par jointure",
+				Message:    messageHeritagePropose(cible, parent, schema),
 				Resolution: calque.ResolutionParDefaut,
 				Confiance:  0.7,
 			})

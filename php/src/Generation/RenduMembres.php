@@ -87,18 +87,16 @@ final class RenduMembres
      */
     public function rendre(array $proprietes, ?Identifiant $identifiant, array $associations = []): array
     {
-        $jointures = $this->colonnesDeJointure($associations);
-        $clesDerivees = [];
+        $jointures = self::colonnesDeJointure($associations);
+        $clesDerivees = array_flip(self::associationsDeCle($proprietes, $identifiant, $associations));
 
         $imports = [];
         $membres = [];
         $accesseurs = [];
 
         foreach ($proprietes as $propriete) {
-            $dansLaCle = $identifiant !== null && in_array($propriete->nom, $identifiant->proprietes, true);
             if (isset($jointures[$propriete->colonne])) {
-                if ($dansLaCle) {
-                    $clesDerivees[$jointures[$propriete->colonne]] = true;
+                if (self::dansLaCle($propriete, $identifiant)) {
                     continue;
                 }
                 $propriete = self::enLectureSeule($propriete);
@@ -136,6 +134,40 @@ final class RenduMembres
     }
 
     /**
+     * Rend les noms des associations qui portent l'identifiant d'une entité :
+     * celles dont une colonne de jointure est la colonne d'une propriété de la
+     * clé primaire. C'est l'identité dérivée, et la seule définition qu'en ont
+     * le rendu, qui y pose #[ORM\Id], et le générateur, qui écarte une chaîne
+     * de telles identités.
+     *
+     * @param list<Propriete>   $proprietes   propriétés de l'entité
+     * @param Identifiant|null  $identifiant  clé de l'entité
+     * @param list<Association> $associations associations de l'entité
+     *
+     * @return list<string>
+     */
+    public static function associationsDeCle(array $proprietes, ?Identifiant $identifiant, array $associations): array
+    {
+        $jointures = self::colonnesDeJointure($associations);
+        $noms = [];
+        foreach ($proprietes as $propriete) {
+            if (isset($jointures[$propriete->colonne]) && self::dansLaCle($propriete, $identifiant)) {
+                $noms[$jointures[$propriete->colonne]] = true;
+            }
+        }
+
+        return array_keys($noms);
+    }
+
+    /**
+     * Dit si une propriété fait partie de la clé primaire.
+     */
+    private static function dansLaCle(Propriete $propriete, ?Identifiant $identifiant): bool
+    {
+        return $identifiant !== null && in_array($propriete->nom, $identifiant->proprietes, true);
+    }
+
+    /**
      * Rend, pour chaque colonne portée par une association propriétaire à
      * colonnes de jointure, le nom de cette association.
      *
@@ -146,7 +178,7 @@ final class RenduMembres
      *
      * @return array<string, string>
      */
-    private function colonnesDeJointure(array $associations): array
+    private static function colonnesDeJointure(array $associations): array
     {
         $colonnes = [];
         foreach ($associations as $association) {

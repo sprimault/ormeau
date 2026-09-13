@@ -8,17 +8,18 @@ declare(strict_types=1);
 namespace Ormeau\Doctrine\Calque;
 
 /**
- * La place d'une entité dans une hiérarchie déduite du schéma.
+ * La place d'une entité dans une hiérarchie déclarée par décision.
  *
- * Sur une base reprise, l'héritage se lit presque toujours dans une clé
- * primaire qui est aussi une clé étrangère vers la table parente : c'est la
- * stratégie jointe. L'origine porte celle de cette déduction, distincte de
- * celle du nom de classe.
+ * Une clé primaire qui est aussi une clé étrangère autorise un héritage sans
+ * l'imposer : « un salarié est une personne » et « un salarié a une personne »
+ * sont deux modèles que le schéma permet également. Sans décision, l'inférence
+ * relie la table à son parent par un un-vers-un, et cet objet est absent.
  *
  * Doctrine exige une colonne discriminante pour les deux stratégies, et en
- * ajoute une quand le mapping n'en déclare pas. Une base legacy n'en a
- * généralement pas : $colonneDiscriminante absente est le cas courant, pas une
- * anomalie du calque.
+ * ajoute une quand le mapping n'en déclare pas — ce qui casse toute requête
+ * sur une base qui ne la porte pas. C'est pourquoi un héritage n'existe ici
+ * que déclaré, avec sa colonne, et que la valeur de chaque classe est portée
+ * par Entite::$valeurDiscriminante, racine comprise.
  */
 final class Heritage
 {
@@ -26,9 +27,9 @@ final class Heritage
      * @param StrategieHeritage $strategie            projection de la hiérarchie sur les tables
      * @param string            $parent               nom de l'entité parente dans le même calque,
      *                                                pas un nom de table
-     * @param string|null       $colonneDiscriminante colonne qui départage les classes, quand la
-     *                                                base en a une
-     * @param Origine|null      $origine              d'où vient la déduction de l'héritage
+     * @param string|null       $colonneDiscriminante colonne de la table racine qui départage les
+     *                                                classes ; la décision la fournit
+     * @param Origine|null      $origine              d'où vient l'héritage : une décision
      */
     public function __construct(
         public readonly StrategieHeritage $strategie,

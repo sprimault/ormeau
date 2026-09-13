@@ -108,6 +108,9 @@ final class GenererCommande extends Command
         foreach ($rapport->ecartees as $ecartee) {
             $sortie->writeln(sprintf('<comment>écartée  %s : %s</comment>', $ecartee->nom, OutputFormatter::escape($ecartee->raison)));
         }
+        foreach ($rapport->omises as $omise) {
+            $sortie->writeln(sprintf('<comment>omise    %s::%s : %s</comment>', $omise->entite, $omise->association, OutputFormatter::escape($omise->raison)));
+        }
         foreach ($rapport->divergences as $divergence) {
             $sortie->writeln('<comment>à reprendre ' . OutputFormatter::escape($divergence->message()) . '</comment>');
         }

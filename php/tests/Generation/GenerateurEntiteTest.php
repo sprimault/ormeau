@@ -87,7 +87,7 @@ final class GenerateurEntiteTest extends TestCase
                 'Journal' => 'la table n\'a pas de clé primaire, et Doctrine exige un identifiant',
                 'List' => 'List est un mot réservé de PHP, à renommer dans renommages',
                 'Commande' => 'l\'association fournisseur vise Fournisseur, absente du calque',
-                'Livraison' => 'l\'association commande vise Commande, écartée',
+                'Livraison' => 'l\'association commande vise Commande (public.commande), écartée',
                 'Etiquette' => 'le nom Etiquette est porté par plusieurs entités, à départager dans renommages',
                 'etiquette' => 'le nom etiquette est porté par plusieurs entités, à départager dans renommages',
             ], array_column(array_map(static fn($e): array => [$e->nom, $e->raison], $rapport->ecartees), 1, 0));
@@ -156,6 +156,64 @@ final class GenerateurEntiteTest extends TestCase
         } finally {
             Repertoires::supprimer($sortie);
         }
+    }
+
+    /**
+     * Une entité identifiée par une association vers une entité elle-même
+     * identifiée par une association est écartée : Doctrine refuse cette
+     * identité en chaîne. La raison cite les deux tables physiques et la
+     * sortie, et une entité qui vise l'entité écartée a sa propre raison.
+     */
+    public function testEcarteUneIdentiteDeriveeEnChaine(): void
+    {
+        $sortie = Repertoires::creer();
+        try {
+            $personne = self::entite('Personne');
+            $salarie = self::entite('Salarie', [
+                'identifiant' => ['proprietes' => ['id'], 'strategie' => 'assignee'],
+                'associations' => [self::jointure('personne', 'un_vers_un', 'Personne', 'id')],
+            ]);
+            $affectation = self::entite('Affectation', [
+                'identifiant' => ['proprietes' => ['salarieId', 'debut'], 'strategie' => 'assignee'],
+                'proprietes' => [
+                    self::propriete('salarieId', 'integer', ['colonne' => 'salarie_id']),
+                    self::propriete('debut', 'string'),
+                ],
+                'associations' => [self::jointure('salarie', 'plusieurs_vers_un', 'Salarie', 'salarie_id')],
+            ]);
+            $note = self::entite('Note', ['associations' => [self::jointure('affectation', 'plusieurs_vers_un', 'Affectation', 'affectation_id')]]);
+
+            $rapport = (new GenerateurEntite())->generer(self::calque([$personne, $salarie, $affectation, $note]), $sortie, Cible::forcer(3));
+
+            self::assertSame([
+                'Affectation' => 'Doctrine ne sait pas identifier Affectation (public.affectation) par salarie : '
+                    . 'Salarie (public.salarie) est elle-même identifiée par une association. '
+                    . 'Déclarer public.salarie dans un héritage (heritages), ou écarter l\'une des deux tables (tables_ignorees)',
+                'Note' => 'l\'association affectation vise Affectation (public.affectation), écartée',
+            ], array_column(array_map(static fn($e): array => [$e->nom, $e->raison], $rapport->ecartees), 1, 0));
+            self::assertArrayHasKey('Base/SalarieBase.php', Repertoires::lire($sortie));
+            self::assertSame([], $rapport->omises, 'Salarie ne porte pas de côté inverse ici');
+        } finally {
+            Repertoires::supprimer($sortie);
+        }
+    }
+
+    /**
+     * Une association propriétaire sur une colonne de jointure vers l'id de sa
+     * cible.
+     *
+     * @return array<string, mixed>
+     */
+    private static function jointure(string $nom, string $genre, string $cible, string $colonne): array
+    {
+        return [
+            'nom' => $nom,
+            'genre' => $genre,
+            'cible' => $cible,
+            'proprietaire' => true,
+            'jointure' => [['colonne' => $colonne, 'colonne_referencee' => 'id', 'nullable' => false]],
+            'origine' => 'contrainte',
+        ];
     }
 
     /**
