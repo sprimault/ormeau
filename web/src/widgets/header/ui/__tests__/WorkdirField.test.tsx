@@ -9,6 +9,7 @@ import { ErreurAPI } from '@/shared/api';
 import { useLangStore } from '@/shared/i18n';
 import { WorkdirField } from '../WorkdirField';
 
+/** Répertoire affiché au montage. */
 const REPERTOIRE = 'C:\\projets\\gescom';
 
 /** Monte le champ avec une fonction de changement observable. */

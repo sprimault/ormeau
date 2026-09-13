@@ -12,6 +12,7 @@ import { useInventory } from '../useInventory';
 
 vi.mock('../../api/inventoryApi', () => ({ lireInventaire: vi.fn() }));
 
+/** Inventaire d'une seule table, ce que le hook doit rendre tel quel. */
 const tables: TableSommaire[] = [
   { schema: 'public', nom: 'clients', nb_colonnes: 4, lignes_estimees: 12, cle_primaire: true },
 ];

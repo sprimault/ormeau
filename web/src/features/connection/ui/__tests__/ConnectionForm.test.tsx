@@ -9,6 +9,7 @@ import { useLangStore } from '@/shared/i18n';
 import type { ProfilResume } from '@/shared/model';
 import { ConnectionForm } from '../ConnectionForm';
 
+/** Profils enregistrés que le formulaire propose, remontés pour le `vi.mock` qui les sert. */
 const { profils } = vi.hoisted(() => ({
   profils: [
     {

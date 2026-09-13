@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Decisions, ReponseSession } from '@/shared/model';
 import { useSessionArbitrage } from '../useSessionArbitrage';
 
+/** Remonté avant les `vi.mock`, qui le lisent : le serveur et le brouillon simulés. */
 const etat = vi.hoisted(() => ({
   /** Ce que le serveur rend à la lecture du brouillon. */
   lue: {} as ReponseSession,

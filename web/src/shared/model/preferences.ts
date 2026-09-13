@@ -86,6 +86,7 @@ export function variableCSS(cle: ClePreference): string {
  * qui câble les deux, ce qui laisse aussi les tests observer sans réseau.
  */
 let enregistrer: ((preferences: Preferences) => void) | null = null;
+/** Enregistrement en attente, que chaque nouveau réglage repousse. */
 let minuterie: ReturnType<typeof setTimeout> | undefined;
 
 /** Branche l'enregistrement. À appeler une fois, au démarrage. */

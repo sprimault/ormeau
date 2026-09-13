@@ -8,6 +8,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useLangStore } from '@/shared/i18n';
 import { Header } from '../Header';
 
+/** Chemin long, pour vérifier la troncature ; remonté pour le `vi.mock` qui le sert. */
 const { repertoire } = vi.hoisted(() => ({
   repertoire:
     'C:\\Users\\dev\\AppData\\Local\\Temp\\reprises\\gescom-2026\\extraction-initiale\\travail',

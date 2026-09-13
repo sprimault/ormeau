@@ -13,6 +13,7 @@ import { CalquePreview } from '../CalquePreview';
 
 vi.mock('../../api/extractionApi', () => ({ lireCalque: vi.fn() }));
 
+/** Dernier calque produit, tel que l'aperçu le reçoit. */
 const calque: ReponseCalque = {
   fichier: 'gescom.calque.json',
   extrait_le: '2026-09-11T10:00:00Z',

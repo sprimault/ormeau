@@ -12,6 +12,7 @@ import { derniereFin, useCalque } from '../useCalque';
 
 vi.mock('../../api/extractionApi', () => ({ lireCalque: vi.fn() }));
 
+/** Calque rendu par le serveur ; seul son contenu minimal importe ici. */
 const calque: ReponseCalque = {
   fichier: 'gescom.calque.json',
   extrait_le: '2026-09-11T10:00:00Z',

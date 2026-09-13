@@ -3,6 +3,7 @@
 
 import { useLangStore, useT, type Lang } from '@/shared/i18n';
 
+/** Langues proposées, dans l'ordre d'affichage : le français d'abord. */
 const langues: Lang[] = ['fr', 'en'];
 
 /** Sélecteur de langue, permanent et à côté du thème. */

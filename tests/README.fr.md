@@ -1,3 +1,5 @@
+> [🇬🇧 English](README.md) · [🇫🇷 Français](README.fr.md)
+
 # Jeux de tests
 
 `ddl/` contient les bases de référence, une par SGBD. Elles couvrent

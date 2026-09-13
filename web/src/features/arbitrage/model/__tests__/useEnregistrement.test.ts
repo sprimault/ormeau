@@ -12,6 +12,7 @@ import { useEnregistrement } from '../useEnregistrement';
 
 vi.mock('../../api/arbitrageApi', () => ({ ecrireDecisions: vi.fn() }));
 
+/** Une seule décision suffit : c'est son trajet jusqu'au fichier qu'on suit. */
 const decisions = { tables_ignorees: ['public.migrations'] };
 
 /** Brouillon parti d'un fichier lu avec l'empreinte sha256:f1. */

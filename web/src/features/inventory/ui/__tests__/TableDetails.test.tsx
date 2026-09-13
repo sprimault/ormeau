@@ -10,6 +10,7 @@ import type { Colonnes } from '../../model/useColumns';
 import type { EtatExclusions } from '../../model/useExclusions';
 import { TableDetails } from '../TableDetails';
 
+/** Table dont le panneau affiche le détail. */
 const commandes: TableSommaire = {
   schema: 'public',
   nom: 'commandes',
@@ -19,6 +20,7 @@ const commandes: TableSommaire = {
   reference_vers: ['public.clients'],
 };
 
+/** Ses colonnes, dont un type utilisateur (`citext`) affiché tel que le catalogue le nomme. */
 const colonnesDeCommandes: ColonneSommaire[] = [
   { nom: 'id', position: 1, type_brut: 'integer', nullable: false, cle_primaire: true },
   { nom: 'reference', position: 2, type_brut: 'citext', nullable: false, cle_primaire: false },
