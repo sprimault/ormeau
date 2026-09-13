@@ -34,10 +34,13 @@ final class RacineHeritage
      * @param array<string, string>                                     $carte   valeur discriminante vers le nom
      *                                                                           qualifié de la classe, dans
      *                                                                           l'ordre du calque
+     * @param string                                                    $classe  nom qualifié de la classe de la
+     *                                                                           racine, qui porte ces attributs
      */
     public function __construct(
         public readonly array $colonne,
         public readonly array $carte,
+        public readonly string $classe,
     ) {}
 
     /**
@@ -46,15 +49,19 @@ final class RacineHeritage
      *
      * La carte est composée ici plutôt que confiée à l'émetteur : une carte
      * aux valeurs 0 et 1 serait une liste pour PHP, et s'écrirait sans ses
-     * clés.
+     * clés. Une classe du même espace de noms que la racine s'écrit par son nom
+     * court ; une classe rangée ailleurs, qualifiée, puisque l'attribut ne
+     * peut pas ajouter d'import à un fichier qui appartient à l'utilisateur.
      *
      * @return array<string, string>
      */
     public function attributs(): array
     {
+        $espace = self::espace($this->classe);
         $entrees = [];
         foreach ($this->carte as $valeur => $classe) {
-            $entrees[] = Emetteur::litteral((string) $valeur) . ' => ' . substr($classe, (int) strrpos($classe, '\\') + 1) . '::class';
+            $nom = self::espace($classe) === $espace ? substr($classe, strlen($espace) + ($espace === '' ? 0 : 1)) : '\\' . $classe;
+            $entrees[] = Emetteur::litteral((string) $valeur) . ' => ' . $nom . '::class';
         }
 
         return [
@@ -62,5 +69,15 @@ final class RacineHeritage
             'Doctrine\ORM\Mapping\DiscriminatorColumn' => Emetteur::attribut('ORM\DiscriminatorColumn', $this->colonne, ''),
             'Doctrine\ORM\Mapping\DiscriminatorMap' => Emetteur::attribut('ORM\DiscriminatorMap', [new Code('[' . implode(', ', $entrees) . ']')], ''),
         ];
+    }
+
+    /**
+     * Rend l'espace de noms d'un nom qualifié, vide pour une classe globale.
+     */
+    private static function espace(string $classe): string
+    {
+        $position = strrpos($classe, '\\');
+
+        return $position === false ? '' : substr($classe, 0, $position);
     }
 }

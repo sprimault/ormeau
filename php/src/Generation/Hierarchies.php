@@ -102,24 +102,30 @@ final class Hierarchies
     /**
      * Dit ce que la racine d'une hiérarchie déclare, ou null pour une entité
      * qui n'est pas une racine.
+     *
+     * @param Entite                  $entite       entité examinée
+     * @param string                  $espaceDeNoms espace de noms des entités du calque
+     * @param ClassesUtilisateur|null $classes      où vivent les classes de l'utilisateur ; la carte
+     *                                              cite chacune sous son nom qualifié réel
      */
-    public function racineHeritage(Entite $entite, string $espaceDeNoms): ?RacineHeritage
+    public function racineHeritage(Entite $entite, string $espaceDeNoms, ?ClassesUtilisateur $classes = null): ?RacineHeritage
     {
         if ($this->racine($entite) !== $entite) {
             return null;
         }
 
+        $qualifiee = static fn(string $nom): string => $classes?->qualifiee($nom) ?? $espaceDeNoms . '\\' . $nom;
         $propriete = $this->proprieteDiscriminante($entite);
         $carte = [];
         foreach ($this->membres($entite) as $membre) {
-            $carte[(string) $membre->valeurDiscriminante] = $espaceDeNoms . '\\' . $membre->nom;
+            $carte[(string) $membre->valeurDiscriminante] = $qualifiee($membre->nom);
         }
 
         return new RacineHeritage([
             'name' => RenduEntite::identifiantSql((string) $this->colonneDiscriminante($entite)),
             'type' => $propriete?->typeDoctrine,
             'length' => $propriete?->longueur,
-        ], $carte);
+        ], $carte, $qualifiee($entite->nom));
     }
 
     /**

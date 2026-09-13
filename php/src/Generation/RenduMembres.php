@@ -64,12 +64,15 @@ final class RenduMembres
      * @param array<string, Enumeration> $enumerations énumérations du calque par nom, pour typer une
      *                                                 propriété et retrouver le cas de son défaut
      * @param bool                       $avecSchema   écrire le schéma d'une table de jointure
+     * @param ClassesUtilisateur|null    $classes      où vivent les classes de l'utilisateur, que les
+     *                                                 associations importent ; sans elle, à la racine
      */
     public function __construct(
         private readonly Cible $cible,
         private readonly string $espaceDeNoms,
         private readonly array $enumerations,
         private readonly bool $avecSchema = false,
+        private readonly ?ClassesUtilisateur $classes = null,
     ) {}
 
     /**
@@ -113,7 +116,7 @@ final class RenduMembres
 
         $collections = [];
         foreach ($associations as $association) {
-            $imports[] = $this->espaceDeNoms . '\\' . $association->cible;
+            $imports[] = $this->classes?->qualifiee($association->cible) ?? $this->espaceDeNoms . '\\' . $association->cible;
             if (self::estCollection($association)) {
                 $imports[] = 'Doctrine\Common\Collections\ArrayCollection';
                 $imports[] = 'Doctrine\Common\Collections\Collection';
