@@ -71,7 +71,7 @@ Vérifier une archive téléchargée — les binaires n'étant ni signés ni not
 SmartScreen et Gatekeeper protesteront au premier lancement :
 
 ```console
-$ gh attestation verify ormeau_v0.4.2_linux_amd64.tar.gz --repo sprimault/ormeau
+$ gh attestation verify ormeau_v0.5.0_linux_amd64.tar.gz --repo sprimault/ormeau
 ```
 
 Par conteneur, en lui donnant l'identité de l'appelant : l'image tourne sous un
@@ -80,7 +80,7 @@ utilisateur non privilégié et n'écrirait pas dans un volume Linux sans cela.
 ```console
 $ docker run --rm --user "$(id -u):$(id -g)" \
     -e ORMEAU_DSN -v "$PWD:/sortie" \
-    ghcr.io/sprimault/ormeau:v0.4.2 extraire --sortie /sortie/gescom.calque.json
+    ghcr.io/sprimault/ormeau:v0.5.0 extraire --sortie /sortie/gescom.calque.json
 ```
 
 Le calque en main, l'inférence tourne hors ligne — plus besoin de la base :
@@ -107,6 +107,57 @@ un fichier existant. L'interface, elle, le régénère quand on l'enregistre, et
 demande confirmation s'il a été retouché à la main.
 
 Entre deux versions, `go install github.com/sprimault/ormeau/cmd/ormeau@master`.
+
+### Générer les entités
+
+Le bundle Symfony est un paquet Composer à part, `sprimault/ormeau-doctrine`,
+publié depuis un miroir en lecture seule de `php/`. Il n'est pas encore sur
+Packagist, d'où la ligne de dépôt :
+
+```console
+$ composer config repositories.ormeau vcs https://github.com/sprimault/ormeau-doctrine
+$ composer require --dev sprimault/ormeau-doctrine
+```
+
+Il demande PHP 8.1, Symfony 5.4 à 8 et Doctrine ORM 2.14 à 3. Symfony Flex
+déclare le bundle pour `dev` et `test` ; sans Flex, ajouter
+`Ormeau\Doctrine\OrmeauDoctrineBundle::class => ['dev' => true, 'test' => true]`
+à `config/bundles.php`.
+
+```console
+$ bin/console ormeau:generer gescom.logique.json
+Cible détectée : PHP 8.4, Doctrine ORM 3.7
+créé     src/Entity/Enum/StatutClient.php
+créé     src/Entity/Base/ClientBase.php
+créé     src/Entity/Client.php
+```
+
+`Base/`, `Enum/` et `Trait/` appartiennent à l'outil et se réécrivent à chaque
+passage. `Client.php` est créé une fois et n'est plus jamais touché : les
+méthodes métier vont là. Il se range dans un sous-répertoire,
+`src/Entity/Ventes/Client.php` avec son espace de noms : le passage suivant le
+retrouve par sa classe de base, et les autres classes le citent là où il vit.
+Quand il ne correspond plus au calque — une table renommée, une classe fille
+déclarée après coup —, la commande nomme le fichier, la ligne et l'attribut
+attendu. `--repertoire` écrit ailleurs que dans
+`src/Entity`, et `--cible-orm=2` ou `3` vise une autre version d'ORM que celle
+installée.
+
+Cette forme en deux classes est le prix d'une régénération qui n'écrase rien, et
+elle change quelques habitudes. Les propriétés sont déclarées dans `Base/`, qui
+se réécrit : contraintes de validation et groupes de sérialisation ne s'y posent
+pas. Ils vont dans `Client.php`, sur un accesseur redéclaré —
+`#[Assert\NotBlank] public function getRaisonSociale(): string { return
+parent::getRaisonSociale(); }` —, ou dans les fichiers de mapping de
+`config/validator/` et `config/serializer/`, qui nomment la propriété héritée.
+`make:entity` ne convient pas à ces classes : il ajouterait des champs dans
+`Client.php`, hors de ce que décrit le calque. Une colonne s'ajoute en base, et
+les entités se régénèrent.
+
+Les commentaires de tables et de colonnes deviennent des docblocks. Les phrases
+qu'écrit l'outil sont en français, comme toute sa sortie, et un commentaire venu
+de la base garde la langue de la base : un docblock peut mêler les deux, c'est
+attendu.
 
 ### Interface locale
 
@@ -163,14 +214,14 @@ $env:ORMEAU_MDP = "secret"
 .\ormeau.exe extraire --sgbd postgres --hote srv --utilisateur app --base gescom --sortie gescom.calque.json
 
 docker run --rm -e ORMEAU_DSN -v "${PWD}:/sortie" `
-    ghcr.io/sprimault/ormeau:v0.4.2 extraire --sortie /sortie/gescom.calque.json
+    ghcr.io/sprimault/ormeau:v0.5.0 extraire --sortie /sortie/gescom.calque.json
 ```
 
 Vérifier l'empreinte d'une archive téléchargée :
 
 ```powershell
 $attendu = (Select-String -Path SHA256SUMS -Pattern windows).Line.Split(" ")[0]
-$obtenu  = (Get-FileHash ormeau_v0.4.2_windows_amd64.zip -Algorithm SHA256).Hash.ToLower()
+$obtenu  = (Get-FileHash ormeau_v0.5.0_windows_amd64.zip -Algorithm SHA256).Hash.ToLower()
 if ($attendu -eq $obtenu) { "empreinte OK" } else { "EMPREINTE DIFFERENTE" }
 ```
 
@@ -256,12 +307,13 @@ pièce jointe d'une issue.
 
 ## État d'avancement
 
-L'extraction PostgreSQL et l'inférence fonctionnent : `ormeau extraire` puis
-`ormeau inferer` produisent les trois fichiers. La génération d'entités est en
-cours : `bin/console ormeau:generer` écrit les entités, leurs associations,
+L'extraction PostgreSQL, l'inférence et la génération d'entités Doctrine
+fonctionnent : `ormeau extraire` puis `ormeau inferer` produisent les trois
+fichiers, et `bin/console ormeau:generer` écrit les entités, leurs associations,
 leurs énumérations et leurs traits, et l'héritage déclaré dans le fichier de
-décisions, et écarte en le disant ce que Doctrine ne sait pas représenter.
-L'état par phase est dans [`ROADMAP.md`](ROADMAP.md).
+décisions, en écartant et en le disant ce que Doctrine ne sait pas représenter.
+La comparaison de la base aux entités existantes (`ormeau:synchroniser`) reste à
+venir. L'état par phase est dans [`ROADMAP.md`](ROADMAP.md).
 
 La CI exécute la suite de tests avec le détecteur de courses, `golangci-lint`,
 `gofmt`, `govulncheck`, `gosec` et un contrôle de validité des JSON Schema à
