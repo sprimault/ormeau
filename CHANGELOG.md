@@ -52,9 +52,16 @@ préambule reste en français : il n'est jamais publié.
   initialise la propriété avec son cas ; `Trait/` porte les colonnes
   d'horodatage partagées, que les classes de base utilisent. Les deux sont
   réécrits à chaque passage, comme les classes de base.
+- **Les associations sont générées**, dans les quatre genres et des deux côtés,
+  avec leurs colonnes ou leur table de jointure et leur action à la
+  suppression. Une colonne de clé étrangère n'a qu'un écrivain, l'association :
+  hors clé primaire, sa propriété reste en lecture seule ; dans la clé
+  primaire, l'identifiant passe par l'association. Le côté inverse n'a que son
+  accesseur, puisque Doctrine n'écrit que le côté propriétaire.
 - **Ce qui ne se génère pas entier est écarté, en le disant** : une table sans
-  clé primaire, un nom réservé de PHP, deux entités de même nom, et pour
-  l'instant les entités qui portent des associations ou un héritage.
+  clé primaire, un nom réservé de PHP, deux entités de même nom, une entité
+  dont une association vise une entité écartée, et pour l'instant les entités
+  qui portent un héritage.
 
 ### Modifié
 
@@ -109,9 +116,16 @@ préambule reste en français : il n'est jamais publié.
   initialises the property with its case; `Trait/` holds the shared timestamp
   columns, which the base classes use. Both are rewritten on every run, like
   the base classes.
+- **Associations are generated**, in all four kinds and on both sides, with
+  their join columns or join table and their delete action. A foreign key
+  column has a single writer, the association: outside the primary key, its
+  property stays read-only; inside the primary key, the identifier goes
+  through the association. The inverse side only gets its getter, since
+  Doctrine only writes the owning side.
 - **What cannot be generated whole is skipped, saying so**: a table without a
-  primary key, a PHP reserved name, two entities with the same name, and for
-  now the entities that carry associations or inheritance.
+  primary key, a PHP reserved name, two entities with the same name, an entity
+  whose association points at a skipped one, and for now the entities that
+  carry inheritance.
 
 ### Changed
 

@@ -1,0 +1,5 @@
+créé Base/PersonneBase.php
+créé Personne.php
+écartée Salarie : pas encore générées par ce paquet : héritage
+écartée Prestataire : pas encore générées par ce paquet : héritage
+écartée Affectation : l'association salarie vise Salarie, écartée

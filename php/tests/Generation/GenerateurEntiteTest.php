@@ -61,8 +61,9 @@ final class GenerateurEntiteTest extends TestCase
     }
 
     /**
-     * Une entité que Doctrine refuserait, ou que ce paquet ne sait pas encore
-     * générer entière, est écartée avec sa raison, et les autres s'écrivent.
+     * Une entité que Doctrine refuserait, ou dont une association vise une
+     * entité absente ou écartée, est écartée avec sa raison ; l'écart se
+     * propage de Commande à Livraison, et les autres s'écrivent.
      */
     public function testEcarteCeQuiNeSeGenerePasEntierEtEcritLeReste(): void
     {
@@ -73,7 +74,10 @@ final class GenerateurEntiteTest extends TestCase
                 self::entite('Journal', ['identifiant' => null]),
                 self::entite('List'),
                 self::entite('Commande', ['associations' => [[
-                    'nom' => 'client', 'genre' => 'plusieurs_vers_un', 'cible' => 'Client', 'proprietaire' => true, 'origine' => 'contrainte',
+                    'nom' => 'fournisseur', 'genre' => 'plusieurs_vers_un', 'cible' => 'Fournisseur', 'proprietaire' => true, 'origine' => 'contrainte',
+                ]]]),
+                self::entite('Livraison', ['associations' => [[
+                    'nom' => 'commande', 'genre' => 'plusieurs_vers_un', 'cible' => 'Commande', 'proprietaire' => true, 'origine' => 'contrainte',
                 ]]]),
                 self::entite('Etiquette', ['table' => ['nom' => 'etiquette', 'schema' => 'public']]),
                 self::entite('etiquette', ['table' => ['nom' => 'etiquette', 'schema' => 'archive']]),
@@ -82,7 +86,8 @@ final class GenerateurEntiteTest extends TestCase
             self::assertSame([
                 'Journal' => 'la table n\'a pas de clé primaire, et Doctrine exige un identifiant',
                 'List' => 'List est un mot réservé de PHP, à renommer dans renommages',
-                'Commande' => 'pas encore générées par ce paquet : associations',
+                'Commande' => 'l\'association fournisseur vise Fournisseur, absente du calque',
+                'Livraison' => 'l\'association commande vise Commande, écartée',
                 'Etiquette' => 'le nom Etiquette est porté par plusieurs entités, à départager dans renommages',
                 'etiquette' => 'le nom etiquette est porté par plusieurs entités, à départager dans renommages',
             ], array_column(array_map(static fn($e): array => [$e->nom, $e->raison], $rapport->ecartees), 1, 0));

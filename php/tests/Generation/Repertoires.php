@@ -25,15 +25,18 @@ final class Repertoires
 {
     /** Cas d'inférence dont chaque entité relève de la génération actuelle, ou en est écartée. */
     public const CAS = [
+        'associations',
         'cas-limites',
         'cible-ignoree',
         'decisions',
         'enumerations',
         'enumerations-decidees',
+        'heritage',
         'identifiants-penibles',
         'minimal',
         'nommage-court',
         'prefixes',
+        'relations-forcees',
         'singularisation',
         'traits',
         'types',

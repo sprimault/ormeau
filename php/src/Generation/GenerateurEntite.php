@@ -27,9 +27,9 @@ use RuntimeException;
  *    Phase « Régénération par AST » de la feuille de route.
  *
  * Une entité se génère entière ou pas du tout. Ce que ce générateur ne sait pas
- * encore traduire — associations, héritage — écarte l'entité avec sa raison :
- * une entité sans ses associations perdrait ses colonnes de jointure, et
- * Doctrine la chargerait sans rien dire.
+ * encore traduire — l'héritage — écarte l'entité avec sa raison, et l'écart se
+ * propage à celles qui la visent : une entité privée d'une association perdrait
+ * sa colonne de jointure, et Doctrine la chargerait sans rien dire.
  */
 final class GenerateurEntite
 {
@@ -138,12 +138,17 @@ final class GenerateurEntite
         // fichiers de Windows et macOS ignorent la casse.
         $occurrences = array_count_values(array_map(static fn(Entite $e): string => strtolower($e->nom), $calque->entites));
 
-        foreach ($calque->entites as $entite) {
-            $raison = $occurrences[strtolower($entite->nom)] > 1
+        $raisons = [];
+        foreach ($calque->entites as $rang => $entite) {
+            $raisons[$rang] = $occurrences[strtolower($entite->nom)] > 1
                 ? sprintf('le nom %s est porté par plusieurs entités, à départager dans renommages', $entite->nom)
                 : $this->raisonDEcarter($entite, $refus);
-            if ($raison !== null) {
-                $ecartees[] = new EntiteEcartee($entite->nom, $raison);
+        }
+        $raisons = $this->propagerLesEcarts($calque->entites, $raisons);
+
+        foreach ($calque->entites as $rang => $entite) {
+            if ($raisons[$rang] !== null) {
+                $ecartees[] = new EntiteEcartee($entite->nom, $raisons[$rang]);
                 continue;
             }
 
@@ -216,15 +221,54 @@ final class GenerateurEntite
             }
         }
 
-        $manques = [];
-        if ($entite->associations !== []) {
-            $manques[] = 'associations';
-        }
-        if ($entite->heritage !== null) {
-            $manques[] = 'héritage';
+        return $entite->heritage !== null ? 'pas encore générées par ce paquet : héritage' : null;
+    }
+
+    /**
+     * Écarte toute entité dont une association vise une entité écartée ou
+     * absente du calque, jusqu'à ce que plus rien ne bouge.
+     *
+     * Une classe de base qui importe une classe jamais écrite ne se charge
+     * pas, et l'écart se propage : Affectation vise Salarie, écartée pour son
+     * héritage, et une entité qui viserait Affectation le serait à son tour.
+     * La raison nomme l'association et sa cible, pas la cause première, qui se
+     * lit sur la ligne de la cible.
+     *
+     * @param list<Entite>             $entites entités du calque, dans son ordre
+     * @param array<int, string|null> $raisons raison d'écarter chaque entité, par rang ; null
+     *                                          pour une entité générée
+     *
+     * @return array<int, string|null> les mêmes raisons, écarts propagés compris
+     */
+    private function propagerLesEcarts(array $entites, array $raisons): array
+    {
+        $rangs = [];
+        foreach ($entites as $rang => $entite) {
+            $rangs[$entite->nom][] = $rang;
         }
 
-        return $manques === [] ? null : 'pas encore générées par ce paquet : ' . implode(', ', $manques);
+        do {
+            $stable = true;
+            foreach ($entites as $rang => $entite) {
+                if ($raisons[$rang] !== null) {
+                    continue;
+                }
+                foreach ($entite->associations as $association) {
+                    $cibles = $rangs[$association->cible] ?? [];
+                    if ($cibles === []) {
+                        $raisons[$rang] = sprintf('l\'association %s vise %s, absente du calque', $association->nom, $association->cible);
+                    } elseif (array_filter($cibles, static fn(int $r): bool => $raisons[$r] !== null) !== []) {
+                        $raisons[$rang] = sprintf('l\'association %s vise %s, écartée', $association->nom, $association->cible);
+                    }
+                    if ($raisons[$rang] !== null) {
+                        $stable = false;
+                        break;
+                    }
+                }
+            }
+        } while (!$stable);
+
+        return $raisons;
     }
 
     /**
