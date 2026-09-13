@@ -23,12 +23,16 @@ final class Entite
      * @param string              $nom          nom de classe PHP, sans espace de noms
      * @param ReferenceTable      $table        table dont l'entité est issue
      * @param list<Propriete>     $proprietes   propriétés propres à l'entité, sans celles de ses traits
-     * @param Heritage|null       $heritage     place dans une hiérarchie, quand le schéma en révèle une
-     * @param list<string>        $traits       noms des traits du calque que l'entité utilise
-     * @param Identifiant|null    $identifiant  clé de l'entité ; absent, la table n'en a pas
-     * @param list<Association>   $associations liens vers les autres entités
-     * @param list<IndexEntite>   $index        index de la table, reportés pour le schéma
-     * @param Origine|null        $origine      d'où vient le nom de classe
+     * @param Heritage|null       $heritage            place dans une hiérarchie déclarée par décision
+     * @param list<string>        $traits              noms des traits du calque que l'entité utilise
+     * @param Identifiant|null    $identifiant         clé de l'entité ; absent, la table n'en a pas
+     * @param list<Association>   $associations        liens vers les autres entités
+     * @param list<IndexEntite>   $index               index de la table, reportés pour le schéma
+     * @param Origine|null        $origine             d'où vient le nom de classe
+     * @param string|null         $valeurDiscriminante valeur de la colonne discriminante pour cette classe,
+     *                                                 racine comprise ; présente dans une hiérarchie
+     *                                                 décidée seulement, et c'est l'entité qu'elle
+     *                                                 identifie — la colonne appartient à l'héritage
      */
     public function __construct(
         public readonly string $nom,
@@ -40,6 +44,7 @@ final class Entite
         public readonly array $associations = [],
         public readonly array $index = [],
         public readonly ?Origine $origine = null,
+        public readonly ?string $valeurDiscriminante = null,
     ) {}
 
     /**
@@ -65,7 +70,8 @@ final class Entite
         $associations = Lecture::objets($donnees, 'associations', $chemin, Association::depuisTableau(...));
         $index = Lecture::objets($donnees, 'index', $chemin, IndexEntite::depuisTableau(...));
         $origine = Lecture::valeurOptionnelle($donnees, 'origine', $chemin, Origine::class);
+        $valeurDiscriminante = Lecture::chaineOptionnelle($donnees, 'valeur_discriminante', $chemin);
 
-        return new self($nom, $table, $proprietes, $heritage, $traits, $identifiant, $associations, $index, $origine);
+        return new self($nom, $table, $proprietes, $heritage, $traits, $identifiant, $associations, $index, $origine, $valeurDiscriminante);
     }
 }

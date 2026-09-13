@@ -33,6 +33,24 @@ describe('transformations du brouillon', () => {
     expect(forcerType(d, 'public.clients.geo', 'string')).toMatchObject(d);
   });
 
+  it('garde les héritages déclarés à la main, que l’écran ne sait pas modifier', () => {
+    const d: Decisions = {
+      heritages: {
+        'public.personne': {
+          colonne_discriminante: 'nature',
+          valeurs: { 'public.personne': 'P', 'public.salarie': 'S' },
+        },
+      },
+    };
+
+    const modifiee = retirerEnumeration(
+      nommerCas(forcerType(renommer(d, 'public.clients', 'Client'), 'public.clients.geo', 'string'), { nom: 'Etat', colonnes: ['public.clients.etat'] }, { A: 'Actif' }),
+      'public.clients.etat',
+    );
+
+    expect(modifiee.heritages).toEqual(d.heritages);
+  });
+
   it('nomme les cas d’une énumération sur toutes ses colonnes, sans perdre les cas déjà décidés', () => {
     const d: Decisions = {
       enumerations: [

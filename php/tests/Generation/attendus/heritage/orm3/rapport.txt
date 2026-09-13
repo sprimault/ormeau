@@ -1,5 +1,8 @@
 créé Base/PersonneBase.php
 créé Personne.php
-écartée Salarie : pas encore générées par ce paquet : héritage
-écartée Prestataire : pas encore générées par ce paquet : héritage
-écartée Affectation : l'association salarie vise Salarie, écartée
+créé Base/SalarieBase.php
+créé Salarie.php
+créé Base/PrestataireBase.php
+créé Prestataire.php
+écartée Affectation : Doctrine ne sait pas identifier Affectation (public.affectation) par salarie : Salarie (public.salarie) est elle-même identifiée par une association. Déclarer public.salarie dans un héritage (heritages), ou écarter l'une des deux tables (tables_ignorees)
+omise Salarie::affectation : côté inverse de Affectation (public.affectation), écartée

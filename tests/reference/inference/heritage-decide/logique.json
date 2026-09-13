@@ -1,0 +1,160 @@
+{
+  "version_ri": 1,
+  "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000015",
+  "espace_de_noms": "App\\Entity",
+  "entites": [
+    {
+      "nom": "Personne",
+      "table": {
+        "nom": "personne",
+        "schema": "public"
+      },
+      "valeur_discriminante": "P",
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "nom",
+          "colonne": "nom",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 80,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "nature",
+          "colonne": "nature",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 1,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "prestataire",
+          "genre": "un_vers_un",
+          "cible": "Prestataire",
+          "proprietaire": false,
+          "mappee_par": "personne",
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "Salarie",
+      "table": {
+        "nom": "salarie",
+        "schema": "public"
+      },
+      "heritage": {
+        "strategie": "jointe",
+        "parent": "Personne",
+        "colonne_discriminante": "nature",
+        "origine": "decision"
+      },
+      "valeur_discriminante": "S",
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "assignee"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "matricule",
+          "colonne": "matricule",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 20,
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "Prestataire",
+      "table": {
+        "nom": "prestataire",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "assignee"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "societe",
+          "colonne": "societe",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 120,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "personne",
+          "genre": "un_vers_un",
+          "cible": "Personne",
+          "proprietaire": true,
+          "inversee_par": "prestataire",
+          "jointure": [
+            {
+              "colonne": "id",
+              "colonne_referencee": "id",
+              "nullable": false,
+              "a_la_suppression": "cascade"
+            }
+          ],
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    }
+  ],
+  "avertissements": [
+    {
+      "code": "heritage_deduit",
+      "cible": "public.prestataire",
+      "message": "clé primaire portant une clé étrangère vers Personne : reliée par un-vers-un, sans héritage. Pour l'inclure dans l'héritage déclaré, ajouter public.prestataire aux valeurs de heritages: public.personne",
+      "resolution": "par_defaut",
+      "confiance": 0.7
+    }
+  ]
+}

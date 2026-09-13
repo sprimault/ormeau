@@ -152,6 +152,7 @@ func EcrireDecisions(p *calque.Physique, d *Decisions, base string) []byte {
 	sectionColonnesIgnorees(&b, d)
 	sectionTypesForces(&b, d)
 	sectionRelationsForcees(&b, d)
+	sectionHeritages(&b, p, d)
 	sectionEnumerations(&b, d)
 
 	corps := b.String()
@@ -424,6 +425,119 @@ func sectionRelationsForcees(b *strings.Builder, d *Decisions) {
 		return
 	}
 	b.WriteString("#\n#relations_forcees: []\n\n")
+}
+
+// sectionHeritages écrit les hiérarchies déclarées, et propose celles que le
+// schéma autorise.
+//
+// Une proposition est une racine dont au moins une table a pour clé primaire
+// une clé étrangère vers elle, et qu'aucune décision ne déclare encore. Elle
+// cite les colonnes candidates, ou dit qu'aucune ne s'y prête : le coût est
+// alors dans le schéma, pas dans ce fichier. Les valeurs restent à remplir,
+// rien ne permet de les deviner.
+func sectionHeritages(b *strings.Builder, p *calque.Physique, d *Decisions) {
+	b.WriteString("# ── Héritages ──────────────────────────────────────────────────────\n")
+	b.WriteString("#\n")
+	b.WriteString("# Une table dont la clé primaire est aussi une clé étrangère peut hériter de\n")
+	b.WriteString("# la table qu'elle vise, ou lui être simplement reliée : le schéma autorise\n")
+	b.WriteString("# les deux. Sans décision, elle lui est reliée par un-vers-un, ce qui\n")
+	b.WriteString("# fonctionne sur la base telle qu'elle est.\n")
+	b.WriteString("#\n")
+	b.WriteString("# Un héritage Doctrine exige une colonne discriminante sur la table racine,\n")
+	b.WriteString("# et une valeur par classe concrète, racine comprise. La clé est la table\n")
+	b.WriteString("# racine ; une table enfant absente des valeurs reste reliée par un-vers-un.\n")
+	b.WriteString("#\n")
+	b.WriteString("#   heritages:\n")
+	b.WriteString("#     public.personne:\n")
+	b.WriteString("#       colonne_discriminante: nature\n")
+	b.WriteString("#       valeurs:\n")
+	b.WriteString("#         public.personne: P\n")
+	b.WriteString("#         public.salarie: S\n")
+
+	propositions := hierarchiesPossibles(p, d)
+	if len(propositions) > 0 {
+		b.WriteString("#\n# Propositions pour cette base :\n")
+		for _, h := range propositions {
+			b.WriteString("#\n#   " + scalaire(h.racine, false) + ":\n")
+			switch len(h.candidates) {
+			case 0:
+				b.WriteString("#     colonne_discriminante: # aucune colonne ne s'y prête, à créer en base\n")
+			default:
+				b.WriteString("#     colonne_discriminante: " + scalaire(h.candidates[0], false))
+				if len(h.candidates) > 1 {
+					b.WriteString("  # autres candidates : " + strings.Join(h.candidates[1:], ", "))
+				}
+				b.WriteString("\n")
+			}
+			b.WriteString("#     valeurs:\n")
+			for _, table := range h.tables {
+				b.WriteString("#       " + scalaire(table, false) + ": # à remplir\n")
+			}
+		}
+	}
+
+	if len(d.Heritages) > 0 {
+		b.WriteString("\nheritages:\n")
+		for _, racine := range clesTriees(d.Heritages) {
+			h := d.Heritages[racine]
+			b.WriteString("  " + scalaire(racine, false) + ":\n")
+			b.WriteString("    colonne_discriminante: " + scalaire(h.ColonneDiscriminante, false) + "\n")
+			if len(h.Valeurs) == 0 {
+				b.WriteString("    valeurs: {}\n")
+				continue
+			}
+			b.WriteString("    valeurs:\n")
+			for _, table := range clesTriees(h.Valeurs) {
+				b.WriteString("      " + scalaire(table, false) + ": " + scalaire(h.Valeurs[table], false) + "\n")
+			}
+		}
+		b.WriteString("\n")
+		return
+	}
+	b.WriteString("#\n#heritages: {}\n\n")
+}
+
+// hierarchiePossible est une hiérarchie que le schéma autorise.
+type hierarchiePossible struct {
+	racine     string
+	tables     []string
+	candidates []string
+}
+
+// hierarchiesPossibles rend, triées par racine, les hiérarchies qu'aucune
+// décision ne déclare encore : la racine, puis ses descendantes par clé
+// primaire étrangère, triées.
+func hierarchiesPossibles(p *calque.Physique, d *Decisions) []hierarchiePossible {
+	s := analyser(p, d, nil)
+	s.enumerations = enumerationsDuSchema(p, d)
+
+	parRacine := map[string][]string{}
+	for _, table := range clesTriees(s.parents) {
+		if s.tableGeneree(table) == nil {
+			continue
+		}
+		fk := s.parents[table]
+		if s.tableGeneree(fk.SchemaCible+"."+fk.TableCible) == nil {
+			continue
+		}
+		racine := racineDe(table, s)
+		if _, decidee := d.Heritages[racine]; decidee || racine == table {
+			continue
+		}
+		parRacine[racine] = append(parRacine[racine], table)
+	}
+
+	hierarchies := make([]hierarchiePossible, 0, len(parRacine))
+	for _, racine := range clesTriees(parRacine) {
+		tables := append([]string{racine}, parRacine[racine]...)
+		slices.Sort(tables[1:])
+		hierarchies = append(hierarchies, hierarchiePossible{
+			racine:     racine,
+			tables:     tables,
+			candidates: candidatesDiscriminantes(s.tables[racine], s),
+		})
+	}
+	return hierarchies
 }
 
 // sectionEnumerations écrit les énumérations imposées.

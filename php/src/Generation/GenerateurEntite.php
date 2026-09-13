@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Ormeau\Doctrine\Generation;
 
 use LogicException;
+use Ormeau\Doctrine\Calque\Association;
 use Ormeau\Doctrine\Calque\CalqueLogique;
 use Ormeau\Doctrine\Calque\Entite;
 use Ormeau\Doctrine\Calque\Enumeration;
@@ -144,13 +145,16 @@ final class GenerateurEntite
                 ? sprintf('le nom %s est porté par plusieurs entités, à départager dans renommages', $entite->nom)
                 : $this->raisonDEcarter($entite, $refus);
         }
+        $raisons = $this->ecarterLesIdentitesEnChaine($calque->entites, $raisons);
         $raisons = $this->propagerLesEcarts($calque->entites, $raisons);
 
+        $omises = [];
         foreach ($calque->entites as $rang => $entite) {
             if ($raisons[$rang] !== null) {
                 $ecartees[] = new EntiteEcartee($entite->nom, $raisons[$rang]);
                 continue;
             }
+            $entite = $this->sansCotesInversesOrphelins($entite, $calque->entites, $raisons, $omises);
 
             $base = $repertoire . '/Base/' . RenduEntite::nomBase($entite) . '.php';
             $fichiers[] = new Fichier($base, $this->ecrire($base, $rendu->classeBase($entite)));
@@ -176,7 +180,7 @@ final class GenerateurEntite
             ));
         }
 
-        return new Rapport($fichiers, $ecartees, $divergences);
+        return new Rapport($fichiers, $ecartees, $divergences, $omises);
     }
 
     /**
@@ -225,14 +229,145 @@ final class GenerateurEntite
     }
 
     /**
-     * Écarte toute entité dont une association vise une entité écartée ou
-     * absente du calque, jusqu'à ce que plus rien ne bouge.
+     * Écarte une entité identifiée par une association vers une entité elle-
+     * même identifiée par une association.
+     *
+     * Doctrine refuse cette identité dérivée en chaîne : il n'identifie par
+     * association que vers un identifiant scalaire. Constaté sous ORM 2.14 et
+     * 3.6, et aucune forme ne la contourne sans défaut. Garder une propriété
+     * scalaire modifiable à côté de l'association rend deux écrivains à la
+     * colonne, et l'association écrase la propriété en silence ; la garder en
+     * lecture seule rend l'entité impossible à persister, faute d'identifiant
+     * renseigné. L'entité est donc écartée, et la raison nomme la sortie : une
+     * table déclarée dans un héritage prend l'identifiant scalaire de sa
+     * racine, et la chaîne disparaît.
+     *
+     * @param list<Entite>             $entites entités du calque, dans son ordre
+     * @param array<int, string|null> $raisons raison d'écarter chaque entité, par rang
+     *
+     * @return array<int, string|null> les mêmes raisons, identités en chaîne comprises
+     */
+    private function ecarterLesIdentitesEnChaine(array $entites, array $raisons): array
+    {
+        $parNom = [];
+        foreach ($entites as $entite) {
+            $parNom[$entite->nom] ??= $entite;
+        }
+
+        foreach ($entites as $rang => $entite) {
+            if ($raisons[$rang] !== null) {
+                continue;
+            }
+            foreach (RenduMembres::associationsDeCle($entite->proprietes, $entite->identifiant, $entite->associations) as $nom) {
+                $association = self::association($entite, $nom);
+                $cible = $parNom[$association->cible] ?? null;
+                if ($cible === null || RenduMembres::associationsDeCle($cible->proprietes, $cible->identifiant, $cible->associations) === []) {
+                    continue;
+                }
+                $raisons[$rang] = sprintf(
+                    'Doctrine ne sait pas identifier %s (%s) par %s : %s (%s) est elle-même identifiée par une association. '
+                    . 'Déclarer %s dans un héritage (heritages), ou écarter l\'une des deux tables (tables_ignorees)',
+                    $entite->nom,
+                    self::table($entite),
+                    $nom,
+                    $cible->nom,
+                    self::table($cible),
+                    self::table($cible),
+                );
+                break;
+            }
+        }
+
+        return $raisons;
+    }
+
+    /**
+     * Rend l'association d'une entité qui porte ce nom.
+     */
+    private static function association(Entite $entite, string $nom): Association
+    {
+        foreach ($entite->associations as $association) {
+            if ($association->nom === $nom) {
+                return $association;
+            }
+        }
+
+        throw new LogicException(sprintf('Association %s introuvable sur %s.', $nom, $entite->nom));
+    }
+
+    /**
+     * Rend le nom qualifié de la table d'une entité : c'est lui que
+     * l'utilisateur retrouve dans le fichier de décisions.
+     */
+    private static function table(Entite $entite): string
+    {
+        return $entite->table->schema . '.' . $entite->table->nom;
+    }
+
+    /**
+     * Rend l'entité sans ses côtés inverses dont l'entité propriétaire est
+     * écartée, et note chaque omission.
+     *
+     * Un côté inverse ne porte aucune colonne : Doctrine accepte l'association
+     * unidirectionnelle, et l'entité reste entière. L'écarter pour autant
+     * remonterait l'écart à toute la hiérarchie — Salarie, puis Personne, puis
+     * Prestataire, pour une seule Affectation écartée.
+     *
+     * @param Entite                  $entite  entité générée
+     * @param list<Entite>            $entites entités du calque, dans son ordre
+     * @param array<int, string|null> $raisons raison d'écarter chaque entité, par rang
+     * @param list<AssociationOmise>  $omises  omissions notées jusqu'ici, complétées
+     */
+    private function sansCotesInversesOrphelins(Entite $entite, array $entites, array $raisons, array &$omises): Entite
+    {
+        $ecartees = [];
+        foreach ($entites as $rang => $autre) {
+            if ($raisons[$rang] !== null) {
+                $ecartees[$autre->nom] = $autre;
+            }
+        }
+
+        $gardees = [];
+        foreach ($entite->associations as $association) {
+            $cible = $ecartees[$association->cible] ?? null;
+            if ($association->proprietaire || $cible === null) {
+                $gardees[] = $association;
+                continue;
+            }
+            $omises[] = new AssociationOmise($entite->nom, $association->nom, sprintf(
+                'côté inverse de %s (%s), écartée',
+                $cible->nom,
+                self::table($cible),
+            ));
+        }
+        if (count($gardees) === count($entite->associations)) {
+            return $entite;
+        }
+
+        return new Entite(
+            $entite->nom,
+            $entite->table,
+            $entite->proprietes,
+            $entite->heritage,
+            $entite->traits,
+            $entite->identifiant,
+            $gardees,
+            $entite->index,
+            $entite->origine,
+            $entite->valeurDiscriminante,
+        );
+    }
+
+    /**
+     * Écarte toute entité dont une association propriétaire vise une entité
+     * écartée ou absente du calque, jusqu'à ce que plus rien ne bouge.
      *
      * Une classe de base qui importe une classe jamais écrite ne se charge
-     * pas, et l'écart se propage : Affectation vise Salarie, écartée pour son
-     * héritage, et une entité qui viserait Affectation le serait à son tour.
-     * La raison nomme l'association et sa cible, pas la cause première, qui se
-     * lit sur la ligne de la cible.
+     * pas, et l'écart se propage : une entité qui vise Affectation, écartée
+     * pour son identité en chaîne, l'est à son tour. Chaque entité écartée a sa
+     * propre raison : elle nomme l'association, la cible et sa table, et la
+     * cause première se lit sur la ligne de la cible. Une entité absente sans
+     * explication ferait douter de l'outil entier.
      *
      * @param list<Entite>             $entites entités du calque, dans son ordre
      * @param array<int, string|null> $raisons raison d'écarter chaque entité, par rang ; null
@@ -254,11 +389,21 @@ final class GenerateurEntite
                     continue;
                 }
                 foreach ($entite->associations as $association) {
+                    // Un côté inverse ne porte aucune colonne : il est omis
+                    // plus loin, et l'entité reste générée.
+                    if (!$association->proprietaire) {
+                        continue;
+                    }
                     $cibles = $rangs[$association->cible] ?? [];
                     if ($cibles === []) {
                         $raisons[$rang] = sprintf('l\'association %s vise %s, absente du calque', $association->nom, $association->cible);
                     } elseif (array_filter($cibles, static fn(int $r): bool => $raisons[$r] !== null) !== []) {
-                        $raisons[$rang] = sprintf('l\'association %s vise %s, écartée', $association->nom, $association->cible);
+                        $raisons[$rang] = sprintf(
+                            'l\'association %s vise %s (%s), écartée',
+                            $association->nom,
+                            $association->cible,
+                            self::table($entites[$cibles[0]]),
+                        );
                     }
                     if ($raisons[$rang] !== null) {
                         $stable = false;

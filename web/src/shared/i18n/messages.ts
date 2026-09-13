@@ -324,7 +324,7 @@ const fr = {
   'warning.cas_enumeration_opaque': 'Cas d’énumération opaque',
   'warning.trait_deduit': 'Trait déduit',
   'warning.table_de_jointure': 'Table de jointure',
-  'warning.heritage_deduit': 'Héritage déduit',
+  'warning.heritage_deduit': 'Héritage possible',
 
   'error.network': 'Le serveur local ne répond pas.',
   'error.unknown': 'Échec inattendu.',
@@ -632,7 +632,7 @@ const en: Record<MessageKey, string> = {
   'warning.cas_enumeration_opaque': 'Opaque enumeration case',
   'warning.trait_deduit': 'Inferred trait',
   'warning.table_de_jointure': 'Join table',
-  'warning.heritage_deduit': 'Inferred inheritance',
+  'warning.heritage_deduit': 'Possible inheritance',
 
   'error.network': 'The local server is not responding.',
   'error.unknown': 'Unexpected failure.',

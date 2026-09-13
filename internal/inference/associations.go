@@ -35,9 +35,17 @@ type schemaLogique struct {
 	// d'entité mais une association sur chacune de leurs deux cibles.
 	jointures map[string]*jointurePure
 
-	// parents donne, pour une table qui hérite, la clé étrangère qui porte
-	// l'héritage.
+	// parents donne, pour une table dont la clé primaire est aussi une clé
+	// étrangère, cette clé. Elle porte un héritage si une décision le déclare,
+	// un un-vers-un sinon.
 	parents map[string]*calque.CleEtrangere
+
+	// tables donne la table physique de chaque table non écartée, par nom
+	// qualifié.
+	tables map[string]*calque.Table
+
+	// heritages donne la place de chaque table dans une hiérarchie décidée.
+	heritages map[string]heritageRetenu
 
 	// enumerations donne, par colonne qualifiée, le type énuméré reconnu.
 	enumerations map[string]enumeree
@@ -64,6 +72,8 @@ func analyser(p *calque.Physique, d *Decisions, prefixes []string) *schemaLogiqu
 		nomsParTable: make(map[string]string, len(p.Tables)),
 		jointures:    map[string]*jointurePure{},
 		parents:      map[string]*calque.CleEtrangere{},
+		tables:       map[string]*calque.Table{},
+		heritages:    map[string]heritageRetenu{},
 	}
 
 	ignorees := ensemble(d.TablesIgnorees)
@@ -76,6 +86,7 @@ func analyser(p *calque.Physique, d *Decisions, prefixes []string) *schemaLogiqu
 
 		nom, _ := nomEntite(t, d, prefixes)
 		s.nomsParTable[cible] = nom
+		s.tables[cible] = t
 
 		if j := reconnaitreJointure(t); j != nil {
 			s.jointures[cible] = j
@@ -86,6 +97,15 @@ func analyser(p *calque.Physique, d *Decisions, prefixes []string) *schemaLogiqu
 		}
 	}
 	return s
+}
+
+// tableGeneree rend la table physique d'une table qui produit une entité, ou
+// nil : une table écartée ou de jointure n'a pas de classe.
+func (s *schemaLogique) tableGeneree(cible string) *calque.Table {
+	if _, jointure := s.jointures[cible]; jointure {
+		return nil
+	}
+	return s.tables[cible]
 }
 
 // reconnaitreJointure dit si la table n'existe que pour relier deux autres.
@@ -138,8 +158,10 @@ func reconnaitreJointure(t *calque.Table) *jointurePure {
 // reconnaitreHeritage dit si la clé primaire est aussi une clé étrangère.
 //
 // C'est la forme que prend l'héritage par jointure en base : la table fille
-// partage l'identifiant de la mère, et sa clé primaire pointe dessus. Doctrine
-// l'exprime en JOINED.
+// partage l'identifiant de la mère, et sa clé primaire pointe dessus. Mais
+// c'est aussi celle d'une extension un-vers-un, et le schéma ne distingue pas
+// les deux : la clé rendue ici porte un héritage si une décision le déclare,
+// un un-vers-un sinon (heritages.go).
 //
 // Il faut que la clé étrangère couvre exactement la clé primaire. Une clé
 // primaire composite dont une seule colonne est étrangère décrit une relation
@@ -149,21 +171,9 @@ func reconnaitreHeritage(t *calque.Table) *calque.CleEtrangere {
 		return nil
 	}
 
-	primaires := ensemble(t.ClePrimaire.Colonnes)
 	for i := range t.ClesEtrangeres {
 		fk := &t.ClesEtrangeres[i]
-		if len(fk.Colonnes) != len(primaires) {
-			continue
-		}
-
-		couvre := true
-		for _, c := range fk.Colonnes {
-			if !primaires[c] {
-				couvre = false
-				break
-			}
-		}
-		if couvre && fk.SchemaCible+"."+fk.TableCible != t.Schema+"."+t.Nom {
+		if memesColonnes(fk.Colonnes, t.ClePrimaire.Colonnes) && fk.SchemaCible+"."+fk.TableCible != t.Schema+"."+t.Nom {
 			return fk
 		}
 	}
@@ -186,10 +196,15 @@ func inferrerAssociations(t *calque.Table, s *schemaLogique, parColonne map[stri
 	}
 
 	// Côté propriétaire : une par clé étrangère déclarée, sauf celle qui porte
-	// l'héritage — elle devient la hiérarchie, pas une propriété — et celles
-	// dont une colonne porte une relation forcée : la décision gagne, et deux
-	// associations sur la même colonne écriraient deux fois la même valeur.
-	heritage := s.parents[cible]
+	// un héritage décidé — elle devient la hiérarchie, pas une association — et
+	// celles dont une colonne porte une relation forcée : la décision gagne, et
+	// deux associations sur la même colonne écriraient deux fois la même valeur.
+	// Sans décision, la clé primaire étrangère donne un un-vers-un comme les
+	// autres.
+	var heritage *calque.CleEtrangere
+	if retenu, decide := s.heritages[cible]; decide && !retenu.racine {
+		heritage = s.parents[cible]
+	}
 	for i := range t.ClesEtrangeres {
 		fk := &t.ClesEtrangeres[i]
 		if fk == heritage || slices.ContainsFunc(fk.Colonnes, func(c string) bool { return decidees[c] }) {
@@ -326,21 +341,32 @@ func retirerSuffixeIdentifiant(colonne string) string {
 // Exactement : une unicité sur (client_id, date) n'interdit pas deux lignes
 // pour le même client, et la relation reste un plusieurs-vers-un.
 func unicitePorte(t *calque.Table, colonnes []string) bool {
+	// La clé primaire est une unicité. Une clé étrangère qui la couvre
+	// exactement — la table enfant d'un héritage non déclaré — porte donc un
+	// un-vers-un. Une clé qui n'en couvre qu'une partie, comme chacune des deux
+	// d'une ligne de commande, n'est pas unique à elle seule.
+	if t.ClePrimaire != nil && memesColonnes(t.ClePrimaire.Colonnes, colonnes) {
+		return true
+	}
 	for _, u := range t.Unicites {
-		if len(u.Colonnes) != len(colonnes) {
-			continue
-		}
-		cherchees := ensemble(colonnes)
-		couvre := true
-		for _, c := range u.Colonnes {
-			if !cherchees[c] {
-				couvre = false
-				break
-			}
-		}
-		if couvre {
+		if memesColonnes(u.Colonnes, colonnes) {
 			return true
 		}
 	}
 	return false
+}
+
+// memesColonnes dit si deux listes désignent le même ensemble de colonnes,
+// dans n'importe quel ordre.
+func memesColonnes(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	cherchees := ensemble(b)
+	for _, c := range a {
+		if !cherchees[c] {
+			return false
+		}
+	}
+	return true
 }

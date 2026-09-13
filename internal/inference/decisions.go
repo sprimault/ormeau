@@ -63,6 +63,33 @@ type Decisions struct {
 	TypesForces      map[string]string   `json:"types_forces,omitempty" yaml:"types_forces,omitempty"`
 	RelationsForcees []RelationForcee    `json:"relations_forcees,omitempty" yaml:"relations_forcees,omitempty"`
 	Enumerations     []EnumerationForcee `json:"enumerations,omitempty" yaml:"enumerations,omitempty"`
+
+	// Heritages déclare les hiérarchies que le schéma autorise sans les
+	// imposer. Clé : la table racine qualifiée.
+	//
+	//	heritages:
+	//	  public.personne:
+	//	    colonne_discriminante: nature
+	//	    valeurs:
+	//	      public.personne: P
+	//	      public.salarie: S
+	//
+	// Sans décision, une table dont la clé primaire est aussi une clé étrangère
+	// est reliée à son parent par un-vers-un. L'héritage ne se déduit pas :
+	// Doctrine exige une colonne discriminante que la base doit porter, et
+	// « un salarié est une personne » n'est pas « un salarié a une personne ».
+	// La décision s'applique entière ou pas du tout, racine par racine.
+	Heritages map[string]HeritageDecide `json:"heritages,omitempty" yaml:"heritages,omitempty"`
+}
+
+// HeritageDecide déclare une hiérarchie depuis sa table racine.
+//
+// Valeurs donne la valeur discriminante de chaque classe concrète, racine
+// comprise : Doctrine en exige une par classe. Une table enfant absente des
+// valeurs reste hors de la hiérarchie, reliée par un-vers-un.
+type HeritageDecide struct {
+	ColonneDiscriminante string            `json:"colonne_discriminante" yaml:"colonne_discriminante"`
+	Valeurs              map[string]string `json:"valeurs" yaml:"valeurs"`
 }
 
 // RelationForcee déclare une association que l'heuristique n'a pas vue — la clé
@@ -98,7 +125,8 @@ func (d *Decisions) vide() bool {
 		len(d.Renommages) == 0 &&
 		len(d.TypesForces) == 0 &&
 		len(d.RelationsForcees) == 0 &&
-		len(d.Enumerations) == 0
+		len(d.Enumerations) == 0 &&
+		len(d.Heritages) == 0
 }
 
 // LireDecisions charge le fichier. Un chemin vide rend des décisions vides sans
