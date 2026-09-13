@@ -84,7 +84,11 @@
       "properties": {
         "nom": { "type": "string" },
         "colonne": { "type": "string" },
-        "type_php": { "type": "string" },
+        "type_php": {
+          "description": "Obsolète, retiré à la prochaine version du format. Le type PHP dépend de la version de Doctrine du projet — un bigint est une chaîne sous ORM 2, un entier sous ORM 3 — et ce champ ne vaut que pour l'une des deux. Un générateur doit le déduire de type_doctrine, nullable et enumeration, et ne lire ce champ que pour un type Doctrine qu'il ne connaît pas.",
+          "type": "string",
+          "deprecated": true
+        },
         "type_doctrine": { "type": "string" },
         "nullable": { "type": "boolean" },
         "longueur": { "type": "integer", "minimum": 0 },

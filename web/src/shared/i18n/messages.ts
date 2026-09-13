@@ -283,7 +283,7 @@ const fr = {
   'arbitrage.help.relation':
     'Quand la base n’a jamais déclaré la clé étrangère, relier ici la colonne qui contient l’identifiant d’une autre entité — par exemple commande.client_ref vers client.id. La clé primaire de l’entité liée et le nom de la propriété sont proposés. L’entité liée reçoit l’autre côté, sa collection, sans rien faire de plus.',
   'arbitrage.help.entity':
-    'Ce que la génération produira : propriétés, types PHP et Doctrine, associations. Recalculé à chaque modification.',
+    'Ce que la génération produira : propriétés, types Doctrine, associations. Le type PHP dépend de la version de Doctrine du projet, la génération le fixe. Recalculé à chaque modification.',
   'arbitrage.help.table':
     'La table telle que l’extraction l’a lue dans la base. Les colonnes écartées dans « Sélection des tables » ne deviennent pas des propriétés.',
 
@@ -294,7 +294,6 @@ const fr = {
     'Aucune entité : la table est ignorée, ou c’est une table de jointure.',
   'arbitrage.detail.identifier': 'Identifiant',
   'arbitrage.detail.property': 'Propriété',
-  'arbitrage.detail.php': 'PHP',
   'arbitrage.detail.doctrine': 'Doctrine',
   'arbitrage.detail.associations': 'Associations',
   'arbitrage.association.gives': 'Contient',
@@ -593,7 +592,7 @@ const en: Record<MessageKey, string> = {
   'arbitrage.help.relation':
     'When the database never declared the foreign key, link here the column that holds another entity’s identifier — for example commande.client_ref to client.id. The linked entity’s primary key and the property name are suggested. The linked entity gets the other side, its collection, with nothing more to do.',
   'arbitrage.help.entity':
-    'What generation will produce: properties, PHP and Doctrine types, associations. Recomputed at each change.',
+    'What generation will produce: properties, Doctrine types, associations. The PHP type depends on the project’s Doctrine version, generation settles it. Recomputed at each change.',
   'arbitrage.help.table':
     'The table as the extraction read it from the database. Columns excluded in “Table selection” do not become properties.',
 
@@ -603,7 +602,6 @@ const en: Record<MessageKey, string> = {
   'arbitrage.detail.noEntity': 'No entity: the table is ignored, or it is a join table.',
   'arbitrage.detail.identifier': 'Identifier',
   'arbitrage.detail.property': 'Property',
-  'arbitrage.detail.php': 'PHP',
   'arbitrage.detail.doctrine': 'Doctrine',
   'arbitrage.detail.associations': 'Associations',
   'arbitrage.association.gives': 'Holds',
