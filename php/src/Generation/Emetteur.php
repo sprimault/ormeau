@@ -34,12 +34,15 @@ final class Emetteur
      * oblique inverse s'échappent. Un flottant garde son point décimal, sans
      * quoi 1.0 se relirait en entier.
      *
-     * @param array<array-key, mixed>|bool|float|int|string|null $valeur
+     * Un Code s'écrit tel quel : c'est le seul chemin pour une expression.
+     *
+     * @param array<array-key, mixed>|bool|Code|float|int|string|null $valeur
      */
-    public static function litteral(array|bool|float|int|string|null $valeur): string
+    public static function litteral(array|bool|Code|float|int|string|null $valeur): string
     {
         return match (true) {
             $valeur === null => 'null',
+            $valeur instanceof Code => $valeur->php,
             is_bool($valeur) => $valeur ? 'true' : 'false',
             is_int($valeur) => (string) $valeur,
             is_float($valeur) => self::flottant($valeur),
@@ -67,7 +70,7 @@ final class Emetteur
             if ($valeur === null) {
                 continue;
             }
-            /** @var array<array-key, mixed>|bool|float|int|string $valeur */
+            /** @var array<array-key, mixed>|bool|Code|float|int|string $valeur */
             $parties[] = $cle . ': ' . self::litteral($valeur);
         }
 
@@ -96,7 +99,7 @@ final class Emetteur
     {
         $elements = [];
         foreach ($tableau as $cle => $valeur) {
-            /** @var array<array-key, mixed>|bool|float|int|string|null $valeur */
+            /** @var array<array-key, mixed>|bool|Code|float|int|string|null $valeur */
             $elements[] = array_is_list($tableau)
                 ? self::litteral($valeur)
                 : self::litteral($cle) . ' => ' . self::litteral($valeur);

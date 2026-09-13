@@ -28,11 +28,14 @@ final class Repertoires
         'cas-limites',
         'cible-ignoree',
         'decisions',
+        'enumerations',
+        'enumerations-decidees',
         'identifiants-penibles',
         'minimal',
         'nommage-court',
         'prefixes',
         'singularisation',
+        'traits',
         'types',
     ];
 
