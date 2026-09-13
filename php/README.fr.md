@@ -39,7 +39,9 @@ $ bin/console ormeau:generer gescom.logique.json
 ```
 
 La chaîne complète — extraire le calque, inférer, arbitrer, générer — est
-décrite dans le [README principal](https://github.com/sprimault/ormeau/blob/master/README.fr.md).
+décrite dans le [README principal](https://github.com/sprimault/ormeau/blob/master/README.fr.md),
+et ce que change chaque version dans le
+[journal des versions](https://github.com/sprimault/ormeau/blob/master/CHANGELOG.md).
 
 ## D'où vient le nom
 

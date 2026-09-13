@@ -160,7 +160,8 @@ garde des fins de ligne LF, sans lesquelles ssh refuse la clé sur le runner.
 Le tag se pose **avant** la fusion de la pull request de clôture, pour
 qu'aucune fenêtre ne sépare l'annonce de la version de sa disponibilité :
 
-1. La pull request qui date la section du `CHANGELOG` est verte.
+1. La pull request qui date la section du `CHANGELOG`, et sa copie dans
+   `php/`, est verte.
 2. Le tag est posé sur sa tête et poussé :
    `git tag vX.Y.Z <tête de la PR> && git push origin vX.Y.Z`.
 3. `release.yml` pousse d'abord le tag sur le miroir, et vérifie que Composer
