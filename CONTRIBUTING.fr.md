@@ -74,7 +74,10 @@ fichiers sont le vrai jeu de tests du projet.
 ## Mise en route
 
 Il faut Go (la version épinglée dans `go.mod`) et Docker pour les conteneurs de
-test. PHP 8.1 et Composer ne servent que pour travailler sur `php/`.
+test. PHP 8.1 et Composer ne servent que pour travailler sur `php/`, qui se
+publie en miroir dans `sprimault/ormeau-doctrine` : c'est ici qu'on y contribue,
+jamais sur le miroir, réécrit à chaque fusion. Le mécanisme et la publication
+d'une version sont décrits dans [`docs/construction.fr.md`](docs/construction.fr.md).
 
 ```bash
 make outils        # golangci-lint, govulncheck, gosec

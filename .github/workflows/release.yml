@@ -27,9 +27,18 @@ env:
   NODE_VERSION: '22'
 
 jobs:
+  # Le miroir du paquet PHP reçoit le tag avant toute autre étape, et rien ne
+  # part sans lui : ni binaires, ni brouillon, ni image. Sans cet ordre, un
+  # composer require de la nouvelle version échouerait pendant que la release
+  # l'annonce déjà.
+  miroir:
+    name: Miroir du paquet PHP
+    uses: ./.github/workflows/miroir.yml
+
   binaires:
     name: Binaires
     runs-on: ubuntu-latest
+    needs: miroir
     permissions:
       contents: write
       # L'attestation lie l'archive au commit et au workflow qui l'a produite,

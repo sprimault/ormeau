@@ -105,6 +105,11 @@ sans changer de nom.** `version_ri` ne bouge pas.
   valeur exacte reste dans les options de l'attribut, en chaîne échappée.
 - **Le calque logique porte le commentaire de la table** (`entite.commentaire`,
   facultatif). `version_ri` ne bouge pas ; un calque recalculé le gagne.
+- **Le paquet PHP a son dépôt**,
+  [sprimault/ormeau-doctrine](https://github.com/sprimault/ormeau-doctrine) :
+  un miroir en lecture seule de `php/`, où Composer trouve `composer.json` à la
+  racine. Il porte les versions à partir de celle-ci, et aucune antérieure.
+  Issues et contributions restent sur le dépôt principal.
 - **Ce qui ne se génère pas entier est écarté, en le disant** : une table sans
   clé primaire, un nom réservé de PHP, deux entités de même nom, une entité
   dont une association propriétaire vise une entité écartée, une identité
@@ -238,6 +243,11 @@ meaning without changing name.** `version_ri` stays put.
   options, as an escaped string.
 - **The logical layer carries the table comment** (`entite.commentaire`,
   optional). `version_ri` stays put; a recomputed layer gains it.
+- **The PHP package has its own repository**,
+  [sprimault/ormeau-doctrine](https://github.com/sprimault/ormeau-doctrine): a
+  read-only mirror of `php/`, where Composer finds `composer.json` at the root.
+  It carries versions from this one on, and none before. Issues and
+  contributions stay on the main repository.
 - **What cannot be generated whole is skipped, saying so**: a table without a
   primary key, a PHP reserved name, two entities with the same name, an entity
   whose owning association points at a skipped one, a chained derived identity

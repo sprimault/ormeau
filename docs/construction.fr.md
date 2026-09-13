@@ -99,6 +99,116 @@ tourner en root.
 Le conteneur reste un repli : il doit encore atteindre la base, ce que le binaire
 natif fait sans configuration réseau.
 
+## Le miroir du paquet PHP
+
+Composer ne lit un dépôt VCS que si `composer.json` est à sa racine. Le paquet
+vit dans `php/` : il est donc publié dans
+[sprimault/ormeau-doctrine](https://github.com/sprimault/ormeau-doctrine), où
+`php/` devient la racine. Ce dépôt est un miroir en lecture seule : ni issues,
+ni pull requests, et rien ne s'y écrit à la main.
+
+`.github/workflows/miroir.yml` y pousse `git subtree split --prefix=php` à chaque
+push sur `master`, et pour chaque tag `v*` appelé depuis `release.yml`. Le
+split est déterministe, et celui d'un commit plus ancien est ancêtre de celui
+d'un plus récent : le miroir avance toujours en avance rapide, et **rien ne s'y
+pousse en force**. Un refus veut dire que le miroir a divergé ; il s'examine, il
+ne s'écrase pas.
+
+Le miroir ne porte que des versions où le paquet fonctionne : il commence à la
+0.5.0, et aucun tag antérieur n'y sera poussé.
+
+### Ce qui protège l'écriture
+
+- La clé est une **clé de déploiement** du miroir : elle n'écrit sur aucun autre
+  dépôt.
+- Sa partie privée est le secret `MIROIR_CLE` de l'**environnement `miroir`** du
+  dépôt principal, dont la règle de déploiement n'admet que `master` et les tags
+  `v*`. Un workflow déclenché par une pull request tourne sur une autre
+  référence : GitHub ne lui ouvre pas l'environnement, quoi que dise son
+  fichier.
+- Sur le miroir, deux règles : `master` ne se supprime pas, ne se force pas, et
+  seule la clé de déploiement la met à jour, le propriétaire compris ; un tag
+  `v*` ne se déplace pas, et seule la clé le crée. Le propriétaire peut
+  supprimer un tag : c'est la reprise ci-dessous qui l'exige.
+
+Mise en place, une fois, par le propriétaire des deux dépôts, dans un
+répertoire temporaire : jamais dans le dépôt, où un `git add` l'emporterait, ni
+dans `~/.ssh`, où elle resterait une clé capable d'écrire sur le miroir. Une
+fois transmise, elle n'existe plus que dans le secret ; perdue ou à changer,
+elle se remplace par une nouvelle, des deux côtés.
+
+```bash
+cd "$(mktemp -d)"
+ssh-keygen -t ed25519 -N "" -C "miroir ormeau-doctrine" -f miroir
+gh repo deploy-key add miroir.pub --repo sprimault/ormeau-doctrine --allow-write --title "miroir.yml"
+gh secret set MIROIR_CLE --env miroir --repo sprimault/ormeau < miroir
+rm miroir miroir.pub
+```
+
+Sous PowerShell, `-N ""` n'arrive pas à `ssh-keygen` : l'omettre, et valider
+deux fois une phrase de passe vide. La redirection `<` n'existe pas non plus ;
+passer la clé par `((Get-Content miroir) -join "`n") | gh secret set …`, qui
+garde des fins de ligne LF, sans lesquelles ssh refuse la clé sur le runner.
+
+### Publier une version
+
+Le tag se pose **avant** la fusion de la pull request de clôture, pour
+qu'aucune fenêtre ne sépare l'annonce de la version de sa disponibilité :
+
+1. La pull request qui date la section du `CHANGELOG` est verte.
+2. Le tag est posé sur sa tête et poussé :
+   `git tag vX.Y.Z <tête de la PR> && git push origin vX.Y.Z`.
+3. `release.yml` pousse d'abord le tag sur le miroir, et vérifie que Composer
+   résout `sprimault/ormeau-doctrine:X.Y.Z` depuis le vrai miroir. Binaires,
+   brouillon de release et image attendent cette preuve.
+4. La pull request est fusionnée : le README qui annonce la version arrive sur
+   `master` après que le miroir la porte.
+5. Le brouillon est relu et publié.
+
+### Si la publication échoue
+
+Tant que le brouillon n'est pas publié, le numéro se réutilise. Ensuite, jamais :
+un projet a pu verrouiller le commit du tag, et un correctif prend le numéro
+suivant.
+
+- **Le job du miroir échoue avant d'avoir poussé le tag** (secret absent, push
+  refusé) : le tag n'existe que sur le dépôt principal, et rien d'autre n'est
+  parti. Supprimer le tag, corriger sur la pull request, le reposer sur la
+  nouvelle tête :
+
+  ```bash
+  git push origin :refs/tags/vX.Y.Z && git tag -d vX.Y.Z
+  ```
+
+- **Un job échoue après le tag du miroir, pour une cause passagère** (réseau,
+  runner) : relancer les jobs échoués. Le split est le même, et repousser un tag
+  identique ne change rien.
+
+  ```bash
+  gh run rerun <identifiant du run> --failed
+  ```
+
+- **La correction demande un commit** : le split change, et le tag du miroir ne
+  se déplace pas. Supprimer le tag des deux côtés et le brouillon s'il existe,
+  corriger, reposer le tag :
+
+  ```bash
+  gh api -X DELETE repos/sprimault/ormeau-doctrine/git/refs/tags/vX.Y.Z
+  gh release delete vX.Y.Z --yes
+  git push origin :refs/tags/vX.Y.Z && git tag -d vX.Y.Z
+  ```
+
+  La même suppression vaut pour une pull request abandonnée après la pose du
+  tag.
+
+- **`master` du miroir refuse l'avance rapide** : quelque chose y a été écrit
+  sans venir du split. La règle du miroir ne l'autorise qu'à la clé : c'est donc
+  que la clé a servi ailleurs. La révoquer (supprimer la clé de déploiement, en
+  poser une nouvelle), comparer `git ls-remote` au split local de `master`, puis
+  seulement remettre `master` du miroir sur le split — seul cas où un push forcé
+  est permis, fait à la main par le propriétaire, règle désactivée le temps de
+  l'opération.
+
 ## Signature : les deux frictions
 
 Elles n'empêchent pas de publier, mais elles se documentent plutôt qu'elles ne se

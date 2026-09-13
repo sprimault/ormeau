@@ -12,7 +12,7 @@ générateur.
 | 4 — Interface | terminée |
 | 5 — Génération Doctrine | entités, associations, énumérations, traits et héritage générés |
 | 6 à 10 | non commencées |
-| 11 — Publication | faite pour l'essentiel, hors Packagist |
+| 11 — Publication | faite pour l'essentiel, hors Packagist (miroir du paquet PHP en place) |
 
 ## Phase 1 — Le calque physique
 
@@ -126,9 +126,11 @@ méthodes métier et du formatage. Tests de survie des modifications manuelles.
 README bilingue, documentation d'installation, avertissement d'usage, subtree
 split vers Packagist, image Docker multi-arch, binaires de version.
 
-Faite en avance, sauf le split : publier une version dès qu'il y avait un usage
-réel valait mieux que d'attendre la fin. Reste Packagist, qui suppose du code
-PHP à installer — donc la phase 5.
+Faite en avance : publier une version dès qu'il y avait un usage réel valait
+mieux que d'attendre la fin. Le split est en place depuis la phase 5 :
+`php/` est publié en miroir dans `sprimault/ormeau-doctrine`, installable par un
+dépôt VCS Composer. Reste Packagist, qui ne demandera plus que d'y inscrire ce
+miroir.
 
 ## Hors périmètre v1
 
