@@ -70,7 +70,7 @@ Verifying a downloaded archive — the binaries being neither signed nor
 notarized, SmartScreen and Gatekeeper will complain on first launch:
 
 ```console
-$ gh attestation verify ormeau_v0.4.2_linux_amd64.tar.gz --repo sprimault/ormeau
+$ gh attestation verify ormeau_v0.5.0_linux_amd64.tar.gz --repo sprimault/ormeau
 ```
 
 Through a container, giving it the caller's identity: the image runs as an
@@ -79,7 +79,7 @@ unprivileged user and would not write to a Linux volume otherwise.
 ```console
 $ docker run --rm --user "$(id -u):$(id -g)" \
     -e ORMEAU_DSN -v "$PWD:/sortie" \
-    ghcr.io/sprimault/ormeau:v0.4.2 extraire --sortie /sortie/gescom.calque.json
+    ghcr.io/sprimault/ormeau:v0.5.0 extraire --sortie /sortie/gescom.calque.json
 ```
 
 With the layer in hand, inference runs offline — the database is no longer
@@ -107,6 +107,54 @@ The interface does regenerate it when you save, and asks first if it was edited
 by hand.
 
 Between releases, `go install github.com/sprimault/ormeau/cmd/ormeau@master`.
+
+### Generating entities
+
+The Symfony bundle is its own Composer package, `sprimault/ormeau-doctrine`,
+published from a read-only mirror of `php/`. It is not on Packagist yet, hence
+the repository line:
+
+```console
+$ composer config repositories.ormeau vcs https://github.com/sprimault/ormeau-doctrine
+$ composer require --dev sprimault/ormeau-doctrine
+```
+
+It requires PHP 8.1, Symfony 5.4 to 8 and Doctrine ORM 2.14 to 3. Symfony Flex
+registers the bundle for `dev` and `test`; without Flex, add
+`Ormeau\Doctrine\OrmeauDoctrineBundle::class => ['dev' => true, 'test' => true]`
+to `config/bundles.php`.
+
+```console
+$ bin/console ormeau:generer gescom.logique.json
+Cible détectée : PHP 8.4, Doctrine ORM 3.7
+créé     src/Entity/Enum/StatutClient.php
+créé     src/Entity/Base/ClientBase.php
+créé     src/Entity/Client.php
+```
+
+`Base/`, `Enum/` and `Trait/` belong to the tool and are rewritten on every run.
+`Client.php` is created once and never touched again: your business methods go
+there. It can be moved into a subdirectory, `src/Entity/Ventes/Client.php` with
+its namespace: the next run finds it by its base class, and the other classes
+refer to it where it now lives. When it no longer matches the layer — a renamed
+table, a newly declared subclass —, the command names the file, the line and
+the expected attribute.
+`--repertoire` writes somewhere other than `src/Entity`, and `--cible-orm=2`
+or `3` targets an ORM version other than the installed one.
+
+This two-class shape is the price of regenerating without overwriting, and it
+changes a few habits. Properties are declared in `Base/`, which is rewritten:
+validation constraints and serialization groups do not go on them. They go in
+`Client.php`, on a redeclared getter — `#[Assert\NotBlank] public function
+getRaisonSociale(): string { return parent::getRaisonSociale(); }` —, or in the
+mapping files of `config/validator/` and `config/serializer/`, which name the
+inherited property. `make:entity` does not suit these classes: it would add
+fields to `Client.php`, outside what the layer describes. A column is added in
+the database, and the entities are regenerated.
+
+Table and column comments become docblocks. The sentences the tool writes are
+in French, like all of its output, while a comment taken from the database
+keeps the database's language: a docblock may mix both, and that is expected.
 
 ### Local interface
 
@@ -162,14 +210,14 @@ $env:ORMEAU_MDP = "secret"
 .\ormeau.exe extraire --sgbd postgres --hote srv --utilisateur app --base gescom --sortie gescom.calque.json
 
 docker run --rm -e ORMEAU_DSN -v "${PWD}:/sortie" `
-    ghcr.io/sprimault/ormeau:v0.4.2 extraire --sortie /sortie/gescom.calque.json
+    ghcr.io/sprimault/ormeau:v0.5.0 extraire --sortie /sortie/gescom.calque.json
 ```
 
 Verifying the checksum of a downloaded archive:
 
 ```powershell
 $attendu = (Select-String -Path SHA256SUMS -Pattern windows).Line.Split(" ")[0]
-$obtenu  = (Get-FileHash ormeau_v0.4.2_windows_amd64.zip -Algorithm SHA256).Hash.ToLower()
+$obtenu  = (Get-FileHash ormeau_v0.5.0_windows_amd64.zip -Algorithm SHA256).Hash.ToLower()
 if ($attendu -eq $obtenu) { "empreinte OK" } else { "EMPREINTE DIFFERENTE" }
 ```
 
@@ -252,12 +300,13 @@ nor an issue attachment.
 
 ## Status
 
-PostgreSQL extraction and inference both work: `ormeau extraire` then `ormeau
-inferer` produce the three files. Entity generation is under way:
+PostgreSQL extraction, inference and Doctrine entity generation work:
+`ormeau extraire` then `ormeau inferer` produce the three files, and
 `bin/console ormeau:generer` writes the entities, their associations,
 enumerations and traits, and the inheritance declared in the decisions file,
-and skips what Doctrine cannot represent, saying so. The state per phase is in
-[`ROADMAP.md`](ROADMAP.md).
+skipping what Doctrine cannot represent and saying so. Comparing the database
+with existing entities (`ormeau:synchroniser`) is still to come. The state per
+phase is in [`ROADMAP.md`](ROADMAP.md).
 
 CI runs the test suite with the race detector, `golangci-lint`, `gofmt`,
 `govulncheck`, `gosec` and a JSON Schema validity check on every push and pull

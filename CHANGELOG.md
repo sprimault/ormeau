@@ -36,14 +36,15 @@ préambule reste en français : il n'est jamais publié.
 
 ## [Non publié]
 
-**L'héritage n'est plus déduit, et le code `heritage_deduit` a changé de sens
-sans changer de nom.** `version_ri` ne bouge pas.
+## [0.5.0] — 2026-09-13 — Génération Doctrine
 
-- **Un filtre de CI sur `heritage_deduit` ne verra rien.** Le code, sa
-  résolution (`par_defaut`) et sa confiance sont les mêmes qu'avant ; seul son
-  sens s'inverse. Il signalait un héritage appliqué, il signale désormais un
-  héritage possible et non appliqué. Rien dans les données ne distingue l'avant
-  de l'après.
+**Trois changements touchent les calques et les fichiers de décisions déjà
+enregistrés.** `version_ri` ne bouge pas.
+
+- **Le code `heritage_deduit` a changé de sens sans changer de nom, et un
+  filtre de CI sur lui ne verra rien.** Le code, sa résolution (`par_defaut`)
+  et sa confiance sont les mêmes qu'avant ; il signalait un héritage appliqué,
+  il signale désormais un héritage possible et non appliqué.
 - **Un calque logique recalculé perd ses héritages.** Une table dont la clé
   primaire est aussi une clé étrangère est reliée à la table visée par un
   un-vers-un, qui fonctionne sur la base telle qu'elle est. Pour retrouver un
@@ -52,6 +53,14 @@ sans changer de nom.** `version_ri` ne bouge pas.
   comprise. Doctrine exige cette colonne ; si la base ne la porte pas, elle est
   à créer. Le message de l'avertissement dit la marche à suivre et cite les
   colonnes candidates.
+- **Une décision dont un nom serait refusé par PHP est ignorée**, avec
+  l'avertissement `decision_invalide` : renommage, nom d'énumération ou de cas,
+  nom de relation forcée, espace de noms. L'inférence garde le nom qu'elle
+  aurait produit ; corriger la décision pour retrouver le sien. La raison est
+  dans « Sécurité ».
+
+Le générateur s'installe depuis son miroir, `sprimault/ormeau-doctrine` : voir
+« Générer les entités » dans le README.
 
 ### Ajouté
 
@@ -182,13 +191,13 @@ sans changer de nom.** `version_ri` ne bouge pas.
 
 ***
 
-**Inheritance is no longer inferred, and the `heritage_deduit` code changed
-meaning without changing name.** `version_ri` stays put.
+**Three changes affect layers and decisions files already saved.**
+`version_ri` stays put.
 
-- **A CI filter on `heritage_deduit` will not notice.** The code, its
-  resolution (`par_defaut`) and its confidence are the same as before; only its
-  meaning is reversed. It used to flag an applied inheritance; it now flags a
-  possible, unapplied one. Nothing in the data tells the before from the after.
+- **The `heritage_deduit` code changed meaning without changing name, and a CI
+  filter on it will not notice.** The code, its resolution (`par_defaut`) and
+  its confidence are the same as before; it used to flag an applied
+  inheritance, it now flags a possible, unapplied one.
 - **A recomputed logical layer loses its inheritances.** A table whose primary
   key is also a foreign key is tied to the target table by a one-to-one, which
   works on the database as it is. To get a Doctrine inheritance back, declare it
@@ -196,6 +205,13 @@ meaning without changing name.** `version_ri` stays put.
   and one value per class, root included. Doctrine requires that column; if the
   database does not have it, it must be created. The warning message says what
   to do and names the candidate columns.
+- **A decision with a name PHP would refuse is ignored**, with the
+  `decision_invalide` warning: rename, enumeration or case name, forced relation
+  name, namespace. Inference keeps the name it would have produced; fix the
+  decision to get yours back. The reason is under "Security".
+
+The generator installs from its mirror, `sprimault/ormeau-doctrine`: see
+"Generating entities" in the README.
 
 ### Added
 

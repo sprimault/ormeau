@@ -11,6 +11,19 @@ les régénère sans écraser le travail fait dessus entre-temps.
 > [sprimault/ormeau](https://github.com/sprimault/ormeau), réécrit à chaque
 > fusion. Issues, pull requests et documentation vivent dans le dépôt principal.
 
+## Installation
+
+Pas encore sur Packagist : le dépôt se déclare d'abord.
+
+```console
+$ composer config repositories.ormeau vcs https://github.com/sprimault/ormeau-doctrine
+$ composer require --dev sprimault/ormeau-doctrine
+$ bin/console ormeau:generer gescom.logique.json
+```
+
+La chaîne complète — extraire le calque, inférer, arbitrer, générer — est
+décrite dans le [README principal](https://github.com/sprimault/ormeau/blob/master/README.fr.md).
+
 ## Licence
 
 Apache 2.0 — voir [`LICENSE`](LICENSE). Les entités qu'Ormeau génère vous
