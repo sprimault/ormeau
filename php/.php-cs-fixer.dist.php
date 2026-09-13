@@ -14,11 +14,14 @@ $finder = PhpCsFixer\Finder::create()
 //
 // header_comment n'est volontairement pas activé : il réécrirait l'en-tête de
 // copyright en bloc /* */, alors que la convention du dépôt est en //.
+//
+// La migration s'arrête à PHP 8.1, le plancher du paquet : un jeu plus récent
+// réécrirait le code avec une syntaxe que les applications visées refusent.
 return (new PhpCsFixer\Config())
     ->setRiskyAllowed(true)
     ->setRules([
         '@PER-CS2.0' => true,
-        '@PHP83Migration' => true,
+        '@PHP8x1Migration' => true,
         'declare_strict_types' => true,
         'strict_comparison' => true,
         'strict_param' => true,

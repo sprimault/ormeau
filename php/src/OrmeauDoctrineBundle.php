@@ -7,29 +7,19 @@ declare(strict_types=1);
 
 namespace Ormeau\Doctrine;
 
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
-use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
+use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 /**
  * Enregistre les deux commandes dans l'application hôte.
  *
- * AbstractBundle plutôt qu'un Bundle avec son répertoire DependencyInjection :
- * il n'y a rien à configurer ici — pas de connexion, pas de chemin, pas de
- * seuil —, et une Extension vide aurait été trois fichiers pour rien.
+ * Bundle et non AbstractBundle, qui n'existe qu'à partir de Symfony 6.1 : le
+ * paquet vise aussi les applications en 5.4, celles qu'on reprend. Le prix est
+ * une Extension à part, trouvée par convention de nommage dans
+ * DependencyInjection/.
  *
  * Aucune recette Flex à publier : le type symfony-bundle du composer.json suffit
  * à Flex pour en générer une et inscrire la classe dans config/bundles.php.
  * C'est ce type, et lui seul, qui rend le paquet installable d'un seul
  * composer require.
  */
-final class OrmeauDoctrineBundle extends AbstractBundle
-{
-    /**
-     * @param array<string, mixed> $config
-     */
-    public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
-    {
-        $container->import(__DIR__ . '/../config/services.php');
-    }
-}
+final class OrmeauDoctrineBundle extends Bundle {}

@@ -5,9 +5,7 @@
 # dépôt bouge, donc du code tiers exécuté avec nos droits. Le SHA ne se réécrit
 # pas. Contrepartie assumée : relever les versions est une opération manuelle.
 #
-# Pas d'image : la publication a son propre workflow. Pas de job PHP complet non
-# plus tant que php/ n'a ni composer.lock ni phpunit.xml — un `composer install`
-# sans lock ne validerait pas ce que la CI et les intégrateurs verront.
+# Pas d'image : la publication a son propre workflow.
 #
 # Le front, lui, est construit partout où du Go se compile : internal/interface
 # l'embarque par go:embed, qui échoue quand le bundle manque. C'est le
@@ -206,19 +204,87 @@ jobs:
         run: npm run test:run
         working-directory: web
 
+  # Validation complète depuis composer.lock, qui résout PHP 8.4, Symfony 8 et
+  # ORM 3 : c'est aussi le haut de la plage promise.
   php:
-    name: PHP — syntaxe
+    name: PHP — lint et tests
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: php
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
         with:
-          php-version: '8.3'
+          php-version: '8.4'
           coverage: none
 
-      # `php -l` seulement, en attendant composer.lock et phpunit.xml : la
-      # syntaxe est ce qu'on peut valider aujourd'hui, et une erreur de frappe
-      # dans le lecteur de calque n'a pas à attendre la phase 4.
-      - name: Contrôle syntaxique
-        run: find php/src php/tests -name '*.php' -print0 | xargs -0 -r -n1 php -l
+      - name: Installer les dépendances
+        run: composer install --no-interaction --no-progress
+
+      - name: Tests
+        run: composer test
+
+      - name: Analyse statique
+        run: composer analyse
+
+      - name: Style
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff
+
+      - name: Vulnérabilités des dépendances
+        run: composer audit
+
+  # Les seuls jobs dispensés du lock, et la liste est fermée : elle se tient
+  # alignée sur la règle de livraison. Chacun fixe Symfony et ORM, résout le
+  # reste pour sa version de PHP, et ne lance que les tests — l'analyse et le
+  # style ne dépendent pas des versions installées.
+  #
+  # Le bas de la plage est ORM 2.11 exactement : c'est la première version qui
+  # accepte enumType, et une promesse de plancher qui n'est testée qu'au-dessus
+  # n'en est pas une.
+  #
+  # Symfony se fixe par SYMFONY_REQUIRE, que lit Flex, et non en exigeant
+  # framework-bundle : celui de la 5.4 accepte http-kernel 6.4, et Composer
+  # résout alors une application qui n'existe nulle part — un bundle qui
+  # dépend d'AbstractBundle, absent de la 5.4, y passait.
+  php-compat:
+    name: PHP — ${{ matrix.nom }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - nom: compat-php81-symfony54-orm2
+            php: '8.1'
+            symfony: '5.4.*'
+            orm: '~2.11.0'
+          - nom: compat-php82-symfony64-orm2
+            php: '8.2'
+            symfony: '6.4.*'
+            orm: '^2.11'
+          - nom: compat-php83-symfony74-orm3
+            php: '8.3'
+            symfony: '7.4.*'
+            orm: '^3.0'
+    defaults:
+      run:
+        working-directory: php
+    env:
+      SYMFONY_REQUIRE: ${{ matrix.symfony }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: flex
+          coverage: none
+
+      - name: Résoudre la combinaison
+        run: |
+          composer require --no-update --no-interaction "doctrine/orm:${{ matrix.orm }}"
+          composer update --no-interaction --no-progress --with-all-dependencies
+
+      - name: Tests
+        run: composer test

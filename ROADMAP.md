@@ -60,8 +60,25 @@ les phases suivantes. L'écran de connexion, lui, ne bougera plus.
 
 ## Phase 5 — Génération Doctrine
 
-Paquet PHP, commande `ormeau:generer`, mode classe de base séparée. Attributs
-PHP 8, énumérations, traits d'horodatage.
+Paquet PHP, commande `ormeau:generer`, mode classe de base séparée. Attributs,
+énumérations natives, traits d'horodatage.
+
+Plancher : PHP 8.1, Symfony 5.4 à 8, Doctrine ORM 2.11 à 3. C'est le périmètre
+des applications que l'outil vise — une reprise de legacy tourne rarement sur la
+version courante. La 2.11 est la première version d'ORM qui accepte `enumType`.
+
+La forme du code produit dépend de la version d'ORM installée dans l'application
+cible : elle est détectée, non configurée, et annoncée en tête d'exécution.
+`--cible-orm` la force, pour générer à destination d'une version qui n'est pas
+installée. Un passage d'ORM 2 à ORM 3 produira donc un diff large à la
+régénération suivante, et ce n'est pas une surprise à découvrir dans un
+`git diff`.
+
+Hors périmètre : Symfony 5.4 sous PHP 7. Il faudrait réécrire le bundle sans
+`readonly`, `enum` ni `match`, et un second générateur en annotations visant
+`doctrine/annotations`, que Doctrine a abandonné. Une application 5.4 passée à
+PHP 8.1 reste couverte, et c'est le chemin que prennent la plupart des
+migrations.
 
 ## Phase 6 — Aller-retour
 

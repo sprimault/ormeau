@@ -36,6 +36,22 @@ préambule reste en français : il n'est jamais publié.
 
 ## [Non publié]
 
+### Modifié
+
+- **Le paquet PHP s'installe sur PHP 8.1, Symfony 5.4 à 8 et Doctrine ORM 2.11
+  à 3**, au lieu de PHP 8.3, Symfony 7 et ORM 3 : une application qu'on reprend
+  tourne rarement sur la version courante. Il ne se déclare plus compatible
+  avec ORM 4, qui n'est pas publié.
+
+***
+
+### Changed
+
+- **The PHP package installs on PHP 8.1, Symfony 5.4 to 8 and Doctrine ORM 2.11
+  to 3**, instead of PHP 8.3, Symfony 7 and ORM 3: an application being taken
+  over rarely runs the current release. It no longer claims compatibility with
+  ORM 4, which is not released.
+
 ## [0.4.2] — 2026-09-13 — Ce qui ne doit pas sortir d'Ormeau
 
 **Deux entrées acceptées jusqu'ici sont refusées.** `version_ri` ne bouge pas :
