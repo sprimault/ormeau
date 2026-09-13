@@ -5,23 +5,8 @@ package introspection
 
 import "context"
 
-// Codes des passes d'extraction.
-//
-// Vocabulaire partagé par tous les pilotes, et stable : l'interface traduit le
-// libellé depuis le code, comme pour les avertissements. Un dialecte ne déroule
-// que les passes qui existent chez lui — MySQL n'a pas de séquence — et le total
-// suit. Une passe propre à un dialecte appelle un code ici et sa traduction dans
-// les deux langues, pas une chaîne inventée dans le pilote.
-const (
-	EtapeSource        = "source"
-	EtapeTables        = "tables"
-	EtapeColonnes      = "colonnes"
-	EtapeContraintes   = "contraintes"
-	EtapeIndex         = "index"
-	EtapeSequences     = "sequences"
-	EtapeTypesEnumeres = "types_enumeres"
-	EtapeVues          = "vues"
-)
+// Les codes d'étape que Derouler signale vivent dans sommaire.go, pour que tygo
+// les traduise avec Avancement qui les porte.
 
 // Suivi reçoit l'avancement d'une extraction. Il est appelé depuis la goroutine
 // qui extrait, juste avant chaque passe : un suivi qui bloque retarde

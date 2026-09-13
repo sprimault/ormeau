@@ -61,8 +61,30 @@ type Portee struct {
 // serveur à l'intérieur de cette requête. L'interface affiche donc des paliers,
 // jamais un pourcentage lissé qui prétendrait le contraire.
 type Avancement struct {
-	// Etape est l'un des codes Etape de suivi.go, que l'interface traduit.
+	// Etape est l'un des codes Etape ci-dessous, que l'interface traduit.
 	Etape string `json:"etape"`
 	Rang  int    `json:"rang"`
 	Total int    `json:"total"`
 }
+
+// Vocabulaire des passes, partagé par tous les pilotes, et stable : l'interface
+// traduit le libellé depuis le code, comme pour les avertissements. Un dialecte
+// ne déroule que les passes qui existent chez lui — MySQL n'a pas de séquence —
+// et le total suit. Une passe propre à un dialecte appelle un code ici, pas une
+// chaîne inventée dans le pilote.
+//
+// Ici et non dans suivi.go : tygo traduit ce fichier, et le front reçoit ainsi
+// chaque code généré. Un test y parcourt les constantes Etape et exige un libellé
+// dans les deux langues, sans quoi un code ajouté ici s'afficherait brut.
+
+// Codes des passes d'extraction.
+const (
+	EtapeSource        = "source"
+	EtapeTables        = "tables"
+	EtapeColonnes      = "colonnes"
+	EtapeContraintes   = "contraintes"
+	EtapeIndex         = "index"
+	EtapeSequences     = "sequences"
+	EtapeTypesEnumeres = "types_enumeres"
+	EtapeVues          = "vues"
+)

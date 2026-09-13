@@ -71,9 +71,41 @@ export interface Portee {
  */
 export interface Avancement {
   /**
-   * Etape est l'un des codes Etape de suivi.go, que l'interface traduit.
+   * Etape est l'un des codes Etape ci-dessous, que l'interface traduit.
    */
   etape: string;
   rang: number /* int */;
   total: number /* int */;
 }
+/**
+ * Codes des passes d'extraction.
+ */
+export const EtapeSource = "source";
+/**
+ * Codes des passes d'extraction.
+ */
+export const EtapeTables = "tables";
+/**
+ * Codes des passes d'extraction.
+ */
+export const EtapeColonnes = "colonnes";
+/**
+ * Codes des passes d'extraction.
+ */
+export const EtapeContraintes = "contraintes";
+/**
+ * Codes des passes d'extraction.
+ */
+export const EtapeIndex = "index";
+/**
+ * Codes des passes d'extraction.
+ */
+export const EtapeSequences = "sequences";
+/**
+ * Codes des passes d'extraction.
+ */
+export const EtapeTypesEnumeres = "types_enumeres";
+/**
+ * Codes des passes d'extraction.
+ */
+export const EtapeVues = "vues";
