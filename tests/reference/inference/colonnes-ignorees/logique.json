@@ -1,0 +1,245 @@
+{
+  "version_ri": 1,
+  "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000018",
+  "espace_de_noms": "App\\Entity",
+  "entites": [
+    {
+      "nom": "Article",
+      "table": {
+        "nom": "article",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "code",
+          "version"
+        ],
+        "strategie": "assignee"
+      },
+      "proprietes": [
+        {
+          "nom": "code",
+          "colonne": "code",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 20,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "version",
+          "colonne": "version",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "libelle",
+          "colonne": "libelle",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 80,
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "Client",
+      "table": {
+        "nom": "client",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "nom",
+          "colonne": "nom",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 80,
+          "origine": "contrainte"
+        }
+      ],
+      "index": [
+        {
+          "nom": "client_nom_idx",
+          "colonnes": [
+            "nom"
+          ],
+          "unique": false
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "Commande",
+      "table": {
+        "nom": "commande",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "numero",
+          "colonne": "numero",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 20,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "ligne",
+          "genre": "un_vers_plusieurs",
+          "cible": "Ligne",
+          "proprietaire": false,
+          "mappee_par": "commande",
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "Ligne",
+      "table": {
+        "nom": "ligne",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "commandeId",
+          "colonne": "commande_id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "articleCode",
+          "colonne": "article_code",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 20,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "commande",
+          "genre": "plusieurs_vers_un",
+          "cible": "Commande",
+          "proprietaire": true,
+          "inversee_par": "ligne",
+          "jointure": [
+            {
+              "colonne": "commande_id",
+              "colonne_referencee": "id",
+              "nullable": false,
+              "a_la_suppression": "cascade"
+            }
+          ],
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    }
+  ],
+  "avertissements": [
+    {
+      "code": "cle_primaire_composite",
+      "cible": "public.article",
+      "message": "clé primaire sur code, version",
+      "resolution": "par_defaut",
+      "confiance": 1
+    },
+    {
+      "code": "colonne_ignoree",
+      "cible": "public.client.raison_sociale",
+      "message": "raison_sociale est retirée de l'entité ; le calque physique la garde. Avec elle : index client_raison_sociale_idx. migrations:diff proposera de supprimer la colonne : à retirer du diff avant de l'appliquer",
+      "resolution": "forcee_par_decision",
+      "confiance": 1
+    },
+    {
+      "code": "colonne_ignoree",
+      "cible": "public.client.siret",
+      "message": "siret est retirée de l'entité ; le calque physique la garde. Avec elle : index client_nom_siret_key. migrations:diff proposera de supprimer la colonne : à retirer du diff avant de l'appliquer",
+      "resolution": "forcee_par_decision",
+      "confiance": 1
+    },
+    {
+      "code": "colonne_ignoree",
+      "cible": "public.commande.client_id",
+      "message": "client_id est retirée de l'entité ; le calque physique la garde. Avec elle : association client. migrations:diff proposera de supprimer la colonne : à retirer du diff avant de l'appliquer",
+      "resolution": "forcee_par_decision",
+      "confiance": 1
+    },
+    {
+      "code": "colonne_ignoree",
+      "cible": "public.commande.reference_client",
+      "message": "reference_client est retirée de l'entité ; le calque physique la garde. migrations:diff proposera de supprimer la colonne : à retirer du diff avant de l'appliquer",
+      "resolution": "forcee_par_decision",
+      "confiance": 1
+    },
+    {
+      "code": "decision_sans_cible",
+      "cible": "public.commande.reference_client",
+      "message": "relation forcée vers public.client.id non appliquée : la colonne source est retirée de l'entité par colonnes_ignorees",
+      "resolution": "aucune",
+      "confiance": 1
+    },
+    {
+      "code": "colonne_ignoree",
+      "cible": "public.ligne.article_version",
+      "message": "article_version est retirée de l'entité ; le calque physique la garde. Avec elle : association article. migrations:diff proposera de supprimer la colonne : à retirer du diff avant de l'appliquer",
+      "resolution": "forcee_par_decision",
+      "confiance": 1
+    }
+  ]
+}

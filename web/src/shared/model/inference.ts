@@ -43,6 +43,9 @@ export interface Decisions {
    * rouvrir la base.
    * La clé primaire ne s'ignore pas : Doctrine refuse une entité sans
    * identifiant, et la retirer produirait un modèle que rien ne peut charger.
+   * Ce qui cite la colonne dans l'entité part avec elle — index, unicité,
+   * association et son côté inverse — et une relation forcée qui en part est
+   * refusée : Doctrine n'indexe ni ne joint une colonne qu'il ne mappe pas.
    */
   colonnes_ignorees?: { [key: string]: string[]};
   /**

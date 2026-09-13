@@ -88,6 +88,12 @@ func verifierRelationsForcees(p *calque.Physique, d *Decisions, s *schemaLogique
 			refuser(r, "la source n'est pas une colonne d'une table générée")
 			continue
 		}
+		// Deux décisions qui se contredisent : la colonne ne serait plus dans
+		// l'entité, et l'association l'écrirait quand même.
+		if ecarteeParDecision(source, d, colonneSource) {
+			refuser(r, "la colonne source est retirée de l'entité par colonnes_ignorees")
+			continue
+		}
 		cible, colonneCible := colonneDuCalque(generees, r.Cible)
 		if cible == nil {
 			refuser(r, "la cible n'est pas une colonne d'une table générée")

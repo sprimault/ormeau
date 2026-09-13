@@ -1,0 +1,17 @@
+# Une colonne ignorée emporte ce qui la cite : index, unicité, association. Ce
+# que l'entité ne mappe plus, Doctrine ne sait ni l'indexer ni l'écrire.
+
+colonnes_ignorees:
+  # Un index simple, et une unicité composite dont l'autre colonne reste.
+  public.client: [raison_sociale, siret]
+  # Une clé étrangère nullable, et une colonne visée par une relation forcée.
+  public.commande: [client_id, reference_client]
+  # Une colonne d'une clé étrangère composite : l'association part entière.
+  public.ligne: [article_version]
+
+relations_forcees:
+  # La colonne est ignorée : la relation se contredit avec cette décision.
+  - source: public.commande.reference_client
+    cible: public.client.id
+    genre: plusieurs_vers_un
+    nom: clientReference
