@@ -53,6 +53,19 @@ préambule reste en français : il n'est jamais publié.
   défaut dans le calque logique, où il se confondait avec l'absence de défaut ;
   la régénération du schéma l'aurait retiré. `version_ri` ne bouge pas : les
   calques logiques se recalculent avec `ormeau inferer`.
+- **L'écran d'arbitrage n'affiche plus de type PHP, qui était faux.** Il
+  montrait `int` pour un `bigint`, que Doctrine rend en chaîne sous ORM 2, et
+  doublait le `?` d'une propriété facultative (`??string`). Le type PHP dépend
+  de la version de Doctrine du projet : c'est la génération qui le fixe.
+  L'écran montre le type Doctrine, et l'énumération quand il y en a une.
+
+### Obsolète
+
+- **`type_php` du calque logique** reste dans le format jusqu'à sa prochaine
+  version, mais ne vaut que pour l'une des deux versions d'ORM. Le générateur
+  Doctrine le déduira de `type_doctrine`, `nullable` et `enumeration`, et ne le
+  lira que pour un type Doctrine qu'il ne connaît pas. Un outil tiers qui le
+  consomme devrait faire de même.
 
 ***
 
@@ -73,6 +86,19 @@ préambule reste en français : il n'est jamais publié.
   default in the logical layer, where it was mistaken for no default at all;
   regenerating the schema would have dropped it. `version_ri` stays put:
   logical layers are recomputed with `ormeau inferer`.
+- **The arbitration screen no longer shows a PHP type, which was wrong.** It
+  showed `int` for a `bigint`, which Doctrine returns as a string under ORM 2,
+  and doubled the `?` of an optional property (`??string`). The PHP type
+  depends on the project's Doctrine version: generation settles it. The screen
+  shows the Doctrine type, and the enumeration when there is one.
+
+### Deprecated
+
+- **`type_php` in the logical layer** stays in the format until its next
+  version, but only holds for one of the two ORM versions. The Doctrine
+  generator will derive it from `type_doctrine`, `nullable` and `enumeration`,
+  and read it only for a Doctrine type it does not know. A third-party tool
+  consuming it should do the same.
 
 ## [0.4.2] — 2026-09-13 — Ce qui ne doit pas sortir d'Ormeau
 

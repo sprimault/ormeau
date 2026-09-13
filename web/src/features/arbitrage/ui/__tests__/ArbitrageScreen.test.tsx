@@ -133,6 +133,21 @@ function detail(table: string): ReponseEntite {
       proprietes: [
         { nom: 'id', colonne: 'id', type_php: 'int', type_doctrine: 'integer', nullable: false },
         { nom: 'position', colonne: 'position', type_php: 'string', type_doctrine: 'string', nullable: false },
+        {
+          nom: 'encours',
+          colonne: 'encours',
+          type_php: '?int',
+          type_doctrine: 'bigint',
+          nullable: true,
+        },
+        {
+          nom: 'statut',
+          colonne: 'statut',
+          type_php: 'Statut',
+          type_doctrine: 'string',
+          nullable: false,
+          enumeration: 'Statut',
+        },
       ],
       associations: [
         {
@@ -185,6 +200,16 @@ describe('ArbitrageScreen', () => {
     expect(await screen.findByText('Entité inférée')).toBeInTheDocument();
     expect(screen.getByText('int4')).toBeInTheDocument();
     expect(vi.mocked(lireEntite).mock.calls[0][0]).toMatchObject({ schema: 'public', table: 'clients' });
+  });
+
+  it('montre le type Doctrine et l’énumération, jamais le type PHP que la version de Doctrine décide', async () => {
+    vi.mocked(inferer).mockResolvedValue(inference());
+    render(<ArbitrageScreen base="gescom" versionCalque="" />);
+
+    expect(await screen.findByText('bigint')).toBeInTheDocument();
+    expect(screen.getByText('· Statut')).toBeInTheDocument();
+    expect(screen.queryByText(/\?int/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('columnheader', { name: 'PHP' })).not.toBeInTheDocument();
   });
 
   it('dit ce que contient chaque association et d’où elle vient, sans le vocabulaire du calque', async () => {

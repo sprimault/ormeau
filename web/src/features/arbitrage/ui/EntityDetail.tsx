@@ -73,7 +73,13 @@ function Titre({ libelle, aide, copie, libelleCopie }: ProprietesTitre) {
   );
 }
 
-/** L'entité : identifiant, propriétés avec leurs types, associations. */
+/**
+ * L'entité : identifiant, propriétés avec leur type Doctrine, associations.
+ *
+ * Pas de type PHP : il dépend de la version de Doctrine du projet — un bigint
+ * est une chaîne sous ORM 2, un entier sous ORM 3 —, que l'écran ignore. Le
+ * calque en porte un, qui n'est juste que pour l'une des deux.
+ */
 function EntityView({ entite }: { entite: Entite }) {
   const t = useT();
 
@@ -93,7 +99,6 @@ function EntityView({ entite }: { entite: Entite }) {
             <tr>
               <th className="pr-2 font-normal">{t('arbitrage.detail.property')}</th>
               <th className="pr-2 font-normal">{t('details.column')}</th>
-              <th className="pr-2 font-normal">{t('arbitrage.detail.php')}</th>
               <th className="font-normal">{t('arbitrage.detail.doctrine')}</th>
             </tr>
           </thead>
@@ -102,11 +107,10 @@ function EntityView({ entite }: { entite: Entite }) {
               <tr key={p.nom}>
                 <td className="pr-2">{p.nom}</td>
                 <td className="pr-2 text-slate-500">{p.colonne}</td>
-                <td className="pr-2">
-                  {p.nullable ? '?' : ''}
-                  {p.type_php}
+                <td>
+                  {p.type_doctrine}
+                  {p.enumeration ? <span className="text-slate-500"> · {p.enumeration}</span> : null}
                 </td>
-                <td>{p.type_doctrine}</td>
               </tr>
             ))}
           </tbody>

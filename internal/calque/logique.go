@@ -99,6 +99,9 @@ const (
 type Propriete struct {
 	Nom          string `json:"nom"`
 	Colonne      string `json:"colonne"`
+	// Obsolète, retiré à la prochaine version du format : le type PHP dépend
+	// de la version de Doctrine du projet, qu'un calque ne connaît pas. Un
+	// générateur ne doit le lire que pour un type Doctrine hors de sa table.
 	TypePHP      string `json:"type_php"`
 	TypeDoctrine string `json:"type_doctrine"`
 	Nullable     bool   `json:"nullable"`

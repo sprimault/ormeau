@@ -137,6 +137,11 @@ export const IdentifiantAssignee: StrategieIdentifiant = "assignee";
 export interface Propriete {
   nom: string;
   colonne: string;
+  /**
+   * Obsolète, retiré à la prochaine version du format : le type PHP dépend
+   * de la version de Doctrine du projet, qu'un calque ne connaît pas. Un
+   * générateur ne doit le lire que pour un type Doctrine hors de sa table.
+   */
   type_php: string;
   type_doctrine: string;
   nullable: boolean;
