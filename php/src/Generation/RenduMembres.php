@@ -95,7 +95,8 @@ final class RenduMembres
         $accesseurs = [];
 
         foreach ($proprietes as $propriete) {
-            if (isset($jointures[$propriete->colonne])) {
+            $ecritePar = $jointures[$propriete->colonne] ?? null;
+            if ($ecritePar !== null) {
                 if (self::dansLaCle($propriete, $identifiant)) {
                     continue;
                 }
@@ -106,7 +107,7 @@ final class RenduMembres
             if ($import !== null) {
                 $imports[] = $import;
             }
-            $membres[] = $this->propriete($propriete, $identifiant, $type);
+            $membres[] = $this->propriete($propriete, $identifiant, $type, $ecritePar);
             $accesseurs[] = $this->accesseurs($propriete, $identifiant, $type);
         }
 
@@ -273,12 +274,29 @@ final class RenduMembres
     }
 
     /**
-     * Rend une propriété mappée, attributs compris.
+     * Rend une propriété mappée, docblock et attributs compris.
+     *
+     * Le docblock porte le commentaire de la colonne, ce qui explique une
+     * absence — pas de mutateur, parce qu'une association écrit la colonne —
+     * et le type des éléments d'un tableau, que l'analyse statique du projet
+     * exige dès le niveau 6. Il est sur la propriété et nulle part ailleurs :
+     * les méthodes métier de la classe de l'utilisateur y accèdent
+     * directement, et le répéter sur chaque accesseur serait de la cérémonie.
+     *
+     * @param Propriete        $propriete   propriété à rendre
+     * @param Identifiant|null $identifiant clé de l'entité
+     * @param string           $type        type PHP déclaré
+     * @param string|null      $ecritePar   association qui écrit la colonne, quand il y en a une
      */
-    private function propriete(Propriete $propriete, ?Identifiant $identifiant, string $type): string
+    private function propriete(Propriete $propriete, ?Identifiant $identifiant, string $type, ?string $ecritePar = null): string
     {
         $indentation = Emetteur::INDENTATION;
-        $lignes = [];
+        $texte = $propriete->commentaire === null ? [] : Emetteur::commentaire($propriete->commentaire);
+        if ($ecritePar !== null) {
+            $note = sprintf('Lecture seule : écrite par l\'association %s.', $ecritePar);
+            $texte = $texte === [] ? [$note] : [...$texte, '', $note];
+        }
+        $lignes = Emetteur::docblock($texte, self::estTableau($type) ? ['@var ' . self::typeTableau($type)] : [], $indentation);
         $generee = $this->estGeneree($propriete, $identifiant);
 
         if ($identifiant !== null && in_array($propriete->nom, $identifiant->proprietes, true)) {
@@ -337,17 +355,20 @@ final class RenduMembres
      * null — est nullable et vaut null au départ ; un objet obligatoire reste
      * non initialisé, comme une colonne obligatoire. Une collection porte son
      * type d'éléments en docblock : sans lui, l'analyse statique du projet ne
-     * sait pas ce qu'elle contient.
+     * sait pas ce qu'elle contient. Une association de la clé primaire le dit :
+     * Doctrine tire l'identifiant de l'entité visée, et un persist() qui la
+     * précède échoue.
      */
     private function association(Association $association, bool $dansLaCle): string
     {
         $i = Emetteur::INDENTATION;
         $cible = new Code($association->cible . '::class');
-        $lignes = [];
+        $lignes = Emetteur::docblock(
+            $dansLaCle ? ['Fait partie de l\'identifiant : à renseigner avant persist().'] : [],
+            self::estCollection($association) ? ['@var Collection<int, ' . $association->cible . '>'] : [],
+            $i,
+        );
 
-        if (self::estCollection($association)) {
-            $lignes[] = $i . '/** @var Collection<int, ' . $association->cible . '> */';
-        }
         if ($dansLaCle) {
             $lignes[] = Emetteur::attribut('ORM\Id', [], $i);
         }
@@ -512,7 +533,10 @@ final class RenduMembres
         $suffixe = ucfirst($propriete->nom);
         $lecture = ltrim($type, '?') === 'bool' ? 'is' . $suffixe : 'get' . $suffixe;
 
+        $tableau = self::estTableau($type);
+
         $methodes = [implode("\n", [
+            ...Emetteur::docblock([], $tableau ? ['@return ' . self::typeTableau($type)] : [], $i),
             $i . 'public function ' . $lecture . '(): ' . $type,
             $i . '{',
             $i . $i . 'return $this->' . $propriete->nom . ';',
@@ -522,6 +546,7 @@ final class RenduMembres
         $ecrivable = $propriete->insertable || $propriete->modifiable;
         if ($ecrivable && !$this->estGeneree($propriete, $identifiant)) {
             $methodes[] = implode("\n", [
+                ...Emetteur::docblock([], $tableau ? ['@param ' . self::typeTableau($type) . ' $' . $propriete->nom] : [], $i),
                 $i . 'public function set' . $suffixe . '(' . $type . ' $' . $propriete->nom . '): static',
                 $i . '{',
                 $i . $i . '$this->' . $propriete->nom . ' = $' . $propriete->nom . ';',
@@ -532,6 +557,26 @@ final class RenduMembres
         }
 
         return implode("\n\n", $methodes);
+    }
+
+    /**
+     * Dit si un type déclaré est un tableau, dont l'analyse statique du projet
+     * exige le type des éléments dès le niveau 6.
+     */
+    private static function estTableau(string $type): bool
+    {
+        return ltrim($type, '?') === 'array';
+    }
+
+    /**
+     * Rend le type d'un tableau pour un docblock.
+     *
+     * array<mixed> et pas array<string, mixed> : une colonne JSON contient
+     * aussi bien une liste qu'un objet, et le calque ne dit pas lequel.
+     */
+    private static function typeTableau(string $type): string
+    {
+        return str_starts_with($type, '?') ? 'array<mixed>|null' : 'array<mixed>';
     }
 
     /**

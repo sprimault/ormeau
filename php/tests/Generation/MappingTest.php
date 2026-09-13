@@ -80,6 +80,7 @@ final class MappingTest extends TestCase
                 $jointures = self::colonnesDeJointure($meta);
 
                 self::assertSame($entite->table->nom, $meta->getTableName(), $classe);
+                self::assertSame($entite->commentaire, $meta->table['options']['comment'] ?? null, $classe . ' : commentaire de table');
 
                 // Une classe d'une hiérarchie décidée est jointe, hérite de son
                 // parent et porte sa valeur : Doctrine ajouterait sinon sa

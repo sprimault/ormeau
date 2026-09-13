@@ -1,5 +1,7 @@
 <?php
 
+// Généré par Ormeau et réécrit à chaque génération : le code propre à Eventail va dans Eventail.php.
+
 declare(strict_types=1);
 
 namespace App\Entity\Base;
@@ -36,6 +38,7 @@ abstract class EventailBase
     #[ORM\Column(name: 'duree', type: 'dateinterval', nullable: true)]
     protected ?DateInterval $duree = null;
 
+    /** @var array<mixed>|null */
     #[ORM\Column(name: 'charge_utile', type: 'json', nullable: true)]
     protected ?array $chargeUtile = null;
 
@@ -147,11 +150,13 @@ abstract class EventailBase
         return $this;
     }
 
+    /** @return array<mixed>|null */
     public function getChargeUtile(): ?array
     {
         return $this->chargeUtile;
     }
 
+    /** @param array<mixed>|null $chargeUtile */
     public function setChargeUtile(?array $chargeUtile): static
     {
         $this->chargeUtile = $chargeUtile;

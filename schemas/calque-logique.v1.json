@@ -45,6 +45,10 @@
           "type": "array",
           "items": { "$ref": "#/$defs/indexEntite" }
         },
+        "commentaire": {
+          "description": "Commentaire de la table, tel que le catalogue le rend. Reporté pour que la régénération du schéma le recrée, et pour documenter la classe.",
+          "type": "string"
+        },
         "origine": {
           "description": "Origine du nom de classe, seule inférence que l'entité porte en propre : son existence est un constat, son héritage et ses associations portent la leur.",
           "$ref": "#/$defs/origine"

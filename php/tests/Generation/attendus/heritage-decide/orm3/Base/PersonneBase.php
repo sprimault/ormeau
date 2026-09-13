@@ -1,5 +1,7 @@
 <?php
 
+// Généré par Ormeau et réécrit à chaque génération : le code propre à Personne va dans Personne.php.
+
 declare(strict_types=1);
 
 namespace App\Entity\Base;
@@ -10,6 +12,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
+/** La colonne nature départage la hiérarchie : Doctrine l'écrit, elle n'a pas de propriété. */
 #[ORM\MappedSuperclass]
 abstract class PersonneBase
 {

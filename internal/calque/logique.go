@@ -48,7 +48,10 @@ type Entite struct {
 	Proprietes          []Propriete   `json:"proprietes"`
 	Associations        []Association `json:"associations,omitempty"`
 	Index               []IndexEntite `json:"index,omitempty"`
-	Origine             Origine       `json:"origine,omitempty"`
+	// Le commentaire de la table, reporté comme les index : la régénération du
+	// schéma le recrée, et le générateur en fait la documentation de la classe.
+	Commentaire string  `json:"commentaire,omitempty"`
+	Origine     Origine `json:"origine,omitempty"`
 }
 
 // ReferenceTable qualifie la table d'origine, sous son nom de catalogue.

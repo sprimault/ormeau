@@ -78,4 +78,51 @@ final class EmetteurTest extends TestCase
         self::assertSame('`N° Commande`', RenduEntite::identifiantSql('N° Commande'));
         self::assertSame('`1er`', RenduEntite::identifiantSql('1er'));
     }
+
+    /**
+     * Un commentaire de base qui ferme le docblock n'injecte pas de code : la
+     * barre oblique qui suit l'étoile est échappée, et le docblock produit se
+     * relit comme un seul commentaire.
+     */
+    public function testUnCommentaireDeBaseNeFermePasLeDocblock(): void
+    {
+        $docblock = implode("\n", Emetteur::docblock(Emetteur::commentaire("Fin */ system('id'); /* reprise"), [], ''));
+
+        $jetons = array_values(array_filter(
+            token_get_all("<?php\n" . $docblock . "\nclass A {}\n"),
+            static fn($j): bool => is_array($j) && !in_array($j[0], [T_OPEN_TAG, T_WHITESPACE], true),
+        ));
+        self::assertSame(T_DOC_COMMENT, $jetons[0][0], $docblock);
+        self::assertSame('class', $jetons[1][1], $docblock);
+    }
+
+    /**
+     * Le premier paragraphe d'un commentaire finit par une ponctuation, que
+     * PHP-CS-Fixer ajouterait sinon à chaque régénération ; la suite garde ses
+     * lignes, sans lignes vides en tête ni en fin.
+     */
+    public function testUnCommentaireFinitSonResumeParUnePonctuation(): void
+    {
+        self::assertSame(['Dénomination légale.'], Emetteur::commentaire('Dénomination légale'));
+        self::assertSame(['Déjà ponctué ?'], Emetteur::commentaire('Déjà ponctué ?'));
+        self::assertSame(
+            ['Fiche client.', '', 'Tenue par la comptabilité'],
+            Emetteur::commentaire("\nFiche client\r\n\nTenue par la comptabilité  \n"),
+        );
+        self::assertSame([], Emetteur::commentaire("\n \n"));
+    }
+
+    /**
+     * Un docblock d'une ligne tient sur une ligne ; texte et étiquettes sont
+     * séparés par une ligne vide, sans espace en fin de ligne.
+     */
+    public function testUnDocblockSeRendSurUneLigneOuEnBloc(): void
+    {
+        self::assertSame([], Emetteur::docblock([], [], '    '));
+        self::assertSame(['    /** @var array<mixed> */'], Emetteur::docblock([], ['@var array<mixed>'], '    '));
+        self::assertSame(
+            ['    /**', '     * Réglages.', '     *', '     * @var array<mixed>', '     */'],
+            Emetteur::docblock(['Réglages.'], ['@var array<mixed>'], '    '),
+        );
+    }
 }

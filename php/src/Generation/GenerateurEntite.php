@@ -366,6 +366,7 @@ final class GenerateurEntite
             $entite->index,
             $entite->origine,
             $entite->valeurDiscriminante,
+            $entite->commentaire,
         );
     }
 

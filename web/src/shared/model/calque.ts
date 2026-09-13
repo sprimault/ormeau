@@ -69,6 +69,11 @@ export interface Entite {
   proprietes: Propriete[];
   associations?: Association[];
   index?: IndexEntite[];
+  /**
+   * Le commentaire de la table, reporté comme les index : la régénération du
+   * schéma le recrée, et le générateur en fait la documentation de la classe.
+   */
+  commentaire?: string;
   origine?: Origine;
 }
 /**

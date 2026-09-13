@@ -30,6 +30,19 @@ use Ormeau\Doctrine\Calque\TraitPartage;
  */
 final class RenduEntite
 {
+    /**
+     * En-tête des fichiers qui appartiennent à l'outil : énumérations et
+     * traits. Sans version ni date, qui changeraient chaque fichier à chaque
+     * mise à jour de l'outil.
+     */
+    private const MENTION_OUTIL = 'Généré par Ormeau et réécrit à chaque génération.';
+
+    /**
+     * En-tête de la classe de l'utilisateur, écrite une fois : c'est la
+     * garantie du projet, dite là où on la lit.
+     */
+    private const MENTION_UTILISATEUR = 'Créé par Ormeau, jamais réécrit : ce fichier appartient au projet.';
+
     /** Écrit propriétés et accesseurs, pour les classes de base comme pour les traits. */
     private readonly RenduMembres $membres;
 
@@ -82,13 +95,18 @@ final class RenduEntite
      * de la classe de l'utilisateur compare à ces valeurs-là, et à rien
      * d'autre.
      *
-     * @return array{name: string, schema: string|null}
+     * Le commentaire de la table y figure tel que la base le rend : Doctrine
+     * l'ignore quand il compare un schéma existant, mais schema:create le
+     * recrée, et c'est ce que l'aller-retour vérifie.
+     *
+     * @return array{name: string, schema: string|null, options: array{comment: string}|null}
      */
     public function argumentsTable(Entite $entite): array
     {
         return [
             'name' => self::identifiantSql($entite->table->nom),
             'schema' => $this->avecSchema ? self::identifiantSql($entite->table->schema) : null,
+            'options' => $entite->commentaire === null ? null : ['comment' => $entite->commentaire],
         ];
     }
 
@@ -113,15 +131,8 @@ final class RenduEntite
     public function classeUtilisateur(Entite $entite, ?RacineHeritage $racine = null): string
     {
         $lignes = [
-            '<?php',
-            '',
-            'declare(strict_types=1);',
-            '',
-            'namespace ' . $this->espaceDeNoms . ';',
-            '',
-            'use ' . $this->classeBaseQualifiee($entite) . ';',
-            'use Doctrine\ORM\Mapping as ORM;',
-            '',
+            ...$this->entete(self::MENTION_UTILISATEUR, $this->espaceDeNoms, [$this->classeBaseQualifiee($entite), 'Doctrine\ORM\Mapping as ORM']),
+            ...Emetteur::docblock($entite->commentaire === null ? [] : Emetteur::commentaire($entite->commentaire), [], ''),
             Emetteur::attribut('ORM\Entity', [], ''),
             Emetteur::attribut('ORM\Table', $this->argumentsTable($entite), ''),
             ...array_values($racine?->attributs() ?? []),
@@ -163,7 +174,21 @@ final class RenduEntite
             $imports[] = $this->espaceDeNoms . '\\' . $parent->nom;
         }
 
-        $lignes = $this->entete($this->espaceDeNoms . '\\Base', $imports);
+        $lignes = $this->entete(
+            sprintf('Généré par Ormeau et réécrit à chaque génération : le code propre à %s va dans %s.php.', $entite->nom, $entite->nom),
+            $this->espaceDeNoms . '\\Base',
+            $imports,
+        );
+        $discriminante = $hierarchies->racine($entite) === $entite ? $hierarchies->colonneDiscriminante($entite) : null;
+        if ($discriminante !== null) {
+            // Un nom de colonne vient de la base comme un commentaire, et se
+            // neutralise de la même façon.
+            array_push($lignes, ...Emetteur::docblock(
+                Emetteur::commentaire(sprintf('La colonne %s départage la hiérarchie : Doctrine l\'écrit, elle n\'a pas de propriété.', $discriminante)),
+                [],
+                '',
+            ));
+        }
         $lignes[] = Emetteur::attribut('ORM\MappedSuperclass', [], '');
         foreach ($entite->index as $index) {
             $lignes[] = Emetteur::attribut(
@@ -205,7 +230,7 @@ final class RenduEntite
     {
         $rendu = $this->membres->rendre($trait->proprietes, null);
 
-        $lignes = $this->entete($this->espaceDeNoms . '\\Trait', ['Doctrine\ORM\Mapping as ORM', ...$rendu['imports']]);
+        $lignes = $this->entete(self::MENTION_OUTIL, $this->espaceDeNoms . '\\Trait', ['Doctrine\ORM\Mapping as ORM', ...$rendu['imports']]);
         $lignes[] = 'trait ' . $trait->nom;
         $lignes[] = '{';
         $lignes[] = implode("\n\n", [...$rendu['membres'], ...$rendu['accesseurs']]);
@@ -220,7 +245,7 @@ final class RenduEntite
      */
     public function enumeration(Enumeration $enumeration): string
     {
-        $lignes = $this->entete($this->espaceDeNoms . '\\Enum', []);
+        $lignes = $this->entete(self::MENTION_OUTIL, $this->espaceDeNoms . '\\Enum', []);
         $lignes[] = 'enum ' . $enumeration->nom . ': ' . $enumeration->typeSupport->value;
         $lignes[] = '{';
         foreach ($enumeration->cas as $cas) {
@@ -232,17 +257,18 @@ final class RenduEntite
     }
 
     /**
-     * Rend le début d'un fichier : balise, déclaration stricte, espace de noms
-     * et imports triés, suivis d'une ligne vide.
+     * Rend le début d'un fichier : balise, mention, déclaration stricte,
+     * espace de noms et imports triés, suivis d'une ligne vide.
      *
+     * @param string       $mention      ce que la ligne d'en-tête dit du fichier
      * @param string       $espaceDeNoms espace de noms du fichier
      * @param list<string> $imports      classes à importer, doublons compris
      *
      * @return list<string>
      */
-    private function entete(string $espaceDeNoms, array $imports): array
+    private function entete(string $mention, string $espaceDeNoms, array $imports): array
     {
-        $lignes = ['<?php', '', 'declare(strict_types=1);', '', 'namespace ' . $espaceDeNoms . ';', ''];
+        $lignes = ['<?php', '', '// ' . $mention, '', 'declare(strict_types=1);', '', 'namespace ' . $espaceDeNoms . ';', ''];
         if ($imports === []) {
             return $lignes;
         }

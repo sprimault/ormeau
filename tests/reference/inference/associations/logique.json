@@ -112,6 +112,7 @@
           "origine": "contrainte"
         }
       ],
+      "commentaire": "Un vers un : la FK porte une contrainte d'unicité",
       "origine": "nommage"
     },
     {
@@ -240,6 +241,7 @@
           "origine": "contrainte"
         }
       ],
+      "commentaire": "Plusieurs vers un, plus une FK auto-référencée facultative",
       "origine": "nommage"
     },
     {
@@ -364,6 +366,7 @@
           "origine": "contrainte"
         }
       ],
+      "commentaire": "Deux FK et une PK composite, mais une colonne en plus : ce n'est pas une jointure pure",
       "origine": "nommage"
     }
   ],

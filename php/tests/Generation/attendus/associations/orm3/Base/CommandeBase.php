@@ -1,5 +1,7 @@
 <?php
 
+// Généré par Ormeau et réécrit à chaque génération : le code propre à Commande va dans Commande.php.
+
 declare(strict_types=1);
 
 namespace App\Entity\Base;
@@ -20,9 +22,11 @@ abstract class CommandeBase
     #[ORM\Column(name: 'id', type: 'integer')]
     protected ?int $id = null;
 
+    /** Lecture seule : écrite par l'association client. */
     #[ORM\Column(name: 'client_id', type: 'integer', insertable: false, updatable: false)]
     protected int $clientId;
 
+    /** Lecture seule : écrite par l'association commandeRemplacee. */
     #[ORM\Column(name: 'commande_remplacee_id', type: 'integer', nullable: true, insertable: false, updatable: false)]
     protected ?int $commandeRemplaceeId = null;
 

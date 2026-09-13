@@ -1,5 +1,7 @@
 <?php
 
+// Généré par Ormeau et réécrit à chaque génération : le code propre à Prestataire va dans Prestataire.php.
+
 declare(strict_types=1);
 
 namespace App\Entity\Base;
@@ -13,6 +15,7 @@ abstract class PrestataireBase
     #[ORM\Column(name: 'societe', type: 'string', length: 120)]
     protected string $societe;
 
+    /** Fait partie de l'identifiant : à renseigner avant persist(). */
     #[ORM\Id]
     #[ORM\OneToOne(targetEntity: Personne::class, inversedBy: 'prestataire')]
     #[ORM\JoinColumn(name: 'id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]

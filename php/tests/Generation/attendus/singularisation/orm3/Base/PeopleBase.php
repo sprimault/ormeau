@@ -1,5 +1,7 @@
 <?php
 
+// Généré par Ormeau et réécrit à chaque génération : le code propre à People va dans People.php.
+
 declare(strict_types=1);
 
 namespace App\Entity\Base;

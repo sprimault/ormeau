@@ -218,7 +218,7 @@ final class Hierarchies
      * Rend la colonne discriminante d'une hiérarchie, portée par l'héritage
      * de ses classes filles ; null quand aucune ne la donne.
      */
-    private function colonneDiscriminante(Entite $racine): ?string
+    public function colonneDiscriminante(Entite $racine): ?string
     {
         foreach ($this->membres($racine) as $membre) {
             if ($membre->heritage?->colonneDiscriminante !== null) {

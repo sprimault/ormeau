@@ -1,5 +1,7 @@
 <?php
 
+// Généré par Ormeau et réécrit à chaque génération : le code propre à Adresse va dans Adresse.php.
+
 declare(strict_types=1);
 
 namespace App\Entity\Base;
@@ -15,6 +17,7 @@ abstract class AdresseBase
     #[ORM\Column(name: 'id', type: 'integer')]
     protected ?int $id = null;
 
+    /** Lecture seule : écrite par l'association personne. */
     #[ORM\Column(name: 'personne_id', type: 'integer', insertable: false, updatable: false)]
     protected int $personneId;
 

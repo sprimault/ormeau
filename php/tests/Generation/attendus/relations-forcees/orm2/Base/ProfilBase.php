@@ -1,5 +1,7 @@
 <?php
 
+// Généré par Ormeau et réécrit à chaque génération : le code propre à Profil va dans Profil.php.
+
 declare(strict_types=1);
 
 namespace App\Entity\Base;
@@ -15,6 +17,7 @@ abstract class ProfilBase
     #[ORM\Column(name: 'id', type: 'integer')]
     protected ?int $id = null;
 
+    /** Lecture seule : écrite par l'association utilisateur. */
     #[ORM\Column(name: 'utilisateur_ref', type: 'integer', insertable: false, updatable: false)]
     protected int $utilisateurRef;
 

@@ -29,10 +29,10 @@ use PhpParser\ParserFactory;
  *
  * Ce qui est contrôlé est ce que la génération y a mis, et rien d'autre : la
  * classe hérite de sa classe de base, elle porte #[ORM\Entity], #[ORM\Table]
- * nomme la bonne table, et une racine d'héritage porte sa stratégie, sa
- * colonne discriminante et sa carte. Le reste — méthodes, docblocks, attributs
- * ajoutés, comme un repositoryClass — appartient à l'utilisateur et n'est pas
- * regardé.
+ * nomme la bonne table avec son commentaire, et une racine d'héritage porte
+ * sa stratégie, sa colonne discriminante et sa carte. Le reste — méthodes,
+ * docblocks, attributs ajoutés, comme un repositoryClass — appartient à
+ * l'utilisateur et n'est pas regardé.
  *
  * La lecture passe par nikic/php-parser et non par une expression régulière :
  * un attribut peut s'écrire sur plusieurs lignes, avec ou sans alias, et un
@@ -64,7 +64,8 @@ final class ControleClasseUtilisateur
      * @param string                                   $source     contenu du fichier
      * @param string                                   $classe     nom court de la classe attendue
      * @param string                                   $base       nom qualifié de sa classe de base
-     * @param array{name: string, schema: string|null} $table      arguments attendus de #[ORM\Table]
+     * @param array{name: string, schema: string|null, options: array{comment: string}|null} $table arguments attendus de
+     *                                                                                             #[ORM\Table]
      * @param RacineHeritage|null                      $racine     ce que la classe déclare comme racine d'un
      *                                                             héritage ; null quand elle n'en est pas une
      *
@@ -121,6 +122,12 @@ final class ControleClasseUtilisateur
                     'la table est dans le schéma %s',
                     $table['schema'],
                 ));
+            }
+            $commentaire = $table['options']['comment'] ?? null;
+            if ($this->commentaire($attribut) !== $commentaire) {
+                $divergences[] = new Divergence($chemin, $attribut->getStartLine(), $actuel, $commentaire === null
+                    ? 'la table n\'a plus de commentaire'
+                    : sprintf('le commentaire de la table est maintenant %s', Emetteur::litteral($commentaire)));
             }
         }
 
@@ -186,6 +193,25 @@ final class ControleClasseUtilisateur
     private static function texte(string $source, Attribute $attribut): string
     {
         return '#[' . substr($source, $attribut->getStartFilePos(), $attribut->getEndFilePos() - $attribut->getStartFilePos() + 1) . ']';
+    }
+
+    /**
+     * Rend le commentaire que #[ORM\Table] donne à la table, dans ses options ;
+     * null quand il n'y en a pas, ou qu'il n'est pas écrit en clair.
+     */
+    private function commentaire(Attribute $table): ?string
+    {
+        $options = $this->valeur($table, 'options', 4);
+        if (!$options instanceof Array_) {
+            return null;
+        }
+        foreach ($options->items as $element) {
+            if ($element->key instanceof String_ && $element->key->value === 'comment') {
+                return $element->value instanceof String_ ? $element->value->value : null;
+            }
+        }
+
+        return null;
     }
 
     /**

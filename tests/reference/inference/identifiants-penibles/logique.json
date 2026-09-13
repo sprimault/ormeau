@@ -43,6 +43,7 @@
           "origine": "contrainte"
         }
       ],
+      "commentaire": "Nom avec espaces, tel que SQL Server l'accepte entre crochets",
       "origine": "nommage"
     },
     {
@@ -68,6 +69,7 @@
           "origine": "contrainte"
         }
       ],
+      "commentaire": "Accent et espaces : l'accent suffit à désigner le français",
       "origine": "nommage"
     },
     {
