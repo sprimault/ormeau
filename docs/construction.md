@@ -56,22 +56,15 @@ Makefile: it is a constraint of that workstation, not a project decision.
 
 Since the binaries are already cross-compiled, the multi-arch image builds
 **without QEMU emulation**: buildx fills in `TARGETOS` and `TARGETARCH`, and each
-platform gets the matching binary.
+platform gets the matching binary. The file is
+[`deploy/Dockerfile`](../deploy/Dockerfile).
 
-```dockerfile
-FROM alpine:3 AS certificats
-RUN apk add --no-cache ca-certificates
-
-FROM scratch
-ARG TARGETOS TARGETARCH
-COPY --from=certificats /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY dist/ormeau_${TARGETOS}_${TARGETARCH} /ormeau
-ENTRYPOINT ["/ormeau"]
-```
+A version publishes its image through `release.yml`. Pushing a tagged image by
+hand goes through the Makefile, which builds the binaries first and passes the
+version and revision to the image labels:
 
 ```bash
-docker buildx build --platform linux/amd64,linux/arm64 \
-  -t ghcr.io/sprimault/ormeau:$VERSION --push .
+make image-push IMAGE_TAGS=ghcr.io/sprimault/ormeau:vX.Y.Z
 ```
 
 `FROM scratch` means there is no distribution in the image — and therefore **no
@@ -109,7 +102,9 @@ every push to `master`, and for every `v*` tag when called from `release.yml`.
 The split is deterministic, and the split of an older commit is an ancestor of
 the split of a newer one: the mirror always moves forward by fast-forward, and
 **nothing is ever force-pushed to it**. A rejection means the mirror has
-diverged; that gets investigated, not overwritten.
+diverged; that gets investigated, not overwritten. One exception, recognised
+by `tools/miroir/miroir.sh`: a run re-run after a newer one pushes a split
+older than the mirror, and exits successfully without writing anything.
 
 The mirror only carries versions in which the package works: it starts at
 0.5.0, and no earlier tag will be pushed to it.
@@ -172,28 +167,33 @@ separates announcing the version from its availability:
 ### If publishing fails
 
 As long as the draft is not published, the number can be reused. After that,
-never: a project may have locked the tag's commit, and a fix takes the next
-number.
+never: a fix takes the next number. Reuse is not risk-free for all that: as
+soon as the tag is on the mirror, Packagist announces it, and a project that
+required it in the meantime keeps the first tag's commit in its
+`composer.lock`. The window is short, and the version is not yet announced
+anywhere else.
 
 - **The notes job fails, or the mirror job before pushing the tag** (missing
-  `CHANGELOG` section, missing secret, rejected push): the tag only exists on
-  the main repository, and nothing else has gone out. Delete the tag, fix the pull request, set the tag again on its new head:
+  `CHANGELOG` section, missing secret, key rejected by the mirror): the tag
+  only exists on the main repository, and nothing else has gone out. Delete the
+  tag, fix the pull request, set the tag again on its new head:
 
   ```bash
   git push origin :refs/tags/vX.Y.Z && git tag -d vX.Y.Z
   ```
 
-- **A job fails after the mirror tag, for a transient reason** (network,
-  runner): re-run the failed jobs. The split is the same, and pushing an
+- **A job fails for a transient reason** (network, runner, unreachable
+  mirror): re-run the failed jobs. The split is the same, and pushing an
   identical tag again changes nothing.
 
   ```bash
   gh run rerun <run id> --failed
   ```
 
-- **The fix needs a commit**: the split changes, and the mirror tag cannot move.
-  Delete the tag on both sides and the draft if there is one, fix, set the tag
-  again:
+- **The fix needs a commit, or the mirror rejects the tag because it already
+  has it** on another split, left by an earlier attempt: the mirror tag cannot
+  move. Delete the tag on both sides and the draft if there is one, fix, set
+  the tag again:
 
   ```bash
   gh api -X DELETE repos/sprimault/ormeau-doctrine/git/refs/tags/vX.Y.Z
@@ -204,7 +204,9 @@ number.
   The same deletion applies to a pull request abandoned after the tag was set.
 
 - **The mirror's `master` rejects the fast-forward**: something was written to
-  it that does not come from the split. The mirror rule only allows the key, so
+  it that does not come from the split. The script has already ruled out the
+  older split of a re-run: the rejection only lands here when the mirror's head
+  is the split of no commit of `master`. The mirror rule only allows the key, so
   the key has been used elsewhere. Revoke it (delete the deploy key, add a new
   one), compare `git ls-remote` with the local split of `master`, and only then
   put the mirror's `master` back on the split — the one case where a force push

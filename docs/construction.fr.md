@@ -58,22 +58,15 @@ publication.
 
 Les binaires étant déjà croisés, l'image multi-arch se construit **sans
 émulation QEMU** : buildx renseigne `TARGETOS` et `TARGETARCH`, et chaque
-plateforme reçoit le binaire correspondant.
+plateforme reçoit le binaire correspondant. Le fichier est
+[`deploy/Dockerfile`](../deploy/Dockerfile).
 
-```dockerfile
-FROM alpine:3 AS certificats
-RUN apk add --no-cache ca-certificates
-
-FROM scratch
-ARG TARGETOS TARGETARCH
-COPY --from=certificats /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY dist/ormeau_${TARGETOS}_${TARGETARCH} /ormeau
-ENTRYPOINT ["/ormeau"]
-```
+Une version publie son image par `release.yml`. Pousser à la main une image
+étiquetée passe par le Makefile, qui construit les binaires d'abord et passe
+version et révision aux étiquettes de l'image :
 
 ```bash
-docker buildx build --platform linux/amd64,linux/arm64 \
-  -t ghcr.io/sprimault/ormeau:$VERSION --push .
+make image-push IMAGE_TAGS=ghcr.io/sprimault/ormeau:vX.Y.Z
 ```
 
 `FROM scratch` signifie qu'il n'y a aucune distribution dans l'image — et donc
@@ -112,7 +105,9 @@ push sur `master`, et pour chaque tag `v*` appelé depuis `release.yml`. Le
 split est déterministe, et celui d'un commit plus ancien est ancêtre de celui
 d'un plus récent : le miroir avance toujours en avance rapide, et **rien ne s'y
 pousse en force**. Un refus veut dire que le miroir a divergé ; il s'examine, il
-ne s'écrase pas.
+ne s'écrase pas. Une exception, reconnue par `tools/miroir/miroir.sh` : un run
+relancé après un plus récent pousse un split plus ancien que le miroir, et
+sort en succès sans rien écrire.
 
 Le miroir ne porte que des versions où le paquet fonctionne : il commence à la
 0.5.0, et aucun tag antérieur n'y sera poussé.
@@ -176,29 +171,34 @@ qu'aucune fenêtre ne sépare l'annonce de la version de sa disponibilité :
 ### Si la publication échoue
 
 Tant que le brouillon n'est pas publié, le numéro se réutilise. Ensuite, jamais :
-un projet a pu verrouiller le commit du tag, et un correctif prend le numéro
-suivant.
+un correctif prend le numéro suivant. La réutilisation n'est pas sans risque
+pour autant : dès que le tag est sur le miroir, Packagist l'annonce, et un
+projet qui l'a requis dans l'intervalle garde dans son `composer.lock` le
+commit du premier tag. La fenêtre est courte, et la version n'est encore
+annoncée nulle part ailleurs.
 
 - **Le job des notes échoue, ou celui du miroir avant d'avoir poussé le tag**
-  (section du `CHANGELOG` absente, secret absent, push refusé) : le tag n'existe
-  que sur le dépôt principal, et rien d'autre n'est parti. Supprimer le tag, corriger sur la pull request, le reposer sur la
-  nouvelle tête :
+  (section du `CHANGELOG` absente, secret absent, clé refusée par le miroir) :
+  le tag n'existe que sur le dépôt principal, et rien d'autre n'est parti.
+  Supprimer le tag, corriger sur la pull request, le reposer sur la nouvelle
+  tête :
 
   ```bash
   git push origin :refs/tags/vX.Y.Z && git tag -d vX.Y.Z
   ```
 
-- **Un job échoue après le tag du miroir, pour une cause passagère** (réseau,
-  runner) : relancer les jobs échoués. Le split est le même, et repousser un tag
-  identique ne change rien.
+- **Un job échoue pour une cause passagère** (réseau, runner, miroir
+  injoignable) : relancer les jobs échoués. Le split est le même, et repousser
+  un tag identique ne change rien.
 
   ```bash
   gh run rerun <identifiant du run> --failed
   ```
 
-- **La correction demande un commit** : le split change, et le tag du miroir ne
-  se déplace pas. Supprimer le tag des deux côtés et le brouillon s'il existe,
-  corriger, reposer le tag :
+- **La correction demande un commit, ou le miroir refuse le tag parce qu'il le
+  porte déjà** sur un autre split, laissé par une tentative précédente : le tag
+  du miroir ne se déplace pas. Supprimer le tag des deux côtés et le brouillon
+  s'il existe, corriger, reposer le tag :
 
   ```bash
   gh api -X DELETE repos/sprimault/ormeau-doctrine/git/refs/tags/vX.Y.Z
@@ -210,7 +210,9 @@ suivant.
   tag.
 
 - **`master` du miroir refuse l'avance rapide** : quelque chose y a été écrit
-  sans venir du split. La règle du miroir ne l'autorise qu'à la clé : c'est donc
+  sans venir du split. Le script a déjà écarté le split plus ancien d'un run
+  relancé : le refus n'arrive ici que si la tête du miroir n'est le split
+  d'aucun commit de `master`. La règle du miroir ne l'autorise qu'à la clé : c'est donc
   que la clé a servi ailleurs. La révoquer (supprimer la clé de déploiement, en
   poser une nouvelle), comparer `git ls-remote` au split local de `master`, puis
   seulement remettre `master` du miroir sur le split — seul cas où un push forcé
