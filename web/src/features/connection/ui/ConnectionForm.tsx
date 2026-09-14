@@ -19,6 +19,29 @@ import { ProfileBar } from './ProfileBar';
  */
 const sgbdDisponibles = ['postgres'];
 
+/**
+ * Modes de sslmode, le vocabulaire de libpq. Le serveur refuse toute autre
+ * valeur ; le choix vide laisse au pilote son défaut, prefer.
+ */
+const modesSSL = ['disable', 'allow', 'prefer', 'require', 'verify-ca', 'verify-full'];
+
+/**
+ * Ports par défaut des SGBD proposés, pour comparer une destination comme le
+ * serveur le fait : un port laissé vide vaut celui du SGBD.
+ */
+const portsParDefaut: Record<string, number> = { postgres: 5432 };
+
+/** Ce qu'une connexion vise réellement : SGBD, hôte sans casse ni blanc, port effectif. */
+function destination(sgbd: string | undefined, hote: string | undefined, port: number | undefined) {
+  const deduit = Object.entries(portsParDefaut).find(([, defaut]) => defaut === port)?.[0] ?? '';
+  const sgbdEffectif = (sgbd ?? '').toLowerCase() || deduit;
+  return {
+    sgbd: sgbdEffectif,
+    hote: (hote ?? '').trim().toLowerCase(),
+    port: port ?? portsParDefaut[sgbdEffectif],
+  };
+}
+
 /** Les deux formes de saisie. */
 type Mode = 'composants' | 'dsn';
 
@@ -46,6 +69,7 @@ export function ConnectionForm({ enCours, erreur, onConnecter }: ProprietesFormu
   const [utilisateur, setUtilisateur] = useState('');
   const [motDePasse, setMotDePasse] = useState('');
   const [base, setBase] = useState('');
+  const [sslmode, setSslmode] = useState('');
   const [dsn, setDsn] = useState('');
   const [profilChoisi, setProfilChoisi] = useState('');
   const [motDePasseDuProfil, setMotDePasseDuProfil] = useState(false);
@@ -61,7 +85,21 @@ export function ConnectionForm({ enCours, erreur, onConnecter }: ProprietesFormu
       profilRetenu.hote !== (hote || undefined) ||
       profilRetenu.port !== (port ? Number(port) : undefined) ||
       profilRetenu.utilisateur !== (utilisateur || undefined) ||
-      profilRetenu.base !== (base || undefined));
+      profilRetenu.base !== (base || undefined) ||
+      profilRetenu.sslmode !== (sslmode || undefined));
+
+  // Plus étroit que `divergent` : la base et le sslmode ne changent pas le
+  // serveur ni le compte. C'est ce que le serveur compare avant d'envoyer le
+  // mot de passe enregistré, et l'aide sous le champ doit dire la même chose.
+  const saisie = destination(sgbd || undefined, hote, port ? Number(port) : undefined);
+  const retenue =
+    profilRetenu && destination(profilRetenu.sgbd, profilRetenu.hote, profilRetenu.port);
+  const autreDestination =
+    retenue !== undefined &&
+    (saisie.sgbd !== retenue.sgbd ||
+      saisie.hote !== retenue.hote ||
+      saisie.port !== retenue.port ||
+      (utilisateur || undefined) !== profilRetenu?.utilisateur);
 
   /**
    * Reprend un profil dans le formulaire.
@@ -88,6 +126,7 @@ export function ConnectionForm({ enCours, erreur, onConnecter }: ProprietesFormu
     setPort(profil.port ? String(profil.port) : '');
     setUtilisateur(profil.utilisateur ?? '');
     setBase(profil.base ?? '');
+    setSslmode(profil.sslmode ?? '');
     setMotDePasse('');
     setMotDePasseDuProfil(trouve.mot_de_passe_enregistre);
   }
@@ -114,6 +153,9 @@ export function ConnectionForm({ enCours, erreur, onConnecter }: ProprietesFormu
       port: port ? Number(port) : undefined,
       utilisateur: utilisateur || undefined,
       base: base || undefined,
+      // Toujours porté : « Mettre à jour ce profil » remplace le profil entier,
+      // et un champ absent ici effacerait en silence un verify-full enregistré.
+      sslmode: sslmode || undefined,
     };
   }
 
@@ -141,6 +183,7 @@ export function ConnectionForm({ enCours, erreur, onConnecter }: ProprietesFormu
             utilisateur,
             mot_de_passe: motDePasse,
             base,
+            sslmode: sslmode || undefined,
           },
     );
 
@@ -220,8 +263,11 @@ export function ConnectionForm({ enCours, erreur, onConnecter }: ProprietesFormu
               {t('connection.dbms')}
               <HelpTip texte={t('connection.help.dbms')} />
             </span>
+            {/* Nommée à part : le bouton d'aide dans le libellé en vide le nom
+                accessible, et un lecteur d'écran annoncerait une liste muette. */}
             <select
               value={sgbd}
+              aria-label={t('connection.dbms')}
               onChange={(evenement) => setSgbd(evenement.target.value)}
               className="rounded border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-900"
             >
@@ -258,7 +304,11 @@ export function ConnectionForm({ enCours, erreur, onConnecter }: ProprietesFormu
             value={motDePasse}
             autoComplete="current-password"
             aide={
-              motDePasseDuProfil ? t('profile.password.stored') : t('connection.password.hint')
+              !motDePasseDuProfil
+                ? t('connection.password.hint')
+                : autreDestination
+                  ? t('profile.password.otherDestination')
+                  : t('profile.password.stored')
             }
             onChange={(evenement) => setMotDePasse(evenement.target.value)}
           />
@@ -268,7 +318,25 @@ export function ConnectionForm({ enCours, erreur, onConnecter }: ProprietesFormu
             aide={t('connection.database.hint')}
             onChange={(evenement) => setBase(evenement.target.value)}
           />
-
+          <label className="flex flex-col gap-1">
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-600 dark:text-slate-400">
+              {t('connection.sslmode')}
+              <HelpTip texte={t('connection.help.sslmode')} />
+            </span>
+            <select
+              value={sslmode}
+              aria-label={t('connection.sslmode')}
+              onChange={(evenement) => setSslmode(evenement.target.value)}
+              className="rounded border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-900"
+            >
+              <option value="">{t('connection.sslmode.default')}</option>
+              {modesSSL.map((valeur) => (
+                <option key={valeur} value={valeur}>
+                  {valeur}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
       ) : (
         <Field

@@ -13,6 +13,8 @@ import (
 	"strings"
 
 	"gopkg.in/yaml.v3"
+
+	"github.com/sprimault/ormeau/internal/introspection"
 )
 
 // maxProfils plafonne le fichier. Personne ne reprend cinquante bases à la
@@ -56,6 +58,11 @@ type Profil struct {
 	Port        int    `yaml:"port,omitempty" json:"port,omitempty"`
 	Utilisateur string `yaml:"utilisateur,omitempty" json:"utilisateur,omitempty"`
 	Base        string `yaml:"base,omitempty" json:"base,omitempty"`
+	// SSLMode est le sslmode de PostgreSQL. Il descend au navigateur, qui
+	// l'affiche et le modifie : c'est un vocabulaire fermé, pas un secret, et
+	// un formulaire qui ne le montrerait pas l'effacerait à la première mise à
+	// jour du profil.
+	SSLMode string `yaml:"sslmode,omitempty" json:"sslmode,omitempty"`
 	// Repertoire est le répertoire de travail associé. Vide, choisir le profil
 	// laisse le répertoire courant tel quel : quelqu'un qui n'a jamais réglé de
 	// répertoire ne s'attend pas à ce qu'un profil le déplace.
@@ -103,14 +110,21 @@ func (e *Emplacements) LireProfils() ([]Profil, string, error) {
 	// Un nom hors vocabulaire ne vient pas de l'écran, qui le valide : le
 	// fichier a été retouché. On écarte l'entrée plutôt que de la laisser
 	// désigner un profil qu'on ne saura ni relire ni supprimer.
+	//
+	// Un sslmode hors vocabulaire aussi : le laisser partir en connexion ferait
+	// refuser le profil par le pilote, et le corriger en silence choisirait à la
+	// place de l'utilisateur un mode peut-être moins sûr.
 	var retenus []Profil
-	var ecartes []string
+	var ecartes, sansModeSSL []string
 	for _, p := range lu.Profils {
-		if !nomProfil.MatchString(p.Nom) {
+		switch {
+		case !nomProfil.MatchString(p.Nom):
 			ecartes = append(ecartes, p.Nom)
-			continue
+		case p.SSLMode != "" && !introspection.ModeSSLValide(p.SSLMode):
+			sansModeSSL = append(sansModeSSL, p.Nom)
+		default:
+			retenus = append(retenus, p)
 		}
-		retenus = append(retenus, p)
 	}
 
 	trierProfils(retenus)
@@ -119,6 +133,10 @@ func (e *Emplacements) LireProfils() ([]Profil, string, error) {
 	if len(ecartes) > 0 {
 		avertissements = append(avertissements,
 			fmt.Sprintf("profils ignorés, nom invalide : %s", strings.Join(ecartes, ", ")))
+	}
+	if len(sansModeSSL) > 0 {
+		avertissements = append(avertissements,
+			fmt.Sprintf("profils ignorés, sslmode invalide : %s", strings.Join(sansModeSSL, ", ")))
 	}
 	if a := e.avertirCleInutilisable(retenus); a != "" {
 		avertissements = append(avertissements, a)
@@ -188,6 +206,9 @@ func (e *Emplacements) MotDePasseDuProfil(nom string) (string, error) {
 func (e *Emplacements) EnregistrerProfil(p Profil, motDePasse string, remplacer bool) (string, error) {
 	if !nomProfil.MatchString(p.Nom) {
 		return "", fmt.Errorf("nom de profil invalide: %q", p.Nom)
+	}
+	if p.SSLMode != "" && !introspection.ModeSSLValide(p.SSLMode) {
+		return "", fmt.Errorf("sslmode inconnu: %q", p.SSLMode)
 	}
 
 	profils, _, err := e.LireProfils()

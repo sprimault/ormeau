@@ -491,6 +491,61 @@ func TestProfilAuNomRetoucheEstEcarte(t *testing.T) {
 	}
 }
 
+// TestProfilGardeLeModeSSL vérifie l'aller-retour de sslmode : un profil qui le
+// perdrait se rouvrirait sans vérification du certificat.
+func TestProfilGardeLeModeSSL(t *testing.T) {
+	t.Parallel()
+
+	e := emplacementsDeTest(t)
+	p := profilDeTest("gescom production")
+	p.SSLMode = "verify-full"
+	if _, err := e.EnregistrerProfil(p, "", true); err != nil {
+		t.Fatalf("enregistrement : %v", err)
+	}
+
+	profils, _, err := e.LireProfils()
+	if err != nil || len(profils) != 1 || profils[0].SSLMode != "verify-full" {
+		t.Errorf("profils %+v, erreur %v", profils, err)
+	}
+}
+
+// TestModeSSLInconnuRefuse : l'écran ne propose que le vocabulaire, une autre
+// valeur ne vient pas de lui.
+func TestModeSSLInconnuRefuse(t *testing.T) {
+	t.Parallel()
+
+	p := profilDeTest("gescom production")
+	p.SSLMode = "verify"
+	if _, err := emplacementsDeTest(t).EnregistrerProfil(p, "", true); err == nil || !strings.Contains(err.Error(), "sslmode") {
+		t.Errorf("erreur %v, attendu un refus qui nomme sslmode", err)
+	}
+}
+
+// TestProfilAuModeSSLRetoucheEstEcarte : un sslmode hors vocabulaire vient d'un
+// fichier retouché. Le profil est écarté comme un nom invalide, plutôt que de
+// partir en connexion avec une valeur que le pilote refuserait ou, pire,
+// qu'on corrigerait en silence vers un mode moins sûr.
+func TestProfilAuModeSSLRetoucheEstEcarte(t *testing.T) {
+	t.Parallel()
+
+	e := emplacementsDeTest(t)
+	contenu := "profils:\n  - nom: retouche\n    hote: h\n    sslmode: verify\n  - nom: correct\n    hote: h\n    sslmode: require\n"
+	if err := os.WriteFile(e.FichierProfils(), []byte(contenu), permFichier); err != nil {
+		t.Fatalf("écriture : %v", err)
+	}
+
+	profils, avertissement, err := e.LireProfils()
+	if err != nil {
+		t.Fatalf("lecture : %v", err)
+	}
+	if len(profils) != 1 || profils[0].Nom != "correct" || profils[0].SSLMode != "require" {
+		t.Errorf("profils %+v", profils)
+	}
+	if !strings.Contains(avertissement, "retouche") || !strings.Contains(avertissement, "sslmode") {
+		t.Errorf("l'avertissement ne nomme ni l'entrée ni la raison : %s", avertissement)
+	}
+}
+
 // TestPlafondDeProfils vérifie le garde-fou contre un formulaire rejoué : au
 // cinquantième profil, un nouveau nom est refusé, un nom existant se remplace
 // encore.

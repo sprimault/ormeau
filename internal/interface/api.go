@@ -51,6 +51,9 @@ type RequeteConnexion struct {
 	Utilisateur string `json:"utilisateur,omitempty"`
 	MotDePasse  string `json:"mot_de_passe,omitempty"`
 	Base        string `json:"base,omitempty"`
+	// SSLMode est le sslmode de PostgreSQL. Vide, le pilote applique son
+	// défaut, prefer.
+	SSLMode string `json:"sslmode,omitempty"`
 }
 
 // ReponseConnexion décrit le serveur atteint. Le DSN n'y figure sous aucune
@@ -735,6 +738,10 @@ func codeDe(err error) int {
 		return http.StatusConflict
 	case errors.Is(err, config.ErrProfilInconnu):
 		return http.StatusNotFound
+	case errors.Is(err, errProfilEtChaine):
+		return http.StatusBadRequest
+	case errors.As(err, new(destinationDivergente)):
+		return http.StatusConflict
 	case errors.Is(err, errPiloteMuet):
 		return http.StatusNotImplemented
 	default:
@@ -768,6 +775,7 @@ func (r RequeteConnexion) composer() (string, error) {
 		Utilisateur: r.Utilisateur,
 		MotDePasse:  r.MotDePasse,
 		Base:        r.Base,
+		SSLMode:     r.SSLMode,
 	}.DSN()
 }
 

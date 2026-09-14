@@ -30,6 +30,11 @@ const fr = {
   // champ, l'autre ce qu'un enregistrement ferait.
   'profile.password.stored':
     'Un mot de passe est enregistré pour ce profil : laissez le champ vide pour l’utiliser.',
+  // Remplace le précédent dès que la destination change : le serveur refuse
+  // alors d'envoyer le mot de passe enregistré, et l'écran ne doit pas
+  // promettre le contraire.
+  'profile.password.otherDestination':
+    'Le SGBD, l’hôte, le port ou l’utilisateur diffèrent du profil : son mot de passe ne sera pas envoyé, ressaisissez-le.',
   'profile.password.erase':
     'Réenregistrer sans cocher la case effacera le mot de passe enregistré pour ce profil.',
   // Ce texte est là où la décision se prend, et il ne dit pas « chiffré » tout
@@ -68,6 +73,10 @@ const fr = {
   'connection.password': 'Mot de passe',
   'connection.database': 'Base',
   'connection.database.hint': 'Laisser vide pour parcourir tout le serveur',
+  'connection.sslmode': 'Chiffrement (sslmode)',
+  'connection.sslmode.default': 'Défaut du pilote',
+  'connection.help.sslmode':
+    'Le défaut, prefer, chiffre sans vérifier le certificat et se replie en clair si le serveur refuse. verify-full vérifie le certificat et le nom du serveur : c’est le mode à choisir quand le serveur le permet. Le choix est gardé dans le profil.',
   'connection.dsn': 'DSN',
   'connection.dsn.hint':
     'Un DATABASE_URL de Symfony convient : les paramètres inutiles sont retirés.',
@@ -356,6 +365,8 @@ const en: Record<MessageKey, string> = {
   'profile.password.save': 'Save the password',
   'profile.password.stored':
     'A password is saved for this profile: leave the field empty to use it.',
+  'profile.password.otherDestination':
+    'The DBMS, host, port or user differ from the profile: its password will not be sent, type it again.',
   'profile.password.erase':
     'Saving again without ticking the box will remove the password saved for this profile.',
   'profile.password.save.hint':
@@ -390,6 +401,10 @@ const en: Record<MessageKey, string> = {
   'connection.password': 'Password',
   'connection.database': 'Database',
   'connection.database.hint': 'Leave empty to browse the whole server',
+  'connection.sslmode': 'Encryption (sslmode)',
+  'connection.sslmode.default': 'Driver default',
+  'connection.help.sslmode':
+    'The default, prefer, encrypts without checking the certificate and falls back to plain text if the server refuses. verify-full checks the certificate and the server name: pick it whenever the server allows. The choice is kept in the profile.',
   'connection.dsn': 'DSN',
   'connection.dsn.hint': 'A Symfony DATABASE_URL works: unusable parameters are stripped.',
   'connection.submit': 'Connect',

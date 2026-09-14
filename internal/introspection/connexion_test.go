@@ -302,6 +302,108 @@ func TestAvecBaseCleValeur(t *testing.T) {
 	}
 }
 
+// sslmode passe dans la chaîne composée. Sans lui, une connexion par
+// composants partait toujours avec le défaut du pilote, prefer : TLS non
+// vérifié, et repli en clair.
+func TestDSNPorteLeModeSSL(t *testing.T) {
+	t.Parallel()
+
+	avec, err := Connexion{SGBD: "postgres", Hote: "h", Base: "gescom", SSLMode: "verify-full"}.DSN()
+	if err != nil {
+		t.Fatalf("composition : %v", err)
+	}
+	if !strings.HasSuffix(avec, "/gescom?sslmode=verify-full") {
+		t.Errorf("dsn %q sans sslmode", Masquer(avec))
+	}
+
+	sans, err := Connexion{SGBD: "postgres", Hote: "h", Base: "gescom"}.DSN()
+	if err != nil {
+		t.Fatalf("composition : %v", err)
+	}
+	if strings.Contains(sans, "?") {
+		t.Errorf("dsn %q : une requête sans mode demandé", Masquer(sans))
+	}
+}
+
+// Un mode hors vocabulaire ne part pas au pilote, et sslmode n'a de sens que
+// pour PostgreSQL, seul SGBD qui l'accepte ici.
+func TestDSNRefuseUnModeSSLInconnu(t *testing.T) {
+	t.Parallel()
+
+	for _, c := range []Connexion{
+		{SGBD: "postgres", Hote: "h", SSLMode: "verify"},
+		{SGBD: "postgres", Hote: "h", SSLMode: "VERIFY-FULL"},
+		{SGBD: "mysql", Hote: "h", SSLMode: "require"},
+	} {
+		if dsn, err := c.DSN(); err == nil || !strings.Contains(err.Error(), "sslmode") {
+			t.Errorf("%+v : dsn %q, erreur %v", c, Masquer(dsn), err)
+		}
+	}
+}
+
+// Enregistrer un profil depuis une chaîne garde son sslmode, dans les deux
+// formes. La forme clé/valeur est celle de libpq : elle désigne PostgreSQL
+// même sans port, qui était jusqu'ici le seul indice lu.
+func TestConnexionDepuisDSNGardeLeModeSSL(t *testing.T) {
+	t.Parallel()
+
+	cas := []struct {
+		dsn, sgbd, mode string
+	}{
+		{"postgres://u@h:5432/gescom?sslmode=verify-full", "postgres", "verify-full"},
+		{"postgresql://u@h/gescom?serverVersion=16&sslmode=require&charset=utf8", "postgres", "require"},
+		{"postgres://u@h/gescom", "postgres", ""},
+		{"host=h dbname=gescom sslmode=verify-ca", "postgres", "verify-ca"},
+		{"host=h port=5432 dbname=gescom", "postgres", ""},
+	}
+
+	for _, c := range cas {
+		connexion, err := ConnexionDepuisDSN(c.dsn)
+		if err != nil {
+			t.Fatalf("%q : %v", c.dsn, err)
+		}
+		if connexion.SGBD != c.sgbd || connexion.SSLMode != c.mode {
+			t.Errorf("%q : sgbd %q, sslmode %q ; attendu %q, %q", c.dsn, connexion.SGBD, connexion.SSLMode, c.sgbd, c.mode)
+		}
+	}
+}
+
+// Un sslmode que le pilote refuserait est refusé dès la lecture, plutôt que
+// d'entrer dans un profil qui ne se rouvrirait pas.
+func TestConnexionDepuisDSNRefuseUnModeSSLInconnu(t *testing.T) {
+	t.Parallel()
+
+	for _, dsn := range []string{"postgres://u@h/gescom?sslmode=verif", "host=h sslmode=strict"} {
+		if _, err := ConnexionDepuisDSN(dsn); err == nil || !strings.Contains(err.Error(), "sslmode") {
+			t.Errorf("%q : erreur %v, attendu un refus qui nomme sslmode", dsn, err)
+		}
+	}
+}
+
+// La destination compare ce que deux connexions visent réellement : SGBD
+// déduit du port, port par défaut du SGBD, hôte sans casse ni blanc autour.
+func TestDestination(t *testing.T) {
+	t.Parallel()
+
+	cas := []struct {
+		connexion  Connexion
+		sgbd, hote string
+		port       int
+	}{
+		{Connexion{SGBD: "postgres", Hote: "h"}, "postgres", "h", 5432},
+		{Connexion{Hote: " NAS.local ", Port: 5432}, "postgres", "nas.local", 5432},
+		{Connexion{SGBD: "PostgreSQL", Hote: "h", Port: 5433}, "postgres", "h", 5433},
+		{Connexion{Hote: "h", Port: 9999}, "", "h", 9999},
+	}
+
+	for _, c := range cas {
+		sgbd, hote, port := c.connexion.Destination()
+		if sgbd != c.sgbd || hote != c.hote || port != c.port {
+			t.Errorf("%+v : %q %q %d, attendu %q %q %d", c.connexion, sgbd, hote, port, c.sgbd, c.hote, c.port)
+		}
+	}
+}
+
 // Changer de base ne doit pas perdre les identifiants ni les options.
 func TestAvecBaseConserveLeReste(t *testing.T) {
 	t.Parallel()

@@ -283,29 +283,166 @@ func TestProfilSansDSNDepuisLOngletChaine(t *testing.T) {
 	}
 }
 
-// TestDSNSaisiLEmporteSurLeProfil : une chaîne tapée décrit la connexion
-// voulue, elle n'est pas un complément du profil.
-func TestDSNSaisiLEmporteSurLeProfil(t *testing.T) {
+// TestProfilEtChaineRefuses : une chaîne décrit à elle seule la connexion
+// voulue. Tolérer un profil à côté lui imposerait la base et le répertoire du
+// profil sur un serveur qui n'est peut-être pas le sien. Le front n'envoie
+// jamais les deux ; le serveur le refuse avant toute tentative.
+func TestProfilEtChaineRefuses(t *testing.T) {
 	t.Parallel()
 
-	s, _ := serveurDeTest(t)
+	s, routeur := serveurDeTest(t)
 	if _, err := s.emplacements.EnregistrerProfil(config.Profil{
-		Nom: "nas", SGBD: "postgres", Hote: "192.168.0.184", Base: "cadensio_main",
+		Nom: "nas", SGBD: "postgres", Hote: "192.168.1.10", Base: "gescom",
 	}, "secret", true); err != nil {
 		t.Fatalf("enregistrement : %v", err)
 	}
 
-	requete := RequeteConnexion{Profil: "nas", DSN: "postgres://u:p@autre:5432/ailleurs"}
+	w := poster(s, routeur, "/api/connexion", RequeteConnexion{Profil: "nas", DSN: "postgres://u@autre:5432/ailleurs"})
+	attendreStatut(t, w, http.StatusBadRequest)
+}
+
+// profilAvecMotDePasse enregistre le profil de référence des tests de
+// destination, mot de passe compris.
+func profilAvecMotDePasse(t *testing.T, s *serveur) {
+	t.Helper()
+	if _, err := s.emplacements.EnregistrerProfil(config.Profil{
+		Nom: "production", SGBD: "postgres", Hote: "bdd.exemple", Port: 5432,
+		Utilisateur: "lecture", Base: "gescom",
+	}, "secret", true); err != nil {
+		t.Fatalf("enregistrement : %v", err)
+	}
+}
+
+// TestMotDePasseNonEnvoyeVersUneAutreDestination est le test qui protège le
+// mot de passe enregistré : choisir le profil « production » puis corriger un
+// champ du formulaire ne doit pas l'envoyer à un autre serveur, ni l'essayer
+// pour un autre compte, où l'échec compterait contre lui. Le refus arrive avant
+// tout contact avec la base, en nommant le champ.
+func TestMotDePasseNonEnvoyeVersUneAutreDestination(t *testing.T) {
+	t.Parallel()
+
+	cas := []struct {
+		nom     string
+		requete RequeteConnexion
+		champ   string
+	}{
+		{"autre sgbd", RequeteConnexion{SGBD: "mysql"}, "SGBD"},
+		{"autre hôte", RequeteConnexion{Hote: "recette.exemple"}, "hôte"},
+		{"autre port", RequeteConnexion{Port: 5433}, "port"},
+		{"autre utilisateur", RequeteConnexion{Utilisateur: "admin"}, "utilisateur"},
+	}
+
+	for _, c := range cas {
+		t.Run(c.nom, func(t *testing.T) {
+			t.Parallel()
+
+			s, _ := serveurDeTest(t)
+			profilAvecMotDePasse(t, s)
+
+			requete := c.requete
+			requete.Profil = "production"
+			_, err := s.connexionDuProfil(&requete)
+			if err == nil || !strings.Contains(err.Error(), c.champ) {
+				t.Fatalf("erreur %v, attendu un refus qui nomme %s", err, c.champ)
+			}
+			if codeDe(err) != http.StatusConflict {
+				t.Errorf("code %d, attendu 409", codeDe(err))
+			}
+			if requete.MotDePasse != "" {
+				t.Error("le mot de passe enregistré a été injecté")
+			}
+		})
+	}
+}
+
+// TestMotDePasseEnvoyeVersLaMemeDestination : la comparaison porte sur ce que
+// les deux connexions visent, pas sur le texte. Un hôte en majuscules, un port
+// laissé vide qui vaut celui du SGBD, une autre base du même serveur : le
+// mot de passe du rôle y vaut toujours.
+func TestMotDePasseEnvoyeVersLaMemeDestination(t *testing.T) {
+	t.Parallel()
+
+	cas := []struct {
+		nom     string
+		requete RequeteConnexion
+	}{
+		{"requête vide", RequeteConnexion{}},
+		{"hôte en majuscules et blancs", RequeteConnexion{Hote: " BDD.exemple "}},
+		{"sgbd déduit du port", RequeteConnexion{Hote: "bdd.exemple", Port: 5432}},
+		{"autre base", RequeteConnexion{Base: "paie"}},
+	}
+
+	for _, c := range cas {
+		t.Run(c.nom, func(t *testing.T) {
+			t.Parallel()
+
+			s, _ := serveurDeTest(t)
+			profilAvecMotDePasse(t, s)
+
+			requete := c.requete
+			requete.Profil = "production"
+			if _, err := s.connexionDuProfil(&requete); err != nil {
+				t.Fatalf("complétion : %v", err)
+			}
+			if requete.MotDePasse != "secret" {
+				t.Error("le mot de passe enregistré n'a pas été repris")
+			}
+		})
+	}
+}
+
+// TestDestinationDivergenteRefuseeParLAPI vérifie la réponse vue par le
+// navigateur : un 409 qui dit quoi faire, sans que la base ait été jointe.
+func TestDestinationDivergenteRefuseeParLAPI(t *testing.T) {
+	t.Parallel()
+
+	s, routeur := serveurDeTest(t)
+	profilAvecMotDePasse(t, s)
+
+	w := poster(s, routeur, "/api/connexion", RequeteConnexion{Profil: "production", Hote: "recette.exemple"})
+	attendreStatut(t, w, http.StatusConflict)
+	if reponse := decoderReponse[ReponseErreur](t, w); !strings.Contains(reponse.Erreur, "mot de passe") {
+		t.Errorf("message %q", reponse.Erreur)
+	}
+}
+
+// TestProfilCompleteLeModeSSL : un profil qui porte verify-full le rend à la
+// connexion, et la chaîne composée le transmet au pilote.
+func TestProfilCompleteLeModeSSL(t *testing.T) {
+	t.Parallel()
+
+	s, _ := serveurDeTest(t)
+	if _, err := s.emplacements.EnregistrerProfil(config.Profil{
+		Nom: "production", SGBD: "postgres", Hote: "bdd.exemple", SSLMode: "verify-full",
+	}, "", true); err != nil {
+		t.Fatalf("enregistrement : %v", err)
+	}
+
+	requete := RequeteConnexion{Profil: "production"}
 	if _, err := s.connexionDuProfil(&requete); err != nil {
 		t.Fatalf("complétion : %v", err)
 	}
-
 	dsn, err := requete.composer()
 	if err != nil {
 		t.Fatalf("composition : %v", err)
 	}
-	if dsn != "postgres://u:p@autre:5432/ailleurs" {
-		t.Errorf("dsn composé %q", dsn)
+	if !strings.Contains(dsn, "sslmode=verify-full") {
+		t.Errorf("dsn composé sans sslmode")
+	}
+}
+
+// TestProfilDepuisUnDSNGardeLeModeSSL : enregistré depuis une chaîne, le profil
+// garde son sslmode. C'est le défaut d'origine : il se rouvrait en prefer.
+func TestProfilDepuisUnDSNGardeLeModeSSL(t *testing.T) {
+	t.Parallel()
+
+	s, routeur := serveurDeTest(t)
+	reponse := decoderReponse[ReponseProfils](t, poster(s, routeur, "/api/profils", RequeteProfil{
+		Profil: config.Profil{Nom: "verifie"},
+		DSN:    "postgres://lecture@bdd.exemple:5432/gescom?sslmode=verify-full",
+	}))
+	if len(reponse.Profils) != 1 || reponse.Profils[0].Profil.SSLMode != "verify-full" {
+		t.Errorf("profils %+v", reponse.Profils)
 	}
 }
 

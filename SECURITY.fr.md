@@ -65,6 +65,11 @@ peut lire l'autre. C'est le même modèle que DBeaver ou SSMS, et il est dit ici
 plutôt que laissé à deviner. Qui a besoin davantage laisse la case décochée : le
 mot de passe est alors ressaisi à chaque connexion et n'est écrit nulle part.
 
+**Où il part** : vers la destination du profil, et nulle part ailleurs. Si le
+SGBD, l'hôte, le port ou l'utilisateur saisis diffèrent de ceux du profil,
+Ormeau refuse de l'envoyer, avant tout contact avec le serveur, et demande de le
+ressaisir. Changer de base sur le même serveur ne compte pas.
+
 Ne sont **pas** des vulnérabilités :
 
 - l'avertissement SmartScreen sous Windows et le blocage Gatekeeper sous macOS.
