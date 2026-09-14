@@ -1,15 +1,15 @@
 {
   "name": "sprimault/ormeau-doctrine",
-  "description": "Generates Doctrine entities from a legacy database, through the Ormeau layer, and regenerates them without overwriting your code",
+  "description": "Generates Doctrine entities from a legacy database and regenerates them without overwriting your code",
   "type": "symfony-bundle",
   "keywords": [
     "doctrine",
     "doctrine-orm",
-    "symfony-bundle",
-    "entity-generator",
     "reverse-engineering",
+    "entity-generator",
+    "code-generation",
+    "database-schema",
     "legacy",
-    "database",
     "mapping-import"
   ],
   "license": "Apache-2.0",
