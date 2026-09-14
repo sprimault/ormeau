@@ -36,6 +36,65 @@ préambule reste en français : il n'est jamais publié.
 
 ## [Non publié]
 
+**Un calque PostgreSQL déjà enregistré change à sa prochaine extraction**, sans
+que la base ait bougé : les objets de `public` y sortent qualifiés, dans
+`type_brut` (`public.citext`), les défauts, les vérifications, les prédicats
+d'index et les vues. `version_ri` ne bouge pas, et un calque plus ancien reste
+lisible. Le calque logique et les entités ne changent pas, sauf une séquence
+hors de `public` extraite par une session dont le `search_path` contenait son
+schéma : sous ORM 2, son nom se qualifie dans `Base/`.
+
+### Corrigé
+
+- **Deux extractions de la même base ne dépendent plus de la session.** Le
+  `search_path` du rôle ou du DSN décidait quels noms le catalogue qualifiait :
+  deux personnes produisaient deux calques, et la comparaison signalait des
+  écarts inexistants. L'extraction se fait sous un `search_path` vide. Une
+  séquence de `public` garde son nom nu dans le calque logique : qualifiée,
+  DBAL 3 la croirait absente et `migrations:diff` proposerait de la créer.
+
+### Sécurité
+
+- **La lecture seule de la connexion est vérifiée.** Elle était demandée au
+  démarrage sans être relue : derrière un intermédiaire qui ignore les
+  paramètres de démarrage, comme pgbouncer avec `ignore_startup_parameters`,
+  la session restait inscriptible sans erreur. L'extraction est désormais
+  refusée si la session n'est pas en lecture seule.
+- **Un opérateur ou une fonction créés dans `public` ne peuvent plus se
+  substituer à ceux du catalogue** dans les requêtes d'extraction
+  (CVE-2018-1058), le `search_path` étant vide.
+
+***
+
+**A PostgreSQL layer already saved changes at its next extraction**, although
+the database has not moved: objects in `public` come out qualified, in
+`type_brut` (`public.citext`), defaults, checks, index predicates and views.
+`version_ri` does not change, and an older layer stays readable. The logical
+layer and the entities do not change, except for a sequence outside `public`
+extracted by a session whose `search_path` contained its schema: under ORM 2,
+its name becomes qualified in `Base/`.
+
+### Fixed
+
+- **Two extractions of the same database no longer depend on the session.**
+  The `search_path` of the role or the DSN decided which names the catalogue
+  qualified: two people produced two layers, and the comparison reported
+  differences that did not exist. Extraction now runs under an empty
+  `search_path`. A sequence in `public` keeps its bare name in the logical
+  layer: qualified, DBAL 3 would consider it missing and `migrations:diff`
+  would propose to create it.
+
+### Security
+
+- **The read-only mode of the connection is verified.** It was requested at
+  startup without being read back: behind an intermediary that ignores startup
+  parameters, such as pgbouncer with `ignore_startup_parameters`, the session
+  stayed writable without any error. Extraction is now refused when the
+  session is not read-only.
+- **An operator or function created in `public` can no longer take the place
+  of the catalogue's own** in extraction queries (CVE-2018-1058), the
+  `search_path` being empty.
+
 ## [0.5.1] — 2026-09-14 — Ce que les bases réelles cassaient
 
 **Cinq changements touchent un projet déjà généré.** `version_ri` ne bouge pas,

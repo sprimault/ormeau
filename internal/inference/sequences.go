@@ -9,10 +9,23 @@ import "strings"
 // tel que PostgreSQL le rend : nextval('facture_id_seq'::regclass).
 //
 // Le physique garde l'expression verbatim, et c'est ici qu'elle se traduit.
-// Le nom sort tel que le catalogue l'a écrit : qualifié par son schéma quand
-// la séquence n'était pas visible depuis la session d'extraction, entre
-// guillemets doubles quand il en exige. Seules les apostrophes doublées du
-// littéral SQL redeviennent simples.
+// Le nom sort tel que le catalogue l'a écrit, entre guillemets doubles quand il
+// en exige, seules les apostrophes doublées du littéral SQL redevenant simples.
+// L'extraction se fait sous un search_path vide : le nom est donc qualifié par
+// son schéma. Un calque plus ancien le qualifie ou non selon la session qui
+// l'a produit.
+//
+// Un préfixe public écrit sans guillemets est retiré. public est le schéma par
+// défaut de PostgreSQL, et le nom nu désigne la même séquence sous le chemin
+// par défaut. Surtout, DBAL 3 relit une séquence de public sans son schéma, par
+// comparaison littérale au nom public et non au schéma courant
+// (PostgreSQLSchemaManager::_getPortableSequenceDefinition) : qualifiée, elle
+// fait proposer à schema:update et migrations:diff un CREATE SEQUENCE d'une
+// séquence qui existe. Relevé le 2026-09-14 sous ORM 2.14.3 et DBAL 3.10.6. La
+// règle ne sert que la cible ORM 2 : ORM 3 rend la clé en IDENTITY et DBAL 4
+// résout un nom nu contre le schéma courant. Quand le plancher passera à ORM 3,
+// elle pourra partir sans refaire l'essai. "public" entre guillemets reste :
+// PostgreSQL ne rend pas cette forme, et "Public" est un autre schéma.
 //
 // Deux formes sont reconnues : celle d'aujourd'hui, et celle qu'une base
 // restaurée depuis PostgreSQL 8.0 garde, nextval(('x'::text)::regclass).
@@ -29,7 +42,11 @@ func nomDeSequence(expression string) (string, bool) {
 	}
 
 	nom, reste, ok := litteralSQL(reste)
-	if !ok || nom == "" || reste != suffixe {
+	if !ok || reste != suffixe {
+		return "", false
+	}
+	nom = strings.TrimPrefix(nom, "public.")
+	if nom == "" {
 		return "", false
 	}
 	return nom, true

@@ -39,6 +39,41 @@
       "origine": "nommage"
     },
     {
+      "nom": "Ecriture",
+      "table": {
+        "nom": "ecriture",
+        "schema": "Public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "sequence",
+        "sequence": "\"Public\".ecriture_id_seq"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "numero",
+          "colonne": "numero",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 20,
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "serial dans un schéma Public distinct de public : le préfixe entre guillemets reste",
+      "origine": "nommage"
+    },
+    {
       "nom": "Avoir",
       "table": {
         "nom": "avoir",
@@ -71,6 +106,41 @@
         }
       ],
       "commentaire": "serial hors du search_path de l'extraction : nom qualifié",
+      "origine": "nommage"
+    },
+    {
+      "nom": "Journal",
+      "table": {
+        "nom": "Journal",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "sequence",
+        "sequence": "\"public\".\"Journal_Id_seq\""
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "Id",
+          "type_php": "int",
+          "type_doctrine": "bigint",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "numero",
+          "colonne": "numero",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 20,
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "schéma public écrit entre guillemets, forme que PostgreSQL ne rend pas : rien n'est retiré",
       "origine": "nommage"
     },
     {
@@ -245,6 +315,41 @@
         }
       ],
       "commentaire": "serial dans le search_path de l'extraction : nom nu",
+      "origine": "nommage"
+    },
+    {
+      "nom": "Reglement",
+      "table": {
+        "nom": "reglement",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "sequence",
+        "sequence": "reglement_id_seq"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "numero",
+          "colonne": "numero",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 20,
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "serial extrait sous un search_path vide : public qualifié, retiré par l'inférence",
       "origine": "nommage"
     }
   ],

@@ -292,7 +292,9 @@ is not auditable.
 ## Safety
 
 The tool only ever reads. Connections are read-only, enforced by the server
-rather than by the code's discipline, with a per-query timeout.
+rather than by the code's discipline, with a per-query timeout. The session is
+read back when it opens: if an intermediary dropped read-only mode on the way,
+extraction is refused.
 
 The DSN is the only secret handled: it appears neither in logs, nor in error
 messages, nor in the layer.

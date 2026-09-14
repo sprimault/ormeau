@@ -34,11 +34,18 @@ func dsnDeTest() string {
 // ouvrirOuEchouer ouvre une connexion et l'inscrit au nettoyage du test.
 func ouvrirOuEchouer(t *testing.T) introspection.Introspecteur {
 	t.Helper()
+	return ouvrirDepuis(t, dsnDeTest())
+}
+
+// ouvrirDepuis ouvre une connexion sur un DSN donné, pour les tests qui
+// comparent deux sessions.
+func ouvrirDepuis(t *testing.T, dsn string) introspection.Introspecteur {
+	t.Helper()
 
 	ctx, annuler := context.WithTimeout(context.Background(), 10*time.Second)
 	defer annuler()
 
-	p, err := introspection.Ouvrir(ctx, "postgres", dsnDeTest())
+	p, err := introspection.Ouvrir(ctx, "postgres", dsn)
 	if err != nil {
 		t.Fatalf("connexion (make containers ?) : %v", err)
 	}

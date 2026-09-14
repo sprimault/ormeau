@@ -40,6 +40,36 @@
       }
     },
     {
+      "nom": "ecriture",
+      "schema": "Public",
+      "commentaire": "serial dans un schéma Public distinct de public : le préfixe entre guillemets reste",
+      "colonnes": [
+        {
+          "nom": "id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false,
+          "defaut": {
+            "genre": "sequence",
+            "valeur": "nextval('\"Public\".ecriture_id_seq'::regclass)"
+          }
+        },
+        {
+          "nom": "numero",
+          "position": 2,
+          "type_brut": "character varying(20)",
+          "type_normalise": "texte",
+          "longueur": 20,
+          "nullable": false
+        }
+      ],
+      "cle_primaire": {
+        "nom": "ecriture_pkey",
+        "colonnes": ["id"]
+      }
+    },
+    {
       "nom": "avoir",
       "schema": "gescom",
       "commentaire": "serial hors du search_path de l'extraction : nom qualifié",
@@ -67,6 +97,36 @@
       "cle_primaire": {
         "nom": "avoir_pkey",
         "colonnes": ["id"]
+      }
+    },
+    {
+      "nom": "Journal",
+      "schema": "public",
+      "commentaire": "schéma public écrit entre guillemets, forme que PostgreSQL ne rend pas : rien n'est retiré",
+      "colonnes": [
+        {
+          "nom": "Id",
+          "position": 1,
+          "type_brut": "bigint",
+          "type_normalise": "entier",
+          "nullable": false,
+          "defaut": {
+            "genre": "sequence",
+            "valeur": "nextval('\"public\".\"Journal_Id_seq\"'::regclass)"
+          }
+        },
+        {
+          "nom": "numero",
+          "position": 2,
+          "type_brut": "character varying(20)",
+          "type_normalise": "texte",
+          "longueur": 20,
+          "nullable": false
+        }
+      ],
+      "cle_primaire": {
+        "nom": "Journal_pkey",
+        "colonnes": ["Id"]
       }
     },
     {
@@ -218,6 +278,36 @@
         "nom": "facture_pkey",
         "colonnes": ["id"]
       }
+    },
+    {
+      "nom": "reglement",
+      "schema": "public",
+      "commentaire": "serial extrait sous un search_path vide : public qualifié, retiré par l'inférence",
+      "colonnes": [
+        {
+          "nom": "id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false,
+          "defaut": {
+            "genre": "sequence",
+            "valeur": "nextval('public.reglement_id_seq'::regclass)"
+          }
+        },
+        {
+          "nom": "numero",
+          "position": 2,
+          "type_brut": "character varying(20)",
+          "type_normalise": "texte",
+          "longueur": 20,
+          "nullable": false
+        }
+      ],
+      "cle_primaire": {
+        "nom": "reglement_pkey",
+        "colonnes": ["id"]
+      }
     }
   ],
   "sequences": [
@@ -230,11 +320,27 @@
       "cyclique": false
     },
     {
+      "nom": "ecriture_id_seq",
+      "schema": "Public",
+      "increment": 1,
+      "minimum": 1,
+      "maximum": 2147483647,
+      "cyclique": false
+    },
+    {
       "nom": "avoir_id_seq",
       "schema": "gescom",
       "increment": 1,
       "minimum": 1,
       "maximum": 2147483647,
+      "cyclique": false
+    },
+    {
+      "nom": "Journal_Id_seq",
+      "schema": "public",
+      "increment": 1,
+      "minimum": 1,
+      "maximum": 9223372036854775807,
       "cyclique": false
     },
     {
@@ -255,6 +361,14 @@
     },
     {
       "nom": "facture_id_seq",
+      "schema": "public",
+      "increment": 1,
+      "minimum": 1,
+      "maximum": 2147483647,
+      "cyclique": false
+    },
+    {
+      "nom": "reglement_id_seq",
       "schema": "public",
       "increment": 1,
       "minimum": 1,

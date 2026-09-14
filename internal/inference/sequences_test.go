@@ -7,7 +7,8 @@ import "testing"
 
 // TestNomDeSequence couvre les formes que rend pg_get_expr, relevées sous
 // PostgreSQL 17, et ce qui doit rester sans nom plutôt que d'en recevoir un
-// faux.
+// faux. Seul un préfixe public écrit sans guillemets se retire : "Public" est
+// un autre schéma, et "public" une forme que PostgreSQL ne rend pas.
 func TestNomDeSequence(t *testing.T) {
 	t.Parallel()
 
@@ -19,7 +20,14 @@ func TestNomDeSequence(t *testing.T) {
 		{"nextval('facture_id_seq'::regclass)", "facture_id_seq", true},
 		{"nextval('gescom.avoir_id_seq'::regclass)", "gescom.avoir_id_seq", true},
 		{`nextval('"Compta"."Bon_Livraison_Id_seq"'::regclass)`, `"Compta"."Bon_Livraison_Id_seq"`, true},
-		{`nextval('public."séq''bizarre"'::regclass)`, `public."séq'bizarre"`, true},
+		{`nextval('public."séq''bizarre"'::regclass)`, `"séq'bizarre"`, true},
+		{"nextval('public.facture_id_seq'::regclass)", "facture_id_seq", true},
+		{`nextval('public."public.x"'::regclass)`, `"public.x"`, true},
+		{`nextval('"public.x"'::regclass)`, `"public.x"`, true},
+		{`nextval('"Public".ecriture_id_seq'::regclass)`, `"Public".ecriture_id_seq`, true},
+		{`nextval('"public"."Journal_Id_seq"'::regclass)`, `"public"."Journal_Id_seq"`, true},
+		{"nextval('publicite_id_seq'::regclass)", "publicite_id_seq", true},
+		{"nextval('public.'::regclass)", "", false},
 		{"nextval(('ancienne_id_seq'::text)::regclass)", "ancienne_id_seq", true},
 		{"nextval((current_setting('app.seq'::text))::regclass)", "", false},
 		{"nextval(''::regclass)", "", false},
