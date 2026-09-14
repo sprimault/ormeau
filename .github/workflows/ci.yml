@@ -37,6 +37,11 @@ env:
   # compare une génération locale à une génération CI, et deux versions
   # différentes le feraient échouer sans qu'aucun type Go n'ait bougé.
   TYGO_VERSION: 'v0.2.21'
+  # Doivent rester égales à GOVULNCHECK_VERSION et GOSEC_VERSION dans le
+  # Makefile. Jamais @latest : ces jobs sauvegardent le cache Go, et un outil
+  # adopté le jour de sa sortie y écrirait. release.yml construit sans cache.
+  GOVULNCHECK_VERSION: 'v1.7.0'
+  GOSEC_VERSION: 'v2.28.0'
 
 jobs:
   go:
@@ -124,7 +129,7 @@ jobs:
       # govulncheck ne signale une CVE que si le code appelle effectivement la
       # fonction affectée : beaucoup moins bruyant qu'un scan brut.
       - name: Installer govulncheck
-        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+        run: go install golang.org/x/vuln/cmd/govulncheck@${{ env.GOVULNCHECK_VERSION }}
 
       - name: Vulnérabilités
         run: govulncheck ./...
@@ -156,7 +161,7 @@ jobs:
       # et la construction de requêtes SQL. Les requêtes de catalogue sont des
       # constantes, aucune ne doit être assemblée à partir d'une entrée.
       - name: Installer gosec
-        run: go install github.com/securego/gosec/v2/cmd/gosec@latest
+        run: go install github.com/securego/gosec/v2/cmd/gosec@${{ env.GOSEC_VERSION }}
 
       - name: gosec
         run: gosec ./...

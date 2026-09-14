@@ -1,4 +1,4 @@
-.PHONY: dev test cover maj-attendus lint outils vulncheck sec build binaries web-deps web-build web-types web-types-check web-lint web-test php-changelog php-test php-lint image image-push clean
+.PHONY: dev test cover maj-attendus lint outils vulncheck sec build binaries web-deps web-build web-types web-types-check web-lint web-test php-changelog php-test php-lint image image-tags image-push clean
 
 # Répertoire de travail local, ignoré par git : sorties de `make build`,
 # profils de couverture, tout ce qui ne se publie pas.
@@ -104,10 +104,18 @@ lint: web-build web-types-check
 # se manifeste pas.
 GOLANGCI_VERSION ?= v2.13.0
 
+# govulncheck et gosec sont épinglés aussi, et la CI installe les mêmes : en
+# @latest, un outil adopté le jour de sa sortie tourne dans des jobs dont le
+# cache Go est partagé. La plus ancienne version qui analyse du Go 1.27 sans
+# erreur, sous Linux comme sous Windows (essai du 2026-09-14). Épingler
+# govulncheck ne fige pas sa base d'avis, qu'il interroge en direct.
+GOVULNCHECK_VERSION ?= v1.7.0
+GOSEC_VERSION ?= v2.28.0
+
 outils:
 	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_VERSION)
-	go install golang.org/x/vuln/cmd/govulncheck@latest
-	go install github.com/securego/gosec/v2/cmd/gosec@latest
+	go install golang.org/x/vuln/cmd/govulncheck@$(GOVULNCHECK_VERSION)
+	go install github.com/securego/gosec/v2/cmd/gosec@$(GOSEC_VERSION)
 	go install github.com/gzuidhof/tygo@$(TYGO_VERSION)
 
 # vulncheck utilise l'outil officiel de la Go Team. Il ne signale une CVE
@@ -284,12 +292,17 @@ containers-down:
 # d'émulation QEMU : le Dockerfile copie l'artefact correspondant à
 # TARGETOS/TARGETARCH.
 #
-# Publier une version : une seule construction, deux étiquettes. En
-# deux appels, la même source produit deux index différents — les
-# horodatages de couches ne sont pas reproductibles — et repointer
-# ensuite l'un sur l'autre laisse un index sans étiquette au registre.
-IMAGE_TAG  ?= ghcr.io/sprimault/ormeau:latest
-IMAGE_TAGS ?= $(IMAGE_TAG)
+# Une version se publie par release.yml, qui construit dans la chaîne
+# attestée. image-push reste pour pousser à la main une image explicitement
+# étiquetée : une seule construction pour plusieurs étiquettes, parce qu'en
+# deux appels la même source produit deux index différents — les horodatages
+# de couches ne sont pas reproductibles — et repointer ensuite l'un sur
+# l'autre laisse un index sans étiquette au registre.
+#
+# Aucune étiquette par défaut : un :latest implicite ferait rapporter à un
+# docker pull sans étiquette une image construite sur un poste, ce que
+# release.yml exclut en 0.x.
+IMAGE_TAGS ?=
 TAG_FLAGS   = $(foreach t,$(IMAGE_TAGS),-t $(t))
 PLATFORMS  ?= linux/amd64,linux/arm64
 REVISION   ?= $(shell git rev-parse HEAD 2>/dev/null || echo unknown)
@@ -299,7 +312,11 @@ image: binaries
 		--build-arg VERSION=$(VERSION) --build-arg REVISION=$(REVISION) \
 		$(TAG_FLAGS) -f deploy/Dockerfile .
 
-image-push: binaries
+# Le refus passe avant binaires : sans étiquette, rien n'est construit.
+image-tags:
+	@test -n "$(IMAGE_TAGS)" || { echo "IMAGE_TAGS requis, par exemple IMAGE_TAGS=ghcr.io/sprimault/ormeau:v0.5.2 ; une version se publie par release.yml"; exit 1; }
+
+image-push: image-tags binaries
 	docker buildx build --platform $(PLATFORMS) --push \
 		--build-arg VERSION=$(VERSION) --build-arg REVISION=$(REVISION) \
 		$(TAG_FLAGS) -f deploy/Dockerfile .

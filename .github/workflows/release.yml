@@ -27,6 +27,26 @@ env:
   NODE_VERSION: '22'
 
 jobs:
+  # Le titre et les notes viennent de la section du CHANGELOG qui porte cette
+  # version. Elle s'écrit avec les lots et se relit en PR, au moment où elle
+  # compte : rien n'est à recopier ici, où personne ne la relirait.
+  #
+  # Une section absente arrête la publication, et avant le miroir : c'est la
+  # seule étape qui ne se reprend pas proprement, puisqu'un composer require a
+  # pu résoudre le tag le temps de s'en apercevoir. Ni secret ni droit
+  # d'écriture ici.
+  notes:
+    name: Notes de version
+    runs-on: ubuntu-latest
+    outputs:
+      titre: ${{ steps.notes.outputs.titre }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Lire les notes dans le CHANGELOG
+        id: notes
+        run: bash tools/release/notes.sh "$GITHUB_REF_NAME" notes.md >> "$GITHUB_OUTPUT"
+
   # Le miroir du paquet PHP reçoit le tag avant toute autre étape, et rien ne
   # part sans lui : ni binaires, ni brouillon, ni image. Sans cet ordre, un
   # composer require de la nouvelle version échouerait pendant que la release
@@ -38,13 +58,14 @@ jobs:
   # règle de l'environnement continue de n'admettre que master et v*.
   miroir:
     name: Miroir du paquet PHP
+    needs: notes
     uses: ./.github/workflows/miroir.yml
     secrets: inherit
 
   binaires:
     name: Binaires
     runs-on: ubuntu-latest
-    needs: miroir
+    needs: [notes, miroir]
     permissions:
       contents: write
       # L'attestation lie l'archive au commit et au workflow qui l'a produite,
@@ -56,46 +77,21 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      # Le titre et les notes viennent de la section du CHANGELOG qui porte
-      # cette version. Elle s'écrit avec les lots et se relit en PR, au moment
-      # où elle compte : rien n'est à recopier ici, où personne ne la relirait.
-      #
-      # Lue avant les tests et la construction : une section absente arrête la
-      # publication, et autant le savoir avant de compiler cinq cibles. Une
-      # version sans notes ne dit ni ce qui change, ni ce qu'un calque ou un
-      # fichier de décisions existant doit reprendre.
-      - name: Lire les notes dans le CHANGELOG
-        id: notes
+      # La même lecture que le job notes, qui l'a déjà contrôlée : le texte ne
+      # transite pas par une sortie de job.
+      - name: Écrire les notes
         run: |
-          version="${GITHUB_REF_NAME#v}"
-
-          # index et non une expression régulière : les crochets du titre de
-          # section formeraient une classe de caractères, et « [0.4.0] » ne
-          # désignerait plus qu'un seul caractère.
-          awk -v v="$version" '
-            index($0, "## [" v "]") == 1 { dedans = 1; next }
-            dedans && index($0, "## ") == 1 { exit }
-            dedans { print }
-          ' CHANGELOG.md > notes.md
-
-          # Une section faite de lignes vides passerait un test de taille : c'est
-          # du texte qui est exigé, pas des octets.
-          if ! grep -q '[^[:space:]]' notes.md; then
-            echo "CHANGELOG.md n'a pas de section pour la version $version" >&2
-            exit 1
-          fi
-
-          # Le titre est la troisième partie du titre de section, après la
-          # version et la date. Absent, la release se nomme par son tag seul.
-          titre=$(grep -m1 -F "## [$version]" CHANGELOG.md \
-            | sed -n 's/^## \[[^]]*\][^—]*—[^—]*— *//p')
-          echo "titre=${GITHUB_REF_NAME}${titre:+ — $titre}" >> "$GITHUB_OUTPUT"
+          bash tools/release/notes.sh "$GITHUB_REF_NAME" notes.md > /dev/null
           cat notes.md
 
+      # Sans cache : il est alimenté par les jobs de ci.yml, dont certains
+      # installent des outils d'analyse, et go build ne revérifie ni les modules
+      # extraits ni les objets compilés qu'il en restaure. Les binaires attestés
+      # se construisent depuis des modules téléchargés et vérifiés contre go.sum.
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
-          cache: true
+          cache: false
 
       # Le binaire embarque le front : make test et make binaries le
       # construisent, et go:embed échoue sans lui. npm ci et jamais npm
@@ -183,13 +179,18 @@ jobs:
 
       # gh est préinstallé sur le runner : pas d'action tierce à épingler pour
       # une opération que la ligne de commande fait aussi bien.
+      #
+      # Le titre passe par l'environnement et non par une expression dans le
+      # script : il vient du CHANGELOG, qu'une PR peut modifier, et recopié tel
+      # quel dans le shell il s'y exécuterait.
       - name: Créer la release en brouillon
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TITRE: ${{ needs.notes.outputs.titre }}
         run: |
-          gh release create "${{ github.ref_name }}" \
+          gh release create "$GITHUB_REF_NAME" \
             --draft \
-            --title "${{ steps.notes.outputs.titre }}" \
+            --title "$TITRE" \
             --notes-file notes.md \
             publication/*
 
@@ -203,10 +204,11 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # Sans cache, pour la même raison que dans binaires.
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
-          cache: true
+          cache: false
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
