@@ -96,7 +96,37 @@ func analyser(p *calque.Physique, d *Decisions, prefixes []string) *schemaLogiqu
 			s.parents[cible] = fk
 		}
 	}
+
+	// Une jointure ou un héritage dont une clé vise autre chose que
+	// l'identifiant de sa cible ne se mappe pas : la table redevient une entité
+	// ordinaire, et inferrerAssociations signale la clé. Après la boucle, les
+	// tables visées n'étant pas toutes connues avant.
+	for cible, j := range s.jointures {
+		if !s.viseIdentifiant(j.gauche) || !s.viseIdentifiant(j.droite) {
+			delete(s.jointures, cible)
+		}
+	}
+	for cible, fk := range s.parents {
+		if !s.viseIdentifiant(fk) {
+			delete(s.parents, cible)
+		}
+	}
 	return s
+}
+
+// viseIdentifiant dit si la clé étrangère désigne exactement la clé primaire
+// de sa table cible, ou si la cible est hors du calque et n'en décide pas.
+//
+// Doctrine n'associe que vers l'identifiant : chaque colonne référencée doit
+// en être une, et toutes doivent l'être (SchemaValidator). Une clé déclarée
+// vers une colonne unique, fréquente sur une base reprise, donnerait un mapping
+// refusé.
+func (s *schemaLogique) viseIdentifiant(fk *calque.CleEtrangere) bool {
+	t, connue := s.tables[fk.SchemaCible+"."+fk.TableCible]
+	if !connue {
+		return true
+	}
+	return t.ClePrimaire != nil && memesColonnes(fk.ColonnesCibles, t.ClePrimaire.Colonnes)
 }
 
 // tableGeneree rend la table physique d'une table qui produit une entité, ou
@@ -235,6 +265,17 @@ func inferrerAssociations(t *calque.Table, s *schemaLogique, parColonne map[stri
 				Code:       calque.CodeCibleHorsPortee,
 				Cible:      cible + "." + strings.Join(fk.Colonnes, ","),
 				Message:    "la clé étrangère désigne " + fk.SchemaCible + "." + fk.TableCible + ", absente du calque ; colonne laissée en propriété",
+				Resolution: calque.ResolutionAucune,
+				Confiance:  1,
+			})
+			continue
+		}
+		if !s.viseIdentifiant(fk) {
+			avertissements = append(avertissements, calque.Avertissement{
+				Code:  calque.CodeReferenceHorsIdentifiant,
+				Cible: cible + "." + strings.Join(fk.Colonnes, ","),
+				Message: "la clé étrangère désigne " + fk.SchemaCible + "." + fk.TableCible + " (" + strings.Join(fk.ColonnesCibles, ", ") +
+					"), qui n'est pas sa clé primaire : Doctrine n'associe que vers l'identifiant ; colonne laissée en propriété",
 				Resolution: calque.ResolutionAucune,
 				Confiance:  1,
 			})

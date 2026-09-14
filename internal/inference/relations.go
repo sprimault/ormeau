@@ -99,6 +99,12 @@ func verifierRelationsForcees(p *calque.Physique, d *Decisions, s *schemaLogique
 			refuser(r, "la cible n'est pas une colonne d'une table générée")
 			continue
 		}
+		// Doctrine n'associe que vers l'identifiant : une colonne unique, ou
+		// une colonne d'une clé composite, donnerait un mapping refusé.
+		if cible.ClePrimaire == nil || !slices.Equal(cible.ClePrimaire.Colonnes, []string{colonneCible}) {
+			refuser(r, "la cible n'est pas l'identifiant de "+cible.Schema+"."+cible.Nom+" : Doctrine n'associe que vers la clé primaire")
+			continue
+		}
 
 		// Une colonne désigne une ligne : elle porte un objet, jamais une
 		// collection. Le côté collection existe, mais sur l'autre entité, et il

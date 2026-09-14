@@ -55,6 +55,12 @@ supprimer une colonne ignorée : la retirer du diff avant de l'appliquer.
   unicité et association partent avec la colonne, l'avertissement
   `colonne_ignoree` les nomme, et une relation forcée sur une colonne ignorée
   est refusée.
+- **Une clé étrangère qui ne vise pas la clé primaire ne produit plus
+  d'association.** Déclarée vers une colonne unique, elle donnait une
+  association, une table de jointure ou un un-vers-un que Doctrine refuse : il
+  n'associe que vers l'identifiant. La colonne reste une propriété, avec
+  l'avertissement `reference_hors_identifiant`, et une relation forcée vers une
+  autre colonne que la clé primaire est refusée.
 
 - **Le nom de séquence d'une clé `serial` est lu dans le défaut.** Le logique
   recopiait l'expression entière, `nextval('facture_id_seq'::regclass)`, dans
@@ -112,6 +118,12 @@ ignored column: remove it from the diff before applying it.
   unique constraint and association now go with the column, the
   `colonne_ignoree` warning names them, and a forced relation on an ignored
   column is refused.
+- **A foreign key that does not target the primary key no longer produces an
+  association.** Declared towards a unique column, it gave an association, a
+  join table or a one-to-one that Doctrine refuses: it only associates towards
+  the identifier. The column stays a property, with the
+  `reference_hors_identifiant` warning, and a forced relation towards any
+  column other than the primary key is refused.
 
 - **The sequence name of a `serial` key is read from the default.** The
   logical layer copied the whole expression, `nextval('facture_id_seq'::regclass)`,

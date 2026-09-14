@@ -379,6 +379,12 @@ export const CodeJointurePure = "table_de_jointure";
  */
 export const CodeSequenceNonReconnue = "sequence_non_reconnue";
 /**
+ * Une clé étrangère qui désigne autre chose que la clé primaire de sa
+ * cible : Doctrine n'associe que vers l'identifiant, la colonne reste une
+ * propriété.
+ */
+export const CodeReferenceHorsIdentifiant = "reference_hors_identifiant";
+/**
  * Code conservé, sens inversé : il signalait un héritage appliqué, il
  * signale désormais un héritage possible et non appliqué — l'entité est
  * reliée à son parent par un-vers-un tant qu'aucune décision ne le déclare.

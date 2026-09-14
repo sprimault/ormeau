@@ -327,6 +327,7 @@ const fr = {
   'warning.table_de_jointure': 'Table de jointure',
   'warning.heritage_deduit': 'Héritage possible',
   'warning.sequence_non_reconnue': 'Séquence non reconnue',
+  'warning.reference_hors_identifiant': 'Clé étrangère hors identifiant',
 
   'error.network': 'Le serveur local ne répond pas.',
   'error.unknown': 'Échec inattendu.',
@@ -637,6 +638,7 @@ const en: Record<MessageKey, string> = {
   'warning.table_de_jointure': 'Join table',
   'warning.heritage_deduit': 'Possible inheritance',
   'warning.sequence_non_reconnue': 'Unrecognized sequence',
+  'warning.reference_hors_identifiant': 'Foreign key outside the identifier',
 
   'error.network': 'The local server is not responding.',
   'error.unknown': 'Unexpected failure.',

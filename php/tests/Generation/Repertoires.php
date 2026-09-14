@@ -39,6 +39,7 @@ final class Repertoires
         'minimal',
         'nommage-court',
         'prefixes',
+        'reference-hors-identifiant',
         'relations-forcees',
         'sequences',
         'singularisation',

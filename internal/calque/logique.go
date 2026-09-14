@@ -252,6 +252,10 @@ const (
 	// Une clé tirée d'une séquence dont le défaut ne nomme pas la séquence :
 	// l'identifiant reste à fournir par l'application.
 	CodeSequenceNonReconnue = "sequence_non_reconnue"
+	// Une clé étrangère qui désigne autre chose que la clé primaire de sa
+	// cible : Doctrine n'associe que vers l'identifiant, la colonne reste une
+	// propriété.
+	CodeReferenceHorsIdentifiant = "reference_hors_identifiant"
 	// Code conservé, sens inversé : il signalait un héritage appliqué, il
 	// signale désormais un héritage possible et non appliqué — l'entité est
 	// reliée à son parent par un-vers-un tant qu'aucune décision ne le déclare.
