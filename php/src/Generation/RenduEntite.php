@@ -77,23 +77,6 @@ final class RenduEntite
     }
 
     /**
-     * Rend un nom de table ou de colonne tel que Doctrine doit l'écrire.
-     *
-     * Doctrine ne cite un identifiant que s'il est entouré de backticks. Un nom
-     * qui n'est pas un identifiant SQL simple en minuscules — « N° Commande »,
-     * T_CLIENTS — doit l'être : sans guillemets, PostgreSQL ramène T_CLIENTS à
-     * t_clients, et la requête vise une table qui n'existe pas. Les autres
-     * restent nus, comme on les écrirait à la main.
-     *
-     * Les mots réservés d'un SGBD ne sont pas traités : la liste dépend du
-     * SGBD, que le calque logique ne porte pas.
-     */
-    public static function identifiantSql(string $nom): string
-    {
-        return preg_match('/^[a-z_][a-z0-9_]*$/', $nom) === 1 ? $nom : '`' . $nom . '`';
-    }
-
-    /**
      * Rend les arguments attendus de #[ORM\Table] pour une entité. Le contrôle
      * de la classe de l'utilisateur compare à ces valeurs-là, et à rien
      * d'autre.
@@ -107,9 +90,30 @@ final class RenduEntite
     public function argumentsTable(Entite $entite): array
     {
         return [
-            'name' => self::identifiantSql($entite->table->nom),
-            'schema' => $this->avecSchema ? self::identifiantSql($entite->table->schema) : null,
+            ...IdentifiantsSql::table($entite->table->nom, $this->avecSchema ? $entite->table->schema : null),
             'options' => $entite->commentaire === null ? null : ['comment' => $entite->commentaire],
+        ];
+    }
+
+    /**
+     * Rend name et schema de #[ORM\Table] tels que la 0.5.0 les écrivait.
+     *
+     * Rétro-compatibilité datée, pour le seul message de divergence : une
+     * classe de l'utilisateur créée en 0.5.0 dans un schéma à citer porte des
+     * backticks sur le schéma, forme que Doctrine cite deux fois et que
+     * PostgreSQL refuse. Reconnaître cette forme permet de dire que la table
+     * était inutilisable, et non que la régénération casse ce qui marchait. À
+     * retirer quand plus aucun projet ne garde de classe générée en 0.5.0.
+     *
+     * @return array{name: string, schema: string|null}
+     */
+    public function argumentsTableEn050(Entite $entite): array
+    {
+        $ancien = static fn(string $nom): string => preg_match('/^[a-z_][a-z0-9_]*$/', $nom) === 1 ? $nom : '`' . $nom . '`';
+
+        return [
+            'name' => $ancien($entite->table->nom),
+            'schema' => $this->avecSchema ? $ancien($entite->table->schema) : null,
         ];
     }
 

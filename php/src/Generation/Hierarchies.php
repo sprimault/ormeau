@@ -122,7 +122,7 @@ final class Hierarchies
         }
 
         return new RacineHeritage([
-            'name' => RenduEntite::identifiantSql((string) $this->colonneDiscriminante($entite)),
+            'name' => IdentifiantsSql::colonne((string) $this->colonneDiscriminante($entite)),
             'type' => $propriete?->typeDoctrine,
             'length' => $propriete?->longueur,
         ], $carte, $qualifiee($entite->nom));

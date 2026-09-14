@@ -179,6 +179,7 @@ final class GenerateurEntite
             }
             $generees[] = $this->sansCotesInversesOrphelins($entite, $calque->entites, $raisons, $omises);
         }
+        $generees = self::sansJointuresEnSchemaCite($generees, count($schemas) > 1, $omises);
 
         // Les hiérarchies se relisent sur les entités retenues : une classe
         // fille appelle le constructeur de son parent selon les collections
@@ -208,6 +209,7 @@ final class GenerateurEntite
                 $rendu->classeBaseQualifiee($entite),
                 $rendu->argumentsTable($entite),
                 $racine,
+                $rendu->argumentsTableEn050($entite),
             ));
         }
 
@@ -392,6 +394,76 @@ final class GenerateurEntite
             return $entite;
         }
 
+        return self::avecAssociations($entite, $gardees);
+    }
+
+    /**
+     * Rend les entités sans les plusieurs-vers-plusieurs dont la table de
+     * jointure est dans un schéma à citer, et note chaque côté omis.
+     *
+     * Doctrine colle le schéma d'une table de jointure sans jamais le citer
+     * (DefaultQuoteStrategy::getJoinTableName) : Compta devient compta, et
+     * aucune forme portable ne passe (essai A2b, ORM 2.14 et 3.6). Seul un
+     * schéma entre guillemets doubles fonctionnait, guillemet propre à
+     * PostgreSQL que MySQL refuse. Les deux côtés partent, l'entité reste : une
+     * association qui échoue à l'exécution vaut moins que son absence
+     * expliquée. Sans schéma écrit, la question ne se pose pas.
+     *
+     * @param list<Entite>           $entites    entités générées
+     * @param bool                   $avecSchema le schéma est écrit dans les attributs
+     * @param list<AssociationOmise> $omises     omissions notées jusqu'ici, complétées
+     *
+     * @return list<Entite>
+     */
+    private static function sansJointuresEnSchemaCite(array $entites, bool $avecSchema, array &$omises): array
+    {
+        if (!$avecSchema) {
+            return $entites;
+        }
+
+        $retirees = [];
+        foreach ($entites as $entite) {
+            foreach ($entite->associations as $association) {
+                $jointure = $association->tableJointure;
+                if ($association->proprietaire && $jointure !== null && IdentifiantsSql::schemaACiter($jointure->schema)) {
+                    $retirees[$entite->nom . '::' . $association->nom] = sprintf(
+                        'table de jointure %s.%s dans un schéma à citer, que Doctrine n\'écrit pas cité',
+                        $jointure->schema,
+                        $jointure->nom,
+                    );
+                }
+            }
+        }
+        if ($retirees === []) {
+            return $entites;
+        }
+
+        $resultat = [];
+        foreach ($entites as $entite) {
+            $gardees = [];
+            foreach ($entite->associations as $association) {
+                $cle = $association->proprietaire
+                    ? $entite->nom . '::' . $association->nom
+                    : $association->cible . '::' . $association->mappeePar;
+                if (!isset($retirees[$cle])) {
+                    $gardees[] = $association;
+                    continue;
+                }
+                $omises[] = new AssociationOmise($entite->nom, $association->nom, $retirees[$cle]);
+            }
+            $resultat[] = count($gardees) === count($entite->associations) ? $entite : self::avecAssociations($entite, $gardees);
+        }
+
+        return $resultat;
+    }
+
+    /**
+     * Rend l'entité avec d'autres associations, le reste inchangé.
+     *
+     * @param list<Association> $associations associations retenues
+     */
+    private static function avecAssociations(Entite $entite, array $associations): Entite
+    {
         return new Entite(
             $entite->nom,
             $entite->table,
@@ -399,7 +471,7 @@ final class GenerateurEntite
             $entite->heritage,
             $entite->traits,
             $entite->identifiant,
-            $gardees,
+            $associations,
             $entite->index,
             $entite->origine,
             $entite->valeurDiscriminante,

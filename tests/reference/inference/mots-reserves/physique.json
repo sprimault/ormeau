@@ -1,0 +1,87 @@
+{
+  "version_ri": 1,
+  "source": {
+    "sgbd": "postgres",
+    "version": "17.6",
+    "catalogue": "gescom",
+    "schema": "public",
+    "extrait_le": "2026-01-01T00:00:00Z",
+    "empreinte": "sha256:000000000000000000000000000000000000000000000000000000000000001b"
+  },
+  "tables": [
+    {
+      "nom": "group",
+      "schema": "public",
+      "commentaire": "un seul schéma, donc aucun schéma écrit : la table réservée se cite",
+      "colonnes": [
+        {
+          "nom": "id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true
+        },
+        {
+          "nom": "user_id",
+          "position": 2,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": true
+        }
+      ],
+      "cle_primaire": {
+        "nom": "group_pkey",
+        "colonnes": ["id"]
+      },
+      "cles_etrangeres": [
+        {
+          "nom": "group_user_id_fkey",
+          "colonnes": ["user_id"],
+          "table_cible": "user",
+          "schema_cible": "public",
+          "colonnes_cibles": ["id"]
+        }
+      ]
+    },
+    {
+      "nom": "user",
+      "schema": "public",
+      "colonnes": [
+        {
+          "nom": "id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true
+        },
+        {
+          "nom": "order",
+          "position": 2,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false
+        },
+        {
+          "nom": "left",
+          "position": 3,
+          "type_brut": "text",
+          "type_normalise": "texte",
+          "nullable": true
+        },
+        {
+          "nom": "between",
+          "position": 4,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": true
+        }
+      ],
+      "cle_primaire": {
+        "nom": "user_pkey",
+        "colonnes": ["id"]
+      }
+    }
+  ]
+}

@@ -4,6 +4,41 @@
   "espace_de_noms": "App\\Entity",
   "entites": [
     {
+      "nom": "BonLivraison",
+      "table": {
+        "nom": "Bon_Livraison",
+        "schema": "Compta"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "sequence",
+        "sequence": "\"Compta\".\"Bon_Livraison_Id_seq\""
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "Id",
+          "type_php": "int",
+          "type_doctrine": "bigint",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "numero",
+          "colonne": "numero",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 20,
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "bigserial dans un schéma entre guillemets : PostgreSQL cite le nom qualifié",
+      "origine": "nommage"
+    },
+    {
       "nom": "Avoir",
       "table": {
         "nom": "avoir",

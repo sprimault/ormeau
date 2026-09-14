@@ -50,7 +50,20 @@ supprimer une colonne ignorée : la retirer du diff avant de l'appliquer.
 était mappé en `int` et devient une chaîne, avec l'avertissement
 `type_non_reconnu`.
 
+**Une table d'un schéma à majuscules, accents ou mot réservé était
+inutilisable en 0.5.0**, INSERT en échec. La régénération signale sa classe
+en divergence, avec l'attribut `#[ORM\Table]` attendu : le recopier. Les
+tables qui fonctionnaient ne changent pas.
+
 ### Corrigé
+
+- **Un schéma, une table ou une colonne qui exige des guillemets est cité
+  comme Doctrine l'attend.** Le schéma recevait des backticks que Doctrine
+  citait une seconde fois, et un mot réservé (`order`, `user`) restait nu :
+  PostgreSQL refusait la requête. Le nom porte désormais la citation, d'après
+  la forme et une liste de mots réservés relevée sous PostgreSQL 17. Une
+  association plusieurs-vers-plusieurs dont la table de jointure est dans un
+  tel schéma est omise avec sa raison : Doctrine n'y cite jamais le schéma.
 
 - **`colonnes_ignorees` retire ce qui cite la colonne.** Un index ou une
   unicité sur une colonne ignorée restait dans l'entité, et `schema:create`
@@ -119,7 +132,20 @@ ignored column: remove it from the diff before applying it.
 **An array column changes type on regeneration**: `integer[]` was mapped to
 `int` and becomes a string, with the `type_non_reconnu` warning.
 
+**A table in a schema with capitals, accents or a reserved word was unusable
+in 0.5.0**, its INSERT failing. Regeneration reports its class as diverging,
+with the expected `#[ORM\Table]` attribute: copy it. Tables that worked do not
+change.
+
 ### Fixed
+
+- **A schema, table or column that requires quoting is quoted the way
+  Doctrine expects.** The schema received backticks that Doctrine quoted a
+  second time, and a reserved word (`order`, `user`) stayed bare: PostgreSQL
+  rejected the query. The name now carries the quoting, based on its shape and
+  on a list of reserved words taken from PostgreSQL 17. A many-to-many
+  association whose join table lives in such a schema is omitted with its
+  reason: Doctrine never quotes the schema there.
 
 - **`colonnes_ignorees` removes what refers to the column.** An index or a
   unique constraint on an ignored column stayed in the entity, and

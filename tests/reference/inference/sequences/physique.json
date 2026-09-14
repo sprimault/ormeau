@@ -10,6 +10,36 @@
   },
   "tables": [
     {
+      "nom": "Bon_Livraison",
+      "schema": "Compta",
+      "commentaire": "bigserial dans un schéma entre guillemets : PostgreSQL cite le nom qualifié",
+      "colonnes": [
+        {
+          "nom": "Id",
+          "position": 1,
+          "type_brut": "bigint",
+          "type_normalise": "entier",
+          "nullable": false,
+          "defaut": {
+            "genre": "sequence",
+            "valeur": "nextval('\"Compta\".\"Bon_Livraison_Id_seq\"'::regclass)"
+          }
+        },
+        {
+          "nom": "numero",
+          "position": 2,
+          "type_brut": "character varying(20)",
+          "type_normalise": "texte",
+          "longueur": 20,
+          "nullable": false
+        }
+      ],
+      "cle_primaire": {
+        "nom": "Bon_Livraison_pkey",
+        "colonnes": ["Id"]
+      }
+    },
+    {
       "nom": "avoir",
       "schema": "gescom",
       "commentaire": "serial hors du search_path de l'extraction : nom qualifié",
@@ -191,6 +221,14 @@
     }
   ],
   "sequences": [
+    {
+      "nom": "Bon_Livraison_Id_seq",
+      "schema": "Compta",
+      "increment": 1,
+      "minimum": 1,
+      "maximum": 9223372036854775807,
+      "cyclique": false
+    },
     {
       "nom": "avoir_id_seq",
       "schema": "gescom",
