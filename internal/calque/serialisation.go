@@ -100,6 +100,13 @@ func (p *Physique) Ecrire(chemin string) error {
 
 // LirePhysique refuse une version plus récente que celle qu'il connaît : mieux
 // vaut un échec net qu'un champ ignoré en silence. Plus ancienne : accepté.
+//
+// Il refuse aussi ce que le schéma refuse à l'entrée : un champ requis absent,
+// une version inférieure à 1. Un calque logique passé par erreur porte une
+// version valide, et sans ce contrôle l'inférence tournerait sur zéro table
+// pour écrire un logique plausible qui ne dit rien de vrai. Valider n'est pas
+// appelé ici : il signale aussi ce qu'un calque correct doit garder visible,
+// comme une clé étrangère vers une table hors portée.
 func LirePhysique(chemin string) (*Physique, error) {
 	// Le chemin vient de la ligne de commande : lire le fichier que
 	// l'utilisateur désigne est la fonction même de l'outil.
@@ -107,15 +114,48 @@ func LirePhysique(chemin string) (*Physique, error) {
 	if err != nil {
 		return nil, err
 	}
+	if err := champsRequis(donnees, "version_ri", "source", "tables"); err != nil {
+		return nil, err
+	}
 
 	var p Physique
 	if err := json.Unmarshal(donnees, &p); err != nil {
 		return nil, err
 	}
-	if p.VersionRI > VersionCourante {
-		return nil, fmt.Errorf("calque en version %d, cet outil ne connaît que la version %d", p.VersionRI, VersionCourante)
+	if err := versionLisible(p.VersionRI); err != nil {
+		return nil, err
 	}
 	return &p, nil
+}
+
+// champsRequis vérifie qu'un document porte chacun des champs, avant tout
+// décodage : une structure Go ne distingue pas un champ absent de sa valeur
+// zéro. Un null compte comme absent, comme dans le lecteur PHP. L'erreur nomme
+// le champ et ne suppose rien de ce qu'est le fichier : un calque de l'autre
+// niveau, un fichier tronqué, un JSON d'autre chose.
+func champsRequis(donnees []byte, champs ...string) error {
+	var racine map[string]json.RawMessage
+	if err := json.Unmarshal(donnees, &racine); err != nil {
+		return err
+	}
+	for _, champ := range champs {
+		if valeur, present := racine[champ]; !present || string(valeur) == "null" {
+			return fmt.Errorf("champ %s absent du calque", champ)
+		}
+	}
+	return nil
+}
+
+// versionLisible refuse une version que cet outil ne sait pas lire : plus
+// récente, ou inférieure à la première qui ait existé.
+func versionLisible(version int) error {
+	switch {
+	case version < 1:
+		return fmt.Errorf("version_ri %d invalide : un calque commence en version 1", version)
+	case version > VersionCourante:
+		return fmt.Errorf("calque en version %d, cet outil ne connaît que la version %d", version, VersionCourante)
+	}
+	return nil
 }
 
 // Ecrire sérialise le calque logique.
@@ -134,12 +174,15 @@ func (l *Logique) Ecrire(chemin string) error {
 	return os.WriteFile(chemin, donnees, 0o600)
 }
 
-// LireLogique charge un calque logique, en refusant une version plus récente
-// que celle qu'il connaît.
+// LireLogique charge un calque logique. Mêmes refus que LirePhysique : champ
+// requis absent, version inférieure à 1 ou plus récente.
 func LireLogique(chemin string) (*Logique, error) {
 	// Le chemin vient de la ligne de commande, comme pour le physique.
 	donnees, err := os.ReadFile(chemin) // #nosec G304
 	if err != nil {
+		return nil, err
+	}
+	if err := champsRequis(donnees, "version_ri", "empreinte_physique", "espace_de_noms", "entites"); err != nil {
 		return nil, err
 	}
 
@@ -147,8 +190,8 @@ func LireLogique(chemin string) (*Logique, error) {
 	if err := json.Unmarshal(donnees, &l); err != nil {
 		return nil, err
 	}
-	if l.VersionRI > VersionCourante {
-		return nil, fmt.Errorf("calque logique en version %d, cet outil ne connaît que la version %d", l.VersionRI, VersionCourante)
+	if err := versionLisible(l.VersionRI); err != nil {
+		return nil, err
 	}
 	return &l, nil
 }

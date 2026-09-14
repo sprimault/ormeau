@@ -34,7 +34,9 @@ final class LecteurCalque
      * Un calque de version supérieure est refusé plutôt que lu au mieux : il
      * peut porter des champs dont l'absence de traitement produirait des
      * entités silencieusement fausses. L'inverse est accepté — une version
-     * antérieure ne contient rien d'inconnu.
+     * antérieure ne contient rien d'inconnu —, mais pas en deçà de 1 : aucun
+     * calque n'a jamais porté 0 ni une version négative, et le JSON Schema le
+     * refuse comme les lecteurs Go.
      *
      * @throws CalqueInvalide fichier illisible, document sans objet racine,
      *                        version absente ou non gérée, champ requis
@@ -58,6 +60,10 @@ final class LecteurCalque
         $version = $donnees['version_ri'] ?? null;
         if (!is_int($version)) {
             throw new CalqueInvalide('version_ri absente ou invalide');
+        }
+
+        if ($version < 1) {
+            throw new CalqueInvalide(sprintf('version_ri %d invalide : un calque commence en version 1', $version));
         }
 
         if ($version > self::VERSION_CONNUE) {

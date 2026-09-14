@@ -59,6 +59,14 @@ l'incrément et le minimum de la séquence.
   réserve des blocs ou sépare plusieurs nœuds, la base ne dit pas lequel, et
   aligner `allocationSize` produirait des collisions d'identifiants dans le
   second cas.
+- **`ormeau inferer` refuse un fichier qui n'est pas un calque physique.**
+  Passé par erreur, un calque logique était accepté, et la commande écrivait un
+  `gescom.logique.logique.json` vide avec son fichier de décisions. Un champ
+  requis absent ou une `version_ri` inférieure à 1 sont refusés à la lecture,
+  côté Go comme côté PHP, et l'erreur nomme le champ.
+- **Un calque logique sans entité est valide.** Quand toutes les tables sont
+  écartées, il s'écrivait `"entites": null`, refusé par le schéma, et
+  `ormeau:generer` le disait absent. Il s'écrit désormais avec une liste vide.
 
 - **Deux extractions de la même base ne dépendent plus de la session.** Le
   `search_path` du rôle ou du DSN décidait quels noms le catalogue qualifiait :
@@ -103,6 +111,14 @@ sequence's increment and minimum.
   increment of 10 either reserves blocks or separates several nodes, the
   database does not say which, and aligning `allocationSize` would cause
   identifier collisions in the second case.
+- **`ormeau inferer` refuses a file that is not a physical layer.** A logical
+  layer passed by mistake was accepted, and the command wrote an empty
+  `gescom.logique.logique.json` along with its decisions file. A missing
+  required field or a `version_ri` below 1 is refused on reading, in Go as in
+  PHP, and the error names the field.
+- **A logical layer without entities is valid.** When every table is set
+  aside, it was written as `"entites": null`, refused by the schema, and
+  `ormeau:generer` reported it missing. It is now written as an empty list.
 
 - **Two extractions of the same database no longer depend on the session.**
   The `search_path` of the role or the DSN decided which names the catalogue

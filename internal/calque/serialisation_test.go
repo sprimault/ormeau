@@ -520,6 +520,99 @@ func TestLirePhysiqueEchoueProprement(t *testing.T) {
 	}
 }
 
+// fichierDeTest écrit un document JSON brut et rend son chemin.
+func fichierDeTest(t *testing.T, contenu string) string {
+	t.Helper()
+
+	chemin := filepath.Join(t.TempDir(), "calque.json")
+	if err := os.WriteFile(chemin, []byte(contenu), 0o600); err != nil {
+		t.Fatalf("écriture : %v", err)
+	}
+	return chemin
+}
+
+// Un document que le schéma refuse ne se lit pas : ni sans version, ni en
+// version inférieure à 1, ni sans les champs requis. Le cas qui a motivé la
+// règle est un calque logique passé à la place du physique : il porte une
+// version valide, et seul le champ absent le trahit. L'erreur nomme le champ,
+// sans deviner ce qu'est le fichier.
+func TestLirePhysiqueRefuseUnDocumentIncomplet(t *testing.T) {
+	t.Parallel()
+
+	const source = `"source": {"sgbd": "postgres", "version": "17", "catalogue": "c", "schema": "public", "extrait_le": "", "empreinte": ""}`
+	cas := []struct {
+		nom, contenu, champ string
+	}{
+		{"document vide", `{}`, "version_ri"},
+		{"version nulle", `{"version_ri": null, ` + source + `, "tables": []}`, "version_ri"},
+		{"version zéro", `{"version_ri": 0, ` + source + `, "tables": []}`, "version_ri"},
+		{"version négative", `{"version_ri": -3, ` + source + `, "tables": []}`, "version_ri"},
+		{"calque logique", `{"version_ri": 1, "empreinte_physique": "sha256:` + strings.Repeat("0", 64) + `", "espace_de_noms": "App\\Entity", "entites": []}`, "source"},
+		{"tables absentes", `{"version_ri": 1, ` + source + `}`, "tables"},
+		{"tables nulles", `{"version_ri": 1, ` + source + `, "tables": null}`, "tables"},
+	}
+
+	for _, c := range cas {
+		t.Run(c.nom, func(t *testing.T) {
+			t.Parallel()
+
+			_, err := LirePhysique(fichierDeTest(t, c.contenu))
+			if err == nil {
+				t.Fatal("document accepté")
+			}
+			if !strings.Contains(err.Error(), c.champ) {
+				t.Errorf("erreur %q, attendu une mention de %s", err, c.champ)
+			}
+		})
+	}
+}
+
+// Le pendant pour le logique, que seul le paquet PHP lisait strictement.
+func TestLireLogiqueRefuseUnDocumentIncomplet(t *testing.T) {
+	t.Parallel()
+
+	empreinte := `"empreinte_physique": "sha256:` + strings.Repeat("0", 64) + `"`
+	cas := []struct {
+		nom, contenu, champ string
+	}{
+		{"document vide", `{}`, "version_ri"},
+		{"version zéro", `{"version_ri": 0, ` + empreinte + `, "espace_de_noms": "App", "entites": []}`, "version_ri"},
+		{"version plus récente", `{"version_ri": 2, ` + empreinte + `, "espace_de_noms": "App", "entites": []}`, "version"},
+		{"entités absentes", `{"version_ri": 1, ` + empreinte + `, "espace_de_noms": "App"}`, "entites"},
+		{"entités nulles", `{"version_ri": 1, ` + empreinte + `, "espace_de_noms": "App", "entites": null}`, "entites"},
+		{"calque physique", `{"version_ri": 1, "source": {}, "tables": []}`, "empreinte_physique"},
+	}
+
+	for _, c := range cas {
+		t.Run(c.nom, func(t *testing.T) {
+			t.Parallel()
+
+			_, err := LireLogique(fichierDeTest(t, c.contenu))
+			if err == nil {
+				t.Fatal("document accepté")
+			}
+			if !strings.Contains(err.Error(), c.champ) {
+				t.Errorf("erreur %q, attendu une mention de %s", err, c.champ)
+			}
+		})
+	}
+}
+
+// Une liste d'entités vide est un calque logique légitime : toutes les tables
+// écartées par décision.
+func TestLireLogiqueAccepteUnCalqueSansEntite(t *testing.T) {
+	t.Parallel()
+
+	contenu := `{"version_ri": 1, "empreinte_physique": "sha256:` + strings.Repeat("0", 64) + `", "espace_de_noms": "App", "entites": []}`
+	l, err := LireLogique(fichierDeTest(t, contenu))
+	if err != nil {
+		t.Fatalf("lecture : %v", err)
+	}
+	if l.Entites == nil || len(l.Entites) != 0 {
+		t.Errorf("entités %#v, attendu une liste vide", l.Entites)
+	}
+}
+
 // Sans omitempty, chaque diff serait noyé sous des nulls et des zéros.
 func TestChampsOptionnelsAbsentsDeLaSortie(t *testing.T) {
 	t.Parallel()

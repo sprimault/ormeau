@@ -1,0 +1,6 @@
+# Toutes les tables sont écartées : le calque logique n'a aucune entité, et
+# doit quand même rester valide pour le schéma, avec une liste vide.
+
+tables_ignorees:
+  - public.journal_import
+  - public.migrations

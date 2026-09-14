@@ -1,0 +1,58 @@
+{
+  "version_ri": 1,
+  "source": {
+    "sgbd": "postgres",
+    "version": "17.6",
+    "catalogue": "gescom",
+    "schema": "public",
+    "extrait_le": "2026-01-01T00:00:00Z",
+    "empreinte": "sha256:0000000000000000000000000000000000000000000000000000000000000023"
+  },
+  "tables": [
+    {
+      "nom": "journal_import",
+      "schema": "public",
+      "commentaire": "table technique, écartée par décision",
+      "colonnes": [
+        {
+          "nom": "id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true
+        },
+        {
+          "nom": "message",
+          "position": 2,
+          "type_brut": "text",
+          "type_normalise": "texte",
+          "nullable": true
+        }
+      ],
+      "cle_primaire": {
+        "nom": "journal_import_pkey",
+        "colonnes": ["id"]
+      }
+    },
+    {
+      "nom": "migrations",
+      "schema": "public",
+      "commentaire": "table de l'outil de migration, écartée par décision",
+      "colonnes": [
+        {
+          "nom": "version",
+          "position": 1,
+          "type_brut": "character varying(191)",
+          "type_normalise": "texte",
+          "longueur": 191,
+          "nullable": false
+        }
+      ],
+      "cle_primaire": {
+        "nom": "migrations_pkey",
+        "colonnes": ["version"]
+      }
+    }
+  ]
+}
