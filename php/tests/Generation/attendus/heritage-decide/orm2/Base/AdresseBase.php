@@ -1,6 +1,6 @@
 <?php
 
-// Généré par Ormeau et réécrit à chaque génération : le code propre à Adresse va dans Adresse.php.
+// Généré par Ormeau depuis la base heritage-decide et réécrit à chaque génération : le code propre à Adresse va dans Adresse.php.
 
 declare(strict_types=1);
 

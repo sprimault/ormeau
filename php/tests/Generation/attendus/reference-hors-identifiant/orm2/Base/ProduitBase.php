@@ -1,6 +1,6 @@
 <?php
 
-// Généré par Ormeau et réécrit à chaque génération : le code propre à Produit va dans Produit.php.
+// Généré par Ormeau depuis la base reference-hors-identifiant et réécrit à chaque génération : le code propre à Produit va dans Produit.php.
 
 declare(strict_types=1);
 

@@ -1,6 +1,6 @@
 <?php
 
-// Généré par Ormeau et réécrit à chaque génération : le code propre à AdresseFacturation va dans AdresseFacturation.php.
+// Généré par Ormeau depuis la base associations et réécrit à chaque génération : le code propre à AdresseFacturation va dans AdresseFacturation.php.
 
 declare(strict_types=1);
 

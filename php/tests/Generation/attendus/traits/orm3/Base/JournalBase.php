@@ -1,6 +1,6 @@
 <?php
 
-// Généré par Ormeau et réécrit à chaque génération : le code propre à Journal va dans Journal.php.
+// Généré par Ormeau depuis la base traits et réécrit à chaque génération : le code propre à Journal va dans Journal.php.
 
 declare(strict_types=1);
 

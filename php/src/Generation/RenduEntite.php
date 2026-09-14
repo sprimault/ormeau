@@ -30,24 +30,13 @@ use Ormeau\Doctrine\Calque\TraitPartage;
  */
 final class RenduEntite
 {
-    /**
-     * En-tête des fichiers qui appartiennent à l'outil : énumérations et
-     * traits. Sans version ni date, qui changeraient chaque fichier à chaque
-     * mise à jour de l'outil.
-     */
-    private const MENTION_OUTIL = 'Généré par Ormeau et réécrit à chaque génération.';
-
-    /**
-     * En-tête de la classe de l'utilisateur, écrite une fois : c'est la
-     * garantie du projet, dite là où on la lit.
-     */
-    private const MENTION_UTILISATEUR = 'Créé par Ormeau, jamais réécrit : ce fichier appartient au projet.';
-
     /** Écrit propriétés et accesseurs, pour les classes de base comme pour les traits. */
     private readonly RenduMembres $membres;
 
     /**
      * @param Cible                      $cible        détermine le type PHP de chaque propriété
+     * @param string                     $base         base dont vient le calque, nommée dans l'en-tête de
+     *                                                 chaque fichier
      * @param string                     $espaceDeNoms espace de noms des classes de l'utilisateur ;
      *                                                 Base, Enum et Trait s'y ajoutent
      * @param bool                       $avecSchema   écrire le schéma dans #[ORM\Table] ; vrai quand
@@ -60,6 +49,7 @@ final class RenduEntite
      */
     public function __construct(
         Cible $cible,
+        private readonly string $base,
         private readonly string $espaceDeNoms,
         private readonly bool $avecSchema,
         array $enumerations = [],
@@ -138,7 +128,7 @@ final class RenduEntite
     public function classeUtilisateur(Entite $entite, ?RacineHeritage $racine = null): string
     {
         $lignes = [
-            ...$this->entete(self::MENTION_UTILISATEUR, $this->espaceDeNoms, [$this->classeBaseQualifiee($entite), 'Doctrine\ORM\Mapping as ORM']),
+            ...$this->entete(EnteteOrmeau::utilisateur($this->base), $this->espaceDeNoms, [$this->classeBaseQualifiee($entite), 'Doctrine\ORM\Mapping as ORM']),
             ...Emetteur::docblock($entite->commentaire === null ? [] : Emetteur::commentaire($entite->commentaire), [], ''),
             Emetteur::attribut('ORM\Entity', [], ''),
             Emetteur::attribut('ORM\Table', $this->argumentsTable($entite), ''),
@@ -182,7 +172,7 @@ final class RenduEntite
         }
 
         $lignes = $this->entete(
-            sprintf('Généré par Ormeau et réécrit à chaque génération : le code propre à %s va dans %s.php.', $entite->nom, $entite->nom),
+            EnteteOrmeau::classeBase($this->base, $entite->nom),
             $this->espaceDeNoms . '\\Base',
             $imports,
         );
@@ -237,7 +227,7 @@ final class RenduEntite
     {
         $rendu = $this->membres->rendre($trait->proprietes, null);
 
-        $lignes = $this->entete(self::MENTION_OUTIL, $this->espaceDeNoms . '\\Trait', ['Doctrine\ORM\Mapping as ORM', ...$rendu['imports']]);
+        $lignes = $this->entete(EnteteOrmeau::outil($this->base), $this->espaceDeNoms . '\\Trait', ['Doctrine\ORM\Mapping as ORM', ...$rendu['imports']]);
         $lignes[] = 'trait ' . $trait->nom;
         $lignes[] = '{';
         $lignes[] = implode("\n\n", [...$rendu['membres'], ...$rendu['accesseurs']]);
@@ -252,7 +242,7 @@ final class RenduEntite
      */
     public function enumeration(Enumeration $enumeration): string
     {
-        $lignes = $this->entete(self::MENTION_OUTIL, $this->espaceDeNoms . '\\Enum', []);
+        $lignes = $this->entete(EnteteOrmeau::outil($this->base), $this->espaceDeNoms . '\\Enum', []);
         $lignes[] = 'enum ' . $enumeration->nom . ': ' . $enumeration->typeSupport->value;
         $lignes[] = '{';
         foreach ($enumeration->cas as $cas) {

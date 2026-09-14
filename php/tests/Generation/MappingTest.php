@@ -52,7 +52,7 @@ final class MappingTest extends TestCase
         $sortie = Repertoires::creer();
 
         try {
-            $rapport = (new GenerateurEntite())->generer($calque, $sortie, $cible);
+            $rapport = (new GenerateurEntite())->generer($calque, $sortie, $cible, $cas);
             spl_autoload_register(static function (string $classe) use ($calque, $sortie): void {
                 $prefixe = $calque->espaceDeNoms . '\\';
                 if (str_starts_with($classe, $prefixe)) {
@@ -211,11 +211,11 @@ final class MappingTest extends TestCase
         $sortie = Repertoires::creer();
 
         try {
-            (new GenerateurEntite())->generer($calque, $sortie, $cible);
+            (new GenerateurEntite())->generer($calque, $sortie, $cible, 'heritage-decide');
             Repertoires::ranger($sortie, 'Personne', 'Rh');
             Repertoires::ranger($sortie, 'Salarie', 'Rh');
             Repertoires::ranger($sortie, 'Adresse', 'Contact');
-            $rapport = (new GenerateurEntite())->generer($calque, $sortie, $cible);
+            $rapport = (new GenerateurEntite())->generer($calque, $sortie, $cible, 'heritage-decide');
 
             self::assertSame([], $rapport->ecartees);
             self::assertSame([], $rapport->divergences);

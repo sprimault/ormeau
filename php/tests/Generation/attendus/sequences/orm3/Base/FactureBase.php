@@ -1,6 +1,6 @@
 <?php
 
-// Généré par Ormeau et réécrit à chaque génération : le code propre à Facture va dans Facture.php.
+// Généré par Ormeau depuis la base sequences et réécrit à chaque génération : le code propre à Facture va dans Facture.php.
 
 declare(strict_types=1);
 

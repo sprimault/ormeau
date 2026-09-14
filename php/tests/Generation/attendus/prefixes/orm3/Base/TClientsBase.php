@@ -1,6 +1,6 @@
 <?php
 
-// Généré par Ormeau et réécrit à chaque génération : le code propre à TClients va dans TClients.php.
+// Généré par Ormeau depuis la base prefixes et réécrit à chaque génération : le code propre à TClients va dans TClients.php.
 
 declare(strict_types=1);
 

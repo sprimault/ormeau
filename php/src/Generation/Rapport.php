@@ -10,11 +10,12 @@ namespace Ormeau\Doctrine\Generation;
 /**
  * Ce qu'une génération a fait, et ce qu'elle laisse à l'utilisateur.
  *
- * Quatre listes, parce que ce sont quatre questions différentes : qu'est-ce qui
- * a été écrit, qu'est-ce qui n'a pas pu l'être, qu'est-ce qui a été écrit sans
- * une partie, et qu'est-ce que l'utilisateur doit reprendre à la main dans ses
- * propres classes. Aucune ne bloque la génération : une entité écartée ou une
- * divergence n'empêche pas les autres d'être écrites.
+ * Cinq listes, parce que ce sont cinq questions différentes : qu'est-ce qui a
+ * été écrit, qu'est-ce qui n'a pas pu l'être, qu'est-ce qui a été écrit sans
+ * une partie, qu'est-ce que l'utilisateur doit reprendre à la main dans ses
+ * propres classes, et qu'est-ce qui appartient à une autre base. Aucune ne
+ * bloque la génération du reste ; seul un refus d'écrasement dit que la
+ * génération demandée n'a pas eu lieu, et fait échouer la commande.
  */
 final class Rapport
 {
@@ -26,11 +27,14 @@ final class Rapport
      *                                            signalés sans jamais y écrire
      * @param list<AssociationOmise> $omises      côtés inverses non écrits, parce que l'entité qui
      *                                            porte le côté propriétaire est écartée
+     * @param list<EcrasementRefuse> $refus       fichiers d'une autre base laissés intacts ; seul cas où la
+     *                                            génération demandée n'a pas eu lieu
      */
     public function __construct(
         public readonly array $fichiers,
         public readonly array $ecartees,
         public readonly array $divergences,
         public readonly array $omises = [],
+        public readonly array $refus = [],
     ) {}
 }

@@ -1,6 +1,6 @@
 <?php
 
-// Généré par Ormeau et réécrit à chaque génération : le code propre à Utilisateur va dans Utilisateur.php.
+// Généré par Ormeau depuis la base relations-forcees et réécrit à chaque génération : le code propre à Utilisateur va dans Utilisateur.php.
 
 declare(strict_types=1);
 

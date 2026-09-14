@@ -124,13 +124,85 @@ final class GenererCommandeTest extends TestCase
     }
 
     /**
-     * Exécute la commande sur un calque, le cas de référence cas-limites à
-     * défaut, et rend sa sortie.
-     *
-     * @param array<string, string> $options
-     * @param string                $calque  calque logique à générer
+     * La base se lit dans le nom du fichier et s'annonce ; un nom hors
+     * convention perd seulement son extension.
      */
-    private function executer(array $options, string $calque = Repertoires::REFERENCES . '/cas-limites/logique.json'): string
+    public function testLaBaseSeLitDansLeNomDuFichier(): void
+    {
+        $entree = Repertoires::creer();
+        try {
+            copy(Repertoires::REFERENCES . '/minimal/logique.json', $entree . '/gescom.v2.logique.json');
+            copy(Repertoires::REFERENCES . '/minimal/logique.json', $entree . '/export.json');
+
+            self::assertStringContainsString("\nBase : gescom.v2\n", $this->executer([], $entree . '/gescom.v2.logique.json'));
+            self::assertStringContainsString('depuis la base gescom.v2 ', (string) file_get_contents($this->sortie . '/Base/ClientBase.php'));
+            self::assertStringContainsString("\nBase : export\n", $this->executer(['--remplacer' => ['gescom.v2']], $entree . '/export.json'));
+        } finally {
+            Repertoires::supprimer($entree);
+        }
+    }
+
+    /**
+     * Une autre base dans le même répertoire fait échouer la commande, le
+     * refus en dernier avec l'option qui le lève ; --remplacer la laisse
+     * passer.
+     */
+    public function testUnRefusDEcrasementFaitEchouerLaCommande(): void
+    {
+        $entree = Repertoires::creer();
+        try {
+            copy(Repertoires::REFERENCES . '/minimal/logique.json', $entree . '/gescom.logique.json');
+            copy(Repertoires::REFERENCES . '/minimal/logique.json', $entree . '/paie.logique.json');
+            $this->executer([], $entree . '/gescom.logique.json');
+
+            $sortie = $this->executer([], $entree . '/paie.logique.json', Command::FAILURE);
+
+            self::assertStringEndsWith(
+                sprintf("refusé   %s/Base/ClientBase.php vient de la base gescom, la génération depuis paie ne l'écrit pas : générer chaque base dans son répertoire et son espace de noms, ou remplacer explicitement la base gescom (--remplacer=gescom)\n", $this->sortie),
+                $sortie,
+            );
+            $this->executer(['--remplacer' => ['gescom']], $entree . '/paie.logique.json');
+        } finally {
+            Repertoires::supprimer($entree);
+        }
+    }
+
+    /**
+     * Un nom de base porteur d'un saut de ligne ferait du reste une ligne de
+     * code dans l'en-tête : il est refusé avant toute écriture.
+     */
+    public function testUnNomDeBaseAvecSautDeLigneEstRefuse(): void
+    {
+        if (PHP_OS_FAMILY === 'Windows') {
+            self::markTestSkipped('un nom de fichier ne porte pas de saut de ligne sous Windows');
+        }
+
+        $entree = Repertoires::creer();
+        try {
+            $calque = $entree . "/gescom\nsystem('id');.logique.json";
+            copy(Repertoires::REFERENCES . '/minimal/logique.json', $calque);
+
+            try {
+                $this->executer([], $calque);
+                self::fail('nom de base accepté');
+            } catch (InvalidArgumentException $e) {
+                self::assertStringStartsWith('Nom de base refusé, rien n\'est écrit', $e->getMessage());
+            }
+            self::assertSame([], Repertoires::lire($this->sortie));
+        } finally {
+            Repertoires::supprimer($entree);
+        }
+    }
+
+    /**
+     * Exécute la commande sur un calque, le cas de référence cas-limites à
+     * défaut, vérifie son code de retour et rend sa sortie.
+     *
+     * @param array<string, mixed> $options
+     * @param string               $calque  calque logique à générer
+     * @param int                  $attendu code de retour attendu
+     */
+    private function executer(array $options, string $calque = Repertoires::REFERENCES . '/cas-limites/logique.json', int $attendu = Command::SUCCESS): string
     {
         $testeur = new CommandTester(new GenererCommande(new LecteurCalque(), new GenerateurEntite()));
         $code = $testeur->execute(array_merge([
@@ -138,7 +210,7 @@ final class GenererCommandeTest extends TestCase
             '--repertoire' => $this->sortie,
         ], $options));
 
-        self::assertSame(Command::SUCCESS, $code);
+        self::assertSame($attendu, $code, $testeur->getDisplay());
 
         return $testeur->getDisplay();
     }

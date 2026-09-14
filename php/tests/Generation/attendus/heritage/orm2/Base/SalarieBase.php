@@ -1,6 +1,6 @@
 <?php
 
-// Généré par Ormeau et réécrit à chaque génération : le code propre à Salarie va dans Salarie.php.
+// Généré par Ormeau depuis la base heritage et réécrit à chaque génération : le code propre à Salarie va dans Salarie.php.
 
 declare(strict_types=1);
 

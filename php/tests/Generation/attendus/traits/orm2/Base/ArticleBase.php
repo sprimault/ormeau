@@ -1,6 +1,6 @@
 <?php
 
-// Généré par Ormeau et réécrit à chaque génération : le code propre à Article va dans Article.php.
+// Généré par Ormeau depuis la base traits et réécrit à chaque génération : le code propre à Article va dans Article.php.
 
 declare(strict_types=1);
 

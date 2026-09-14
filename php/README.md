@@ -38,6 +38,11 @@ $ composer require --dev sprimault/ormeau-doctrine
 $ bin/console ormeau:generer gescom.logique.json
 ```
 
+One database per entities directory: files name their database, and another
+database does not overwrite them without `--remplacer=<base>`. Exit codes: 0
+when entities are skipped or classes diverge, 1 when a file from another
+database blocked the generation.
+
 The whole workflow — extracting the layer, inferring, arbitrating, generating —
 is described in the [main README](https://github.com/sprimault/ormeau#readme),
 and what each version changes in the

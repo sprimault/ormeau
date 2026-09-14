@@ -1,6 +1,6 @@
 <?php
 
-// Généré par Ormeau et réécrit à chaque génération : le code propre à Apostrophe va dans Apostrophe.php.
+// Généré par Ormeau depuis la base sequences et réécrit à chaque génération : le code propre à Apostrophe va dans Apostrophe.php.
 
 declare(strict_types=1);
 

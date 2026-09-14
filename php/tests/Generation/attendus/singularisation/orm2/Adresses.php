@@ -1,6 +1,6 @@
 <?php
 
-// Créé par Ormeau, jamais réécrit : ce fichier appartient au projet.
+// Créé par Ormeau depuis la base singularisation, jamais réécrit : ce fichier appartient au projet.
 
 declare(strict_types=1);
 

@@ -63,7 +63,8 @@ final class GenererCommande extends Command
         $this
             ->addArgument('calque', InputArgument::REQUIRED, 'Fichier .logique.json')
             ->addOption('repertoire', null, InputOption::VALUE_REQUIRED, 'Répertoire de sortie', 'src/Entity')
-            ->addOption('cible-orm', null, InputOption::VALUE_REQUIRED, 'Majeure de Doctrine ORM visée (2 ou 3), à défaut de celle installée');
+            ->addOption('cible-orm', null, InputOption::VALUE_REQUIRED, 'Majeure de Doctrine ORM visée (2 ou 3), à défaut de celle installée')
+            ->addOption('remplacer', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Base dont les fichiers peuvent être réécrits dans ce répertoire');
     }
 
     /**
@@ -76,15 +77,24 @@ final class GenererCommande extends Command
      *
      * Les avertissements du calque, les entités écartées et les divergences
      * s'affichent sans changer le code de retour : ils disent quoi reprendre,
-     * ils n'empêchent pas le reste d'être écrit.
+     * ils n'empêchent pas le reste d'être écrit. Un refus d'écrasement rend 1 :
+     * un fichier d'une autre base occupe la place, et la génération demandée
+     * n'a pas eu lieu, ce qu'un pipeline doit voir échouer.
+     *
+     * La base se lit dans le nom du fichier, gescom pour gescom.logique.json,
+     * comme ormeau inferer la tire du calque physique ; un nom hors convention
+     * perd seulement son extension. --remplacer nomme la base qu'on accepte
+     * d'écraser : un fichier renommé, ou un répertoire repris par une autre
+     * base, sans supprimer Base/ à la main.
      *
      * Tout texte venu du calque passe par OutputFormatter::escape : une balise
      * dans un nom de table, `<error></info>` par exemple, ferait lever le
      * formateur au milieu du compte rendu, fichiers déjà écrits.
      *
-     * @return int 0 si la génération est allée au bout
+     * @return int 0 si la génération est allée au bout, 1 si un fichier d'une autre base l'a bloquée
      *
-     * @throws InvalidArgumentException chemin absent, --cible-orm hors de 2 et 3, ORM introuvable
+     * @throws InvalidArgumentException chemin absent, --cible-orm hors de 2 et 3, ORM introuvable, nom de base
+     *                                  vide ou porteur d'un caractère de contrôle
      * @throws CalqueInvalide           calque illisible, d'une version inconnue, ou invalide
      * @throws JsonException            fichier qui n'est pas du JSON
      * @throws RuntimeException         fichier ou répertoire qui ne s'écrit pas
@@ -99,9 +109,13 @@ final class GenererCommande extends Command
 
         $cible = $this->cible($entree->getOption('cible-orm'));
         $sortie->writeln($cible->annonce());
+        $base = self::base($chemin);
+        $sortie->writeln('Base : ' . OutputFormatter::escape($base));
 
+        /** @var list<string> $remplacables */
+        $remplacables = array_values(array_filter((array) $entree->getOption('remplacer'), 'is_string'));
         $calque = $this->lecteur->lire($chemin);
-        $rapport = $this->generateur->generer($calque, $repertoire, $cible);
+        $rapport = $this->generateur->generer($calque, $repertoire, $cible, $base, $remplacables);
 
         // Aligné sur la largeur affichée et non en octets : « créé » en compte
         // six, et un %-9s décalerait les chemins d'une ligne à l'autre.
@@ -140,7 +154,34 @@ final class GenererCommande extends Command
             }
         }
 
-        return Command::SUCCESS;
+        // En dernier, pour qu'on les lise sous tout le reste.
+        foreach ($rapport->refus as $refus) {
+            $sortie->writeln(sprintf(
+                '<error>refusé   %s (--remplacer=%s)</error>',
+                OutputFormatter::escape($refus->message()),
+                OutputFormatter::escape($refus->baseExistante),
+            ));
+        }
+
+        return $rapport->refus === [] ? Command::SUCCESS : Command::FAILURE;
+    }
+
+    /**
+     * Rend le nom de la base que désigne un calque logique.
+     *
+     * gescom.logique.json donne gescom, comme ormeau inferer le fait du calque
+     * physique ; un nom qui ne suit pas la convention perd seulement son
+     * extension, plutôt que d'être refusé.
+     */
+    private static function base(string $chemin): string
+    {
+        $nom = basename($chemin);
+        if (str_ends_with($nom, '.logique.json')) {
+            return substr($nom, 0, -strlen('.logique.json'));
+        }
+        $point = strrpos($nom, '.');
+
+        return $point === false || $point === 0 ? $nom : substr($nom, 0, $point);
     }
 
     /**
