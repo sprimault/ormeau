@@ -56,9 +56,10 @@ downstream stage can recover it.
 **Neutrality.** No field assumes the destination. `type_normalise: "decimal"` is
 neutral; `type_doctrine` is not, and belongs to the logical level.
 
-**Determinism.** Two extractions of the same database produce two byte-for-byte
-identical files. Sorted keys, no timestamp in the body of the document. Without
-it, the diff mode produces noise and becomes useless.
+**Determinism.** Two extractions of the same database differ only by
+`source.extrait_le`, the extraction time, which the fingerprint excludes: same
+content, same fingerprint. Sorted keys, no other timestamp in the document.
+Without it, the diff mode produces noise and becomes useless.
 
 ## The logical layer is not neutral
 

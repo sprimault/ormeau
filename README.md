@@ -43,10 +43,13 @@ Download the archive for your platform from the
 run it. Nothing else to install: no runtime, no system driver.
 
 ```console
-$ ormeau extraire --dsn "postgres://app:secret@srv:5432/gescom" --sortie gescom.calque.json
+$ export ORMEAU_DSN="postgres://app:secret@srv:5432/gescom"
+$ ormeau extraire --sortie gescom.calque.json
 gescom.calque.json : 10 table(s), 32 colonne(s), 0 anomalie(s)
 empreinte sha256:f422f6d3e5eb455a91b096bd513bd5d8e595bd4e88aa588ef25d241993e201a1
 ```
+
+The string goes through `ORMEAU_DSN` rather than `--dsn`, which `ps` would show.
 
 A connection can also be given as components, which avoids escaping a password
 inside a URL. The password has no flag: it would be visible in `ps` and in the
@@ -106,7 +109,9 @@ rulings replay on every pass: the command line never rewrites an existing file.
 The interface does regenerate it when you save, and asks first if it was edited
 by hand.
 
-Between releases, `go install github.com/sprimault/ormeau/cmd/ormeau@master`.
+Between releases, build from a clone: see
+[Getting set up](CONTRIBUTING.md#getting-set-up). `go install` does not work, as
+the embedded interface is not versioned.
 
 ### Generating entities
 
@@ -249,9 +254,9 @@ distinguishable; length and precision are absent rather than zero, so that
 }
 ```
 
-Two extractions of the same database produce **byte-for-byte identical** files —
-the timestamp is excluded from the fingerprint. That is what makes the diff mode
-usable, and what allows a layer to be versioned in Git.
+Two extractions of the same database differ **only by `source.extrait_le`**, the
+extraction time, and share the same fingerprint, which excludes it. That is what
+makes the diff mode usable, and what allows a layer to be versioned in Git.
 
 ### Three files per database
 

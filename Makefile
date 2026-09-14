@@ -1,4 +1,4 @@
-.PHONY: dev test cover maj-attendus lint outils vulncheck sec build binaries web-build web-types web-types-check web-lint web-test php-changelog php-test php-lint image image-push clean
+.PHONY: dev test cover maj-attendus lint outils vulncheck sec build binaries web-deps web-build web-types web-types-check web-lint web-test php-changelog php-test php-lint image image-push clean
 
 # Répertoire de travail local, ignoré par git : sorties de `make build`,
 # profils de couverture, tout ce qui ne se publie pas.
@@ -29,14 +29,15 @@ ORMEAU_DEV_PORT ?= 7777
 # front et relaie /api/* vers le backend (proxy déclaré dans
 # web/vite.config.ts).
 #
-# Dépend de web-build parce que internal/interface embarque dist/ via
-# //go:embed et refuse de compiler s'il est absent — un clone frais ne
-# l'a jamais.
+# Dépend de web-build parce que internal/interface embarque le bundle
+# de Vite via //go:embed et refuse de compiler sans lui — un clone frais
+# ne l'a jamais.
 #
 # Le rechargement à chaud du Go passe par wgo, mais son absence ne
 # bloque pas : sans lui on perd le rechargement, pas la commande. Sur
-# un dépôt public, `make dev` doit fonctionner sur un clone frais sans
-# installer quoi que ce soit d'abord.
+# un dépôt public, `make dev` doit fonctionner sur un clone frais avec Go
+# et Node pour seuls prérequis : les dépendances du front s'installent
+# au premier passage.
 dev: web-build
 	@trap 'kill 0' EXIT INT TERM; \
 	(cd web && npm run dev) & \
@@ -48,9 +49,8 @@ dev: web-build
 		go run ./cmd/ormeau interface --port $(ORMEAU_DEV_PORT) --sans-navigateur; \
 	fi
 
-# Les cibles Go dépendent de web-build pour la même raison que dev.
-# Tant que web/ n'existe pas, web-build ne fait rien et les cibles Go
-# restent utilisables sur un clone frais.
+# Les cibles Go dépendent de web-build pour la même raison que dev : sans
+# bundle, la compilation de cmd/ormeau échoue.
 test: web-build
 	go test -race ./...
 
@@ -82,9 +82,10 @@ test-integration: containers
 	go test -race -count=1 -tags integration ./...
 
 # La vérification des types générés est accrochée à lint, pas à test :
-# `make test` doit rester exécutable sur un clone frais sans rien
-# installer, alors que lint exige déjà golangci-lint et échoue sans lui.
-# C'est aussi la cible qu'on lance avant chaque publication.
+# `make test` doit rester exécutable sur un clone frais sans outil Go à
+# installer, alors que lint exige golangci-lint et tygo, que pose
+# `make outils`. lint construit aussi le front, dont go vet a besoin pour
+# compiler cmd/ormeau. C'est la cible qu'on lance avant chaque publication.
 lint: web-build web-types-check
 	@command -v golangci-lint >/dev/null 2>&1 || { echo "golangci-lint absent : make outils"; exit 1; }
 	golangci-lint run
@@ -107,6 +108,7 @@ outils:
 	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_VERSION)
 	go install golang.org/x/vuln/cmd/govulncheck@latest
 	go install github.com/securego/gosec/v2/cmd/gosec@latest
+	go install github.com/gzuidhof/tygo@$(TYGO_VERSION)
 
 # vulncheck utilise l'outil officiel de la Go Team. Il ne signale une CVE
 # que si le code appelle effectivement la fonction affectée — beaucoup
@@ -140,10 +142,10 @@ build: web-build
 # cgo est actif par défaut, et un binaire lié dynamiquement à la glibc
 # refuserait de démarrer sur Alpine.
 #
-# Dépend de web-build : sans dist/, //go:embed produit un système de
-# fichiers vide et la compilation réussit quand même. On publierait
-# cinq binaires avec une interface blanche sans qu'aucun avertissement
-# ne le signale.
+# Dépend de web-build : sans bundle, //go:embed refuse de compiler, et
+# un répertoire présent mais vide passerait la compilation pour publier
+# cinq binaires à interface blanche. C'est TestEmbarqueNonVide qui
+# arrête ce second cas.
 binaries: web-build
 	@mkdir -p dist
 	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "$(LDFLAGS)" -o dist/ormeau_windows_amd64.exe ./cmd/ormeau
@@ -159,18 +161,39 @@ binaries: web-build
 # Les cibles ci-dessous ne font rien tant que web/ n'existe pas : le
 # dépôt doit rester utilisable avant l'interface, et un `make test` qui
 # échoue sur un répertoire absent apprend surtout à ignorer le Makefile.
-web-build:
+#
+# web-deps installe les dépendances du front quand web/node_modules est
+# absent, et seulement dans ce cas : sur un clone frais, il n'y a rien à
+# perdre, et c'est à l'outil de le faire plutôt qu'à un message de le
+# demander. Jamais relancé quand le répertoire existe : npm ci commence
+# par le vider, et un poste où npm ne peut rien télécharger — proxy,
+# certificat intercepté par un antivirus — perdrait des dépendances
+# installées autrement. Les dates de fichier ne diraient pas si
+# l'installation suit le lock, tar et git ne les posant pas de la même
+# façon : un lock modifié se rattrape par `cd web && npm ci`, et la CI
+# installe toujours depuis le lock.
+#
+# Un npm ci qui échoue laisse un node_modules partiel, que le passage
+# suivant prendrait pour une installation. Il est retiré : il n'existait
+# pas avant, il n'y a rien à perdre.
+web-deps:
+	@if [ -f web/package.json ] && [ ! -d web/node_modules ]; then \
+		echo "web/node_modules absent : npm ci"; \
+		cd web && npm ci || { rm -rf node_modules; echo "npm ci a echoue : verifier le proxy ou le certificat, ou installer web/node_modules sur une autre machine"; exit 1; }; \
+	fi
+
+web-build: web-deps
 	@if [ -f web/package.json ]; then cd web && npm run build; \
 	else echo "web/ absent, rien a construire"; fi
 
 # tsc avant eslint : `vite build` transpile sans contrôler les types, un
 # projet peut donc se construire en étant faux. Le typage se vérifie
 # séparément ou pas du tout.
-web-lint:
+web-lint: web-deps
 	@if [ ! -f web/package.json ]; then echo "web/ absent, rien a controler"; exit 0; fi; \
 	cd web && npx tsc -b && npm run lint && npx steiger ./src
 
-web-test:
+web-test: web-deps
 	@if [ ! -f web/package.json ]; then echo "web/ absent, rien a tester"; exit 0; fi; \
 	cd web && npm run audit:high && npm run test:run
 

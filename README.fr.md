@@ -44,10 +44,13 @@ décompresser, exécuter. Rien d'autre à installer : aucun runtime, aucun pilot
 système.
 
 ```console
-$ ormeau extraire --dsn "postgres://app:secret@srv:5432/gescom" --sortie gescom.calque.json
+$ export ORMEAU_DSN="postgres://app:secret@srv:5432/gescom"
+$ ormeau extraire --sortie gescom.calque.json
 gescom.calque.json : 10 table(s), 32 colonne(s), 0 anomalie(s)
 empreinte sha256:f422f6d3e5eb455a91b096bd513bd5d8e595bd4e88aa588ef25d241993e201a1
 ```
+
+La chaîne passe par `ORMEAU_DSN` plutôt que par `--dsn`, que `ps` afficherait.
 
 La connexion s'exprime aussi par composants, ce qui évite d'échapper un mot de
 passe dans une URL. Le mot de passe n'a pas de drapeau : il serait visible dans
@@ -106,7 +109,9 @@ arbitrages se rejouent à chaque passage : la ligne de commande ne réécrit jam
 un fichier existant. L'interface, elle, le régénère quand on l'enregistre, et
 demande confirmation s'il a été retouché à la main.
 
-Entre deux versions, `go install github.com/sprimault/ormeau/cmd/ormeau@master`.
+Entre deux versions, construire depuis un clone : voir la
+[mise en route](CONTRIBUTING.fr.md#mise-en-route). `go install` ne fonctionne
+pas, l'interface embarquée n'étant pas versionnée.
 
 ### Générer les entités
 
@@ -255,9 +260,10 @@ distinguables ; longueur et précision sont absentes plutôt que nulles, pour qu
 }
 ```
 
-Deux extractions de la même base produisent deux fichiers **identiques octet
-pour octet** — l'horodatage est exclu de l'empreinte. C'est ce qui rend le mode
-diff exploitable, et ce qui permet de versionner un calque dans Git.
+Deux extractions de la même base ne diffèrent **que par `source.extrait_le`**,
+l'heure de l'extraction, et partagent la même empreinte, qui l'exclut. C'est ce
+qui rend le mode diff exploitable, et ce qui permet de versionner un calque dans
+Git.
 
 ### Trois fichiers par base
 

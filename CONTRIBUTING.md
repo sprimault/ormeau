@@ -35,9 +35,9 @@ issue, before any code.
 3. **The physical layer is neutral.** No field assumes the destination. The
    test: if an EF Core generator would find the field useless or misleading, it
    is at the wrong level.
-4. **Extraction is deterministic.** Two extractions of the same database
-   produce byte-for-byte identical files. Sorted keys, no timestamp in the body
-   of the document. The diff mode depends entirely on this.
+4. **Extraction is deterministic.** Two extractions of the same database differ
+   only by `source.extrait_le`, which the fingerprint excludes. Sorted keys, no
+   other timestamp in the document. The diff mode depends entirely on this.
 5. **Inference is a pure function.** `physical + decisions -> logical`. No
    network, no clock, no randomness, no disk access outside the declared
    inputs. An inference that would need to query the database is misplaced:
@@ -69,16 +69,19 @@ project's real test suite.
 
 ## Getting set up
 
-You need Go (the version pinned in `go.mod`) and Docker for the test
-containers. PHP 8.1 and Composer are only needed to work on `php/`, which is
+You need Go (the version pinned in `go.mod`), Node 22 for the embedded
+interface, and Docker for the test containers. The first `make test` installs
+the front-end dependencies itself, with `npm ci`, when `web/node_modules` is
+absent; after a change to `web/package-lock.json`, run `cd web && npm ci`.
+PHP 8.1 and Composer are only needed to work on `php/`, which is
 published as a mirror to `sprimault/ormeau-doctrine`: contributions to it happen
 here, never on the mirror, which is rewritten on every merge. The mechanism and
 how a version is published are described in [`docs/construction.md`](docs/construction.md).
 
 ```bash
-make outils        # golangci-lint, govulncheck, gosec
-make test          # go test -race ./...
-make lint          # golangci-lint, gofmt
+make outils        # golangci-lint, govulncheck, gosec, tygo
+make test          # front build, then go test -race ./...
+make lint          # front build, generated types check, golangci-lint, gofmt
 make cover         # coverage, per-function breakdown
 make maj-attendus  # rewrites the expected logical layers, review them after
 ```
@@ -147,11 +150,11 @@ a copy that is out of date.
 
 A layer holds a customer's table names, column names, business comments, and
 with `--echantillonner`, once sampling ships, real values. It has no place in
-this repository nor in an issue attachment. The only layers versioned here are
-those produced from `tests/ddl/`.
+this repository nor in an issue attachment. The layers versioned here come from
+no real database: they are written by hand for the tests, in `tests/reference/`.
 
-If a reproduction needs a layer, build it from `tests/ddl/` or strip it down to
-the few objects that trigger the defect.
+If a reproduction needs a layer, extract it from the test database built from
+`tests/ddl/`, or write by hand the few objects that trigger the defect.
 
 ## Security
 

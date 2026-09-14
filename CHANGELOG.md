@@ -74,6 +74,12 @@ l'incrément et le minimum de la séquence.
   écarts inexistants. L'extraction se fait sous un `search_path` vide. Une
   séquence de `public` garde son nom nu dans le calque logique : qualifiée,
   DBAL 3 la croirait absente et `migrations:diff` proposerait de la créer.
+- **`make test` et `make lint` passent sur un clone frais.** Les dépendances
+  du front n'étaient jamais installées, et `make outils` ne posait pas tygo.
+  Elles s'installent au premier passage, et la mise en route demande Node.
+  Le README ne propose plus `go install @master`, qui ne compilait pas sans
+  l'interface embarquée.
+- **L'aide ne présente plus `ormeau diff` comme disponible.**
 
 ### Sécurité
 
@@ -127,6 +133,12 @@ sequence's increment and minimum.
   `search_path`. A sequence in `public` keeps its bare name in the logical
   layer: qualified, DBAL 3 would consider it missing and `migrations:diff`
   would propose to create it.
+- **`make test` and `make lint` pass on a fresh clone.** The front-end
+  dependencies were never installed, and `make outils` did not install tygo.
+  They are installed on the first run, and the setup guide asks for Node. The
+  README no longer suggests `go install @master`, which did not build without
+  the embedded interface.
+- **The help no longer presents `ormeau diff` as available.**
 
 ### Security
 
