@@ -63,6 +63,16 @@ final class MappingTest extends TestCase
             $gestionnaire = self::gestionnaire($sortie);
             $metadonnees = $gestionnaire->getMetadataFactory()->getAllMetadata();
 
+            // Un cas dont toutes les tables sont écartées ne produit aucune
+            // entité. La condition se lit sur le calque et le rapport, jamais
+            // sur les métadonnées obtenues : un cas qui devait produire des
+            // entités échoue toujours plus bas sur un DDL vide.
+            if (count($calque->entites) === count($rapport->ecartees)) {
+                self::assertSame([], $metadonnees, 'aucune entité générée, aucune métadonnée attendue');
+
+                return;
+            }
+
             self::assertSame([], (new SchemaValidator($gestionnaire))->validateMapping());
 
             // Le validateur ne voit pas tout : Doctrine doit aussi savoir écrire
@@ -248,7 +258,7 @@ final class MappingTest extends TestCase
      */
     public static function cas(): iterable
     {
-        foreach (Repertoires::CAS as $cas) {
+        foreach (Repertoires::cas() as $cas) {
             yield $cas => [$cas];
         }
     }

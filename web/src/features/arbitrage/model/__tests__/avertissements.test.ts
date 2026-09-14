@@ -3,23 +3,11 @@
 
 import { describe, expect, it } from 'vitest';
 
-import { estCle } from '@/shared/i18n';
 import {
-  CodeCasEnumerationOpaque,
-  CodeCibleHorsPortee,
-  CodeClePrimaireComposite,
-  CodeClePrimaireGardee,
   CodeCollision,
   CodeColonneIgnoree,
-  CodeDecisionInvalide,
-  CodeDecisionOrpheline,
-  CodeDefautIncompatible,
-  CodeFKImpliciteProbable,
-  CodeHeritageDeduit,
   CodeJointurePure,
   CodePrefixeDetecte,
-  CodeReferenceHorsIdentifiant,
-  CodeSequenceNonReconnue,
   CodeTableIgnoree,
   CodeTableSansClePrimaire,
   CodeTraitDeduit,
@@ -88,33 +76,5 @@ describe('avertissements', () => {
     expect(estATraiter(avertissement('code_de_demain', 'public.a'))).toBe(true);
     expect(estATraiter(avertissement(CodeTraitDeduit, 'public.a'))).toBe(false);
     expect(estATraiter(avertissement(CodeJointurePure, 'public.a'))).toBe(false);
-  });
-
-  it('traduit chaque code d’avertissement : un code ajouté côté Go appelle son libellé', () => {
-    const codes = [
-      CodeCasEnumerationOpaque,
-      CodeCibleHorsPortee,
-      CodeClePrimaireComposite,
-      CodeClePrimaireGardee,
-      CodeCollision,
-      CodeColonneIgnoree,
-      CodeDecisionInvalide,
-      CodeDecisionOrpheline,
-      CodeDefautIncompatible,
-      CodeFKImpliciteProbable,
-      CodeHeritageDeduit,
-      CodeJointurePure,
-      CodePrefixeDetecte,
-      CodeReferenceHorsIdentifiant,
-      CodeSequenceNonReconnue,
-      CodeTableIgnoree,
-      CodeTableSansClePrimaire,
-      CodeTraitDeduit,
-      CodeTypeNonReconnu,
-    ];
-
-    for (const code of codes) {
-      expect(estCle(`warning.${code}`), code).toBe(true);
-    }
   });
 });

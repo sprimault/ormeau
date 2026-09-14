@@ -70,6 +70,22 @@ final class AttendusTest extends TestCase
     }
 
     /**
+     * Chaque répertoire d'attendus correspond à un cas de référence.
+     *
+     * Un cas renommé ou retiré laisserait ses attendus derrière lui : du code
+     * de référence que plus aucun test ne relit, et que personne ne pense à
+     * supprimer.
+     */
+    public function testChaqueAttenduASonCas(): void
+    {
+        $repertoires = glob(self::ATTENDUS . '/*', GLOB_ONLYDIR);
+        self::assertNotFalse($repertoires);
+        $attendus = array_map('basename', $repertoires);
+
+        self::assertSame([], array_values(array_diff($attendus, Repertoires::cas())), 'attendus sans cas de référence, à supprimer');
+    }
+
+    /**
      * Chaque cas sous chaque majeure d'ORM : les deux rendus sont versionnés
      * côte à côte, et leur diff montre exactement ce qu'un changement de cible
      * change.
@@ -78,7 +94,7 @@ final class AttendusTest extends TestCase
      */
     public static function cas(): iterable
     {
-        foreach (Repertoires::CAS as $cas) {
+        foreach (Repertoires::cas() as $cas) {
             foreach (Cible::MAJEURES_ORM as $orm) {
                 yield $cas . ' orm' . $orm => [$cas, $orm];
             }
