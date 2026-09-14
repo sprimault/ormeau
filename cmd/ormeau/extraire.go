@@ -160,9 +160,12 @@ func extraireLeServeur(ctx context.Context, sgbd, dsn, repertoire string, portee
 
 	var echecs int
 	for _, nom := range bases {
-		chemin := filepath.Join(repertoire, nom+".calque.json")
-		if err := extraireUneBase(ctx, sgbd, introspection.AvecBase(dsn, nom), chemin, portee); err != nil {
-			fmt.Fprintf(os.Stderr, "%s : %v\n", nom, err)
+		chemin, err := cheminDuCalque(repertoire, nom)
+		if err == nil {
+			err = extraireUneBase(ctx, sgbd, introspection.AvecBase(dsn, nom), chemin, portee)
+		}
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%q : %v\n", nom, err)
 			echecs++
 		}
 	}
@@ -173,6 +176,20 @@ func extraireLeServeur(ctx context.Context, sgbd, dsn, repertoire string, portee
 		return fmt.Errorf("%d base(s) sur %d en echec", echecs, len(bases))
 	}
 	return nil
+}
+
+// cheminDuCalque compose le fichier du calque d'une base, sous le répertoire de
+// sortie.
+//
+// Le nom vient du serveur, pas de l'utilisateur : PostgreSQL accepte « ../x »
+// comme nom de base, et filepath.Join, qui résout les « .. », écrirait le
+// calque hors du répertoire. Un nom qui ne nomme pas un fichier est refusé,
+// selon la règle de l'interface ; l'appelant saute la base et le signale.
+func cheminDuCalque(repertoire, nom string) (string, error) {
+	if !calque.NomDeBaseValide(nom) {
+		return "", errors.New("nom de base qui ne peut pas nommer un fichier : lettres, chiffres, tiret et souligne seulement, base ignoree")
+	}
+	return filepath.Join(repertoire, nom+".calque.json"), nil
 }
 
 // ecrire valide, horodate et sérialise. Les anomalies sont rapportées mais

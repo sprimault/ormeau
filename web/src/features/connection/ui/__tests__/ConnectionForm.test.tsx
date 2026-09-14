@@ -19,10 +19,10 @@ const { profils, enregistrerProfil } = vi.hoisted(() => {
       profil: {
         nom: 'gescom production',
         sgbd: 'postgres',
-        hote: '192.168.0.184',
-        port: 30432,
-        utilisateur: 'postgres',
-        base: 'cadensio_main',
+        hote: '192.168.1.10',
+        port: 5433,
+        utilisateur: 'app',
+        base: 'gescom',
         sslmode: 'verify-full',
       },
       mot_de_passe_enregistre: true,
@@ -115,8 +115,8 @@ describe('ConnectionForm', () => {
       'gescom production',
     ]);
 
-    expect(screen.getByLabelText('Hôte')).toHaveValue('192.168.0.184');
-    expect(screen.getByLabelText('Base')).toHaveValue('cadensio_main');
+    expect(screen.getByLabelText('Hôte')).toHaveValue('192.168.1.10');
+    expect(screen.getByLabelText('Base')).toHaveValue('gescom');
     expect(screen.getByLabelText('Mot de passe')).toHaveValue('');
 
     await userEvent.click(screen.getByRole('button', { name: 'Se connecter' }));
@@ -156,7 +156,7 @@ describe('ConnectionForm', () => {
       'aria-selected',
       'true',
     );
-    expect(screen.getByLabelText('Hôte')).toHaveValue('192.168.0.184');
+    expect(screen.getByLabelText('Hôte')).toHaveValue('192.168.1.10');
   });
 
   it('reprend le sslmode du profil et le poste', async () => {
@@ -182,11 +182,11 @@ describe('ConnectionForm', () => {
       'gescom production',
     ]);
     await userEvent.clear(screen.getByLabelText('Port'));
-    await userEvent.type(screen.getByLabelText('Port'), '5433');
+    await userEvent.type(screen.getByLabelText('Port'), '5434');
     await userEvent.click(screen.getByRole('button', { name: 'Mettre à jour ce profil' }));
 
     expect(enregistrerProfil).toHaveBeenCalledWith(
-      expect.objectContaining({ port: 5433, sslmode: 'verify-full' }),
+      expect.objectContaining({ port: 5434, sslmode: 'verify-full' }),
       expect.anything(),
       expect.anything(),
       true,

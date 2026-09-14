@@ -12,11 +12,11 @@ import { ProfileBar } from '../ProfileBar';
 /** Profils de la barre, l'un avec mot de passe enregistré. */
 const PROFILS: ProfilResume[] = [
   {
-    profil: { nom: 'gescom production', hote: '192.168.0.184', base: 'gescom' },
+    profil: { nom: 'gescom production', hote: '192.168.1.10', base: 'gescom' },
     mot_de_passe_enregistre: true,
   },
   {
-    profil: { nom: 'gescom recette', hote: '192.168.0.184', base: 'recette' },
+    profil: { nom: 'gescom recette', hote: '192.168.1.10', base: 'recette' },
     mot_de_passe_enregistre: false,
   },
 ];

@@ -4,6 +4,7 @@
 package main
 
 import (
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -139,6 +140,24 @@ func TestExtraireNAPasDeDrapeauMotDePasse(t *testing.T) {
 		err := extraire([]string{interdit, "secret", "--sortie", "s.json"})
 		if err == nil {
 			t.Errorf("%s accepte", interdit)
+		}
+	}
+}
+
+// TestCheminDuCalqueResteSousLaSortie couvre l'extraction d'un serveur entier,
+// où les noms de bases viennent du catalogue : un nom que PostgreSQL accepte
+// entre guillemets ne doit pas faire écrire hors du répertoire de sortie.
+func TestCheminDuCalqueResteSousLaSortie(t *testing.T) {
+	t.Parallel()
+
+	chemin, err := cheminDuCalque("sortie", "gescom")
+	if err != nil || chemin != filepath.Join("sortie", "gescom.calque.json") {
+		t.Errorf("gescom : chemin %q, erreur %v", chemin, err)
+	}
+
+	for _, nom := range []string{"../evasion", "a/b", "..", "x.y", ""} {
+		if chemin, err := cheminDuCalque("sortie", nom); err == nil {
+			t.Errorf("%q accepté : %q", nom, chemin)
 		}
 	}
 }
