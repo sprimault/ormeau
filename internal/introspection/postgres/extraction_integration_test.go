@@ -21,8 +21,15 @@ import (
 // produire une cascade d'erreurs sur un calque vide.
 func extraireOuEchouer(t *testing.T) *calque.Physique {
 	t.Helper()
+	return extraireDepuis(t, dsnDeTest())
+}
 
-	p := ouvrirOuEchouer(t)
+// extraireDepuis rend le calque du schéma de test lu par une connexion
+// ouverte sur ce DSN.
+func extraireDepuis(t *testing.T, dsn string) *calque.Physique {
+	t.Helper()
+
+	p := ouvrirDepuis(t, dsn)
 	ctx, annuler := context.WithTimeout(context.Background(), 30*time.Second)
 	defer annuler()
 
@@ -77,6 +84,33 @@ func TestExtraireEstDeterministe(t *testing.T) {
 	}
 	if string(octetsA) != string(octetsB) {
 		t.Error("deux extractions produisent des documents differents")
+	}
+}
+
+// Le test précédent réutilise la même session, et ne voit donc pas ce qui
+// dépend d'elle. Ici deux connexions dont le search_path diffère : sous
+// gescom, le catalogue écrirait les séquences du schéma sans le qualifier. Les
+// octets doivent rester les mêmes, sinon le calque dépend de qui l'extrait.
+func TestExtraireNeDependPasDuSearchPath(t *testing.T) {
+	dsn := dsnDeTest()
+	separateur := "?"
+	if strings.Contains(dsn, "?") {
+		separateur = "&"
+	}
+
+	octets := func(p *calque.Physique) string {
+		t.Helper()
+		o, err := calque.Serialiser(p)
+		if err != nil {
+			t.Fatalf("serialisation : %v", err)
+		}
+		return string(o)
+	}
+
+	defaut := octets(extraireDepuis(t, dsn))
+	sousGescom := octets(extraireDepuis(t, dsn+separateur+"search_path=gescom,public"))
+	if defaut != sousGescom {
+		t.Error("le search_path du DSN change le calque extrait")
 	}
 }
 

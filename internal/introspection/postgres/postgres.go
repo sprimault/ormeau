@@ -60,11 +60,55 @@ func Ouvrir(ctx context.Context, dsn string) (introspection.Introspecteur, error
 	config.RuntimeParams["default_transaction_read_only"] = "on"
 	config.RuntimeParams["application_name"] = "ormeau"
 
+	// pg_get_expr, pg_get_constraintdef, pg_get_viewdef et format_type
+	// qualifient un nom selon le search_path de la session, qui dépend du rôle
+	// et du DSN : deux extractions de la même base divergeraient. Vide, comme
+	// pg_dump, tout objet hors de pg_catalog sort qualifié, quelle que soit la
+	// connexion. Il remplace celui du DSN, que NettoyerDSN laisse passer pour
+	// les autres pilotes. Il ferme aussi CVE-2018-1058 sur nos propres requêtes :
+	// un opérateur posé dans public ne peut plus s'y substituer à celui du
+	// catalogue.
+	config.RuntimeParams["search_path"] = ""
+
 	conn, err := pgx.ConnectConfig(ctx, config)
 	if err != nil {
 		return nil, fmt.Errorf("connexion a %s: %w", introspection.Masquer(dsn), err)
 	}
-	return &pilote{conn: conn}, nil
+
+	p := &pilote{conn: conn}
+	if err := p.controlerSession(ctx); err != nil {
+		_ = p.Fermer()
+		return nil, err
+	}
+	return p, nil
+}
+
+// controlerSession relit ce que la connexion devait poser. Un paramètre de
+// démarrage n'est qu'une demande : un pooler qui ignore ceux qu'il ne connaît
+// pas (ignore_startup_parameters de pgbouncer) les perd sans erreur, et la
+// session ne serait alors ni en lecture seule ni sous le search_path vide.
+// Refuser vaut mieux que d'extraire en croyant tenir l'invariant.
+func (p *pilote) controlerSession(ctx context.Context) error {
+	ctx, annuler := context.WithTimeout(ctx, delaiRequete)
+	defer annuler()
+
+	var chemin, lectureSeule string
+	if err := p.conn.QueryRow(ctx, requeteSession).Scan(&chemin, &lectureSeule); err != nil {
+		return fmt.Errorf("lecture des parametres de session: %w", err)
+	}
+	return verifierSession(chemin, lectureSeule)
+}
+
+// verifierSession dit ce qui manque à la session, séparée de la lecture pour
+// se tester sans serveur.
+func verifierSession(chemin, lectureSeule string) error {
+	if lectureSeule != "on" {
+		return fmt.Errorf("session inscriptible (transaction_read_only = %q) : un intermediaire a ignore default_transaction_read_only, extraction refusee", lectureSeule)
+	}
+	if chemin != "" {
+		return fmt.Errorf("search_path de session %q au lieu d'un chemin vide : un intermediaire a ignore le parametre, extraction refusee", chemin)
+	}
+	return nil
 }
 
 // Inventorier alimente l'arbre de sélection sans introspecter : une requête,

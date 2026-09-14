@@ -300,6 +300,8 @@ vaut mieux qu'une erreur fatale ou qu'un modèle silencieusement faux. Chaque
 
 L'outil ne fait que lire. Les connexions sont en lecture seule, imposées par le
 serveur et non par la discipline du code, avec un délai maximal par requête.
+La session est relue à l'ouverture : si un intermédiaire a perdu la lecture
+seule en route, l'extraction est refusée.
 
 Le DSN est le seul secret manipulé : il n'apparaît ni dans les journaux, ni dans
 les messages d'erreur, ni dans le calque.

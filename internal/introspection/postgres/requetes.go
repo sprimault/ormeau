@@ -14,6 +14,14 @@ SELECT current_setting('server_version') AS version,
        current_database()                AS catalogue
 `
 
+// requeteSession relit les paramètres que la connexion a demandés.
+// transaction_read_only plutôt que default_transaction_read_only : c'est l'état
+// effectif de la transaction en cours qui compte.
+const requeteSession = `
+SELECT current_setting('search_path')         AS chemin,
+       current_setting('transaction_read_only') AS lecture_seule
+`
+
 // requeteSchemas sert quand la portée n'en nomme aucun. Retenir « public »
 // seul rendrait un calque vide pour toute base qui n'y range rien — et une
 // base legacy range rarement dans public.

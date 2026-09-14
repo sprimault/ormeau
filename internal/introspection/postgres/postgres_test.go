@@ -50,6 +50,39 @@ func TestOuvrirNeDivulguePasLeDSN(t *testing.T) {
 	}
 }
 
+// Un intermédiaire qui ignore les paramètres de démarrage ne produit aucune
+// erreur : seule la relecture le révèle, et elle doit refuser plutôt que
+// laisser extraire.
+func TestVerifierSession(t *testing.T) {
+	t.Parallel()
+
+	cas := []struct {
+		nom, chemin, lectureSeule string
+		refus                     string
+	}{
+		{"parametres appliques", "", "on", ""},
+		{"lecture seule perdue", "", "off", "inscriptible"},
+		{"chemin perdu", `"$user", public`, "on", "search_path"},
+		{"tout perdu", `"$user", public`, "off", "inscriptible"},
+	}
+
+	for _, c := range cas {
+		t.Run(c.nom, func(t *testing.T) {
+			t.Parallel()
+
+			err := verifierSession(c.chemin, c.lectureSeule)
+			switch {
+			case c.refus == "" && err != nil:
+				t.Errorf("refus inattendu : %v", err)
+			case c.refus != "" && err == nil:
+				t.Error("session acceptée")
+			case c.refus != "" && !strings.Contains(err.Error(), c.refus):
+				t.Errorf("refus %q, attendu une mention de %q", err, c.refus)
+			}
+		})
+	}
+}
+
 // Vérifié à la compilation, mais énoncé ici pour qu'un changement d'interface
 // échoue sur un test nommé.
 func TestPiloteSatisfaitLInterface(t *testing.T) {
