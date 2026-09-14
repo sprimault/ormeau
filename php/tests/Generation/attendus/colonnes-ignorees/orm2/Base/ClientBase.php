@@ -1,6 +1,6 @@
 <?php
 
-// Généré par Ormeau et réécrit à chaque génération : le code propre à Client va dans Client.php.
+// Généré par Ormeau depuis la base colonnes-ignorees et réécrit à chaque génération : le code propre à Client va dans Client.php.
 
 declare(strict_types=1);
 

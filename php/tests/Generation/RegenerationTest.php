@@ -86,6 +86,111 @@ final class RegenerationTest extends TestCase
     }
 
     /**
+     * Deux bases dans le même répertoire : la seconde ne réécrit pas la classe
+     * de base de la première, et le refus nomme le fichier et les deux bases.
+     */
+    public function testUneAutreBaseNEcrasePasLesFichiersDeLaPremiere(): void
+    {
+        $this->generer(self::calque('client'));
+        $base = $this->sortie . '/Base/ClientBase.php';
+        $avant = (string) file_get_contents($base);
+
+        $rapport = $this->generer(self::calque('client', avecEmail: true), 'paie');
+
+        self::assertSame($avant, file_get_contents($base));
+        self::assertSame([[$base, 'gescom', 'paie']], array_map(static fn($r): array => [$r->fichier, $r->baseExistante, $r->baseDemandee], $rapport->refus));
+        self::assertSame(['Client' => $base . ' vient de la base gescom'], array_column(array_map(static fn($e): array => [$e->nom, $e->raison], $rapport->ecartees), 1, 0));
+        self::assertSame([], $rapport->fichiers);
+    }
+
+    /**
+     * Remplacer une base nommée réécrit ses fichiers, et l'en-tête prend la
+     * nouvelle base : la génération suivante passe sans l'option, la classe de
+     * base faisant foi et non la classe de l'utilisateur, écrite une fois.
+     */
+    public function testRemplacerUneBaseNommeeReecritEtRenommeLEntete(): void
+    {
+        $this->generer(self::calque('client'));
+
+        self::assertSame([], $this->generer(self::calque('client', avecEmail: true), 'gescom-v2', ['gescom'])->refus);
+        self::assertStringStartsWith(
+            "<?php\n\n// Généré par Ormeau depuis la base gescom-v2 et réécrit",
+            (string) file_get_contents($this->sortie . '/Base/ClientBase.php'),
+        );
+        self::assertStringContainsString('depuis la base gescom,', (string) file_get_contents($this->sortie . '/Client.php'));
+        self::assertSame([], $this->generer(self::calque('client', avecEmail: true), 'gescom-v2')->refus);
+    }
+
+    /**
+     * Un fichier de la 0.5.0 ne nomme aucune base : il est repris, sans quoi
+     * tout projet existant serait bloqué, et reçoit la base qui l'écrit.
+     */
+    public function testUnFichierSansBaseEstRepris(): void
+    {
+        $this->generer(self::calque('client'));
+        $base = $this->sortie . '/Base/ClientBase.php';
+        file_put_contents($base, str_replace(
+            '// Généré par Ormeau depuis la base gescom et réécrit à chaque génération',
+            '// Généré par Ormeau et réécrit à chaque génération',
+            (string) file_get_contents($base),
+        ));
+
+        $rapport = $this->generer(self::calque('client'), 'paie');
+
+        self::assertSame([], $rapport->refus);
+        self::assertStringContainsString('depuis la base paie et réécrit', (string) file_get_contents($base));
+    }
+
+    /**
+     * Sans classe de base, la classe de l'utilisateur d'une autre base fait
+     * foi : recréer la classe de base sous elle la ferait hériter d'une classe
+     * qui n'est pas la sienne.
+     */
+    public function testUneClasseDeLUtilisateurDUneAutreBaseSansClasseDeBaseSeRefuse(): void
+    {
+        $this->generer(self::calque('client'));
+        unlink($this->sortie . '/Base/ClientBase.php');
+
+        $rapport = $this->generer(self::calque('client'), 'paie');
+
+        self::assertSame([$this->sortie . '/Client.php'], array_map(static fn($r): string => $r->fichier, $rapport->refus));
+        self::assertFileDoesNotExist($this->sortie . '/Base/ClientBase.php');
+    }
+
+    /**
+     * Une énumération d'une autre base n'est pas réécrite, et l'entité qui
+     * s'en sert est écartée par le chemin habituel.
+     */
+    public function testUneEnumerationDUneAutreBaseSeRefuse(): void
+    {
+        $calque = static fn(): CalqueLogique => CalqueLogique::depuisTableau([
+            'version_ri' => 1,
+            'empreinte_physique' => 'sha256:' . str_repeat('a', 64),
+            'espace_de_noms' => 'App\\Entity',
+            'entites' => [[
+                'nom' => 'Commande',
+                'table' => ['nom' => 'commande', 'schema' => 'public'],
+                'identifiant' => ['proprietes' => ['id'], 'strategie' => 'identite'],
+                'proprietes' => [
+                    ['nom' => 'id', 'colonne' => 'id', 'type_php' => 'int', 'type_doctrine' => 'integer', 'nullable' => false],
+                    ['nom' => 'etat', 'colonne' => 'etat', 'type_php' => 'string', 'type_doctrine' => 'string', 'nullable' => false, 'enumeration' => 'Etat'],
+                ],
+            ]],
+            'enumerations' => [['nom' => 'Etat', 'type_support' => 'string', 'cas' => [['nom' => 'Ouvert', 'valeur' => 'O']], 'origine' => 'verification']],
+        ]);
+        $this->generer($calque());
+        $enumeration = $this->sortie . '/Enum/Etat.php';
+
+        $rapport = $this->generer($calque(), 'paie');
+
+        self::assertSame([$enumeration], array_map(static fn($r): string => $r->fichier, $rapport->refus));
+        self::assertSame(
+            ['Commande' => 'l\'énumération Etat n\'est pas générée : ' . $enumeration . ' vient de la base gescom'],
+            array_column(array_map(static fn($e): array => [$e->nom, $e->raison], $rapport->ecartees), 1, 0),
+        );
+    }
+
+    /**
      * Une table renommée ne réécrit pas la classe de l'utilisateur : la
      * divergence nomme le fichier, la ligne, l'attribut tel qu'il est écrit,
      * et le nom attendu.
@@ -319,11 +424,14 @@ final class RegenerationTest extends TestCase
     }
 
     /**
-     * Génère un calque dans le répertoire du test, sous ORM 3.
+     * Génère un calque dans le répertoire du test, sous ORM 3, depuis la base
+     * donnée, gescom à défaut.
+     *
+     * @param list<string> $remplacables bases dont les fichiers peuvent être réécrits
      */
-    private function generer(CalqueLogique $calque): Rapport
+    private function generer(CalqueLogique $calque, string $base = 'gescom', array $remplacables = []): Rapport
     {
-        return (new GenerateurEntite())->generer($calque, $this->sortie, Cible::forcer(3));
+        return (new GenerateurEntite())->generer($calque, $this->sortie, Cible::forcer(3), $base, $remplacables);
     }
 
     /**

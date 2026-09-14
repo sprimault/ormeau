@@ -68,22 +68,39 @@ final class GenerateurEntite
      * ensuite, et jamais réécrites : elles sont seulement relues pour signaler
      * ce qui a divergé.
      *
-     * @param CalqueLogique $calque     calque déjà lu et contrôlé
-     * @param string        $repertoire racine des entités, src/Entity dans une application Symfony
-     * @param Cible         $cible      version d'ORM visée, qui fixe le type PHP de certaines colonnes
+     * Chaque fichier nomme sa base dans son en-tête. Un fichier existant qui en
+     * nomme une autre n'est pas réécrit, et l'entité qui l'aurait écrit ne
+     * produit rien, classe de l'utilisateur comprise : créée seule, elle
+     * hériterait d'une classe de base qui n'est pas la sienne. Un fichier dont
+     * l'en-tête ne nomme aucune base, écrit par la 0.5.0, est repris.
+     *
+     * @param CalqueLogique $calque       calque déjà lu et contrôlé
+     * @param string        $repertoire   racine des entités, src/Entity dans une application Symfony
+     * @param Cible         $cible        version d'ORM visée, qui fixe le type PHP de certaines colonnes
+     * @param string        $base         base dont vient le calque, fournie par l'appelant : la bibliothèque
+     *                                    ne la devine pas d'un chemin
+     * @param list<string>  $remplacables bases dont les fichiers peuvent être réécrits malgré leur en-tête
      *
      * @throws LogicException           mode de régénération qui n'est pas encore écrit
-     * @throws InvalidArgumentException espace de noms que PHP refuse : aucun fichier n'est écrit
+     * @throws InvalidArgumentException espace de noms que PHP refuse, ou nom de base vide ou porteur d'un
+     *                                  caractère de contrôle : aucun fichier n'est écrit
      * @throws RuntimeException         répertoire ou fichier qui ne s'écrit pas, ou qui sortirait du
      *                                  répertoire des entités
      */
-    public function generer(CalqueLogique $calque, string $repertoire, Cible $cible): Rapport
+    public function generer(CalqueLogique $calque, string $repertoire, Cible $cible, string $base, array $remplacables = []): Rapport
     {
         if ($this->mode !== ModeRegeneration::ClasseDeBase) {
             throw new LogicException(sprintf(
                 'Génération en mode %s : à implémenter, phase « Régénération par AST » de la feuille de route.',
                 $this->mode->value,
             ));
+        }
+
+        // Le nom finit dans un commentaire //, où seul un saut de ligne ferait
+        // du reste du nom une ligne de code. Le reste est un nom de fichier que
+        // l'utilisateur a choisi.
+        if ($base === '' || preg_match('/[\x00-\x1f\x7f]/', $base) === 1) {
+            throw new InvalidArgumentException(sprintf('Nom de base refusé, rien n\'est écrit : « %s ».', addcslashes($base, "\0..\37\177")));
         }
 
         // Tous les fichiers en dépendent : un espace de noms refusé arrête la
@@ -117,19 +134,30 @@ final class GenerateurEntite
         );
 
         $schemas = array_unique(array_map(static fn(Entite $e): string => $e->table->schema, $calque->entites));
-        $rendu = new RenduEntite($cible, $calque->espaceDeNoms, count($schemas) > 1, $enumerations, $classes);
+        $rendu = new RenduEntite($cible, $base, $calque->espaceDeNoms, count($schemas) > 1, $enumerations, $classes);
         $controle = new ControleClasseUtilisateur();
 
         $fichiers = [];
         $ecartees = [];
         $divergences = [];
+        $ecrasements = [];
+        $origine = static function (string $chemin) use ($base, $remplacables, &$ecrasements): ?string {
+            $refuse = self::ecrasementRefuse($chemin, $base, $remplacables);
+            if ($refuse === null) {
+                return null;
+            }
+            $ecrasements[] = $refuse;
+
+            return sprintf('%s vient de la base %s', $chemin, $refuse->baseExistante);
+        };
 
         // Énumérations et traits d'abord : les classes de base les importent.
-        // Un nom que PHP refuse n'est pas écrit, et les entités qui s'en
-        // servent sont écartées plus bas avec cette raison.
+        // Un nom que PHP refuse, ou un fichier d'une autre base, n'est pas
+        // écrit, et les entités qui s'en servent sont écartées plus bas avec
+        // cette raison.
         $refus = [];
         foreach ($enumerations as $nom => $enumeration) {
-            $refus['enum:' . $nom] = $this->refusEnumeration($enumeration);
+            $refus['enum:' . $nom] = $this->refusEnumeration($enumeration) ?? $origine($repertoire . '/Enum/' . $nom . '.php');
             if ($refus['enum:' . $nom] === null) {
                 $chemin = $repertoire . '/Enum/' . $nom . '.php';
                 $fichiers[] = new Fichier($chemin, $this->ecrire($chemin, $rendu->enumeration($enumeration), $repertoire));
@@ -138,7 +166,8 @@ final class GenerateurEntite
         foreach ($traits as $nom => $trait) {
             $refus['trait:' . $nom] = NomsPhp::raisonClasse((string) $nom)
                 ?? self::refusProprietes($trait->proprietes)
-                ?? self::refusEnumerations($trait->proprietes, $refus);
+                ?? self::refusEnumerations($trait->proprietes, $refus)
+                ?? $origine($repertoire . '/Trait/' . $nom . '.php');
             if ($refus['trait:' . $nom] === null) {
                 $chemin = $repertoire . '/Trait/' . $nom . '.php';
                 $fichiers[] = new Fichier($chemin, $this->ecrire($chemin, $rendu->traitPartage($trait), $repertoire));
@@ -164,7 +193,9 @@ final class GenerateurEntite
                     RenduEntite::nomBase($entite),
                     implode(', ', $doublons),
                 ),
-                default => $this->raisonDEcarter($entite, $refus, $cible) ?? $hierarchies->raison($entite),
+                default => $this->raisonDEcarter($entite, $refus, $cible)
+                    ?? $hierarchies->raison($entite)
+                    ?? self::origineDeLEntite($origine, $repertoire . '/Base/' . RenduEntite::nomBase($entite) . '.php', $classes->fichier($entite->nom, $repertoire)),
             };
         }
         $raisons = $this->ecarterLesIdentitesEnChaine($calque->entites, $raisons);
@@ -213,7 +244,51 @@ final class GenerateurEntite
             ));
         }
 
-        return new Rapport($fichiers, $ecartees, $divergences, $omises);
+        return new Rapport($fichiers, $ecartees, $divergences, $omises, $ecrasements);
+    }
+
+    /**
+     * Dit si une entité appartient à une autre base, et note le refus.
+     *
+     * La classe de base fait foi quand elle existe : réécrite à chaque passage,
+     * son en-tête nomme la dernière base qui l'a produite, --remplacer compris.
+     * Celui de la classe de l'utilisateur, écrite une fois, garderait la base de
+     * sa création et refuserait pour toujours après un remplacement. Il n'est
+     * lu que si la classe de base manque : la recréer sous une classe d'une
+     * autre base la ferait hériter d'une classe qui n'est pas la sienne.
+     *
+     * @param callable(string): ?string $origine     raison du refus d'écrire un fichier, ou null ; note le refus
+     * @param string                    $base        classe de base de l'entité
+     * @param string                    $utilisateur classe de l'utilisateur de l'entité
+     */
+    private static function origineDeLEntite(callable $origine, string $base, string $utilisateur): ?string
+    {
+        return is_file($base) ? $origine($base) : $origine($utilisateur);
+    }
+
+    /**
+     * Rend le refus d'écrire un fichier existant qui vient d'une autre base,
+     * ou null quand il peut l'être.
+     *
+     * Un fichier absent, sans base dans son en-tête (0.5.0), de la même base
+     * ou d'une base que l'appelant accepte de remplacer s'écrit.
+     *
+     * @param string       $chemin       fichier que la génération écrirait
+     * @param string       $base         base de la génération
+     * @param list<string> $remplacables bases dont les fichiers peuvent être réécrits
+     */
+    private static function ecrasementRefuse(string $chemin, string $base, array $remplacables): ?EcrasementRefuse
+    {
+        if (!is_file($chemin)) {
+            return null;
+        }
+        $source = file_get_contents($chemin);
+        $existante = $source === false ? null : EnteteOrmeau::base($source);
+        if ($existante === null || $existante === $base || in_array($existante, $remplacables, true)) {
+            return null;
+        }
+
+        return new EcrasementRefuse($chemin, $existante, $base);
     }
 
     /**

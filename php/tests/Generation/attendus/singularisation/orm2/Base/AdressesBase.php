@@ -1,6 +1,6 @@
 <?php
 
-// Généré par Ormeau et réécrit à chaque génération : le code propre à Adresses va dans Adresses.php.
+// Généré par Ormeau depuis la base singularisation et réécrit à chaque génération : le code propre à Adresses va dans Adresses.php.
 
 declare(strict_types=1);
 

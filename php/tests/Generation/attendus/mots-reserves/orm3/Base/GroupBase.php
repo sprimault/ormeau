@@ -1,6 +1,6 @@
 <?php
 
-// Généré par Ormeau et réécrit à chaque génération : le code propre à Group va dans Group.php.
+// Généré par Ormeau depuis la base mots-reserves et réécrit à chaque génération : le code propre à Group va dans Group.php.
 
 declare(strict_types=1);
 

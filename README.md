@@ -125,6 +125,7 @@ to `config/bundles.php`.
 ```console
 $ bin/console ormeau:generer gescom.logique.json
 Cible détectée : PHP 8.4, Doctrine ORM 3.7
+Base : gescom
 créé     src/Entity/Enum/StatutClient.php
 créé     src/Entity/Base/ClientBase.php
 créé     src/Entity/Client.php
@@ -139,6 +140,15 @@ table, a newly declared subclass —, the command names the file, the line and
 the expected attribute.
 `--repertoire` writes somewhere other than `src/Entity`, and `--cible-orm=2`
 or `3` targets an ORM version other than the installed one.
+
+Each file names in its header the database it comes from, read from the layer's
+file name: `gescom` for `gescom.logique.json`. Another database generated into
+the same directory does not rewrite those files; the command names the file and
+both databases. Give each database its own directory and namespace, or pass
+`--remplacer=gescom` to explicitly accept overwriting `gescom`'s files — a
+renamed layer, a directory taken over. The exit code tells the three cases
+apart: a skipped entity and a divergence return 0, they say what to rework; a
+refused overwrite returns 1, the requested generation did not happen.
 
 This two-class shape is the price of regenerating without overwriting, and it
 changes a few habits. Properties are declared in `Base/`, which is rewritten:

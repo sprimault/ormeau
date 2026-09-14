@@ -1,6 +1,6 @@
 <?php
 
-// Généré par Ormeau et réécrit à chaque génération : le code propre à Affectation va dans Affectation.php.
+// Généré par Ormeau depuis la base heritage-decide et réécrit à chaque génération : le code propre à Affectation va dans Affectation.php.
 
 declare(strict_types=1);
 

@@ -52,7 +52,7 @@ final class GenerateurEntiteTest extends TestCase
     {
         $sortie = Repertoires::creer();
         try {
-            (new GenerateurEntite(ModeRegeneration::ReecritureAst))->generer(self::calque([]), $sortie, Cible::forcer(3));
+            (new GenerateurEntite(ModeRegeneration::ReecritureAst))->generer(self::calque([]), $sortie, Cible::forcer(3), 'gescom');
             self::fail('la réécriture par AST a généré');
         } catch (LogicException $e) {
             self::assertStringContainsString('reecriture_ast', $e->getMessage());
@@ -83,7 +83,7 @@ final class GenerateurEntiteTest extends TestCase
                 ]]]),
                 self::entite('Etiquette', ['table' => ['nom' => 'etiquette', 'schema' => 'public']]),
                 self::entite('etiquette', ['table' => ['nom' => 'etiquette', 'schema' => 'archive']]),
-            ]), $sortie, Cible::forcer(3));
+            ]), $sortie, Cible::forcer(3), 'gescom');
 
             self::assertSame([
                 'Journal' => 'la table n\'a pas de clé primaire, et Doctrine exige un identifiant',
@@ -117,7 +117,7 @@ final class GenerateurEntiteTest extends TestCase
             (new GenerateurEntite())->generer(self::calque([$client], [
                 ['nom' => 'Statut', 'type_support' => 'string', 'cas' => [['nom' => 'Actif', 'valeur' => 'A']], 'origine' => 'verification'],
                 ['nom' => 'Niveau', 'type_support' => 'int', 'cas' => [['nom' => 'Un', 'valeur' => 1], ['nom' => 'Deux', 'valeur' => 2]], 'origine' => 'verification'],
-            ]), $sortie, Cible::forcer(3));
+            ]), $sortie, Cible::forcer(3), 'gescom');
 
             $base = Repertoires::lire($sortie)['Base/ClientBase.php'];
             self::assertStringContainsString("enumType: Statut::class, options: ['default' => 'A'])]\n    protected Statut \$statut = Statut::Actif;", $base);
@@ -152,7 +152,7 @@ final class GenerateurEntiteTest extends TestCase
                 ['nom' => 'Mode', 'type_support' => 'string', 'cas' => [['nom' => 'Class', 'valeur' => 'C']], 'origine' => 'decision'],
             ], [
                 ['nom' => 'Suivi', 'proprietes' => [self::propriete('etat', 'string', ['enumeration' => 'Etat'])]],
-            ]), $sortie, Cible::forcer(3));
+            ]), $sortie, Cible::forcer(3), 'gescom');
 
             self::assertSame([
                 'Client' => 'le trait Horodatage est absent du calque',
@@ -191,7 +191,7 @@ final class GenerateurEntiteTest extends TestCase
                 self::entite('Adresse', ['traits' => ['Suivi']]),
             ], [], [
                 ['nom' => 'Suivi', 'proprietes' => [self::propriete('etat', 'string', ['enumeration' => 'Y;system(\'id\');use \\Foo'])]],
-            ]), $sortie, Cible::forcer(3));
+            ]), $sortie, Cible::forcer(3), 'gescom');
 
             self::assertSame([
                 '../../public/index' => '« ../../public/index » n\'est pas un identifiant PHP, à renommer dans renommages',
@@ -230,7 +230,7 @@ final class GenerateurEntiteTest extends TestCase
             ]);
 
             try {
-                (new GenerateurEntite())->generer($calque, $sortie, Cible::forcer(3));
+                (new GenerateurEntite())->generer($calque, $sortie, Cible::forcer(3), 'gescom');
                 self::fail('un espace de noms refusé doit arrêter la génération');
             } catch (InvalidArgumentException $e) {
                 self::assertStringContainsString('« Entity;system(\'id\') » n\'est pas un identifiant PHP', $e->getMessage());
@@ -257,7 +257,7 @@ final class GenerateurEntiteTest extends TestCase
             symlink($ailleurs, $sortie . '/Base');
 
             try {
-                (new GenerateurEntite())->generer(self::calque([self::entite('Client')]), $sortie, Cible::forcer(3));
+                (new GenerateurEntite())->generer(self::calque([self::entite('Client')]), $sortie, Cible::forcer(3), 'gescom');
                 self::fail('un fichier qui sortirait du répertoire des entités doit être refusé');
             } catch (RuntimeException $e) {
                 self::assertStringStartsWith('Écriture refusée, le fichier sortirait du répertoire des entités', $e->getMessage());
@@ -289,7 +289,7 @@ final class GenerateurEntiteTest extends TestCase
             symlink($ailleurs . '/ClientBase.php', $lien);
 
             try {
-                (new GenerateurEntite())->generer(self::calque([self::entite('Client')]), $sortie, Cible::forcer(3));
+                (new GenerateurEntite())->generer(self::calque([self::entite('Client')]), $sortie, Cible::forcer(3), 'gescom');
                 self::fail('un lien pendant doit être refusé');
             } catch (RuntimeException $e) {
                 self::assertStringStartsWith('Écriture refusée, le fichier sortirait du répertoire des entités', $e->getMessage());
@@ -330,7 +330,7 @@ final class GenerateurEntiteTest extends TestCase
             ]);
             $note = self::entite('Note', ['associations' => [self::jointure('affectation', 'plusieurs_vers_un', 'Affectation', 'affectation_id')]]);
 
-            $rapport = (new GenerateurEntite())->generer(self::calque([$personne, $salarie, $affectation, $note]), $sortie, Cible::forcer(3));
+            $rapport = (new GenerateurEntite())->generer(self::calque([$personne, $salarie, $affectation, $note]), $sortie, Cible::forcer(3), 'gescom');
 
             self::assertSame([
                 'Affectation' => 'Doctrine ne sait pas identifier Affectation (public.affectation) par salarie : '
@@ -364,7 +364,7 @@ final class GenerateurEntiteTest extends TestCase
                     'proprietes' => [self::propriete('personneId', 'integer', ['colonne' => 'personne_id'])],
                 ]),
                 self::entite('Contrat', ['associations' => [self::jointure('salarie', 'plusieurs_vers_un', 'Salarie', 'salarie_id')]]),
-            ]), $sortie, Cible::forcer(3));
+            ]), $sortie, Cible::forcer(3), 'gescom');
 
             self::assertSame([
                 'Personne' => 'même hiérarchie que Salarie (public.salarie), écartée',
@@ -393,7 +393,7 @@ final class GenerateurEntiteTest extends TestCase
                 self::entite('Animal', ['valeur_discriminante' => 'A']),
                 self::entite('Chien', ['heritage' => self::heritage('Animal')]),
                 self::entite('Rose', ['heritage' => self::heritage('Plante'), 'valeur_discriminante' => 'R']),
-            ]), $sortie, Cible::forcer(3));
+            ]), $sortie, Cible::forcer(3), 'gescom');
 
             self::assertSame([
                 'Vehicule' => 'même hiérarchie que Voiture (public.voiture), écartée',
@@ -419,7 +419,7 @@ final class GenerateurEntiteTest extends TestCase
             (new GenerateurEntite())->generer(self::calque([
                 self::entite('Personne', ['valeur_discriminante' => 'P']),
                 self::entite('Salarie', ['heritage' => self::heritage('Personne'), 'valeur_discriminante' => 'S', 'identifiant' => ['proprietes' => ['id'], 'strategie' => 'assignee']]),
-            ]), $sortie, Cible::forcer(3));
+            ]), $sortie, Cible::forcer(3), 'gescom');
 
             self::assertStringContainsString(
                 "#[ORM\\DiscriminatorColumn(name: 'nature')]\n",
@@ -446,7 +446,7 @@ final class GenerateurEntiteTest extends TestCase
                     'commentaire' => $injection,
                     'proprietes' => [self::propriete('id', 'integer'), self::propriete('nom', 'string', ['commentaire' => $injection])],
                 ]),
-            ]), $sortie, Cible::forcer(3));
+            ]), $sortie, Cible::forcer(3), 'gescom');
 
             foreach (Repertoires::lire($sortie) as $fichier => $source) {
                 $code = array_filter(

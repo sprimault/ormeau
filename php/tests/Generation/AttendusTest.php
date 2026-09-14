@@ -49,7 +49,7 @@ final class AttendusTest extends TestCase
         $sortie = Repertoires::creer();
         try {
             $calque = (new LecteurCalque())->lire(Repertoires::REFERENCES . '/' . $cas . '/logique.json');
-            $rapport = (new GenerateurEntite())->generer($calque, $sortie, Cible::forcer($orm));
+            $rapport = (new GenerateurEntite())->generer($calque, $sortie, Cible::forcer($orm), $cas);
             file_put_contents($sortie . '/rapport.txt', self::rapport($rapport, $sortie));
 
             $obtenu = Repertoires::lire($sortie);

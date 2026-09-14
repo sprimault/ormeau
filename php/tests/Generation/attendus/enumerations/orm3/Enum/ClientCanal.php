@@ -1,6 +1,6 @@
 <?php
 
-// Généré par Ormeau et réécrit à chaque génération.
+// Généré par Ormeau depuis la base enumerations et réécrit à chaque génération.
 
 declare(strict_types=1);
 

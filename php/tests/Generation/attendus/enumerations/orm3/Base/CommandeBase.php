@@ -1,6 +1,6 @@
 <?php
 
-// Généré par Ormeau et réécrit à chaque génération : le code propre à Commande va dans Commande.php.
+// Généré par Ormeau depuis la base enumerations et réécrit à chaque génération : le code propre à Commande va dans Commande.php.
 
 declare(strict_types=1);
 

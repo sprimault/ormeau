@@ -1,6 +1,6 @@
 <?php
 
-// Généré par Ormeau et réécrit à chaque génération : le code propre à Fournisseur va dans Fournisseur.php.
+// Généré par Ormeau depuis la base nommage-court et réécrit à chaque génération : le code propre à Fournisseur va dans Fournisseur.php.
 
 declare(strict_types=1);
 

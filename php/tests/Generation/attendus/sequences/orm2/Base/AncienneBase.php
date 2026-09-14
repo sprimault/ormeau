@@ -1,6 +1,6 @@
 <?php
 
-// Généré par Ormeau et réécrit à chaque génération : le code propre à Ancienne va dans Ancienne.php.
+// Généré par Ormeau depuis la base sequences et réécrit à chaque génération : le code propre à Ancienne va dans Ancienne.php.
 
 declare(strict_types=1);
 

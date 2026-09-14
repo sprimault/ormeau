@@ -1,6 +1,6 @@
 <?php
 
-// Généré par Ormeau et réécrit à chaque génération : le code propre à Acces va dans Acces.php.
+// Généré par Ormeau depuis la base singularisation et réécrit à chaque génération : le code propre à Acces va dans Acces.php.
 
 declare(strict_types=1);
 

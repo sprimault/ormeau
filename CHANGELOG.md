@@ -55,7 +55,20 @@ inutilisable en 0.5.0**, INSERT en échec. La régénération signale sa classe
 en divergence, avec l'attribut `#[ORM\Table]` attendu : le recopier. Les
 tables qui fonctionnaient ne changent pas.
 
+**Chaque fichier produit nomme sa base** : la régénération réécrit la ligne
+d'en-tête de `Base/`, `Enum/` et `Trait/`, et rien d'autre. `ormeau:generer`
+rend 1 quand un fichier d'une autre base bloque la génération. Côté
+bibliothèque, `GenerateurEntite::generer()` demande le nom de la base.
+
 ### Corrigé
+
+- **Deux bases générées dans le même répertoire ne s'écrasent plus.** La
+  seconde réécrivait en silence les classes de base, énumérations et traits de
+  la première. Chaque fichier nomme sa base, lue dans le nom du calque logique ;
+  un fichier d'une autre base n'est pas réécrit, l'entité qui l'aurait écrit ne
+  produit rien, et la commande échoue en nommant le fichier et les deux bases.
+  `--remplacer=<base>` accepte explicitement d'écraser une base nommée. Un
+  fichier de la 0.5.0, qui ne nomme aucune base, est repris.
 
 - **Un schéma, une table ou une colonne qui exige des guillemets est cité
   comme Doctrine l'attend.** Le schéma recevait des backticks que Doctrine
@@ -137,7 +150,21 @@ in 0.5.0**, its INSERT failing. Regeneration reports its class as diverging,
 with the expected `#[ORM\Table]` attribute: copy it. Tables that worked do not
 change.
 
+**Each generated file names its database**: regeneration rewrites the header
+line of `Base/`, `Enum/` and `Trait/`, and nothing else. `ormeau:generer`
+returns 1 when a file from another database blocks the generation. On the
+library side, `GenerateurEntite::generer()` requires the database name.
+
 ### Fixed
+
+- **Two databases generated into the same directory no longer overwrite each
+  other.** The second silently rewrote the first one's base classes,
+  enumerations and traits. Each file names its database, read from the logical
+  layer's file name; a file from another database is not rewritten, the entity
+  that would have written it produces nothing, and the command fails, naming
+  the file and both databases. `--remplacer=<base>` explicitly accepts
+  overwriting a named database. A 0.5.0 file, which names no database, is taken
+  over.
 
 - **A schema, table or column that requires quoting is quoted the way
   Doctrine expects.** The schema received backticks that Doctrine quoted a

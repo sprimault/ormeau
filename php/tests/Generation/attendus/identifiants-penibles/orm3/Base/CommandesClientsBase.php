@@ -1,6 +1,6 @@
 <?php
 
-// Généré par Ormeau et réécrit à chaque génération : le code propre à CommandesClients va dans CommandesClients.php.
+// Généré par Ormeau depuis la base identifiants-penibles et réécrit à chaque génération : le code propre à CommandesClients va dans CommandesClients.php.
 
 declare(strict_types=1);
 

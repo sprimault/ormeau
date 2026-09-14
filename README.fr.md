@@ -126,6 +126,7 @@ déclare le bundle pour `dev` et `test` ; sans Flex, ajouter
 ```console
 $ bin/console ormeau:generer gescom.logique.json
 Cible détectée : PHP 8.4, Doctrine ORM 3.7
+Base : gescom
 créé     src/Entity/Enum/StatutClient.php
 créé     src/Entity/Base/ClientBase.php
 créé     src/Entity/Client.php
@@ -141,6 +142,16 @@ déclarée après coup —, la commande nomme le fichier, la ligne et l'attribut
 attendu. `--repertoire` écrit ailleurs que dans
 `src/Entity`, et `--cible-orm=2` ou `3` vise une autre version d'ORM que celle
 installée.
+
+Chaque fichier nomme dans son en-tête la base dont il vient, lue dans le nom du
+calque : `gescom` pour `gescom.logique.json`. Une autre base générée dans le
+même répertoire ne réécrit pas ces fichiers ; la commande nomme le fichier et
+les deux bases. Chaque base a son répertoire et son espace de noms, ou
+`--remplacer=gescom` accepte explicitement d'écraser les fichiers de `gescom`
+— un calque renommé, un répertoire repris. Le code de retour distingue les
+trois cas : une entité écartée et une divergence rendent 0, elles disent quoi
+reprendre ; un refus d'écrasement rend 1, la génération demandée n'a pas eu
+lieu.
 
 Cette forme en deux classes est le prix d'une régénération qui n'écrase rien, et
 elle change quelques habitudes. Les propriétés sont déclarées dans `Base/`, qui
