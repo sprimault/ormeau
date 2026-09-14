@@ -43,6 +43,11 @@ export interface RequeteConnexion {
   utilisateur?: string;
   mot_de_passe?: string;
   base?: string;
+  /**
+   * SSLMode est le sslmode de PostgreSQL. Vide, le pilote applique son
+   * défaut, prefer.
+   */
+  sslmode?: string;
 }
 /**
  * ReponseConnexion décrit le serveur atteint. Le DSN n'y figure sous aucune

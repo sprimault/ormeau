@@ -103,6 +103,43 @@ func TestAvecBaseRelueParPgx(t *testing.T) {
 	}
 }
 
+// Le sslmode que DSN écrit est celui que pgx applique : vérifié, le
+// certificat du serveur l'est vraiment et aucun repli en clair n'existe ;
+// désactivé, pgx ne tente pas TLS. C'est ce que la chaîne composée perdait.
+func TestModeSSLReluParPgx(t *testing.T) {
+	for _, variable := range []string{"PGSSLMODE", "PGSSLROOTCERT", "PGSSLCERT", "PGSSLKEY", "PGPASSWORD"} {
+		t.Setenv(variable, "")
+	}
+	t.Setenv("PGPASSFILE", filepath.Join(t.TempDir(), "absent"))
+
+	composer := func(mode string) *pgconn.Config {
+		t.Helper()
+		dsn, err := Connexion{SGBD: "postgres", Hote: "bdd", Utilisateur: "u", Base: "gescom", SSLMode: mode}.DSN()
+		if err != nil {
+			t.Fatalf("%s : composition : %v", mode, err)
+		}
+		config, err := lirePgx(dsn)
+		if err != nil {
+			t.Fatalf("%s : pgx refuse la chaine : %v", mode, err)
+		}
+		return config
+	}
+
+	verifie := composer("verify-full")
+	if verifie.TLSConfig == nil || verifie.TLSConfig.InsecureSkipVerify || verifie.TLSConfig.ServerName != "bdd" {
+		t.Errorf("verify-full : TLS %+v, attendu une vérification du certificat de bdd", verifie.TLSConfig)
+	}
+	for _, repli := range verifie.Fallbacks {
+		if repli.TLSConfig == nil {
+			t.Error("verify-full : un repli sans TLS existe")
+		}
+	}
+
+	if desactive := composer("disable"); desactive.TLSConfig != nil {
+		t.Error("disable : pgx tente TLS")
+	}
+}
+
 // lirePgx appelle pgconn.ParseConfig et transforme sa panique en erreur : sur
 // une barre oblique inverse finale entre apostrophes, pgx sort de sa chaîne au
 // lieu de la refuser.

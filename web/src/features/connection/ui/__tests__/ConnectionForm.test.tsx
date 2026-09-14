@@ -9,9 +9,12 @@ import { useLangStore } from '@/shared/i18n';
 import type { ProfilResume } from '@/shared/model';
 import { ConnectionForm } from '../ConnectionForm';
 
-/** Profils enregistrés que le formulaire propose, remontés pour le `vi.mock` qui les sert. */
-const { profils } = vi.hoisted(() => ({
-  profils: [
+/**
+ * Profils enregistrés que le formulaire propose, et l'écriture espionnée,
+ * remontés pour le `vi.mock` qui les sert.
+ */
+const { profils, enregistrerProfil } = vi.hoisted(() => {
+  const liste = [
     {
       profil: {
         nom: 'gescom production',
@@ -20,17 +23,22 @@ const { profils } = vi.hoisted(() => ({
         port: 30432,
         utilisateur: 'postgres',
         base: 'cadensio_main',
+        sslmode: 'verify-full',
       },
       mot_de_passe_enregistre: true,
     },
-  ] satisfies ProfilResume[],
-}));
+  ] satisfies ProfilResume[];
+  return {
+    profils: liste,
+    enregistrerProfil: vi.fn(() => Promise.resolve({ profils: liste })),
+  };
+});
 
 // Le serveur n'existe pas sous test : la liste est posée d'emblée, et les
 // écritures ne partent nulle part.
 vi.mock('../../api/profilsApi', () => ({
   lireProfils: () => Promise.resolve({ profils }),
-  enregistrerProfil: () => Promise.resolve({ profils }),
+  enregistrerProfil,
   supprimerProfil: () => Promise.resolve(),
 }));
 
@@ -149,6 +157,69 @@ describe('ConnectionForm', () => {
       'true',
     );
     expect(screen.getByLabelText('Hôte')).toHaveValue('192.168.0.184');
+  });
+
+  it('reprend le sslmode du profil et le poste', async () => {
+    const onConnecter = vi.fn();
+    await monter({ onConnecter });
+
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Profil' }), [
+      'gescom production',
+    ]);
+    expect(screen.getByRole('combobox', { name: /Chiffrement/ })).toHaveValue('verify-full');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Se connecter' }));
+    expect(onConnecter).toHaveBeenCalledWith(expect.objectContaining({ sslmode: 'verify-full' }));
+  });
+
+  it('met à jour le profil sans perdre son sslmode', async () => {
+    // « Mettre à jour » remplace le profil entier : un champ que le formulaire
+    // ne porterait pas effacerait en silence le verify-full enregistré.
+    enregistrerProfil.mockClear();
+    await monter();
+
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Profil' }), [
+      'gescom production',
+    ]);
+    await userEvent.clear(screen.getByLabelText('Port'));
+    await userEvent.type(screen.getByLabelText('Port'), '5433');
+    await userEvent.click(screen.getByRole('button', { name: 'Mettre à jour ce profil' }));
+
+    expect(enregistrerProfil).toHaveBeenCalledWith(
+      expect.objectContaining({ port: 5433, sslmode: 'verify-full' }),
+      expect.anything(),
+      expect.anything(),
+      true,
+      undefined,
+    );
+  });
+
+  it('ne promet plus le mot de passe enregistré quand la destination change', async () => {
+    // Le serveur refuse alors de l'envoyer : l'aide ne doit pas dire le
+    // contraire.
+    await monter();
+
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Profil' }), [
+      'gescom production',
+    ]);
+    await userEvent.clear(screen.getByLabelText('Hôte'));
+    await userEvent.type(screen.getByLabelText('Hôte'), 'recette');
+
+    expect(screen.queryByText(/laissez le champ vide pour l’utiliser/)).not.toBeInTheDocument();
+    expect(screen.getByText(/son mot de passe ne sera pas envoyé/)).toBeInTheDocument();
+  });
+
+  it('garde la promesse quand seule la base change', async () => {
+    // Le mot de passe est celui du compte, pas de la base.
+    await monter();
+
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Profil' }), [
+      'gescom production',
+    ]);
+    await userEvent.clear(screen.getByLabelText('Base'));
+    await userEvent.type(screen.getByLabelText('Base'), 'paie');
+
+    expect(screen.getByText(/laissez le champ vide pour l’utiliser/)).toBeInTheDocument();
   });
 
   it('n’expose pas le mot de passe en clair', async () => {

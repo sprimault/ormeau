@@ -47,6 +47,13 @@ export interface Profil {
   utilisateur?: string;
   base?: string;
   /**
+   * SSLMode est le sslmode de PostgreSQL. Il descend au navigateur, qui
+   * l'affiche et le modifie : c'est un vocabulaire fermé, pas un secret, et
+   * un formulaire qui ne le montrerait pas l'effacerait à la première mise à
+   * jour du profil.
+   */
+  sslmode?: string;
+  /**
    * Repertoire est le répertoire de travail associé. Vide, choisir le profil
    * laisse le répertoire courant tel quel : quelqu'un qui n'a jamais réglé de
    * répertoire ne s'attend pas à ce qu'un profil le déplace.

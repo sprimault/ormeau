@@ -49,7 +49,15 @@ régénération** : `#[ORM\SequenceGenerator]` reçoit `initialValue`. Relancer
 `ormeau inferer`, puis `ormeau:generer` ; le calque logique porte désormais
 l'incrément et le minimum de la séquence.
 
+**Un profil de connexion enregistré depuis une chaîne portant `sslmode` l'a
+perdu** : il se rouvre avec le défaut du pilote, `prefer`. Le choisir, régler le
+chiffrement dans le nouveau champ, puis « Mettre à jour ce profil ».
+
 ### Corrigé
+
+- **Un profil enregistré depuis une chaîne `clé=valeur` sans port se rouvre.**
+  Son SGBD restait vide et la connexion échouait. Cette forme est celle de
+  libpq : elle désigne PostgreSQL.
 
 - **`migrations:diff` ne propose plus de modifier le minimum d'une séquence**,
   sous ORM 2. DBAL 3 le relit comme valeur initiale et le comparait au 1 par
@@ -91,6 +99,17 @@ l'incrément et le minimum de la séquence.
 - **Un opérateur ou une fonction créés dans `public` ne peuvent plus se
   substituer à ceux du catalogue** dans les requêtes d'extraction
   (CVE-2018-1058), le `search_path` étant vide.
+- **Le mot de passe enregistré d'un profil ne part plus vers un autre
+  serveur.** Choisir un profil puis corriger l'hôte l'envoyait au nouvel hôte,
+  et changer d'utilisateur l'essayait pour un autre compte. Il n'est envoyé que
+  si le SGBD, l'hôte, le port et l'utilisateur sont ceux du profil ; sinon la
+  connexion est refusée avant tout contact avec le serveur, et l'écran demande
+  de le ressaisir.
+- **Le chiffrement demandé n'est plus perdu.** `sslmode` était retiré à
+  l'enregistrement d'un profil depuis une chaîne, et une connexion par
+  composants partait toujours avec le défaut du pilote, `prefer` : TLS sans
+  vérification du certificat, avec repli en clair. Il se choisit dans le
+  formulaire, se garde dans le profil et parvient au pilote.
 
 ***
 
@@ -107,7 +126,15 @@ regeneration**: `#[ORM\SequenceGenerator]` gets `initialValue`. Run
 `ormeau inferer`, then `ormeau:generer`; the logical layer now carries the
 sequence's increment and minimum.
 
+**A connection profile saved from a string carrying `sslmode` lost it**: it
+reopens with the driver default, `prefer`. Pick it, set the encryption in the
+new field, then “Update this profile”.
+
 ### Fixed
+
+- **A profile saved from a `key=value` string without a port reopens.** Its
+  DBMS stayed empty and the connection failed. This is libpq's form: it means
+  PostgreSQL.
 
 - **`migrations:diff` no longer proposes to change a sequence's minimum**,
   under ORM 2. DBAL 3 reads it back as the initial value and compared it with
@@ -150,6 +177,16 @@ sequence's increment and minimum.
 - **An operator or function created in `public` can no longer take the place
   of the catalogue's own** in extraction queries (CVE-2018-1058), the
   `search_path` being empty.
+- **A profile's saved password no longer goes to another server.** Picking a
+  profile then correcting the host sent it to the new host, and changing the
+  user tried it for another account. It is only sent when the DBMS, host, port
+  and user are the profile's; otherwise the connection is refused before any
+  contact with the server, and the screen asks for it to be typed again.
+- **The requested encryption is no longer lost.** `sslmode` was dropped when
+  saving a profile from a string, and a connection by fields always used the
+  driver default, `prefer`: TLS without certificate verification, falling back
+  to plain text. It is chosen in the form, kept in the profile and reaches the
+  driver.
 
 ## [0.5.1] — 2026-09-14 — Ce que les bases réelles cassaient
 

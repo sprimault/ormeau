@@ -59,6 +59,11 @@ can read the other. This is the same model as DBeaver or SSMS, and it is stated
 here rather than left to be discovered. Anyone needing more leaves the box
 unticked: the password is then retyped on every connection and written nowhere.
 
+**Where it goes**: to the profile's destination, and nowhere else. If the DBMS,
+host, port or user typed differ from the profile's, Ormeau refuses to send it,
+before any contact with the server, and asks for it to be typed again.
+Switching to another database on the same server does not count.
+
 The following are **not** vulnerabilities:
 
 - the SmartScreen warning on Windows and the Gatekeeper block on macOS. The

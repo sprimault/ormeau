@@ -126,6 +126,42 @@ type Connexion struct {
 	// Base vide signifie « toutes les bases du serveur ». Un calque décrivant
 	// une base et une seule, l'appelant en produira alors plusieurs.
 	Base string
+	// SSLMode est le sslmode de PostgreSQL, seul SGBD qui l'accepte ici. Vide,
+	// le pilote applique son défaut, prefer : TLS sans vérification du
+	// certificat, et repli en clair. Un mode demandé dans une chaîne se perdait
+	// à la recomposition, profil compris : il est porté pour ne plus l'être.
+	SSLMode string
+}
+
+// modesSSL est le vocabulaire de sslmode, celui de libpq et de pgx. Fermé : une
+// valeur qu'aucun des deux ne connaît n'a pas à entrer dans un profil.
+var modesSSL = []string{"disable", "allow", "prefer", "require", "verify-ca", "verify-full"}
+
+// ModeSSLValide dit si une valeur appartient au vocabulaire de sslmode. La
+// casse compte, comme pour pgx.
+func ModeSSLValide(mode string) bool {
+	return slices.Contains(modesSSL, mode)
+}
+
+// Destination rend ce que la connexion vise réellement : le SGBD, déduit du
+// port quand il n'est pas nommé, l'hôte sans casse ni blanc autour, et le port,
+// celui du SGBD par défaut. Deux connexions de même destination joignent le
+// même serveur ; c'est ce qu'on vérifie avant d'y envoyer un mot de passe
+// enregistré pour l'une d'elles. Un SGBD que rien ne désigne rend une chaîne
+// vide.
+func (c Connexion) Destination() (sgbd, hote string, port int) {
+	sgbd = strings.ToLower(c.SGBD)
+	if normalise, connu := prefixes[sgbd]; connu {
+		sgbd = normalise
+	}
+	if sgbd == "" {
+		sgbd = SGBDDepuisPort(c.Port)
+	}
+	port = c.Port
+	if port == 0 {
+		port = portsParDefaut[sgbd]
+	}
+	return sgbd, strings.ToLower(strings.TrimSpace(c.Hote)), port
 }
 
 // portsParDefaut évite d'imposer un port que tout le monde connaît.
@@ -201,6 +237,15 @@ func (c Connexion) DSN() (string, error) {
 			u.User = url.User(c.Utilisateur)
 		}
 	}
+	if c.SSLMode != "" {
+		if !ModeSSLValide(c.SSLMode) {
+			return "", fmt.Errorf("sslmode inconnu: %q", c.SSLMode)
+		}
+		if sgbd != "postgres" {
+			return "", fmt.Errorf("sslmode ne vaut que pour postgres, pas pour %s", sgbd)
+		}
+		u.RawQuery = url.Values{"sslmode": {c.SSLMode}}.Encode()
+	}
 	return u.String(), nil
 }
 
@@ -215,29 +260,49 @@ func (c Connexion) DSN() (string, error) {
 //
 // La forme « host=serveur dbname=base » de libpq est acceptée au même titre
 // qu'une URL : quelqu'un qui la colle attend qu'on la comprenne.
+//
+// sslmode est gardé, et refusé hors vocabulaire : un profil qui le perdrait se
+// rouvrirait sans vérification du certificat. Les autres paramètres ne le sont
+// pas, sslrootcert compris.
 func ConnexionDepuisDSN(dsn string) (Connexion, error) {
 	dsn = strings.TrimSpace(dsn)
 	if dsn == "" {
 		return Connexion{}, errors.New("chaine de connexion vide")
 	}
 
-	if _, estUneURL := schema(dsn); !estUneURL {
+	var c Connexion
+	if _, estUneURL := schema(dsn); estUneURL {
+		var err error
+		if c, err = connexionDepuisURL(dsn); err != nil {
+			return Connexion{}, err
+		}
+	} else {
 		couples, err := lireCleValeur(dsn)
 		if err != nil {
 			return Connexion{}, fmt.Errorf("chaine de connexion illisible: %w", err)
 		}
-		return connexionDepuisCouples(couples), nil
+		c = connexionDepuisCouples(couples)
 	}
 
+	if c.SSLMode != "" && !ModeSSLValide(c.SSLMode) {
+		return Connexion{}, fmt.Errorf("sslmode inconnu: %q", c.SSLMode)
+	}
+	return c, nil
+}
+
+// connexionDepuisURL rassemble les composants de la forme URL, paramètres
+// propres à Doctrine retirés.
+func connexionDepuisURL(dsn string) (Connexion, error) {
 	u, err := lireURL(NettoyerDSN(dsn))
 	if err != nil {
 		return Connexion{}, err
 	}
 
 	c := Connexion{
-		SGBD: strings.ToLower(u.Scheme),
-		Hote: u.Hostname(),
-		Base: strings.TrimPrefix(u.Path, "/"),
+		SGBD:    strings.ToLower(u.Scheme),
+		Hote:    u.Hostname(),
+		Base:    strings.TrimPrefix(u.Path, "/"),
+		SSLMode: u.Query().Get("sslmode"),
 	}
 	if port, err := strconv.Atoi(u.Port()); err == nil {
 		c.Port = port
@@ -275,11 +340,15 @@ func connexionDepuisCouples(couples []couple) Connexion {
 			c.MotDePasse = p.valeur
 		case "dbname":
 			c.Base = p.valeur
+		case "sslmode":
+			c.SSLMode = p.valeur
 		}
 	}
-	// Cette forme n'a pas de préfixe : seul le port peut désigner le SGBD, et
-	// c'est déjà ce que fait la composition inverse.
-	c.SGBD = SGBDDepuisPort(c.Port)
+	// Cette forme est la grammaire de libpq : elle ne désigne que PostgreSQL,
+	// comme SGBDDepuisDSN le décide déjà. Le déduire du port laissait le SGBD
+	// vide pour une chaîne sans port, et le profil échouait ensuite à la
+	// composition.
+	c.SGBD = "postgres"
 	return c
 }
 
