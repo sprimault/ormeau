@@ -86,10 +86,17 @@ test-integration: containers
 # installer, alors que lint exige golangci-lint et tygo, que pose
 # `make outils`. lint construit aussi le front, dont go vet a besoin pour
 # compiler cmd/ormeau. C'est la cible qu'on lance avant chaque publication.
+#
+# gofmt -l ne fait qu'afficher : l'échec se décide ici. La liste vient de git,
+# fichiers neufs non ajoutés compris, pour contrôler avant le commit sans
+# descendre dans ce que .gitignore écarte (.tmp/ peut contenir des sources).
+# golangci-lint ne ferait pas l'affaire : il ignore les fichiers d'une
+# étiquette de build inactive, comme les tests d'intégration.
 lint: web-build web-types-check
 	@command -v golangci-lint >/dev/null 2>&1 || { echo "golangci-lint absent : make outils"; exit 1; }
 	golangci-lint run
-	gofmt -l .
+	@ecarts=$$(git ls-files -z -co --exclude-standard '*.go' | xargs -0 gofmt -l); \
+	if [ -n "$$ecarts" ]; then echo "gofmt : fichiers a formater"; echo "$$ecarts"; exit 1; fi
 
 # outils installe l'outillage de développement. À relancer après un changement
 # de version de Go : golangci-lint refuse d'analyser du code plus récent que la
