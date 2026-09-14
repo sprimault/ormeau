@@ -19,7 +19,10 @@ enum Origine: string
     /** Une expression CHECK. */
     case Verification = 'verification';
 
-    /** Un échantillon de valeurs distinctes. */
+    /**
+     * Un échantillon de valeurs distinctes. Aucune version 1 ne la produit :
+     * elle attend l'échantillonnage.
+     */
     case Cardinalite = 'cardinalite';
 
     /** Le seul nom d'une table ou d'une colonne. */

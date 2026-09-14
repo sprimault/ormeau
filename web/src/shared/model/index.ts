@@ -66,7 +66,6 @@ export {
   CodeDecisionInvalide,
   CodeDecisionOrpheline,
   CodeDefautIncompatible,
-  CodeFKImpliciteProbable,
   CodeHeritageDeduit,
   CodeJointurePure,
   CodePrefixeDetecte,

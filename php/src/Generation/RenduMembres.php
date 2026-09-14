@@ -404,7 +404,6 @@ final class RenduMembres
             'targetEntity' => $cible,
             'mappedBy' => $association->proprietaire ? null : $association->mappeePar,
             'inversedBy' => $association->proprietaire ? $association->inverseePar : null,
-            'orphanRemoval' => $association->orphelinsSupprimes ? true : null,
         ], $i);
 
         if ($association->proprietaire && $association->tableJointure !== null) {

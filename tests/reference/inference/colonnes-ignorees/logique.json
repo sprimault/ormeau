@@ -200,6 +200,13 @@
       "confiance": 1
     },
     {
+      "code": "cle_primaire_non_ignorable",
+      "cible": "public.client.id",
+      "message": "id appartient à la clé primaire et reste mappée : une entité sans identifiant est inutilisable",
+      "resolution": "aucune",
+      "confiance": 1
+    },
+    {
       "code": "colonne_ignoree",
       "cible": "public.client.raison_sociale",
       "message": "raison_sociale est retirée de l'entité ; le calque physique la garde. Avec elle : index client_raison_sociale_idx. migrations:diff proposera de supprimer la colonne : à retirer du diff avant de l'appliquer",

@@ -24,9 +24,12 @@ type Origine string
 const (
 	OrigineContrainte   Origine = "contrainte"
 	OrigineVerification Origine = "verification"
-	OrigineCardinalite  Origine = "cardinalite"
-	OrigineNommage      Origine = "nommage"
-	OrigineDecision     Origine = "decision"
+	// Produite par rien en version 1 : elle attend les énumérations par
+	// cardinalité de l'échantillonnage, et se retire au prochain incrément de
+	// version_ri si elles ne l'ont pas produite d'ici là.
+	OrigineCardinalite Origine = "cardinalite"
+	OrigineNommage     Origine = "nommage"
+	OrigineDecision    Origine = "decision"
 )
 
 // Entite est une classe à générer. Toutes les tables n'en produisent pas : une
@@ -99,11 +102,14 @@ type Identifiant struct {
 // StrategieIdentifiant dit qui produit la valeur de la clé.
 type StrategieIdentifiant string
 
-// Stratégies d'identifiant. IdentifiantAucune couvre la table sans clé
-// primaire : elle se signale, elle ne s'invente pas.
+// Stratégies d'identifiant. Une table sans clé primaire n'a pas d'Identifiant
+// du tout, et un avertissement le signale.
 const (
 	IdentifiantIdentite StrategieIdentifiant = "identite"
 	IdentifiantSequence StrategieIdentifiant = "sequence"
+	// Produite par rien : déclarée en version 1, elle se retire au prochain
+	// incrément de version_ri, et le générateur écarte d'ici là l'entité qui
+	// la porte.
 	IdentifiantAucune   StrategieIdentifiant = "aucune"
 	IdentifiantAssignee StrategieIdentifiant = "assignee"
 )
@@ -141,6 +147,10 @@ type Propriete struct {
 // Association relie deux entités. Proprietaire décide du côté qui porte la
 // colonne de jointure : s'y tromper produit un mapping que Doctrine accepte et
 // qui n'écrit rien en base.
+//
+// OrphelinsSupprimes n'est produit par aucune heuristique ni décision : déclaré
+// en version 1, il se retire au prochain incrément de version_ri, et le
+// générateur écarte d'ici là l'entité qui le porte.
 type Association struct {
 	Nom                string            `json:"nom"`
 	Genre              GenreAssociation  `json:"genre"`
@@ -193,6 +203,10 @@ type IndexEntite struct {
 
 // Enumeration est un type PHP à générer. Origine dit d'où elle sort — CHECK,
 // type natif ou échantillon — et c'est ce qui permet d'en discuter.
+//
+// TypeSupport vaut toujours "string" en version 1 : la détection ne reconnaît
+// que des littéraux chaîne. "int" est lu et rendu par le générateur, sans
+// producteur avant l'échantillonnage.
 type Enumeration struct {
 	Nom         string           `json:"nom"`
 	TypeSupport string           `json:"type_support"`
@@ -240,7 +254,6 @@ const (
 const (
 	CodeTableSansClePrimaire = "table_sans_cle_primaire"
 	CodeClePrimaireComposite = "cle_primaire_composite"
-	CodeFKImpliciteProbable  = "fk_implicite_probable"
 	CodeTypeNonReconnu       = "type_non_reconnu"
 	CodeCollision            = "collision_de_nom"
 	CodeDecisionOrpheline    = "decision_sans_cible"

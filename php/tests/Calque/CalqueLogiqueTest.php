@@ -227,13 +227,13 @@ final class CalqueLogiqueTest extends TestCase
         $donnees['avertissements'] = [
             self::avertissement('type_non_reconnu', 0.3),
             self::avertissement('table_sans_cle_primaire', 1),
-            self::avertissement('fk_implicite_probable', 0.6),
+            self::avertissement('cas_enumeration_opaque', 0.6),
         ];
 
         $retenus = CalqueLogique::depuisTableau($donnees)->avertissementsAuDessusDe(0.6);
 
         self::assertSame(
-            ['table_sans_cle_primaire', 'fk_implicite_probable'],
+            ['table_sans_cle_primaire', 'cas_enumeration_opaque'],
             array_map(static fn($a): string => $a->code, $retenus),
         );
         self::assertSame([0, 1], array_keys($retenus));

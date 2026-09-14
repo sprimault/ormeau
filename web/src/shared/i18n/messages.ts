@@ -320,7 +320,6 @@ const fr = {
 
   'warning.table_sans_cle_primaire': 'Table sans clé primaire',
   'warning.cle_primaire_composite': 'Clé primaire composite',
-  'warning.fk_implicite_probable': 'Clé étrangère implicite probable',
   'warning.type_non_reconnu': 'Type non reconnu',
   'warning.collision_de_nom': 'Collision de nom',
   'warning.decision_invalide': 'Décision invalide',
@@ -637,7 +636,6 @@ const en: Record<MessageKey, string> = {
 
   'warning.table_sans_cle_primaire': 'Table without primary key',
   'warning.cle_primaire_composite': 'Composite primary key',
-  'warning.fk_implicite_probable': 'Probable implicit foreign key',
   'warning.type_non_reconnu': 'Unrecognized type',
   'warning.collision_de_nom': 'Name collision',
   'warning.decision_invalide': 'Invalid decision',
