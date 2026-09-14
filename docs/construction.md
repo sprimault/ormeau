@@ -160,9 +160,11 @@ separates announcing the version from its availability:
    `php/`, is green.
 2. The tag is set on its head and pushed:
    `git tag vX.Y.Z <PR head> && git push origin vX.Y.Z`.
-3. `release.yml` first pushes the tag to the mirror, and checks that Composer
-   resolves `sprimault/ormeau-doctrine:X.Y.Z` from the real mirror. Binaries,
-   draft release and image wait for that proof.
+3. `release.yml` first reads the `CHANGELOG` section carrying the version:
+   missing or empty, nothing goes out, not even the mirror. It then pushes the
+   tag to the mirror, and checks that Composer resolves
+   `sprimault/ormeau-doctrine:X.Y.Z` from the real mirror. Binaries, draft
+   release and image wait for that proof.
 4. The pull request is merged: the README announcing the version reaches
    `master` after the mirror carries it.
 5. The draft is reviewed and published.
@@ -173,9 +175,9 @@ As long as the draft is not published, the number can be reused. After that,
 never: a project may have locked the tag's commit, and a fix takes the next
 number.
 
-- **The mirror job fails before pushing the tag** (missing secret, rejected
-  push): the tag only exists on the main repository, and nothing else has gone
-  out. Delete the tag, fix the pull request, set the tag again on its new head:
+- **The notes job fails, or the mirror job before pushing the tag** (missing
+  `CHANGELOG` section, missing secret, rejected push): the tag only exists on
+  the main repository, and nothing else has gone out. Delete the tag, fix the pull request, set the tag again on its new head:
 
   ```bash
   git push origin :refs/tags/vX.Y.Z && git tag -d vX.Y.Z

@@ -164,9 +164,11 @@ qu'aucune fenêtre ne sépare l'annonce de la version de sa disponibilité :
    `php/`, est verte.
 2. Le tag est posé sur sa tête et poussé :
    `git tag vX.Y.Z <tête de la PR> && git push origin vX.Y.Z`.
-3. `release.yml` pousse d'abord le tag sur le miroir, et vérifie que Composer
-   résout `sprimault/ormeau-doctrine:X.Y.Z` depuis le vrai miroir. Binaires,
-   brouillon de release et image attendent cette preuve.
+3. `release.yml` lit d'abord la section du `CHANGELOG` qui porte la version :
+   absente ou vide, rien ne part, pas même le miroir. Il pousse ensuite le tag
+   sur le miroir, et vérifie que Composer résout
+   `sprimault/ormeau-doctrine:X.Y.Z` depuis le vrai miroir. Binaires, brouillon
+   de release et image attendent cette preuve.
 4. La pull request est fusionnée : le README qui annonce la version arrive sur
    `master` après que le miroir la porte.
 5. Le brouillon est relu et publié.
@@ -177,9 +179,9 @@ Tant que le brouillon n'est pas publié, le numéro se réutilise. Ensuite, jama
 un projet a pu verrouiller le commit du tag, et un correctif prend le numéro
 suivant.
 
-- **Le job du miroir échoue avant d'avoir poussé le tag** (secret absent, push
-  refusé) : le tag n'existe que sur le dépôt principal, et rien d'autre n'est
-  parti. Supprimer le tag, corriger sur la pull request, le reposer sur la
+- **Le job des notes échoue, ou celui du miroir avant d'avoir poussé le tag**
+  (section du `CHANGELOG` absente, secret absent, push refusé) : le tag n'existe
+  que sur le dépôt principal, et rien d'autre n'est parti. Supprimer le tag, corriger sur la pull request, le reposer sur la
   nouvelle tête :
 
   ```bash
