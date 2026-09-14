@@ -35,7 +35,7 @@ func extraire(args []string) error {
 	// que main traduit en code de retour. Un os.Exit caché ici court-circuiterait
 	// la fermeture de la connexion.
 	jeu := flag.NewFlagSet("extraire", flag.ContinueOnError)
-	dsn := jeu.String("dsn", "", "chaîne de connexion complète (ou ORMEAU_DSN)")
+	dsn := jeu.String("dsn", "", "chaîne de connexion complète, visible dans ps et l'historique du shell : préférer ORMEAU_DSN")
 	sgbd := jeu.String("sgbd", "", "postgres, mysql, mariadb, sqlserver, oracle")
 	hote := jeu.String("hote", "", "nom ou adresse du serveur")
 	port := jeu.Int("port", 0, "port du serveur ; celui du SGBD par défaut")

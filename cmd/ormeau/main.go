@@ -27,13 +27,13 @@ Usage :
   ormeau extraire --dsn <dsn> --sortie <fichier.calque.json>
   ormeau extraire --sgbd <sgbd> --hote <hote> --utilisateur <nom> [--base <base>] --sortie <chemin>
   ormeau inferer  <fichier.calque.json> [--decisions <fichier.yaml>] [--sortie <fichier.logique.json>]
-  ormeau diff     <fichier.calque.json> [--dsn <dsn>]
+  ormeau diff     <fichier.calque.json> (<fichier.calque.json> | --dsn <dsn>)
   ormeau interface [--port <port>] [--repertoire <chemin>] [--sans-navigateur]
 
 Commandes :
   extraire   lit le catalogue et écrit un calque physique
   inferer    applique les heuristiques et écrit un calque logique
-  diff       compare un calque enregistré à l'état actuel de la base
+  diff       compare un calque enregistré à la base ou à un second calque (pas encore pris en charge)
   interface  sert l'interface locale de connexion et d'arbitrage
   version    affiche la version du binaire
 

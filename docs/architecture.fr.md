@@ -55,9 +55,10 @@ couche en aval ne peut le retrouver.
 **Neutralité.** Aucun champ ne suppose la destination. `type_normalise:
 "decimal"` est neutre ; `type_doctrine` ne l'est pas, et vit dans le logique.
 
-**Déterminisme.** Deux extractions de la même base produisent deux fichiers
-identiques octet pour octet. Clés triées, aucun horodatage dans le corps du
-document. Sans ça, le mode diff produit du bruit et devient inutilisable.
+**Déterminisme.** Deux extractions de la même base ne diffèrent que par
+`source.extrait_le`, l'heure de l'extraction, que l'empreinte exclut : même
+contenu, même empreinte. Clés triées, aucun autre horodatage dans le document.
+Sans ça, le mode diff produit du bruit et devient inutilisable.
 
 ## Le calque logique n'est pas neutre
 

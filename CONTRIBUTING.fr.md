@@ -36,9 +36,9 @@ une issue, avant tout code.
 3. **Le calque physique est neutre.** Aucun champ ne suppose la destination. Le
    test : si un générateur EF Core rendait le champ inutilisable ou trompeur,
    il est au mauvais niveau.
-4. **L'extraction est déterministe.** Deux extractions de la même base
-   produisent deux fichiers identiques octet pour octet. Clés triées, aucun
-   horodatage dans le corps du document. Le mode diff en dépend entièrement.
+4. **L'extraction est déterministe.** Deux extractions de la même base ne
+   diffèrent que par `source.extrait_le`, que l'empreinte exclut. Clés triées,
+   aucun autre horodatage dans le document. Le mode diff en dépend entièrement.
 5. **L'inférence est une fonction pure.** `physique + décisions -> logique`.
    Pas de réseau, pas d'horloge, pas d'aléa, pas d'accès disque hors des
    entrées déclarées. Une heuristique qui aurait besoin d'interroger la base
@@ -73,16 +73,19 @@ fichiers sont le vrai jeu de tests du projet.
 
 ## Mise en route
 
-Il faut Go (la version épinglée dans `go.mod`) et Docker pour les conteneurs de
-test. PHP 8.1 et Composer ne servent que pour travailler sur `php/`, qui se
+Il faut Go (la version épinglée dans `go.mod`), Node 22 pour l'interface
+embarquée, et Docker pour les conteneurs de test. Le premier `make test` installe
+lui-même les dépendances du front, par `npm ci`, quand `web/node_modules` est
+absent ; après une modification de `web/package-lock.json`, lancer
+`cd web && npm ci`. PHP 8.1 et Composer ne servent que pour travailler sur `php/`, qui se
 publie en miroir dans `sprimault/ormeau-doctrine` : c'est ici qu'on y contribue,
 jamais sur le miroir, réécrit à chaque fusion. Le mécanisme et la publication
 d'une version sont décrits dans [`docs/construction.fr.md`](docs/construction.fr.md).
 
 ```bash
-make outils        # golangci-lint, govulncheck, gosec
-make test          # go test -race ./...
-make lint          # golangci-lint, gofmt
+make outils        # golangci-lint, govulncheck, gosec, tygo
+make test          # construction du front, puis go test -race ./...
+make lint          # construction du front, contrôle des types générés, golangci-lint, gofmt
 make cover         # couverture, détail par fonction
 make maj-attendus  # réécrit les calques logiques attendus, à relire ensuite
 ```
@@ -155,10 +158,11 @@ n'est pas à jour.
 Un calque porte les noms de tables, de colonnes et les commentaires métier d'un
 client, et avec `--echantillonner`, une fois l'échantillonnage livré, des
 valeurs réelles. Il n'a sa place ni dans ce dépôt ni en pièce jointe d'une
-issue. Les seuls calques versionnés ici sont ceux produits depuis `tests/ddl/`.
+issue. Les calques versionnés ici ne viennent d'aucune base réelle : ils sont
+écrits à la main pour les tests, dans `tests/reference/`.
 
-Si une reproduction en exige un, le construire depuis `tests/ddl/` ou le
-réduire aux quelques objets qui déclenchent le défaut.
+Si une reproduction en exige un, l'extraire de la base de test construite depuis
+`tests/ddl/`, ou écrire à la main les quelques objets qui déclenchent le défaut.
 
 ## Sécurité
 
