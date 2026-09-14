@@ -74,7 +74,7 @@ Vérifier une archive téléchargée — les binaires n'étant ni signés ni not
 SmartScreen et Gatekeeper protesteront au premier lancement :
 
 ```console
-$ gh attestation verify ormeau_v0.5.1_linux_amd64.tar.gz --repo sprimault/ormeau
+$ gh attestation verify ormeau_v0.5.2_linux_amd64.tar.gz --repo sprimault/ormeau
 ```
 
 Par conteneur, en lui donnant l'identité de l'appelant : l'image tourne sous un
@@ -83,7 +83,7 @@ utilisateur non privilégié et n'écrirait pas dans un volume Linux sans cela.
 ```console
 $ docker run --rm --user "$(id -u):$(id -g)" \
     -e ORMEAU_DSN -v "$PWD:/sortie" \
-    ghcr.io/sprimault/ormeau:v0.5.1 extraire --sortie /sortie/gescom.calque.json
+    ghcr.io/sprimault/ormeau:v0.5.2 extraire --sortie /sortie/gescom.calque.json
 ```
 
 Le calque en main, l'inférence tourne hors ligne — plus besoin de la base :
@@ -229,14 +229,14 @@ $env:ORMEAU_MDP = "secret"
 .\ormeau.exe extraire --sgbd postgres --hote srv --utilisateur app --base gescom --sortie gescom.calque.json
 
 docker run --rm -e ORMEAU_DSN -v "${PWD}:/sortie" `
-    ghcr.io/sprimault/ormeau:v0.5.1 extraire --sortie /sortie/gescom.calque.json
+    ghcr.io/sprimault/ormeau:v0.5.2 extraire --sortie /sortie/gescom.calque.json
 ```
 
 Vérifier l'empreinte d'une archive téléchargée :
 
 ```powershell
 $attendu = (Select-String -Path SHA256SUMS -Pattern windows).Line.Split(" ")[0]
-$obtenu  = (Get-FileHash ormeau_v0.5.1_windows_amd64.zip -Algorithm SHA256).Hash.ToLower()
+$obtenu  = (Get-FileHash ormeau_v0.5.2_windows_amd64.zip -Algorithm SHA256).Hash.ToLower()
 if ($attendu -eq $obtenu) { "empreinte OK" } else { "EMPREINTE DIFFERENTE" }
 ```
 
