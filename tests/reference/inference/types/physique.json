@@ -109,6 +109,24 @@
             "expression": "(compteur_long * 1.0)",
             "stockee": true
           }
+        },
+        {
+          "nom": "quantites",
+          "position": 14,
+          "type_brut": "integer[]",
+          "type_normalise": "entier",
+          "nullable": true
+        },
+        {
+          "nom": "etiquettes",
+          "position": 15,
+          "type_brut": "character varying(20)[]",
+          "type_normalise": "texte",
+          "nullable": false,
+          "defaut": {
+            "genre": "litteral",
+            "valeur": "{}"
+          }
         }
       ],
       "cle_primaire": {

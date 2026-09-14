@@ -123,12 +123,43 @@
           "insertable": false,
           "modifiable": false,
           "origine": "contrainte"
+        },
+        {
+          "nom": "quantites",
+          "colonne": "quantites",
+          "type_php": "?string",
+          "type_doctrine": "string",
+          "nullable": true,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "etiquettes",
+          "colonne": "etiquettes",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "defaut": "{}",
+          "origine": "contrainte"
         }
       ],
       "origine": "nommage"
     }
   ],
   "avertissements": [
+    {
+      "code": "type_non_reconnu",
+      "cible": "public.eventail.etiquettes",
+      "message": "type character varying(20)[] : tableau PostgreSQL sans type Doctrine, rendu en chaîne (littéral {…})",
+      "resolution": "par_defaut",
+      "confiance": 0.3
+    },
+    {
+      "code": "type_non_reconnu",
+      "cible": "public.eventail.quantites",
+      "message": "type integer[] : tableau PostgreSQL sans type Doctrine, rendu en chaîne (littéral {…})",
+      "resolution": "par_defaut",
+      "confiance": 0.3
+    },
     {
       "code": "type_non_reconnu",
       "cible": "public.eventail.type_maison",

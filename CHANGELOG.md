@@ -46,6 +46,10 @@ qui change l'entité régénérée d'un projet dont le fichier de décisions ign
 une colonne indexée ou une clé étrangère. `migrations:diff` propose de
 supprimer une colonne ignorée : la retirer du diff avant de l'appliquer.
 
+**Une colonne tableau change de type à la régénération** : `integer[]`
+était mappé en `int` et devient une chaîne, avec l'avertissement
+`type_non_reconnu`.
+
 ### Corrigé
 
 - **`colonnes_ignorees` retire ce qui cite la colonne.** Un index ou une
@@ -61,7 +65,10 @@ supprimer une colonne ignorée : la retirer du diff avant de l'appliquer.
   n'associe que vers l'identifiant. La colonne reste une propriété, avec
   l'avertissement `reference_hors_identifiant`, et une relation forcée vers une
   autre colonne que la clé primaire est refusée.
-
+- **Une colonne tableau n'est plus typée comme son élément.** `integer[]`
+  devenait `int`, et Doctrine hydratait `{1,2}` en une valeur fausse sans
+  erreur. Elle est rendue en chaîne, qui garde le littéral, avec
+  l'avertissement `type_non_reconnu`.
 - **Le nom de séquence d'une clé `serial` est lu dans le défaut.** Le logique
   recopiait l'expression entière, `nextval('facture_id_seq'::regclass)`, dans
   `#[ORM\SequenceGenerator]`. Un défaut qui ne nomme pas sa séquence laisse
@@ -109,6 +116,9 @@ which changes the regenerated entity of a project whose decisions file ignores
 an indexed column or a foreign key. `migrations:diff` proposes to drop an
 ignored column: remove it from the diff before applying it.
 
+**An array column changes type on regeneration**: `integer[]` was mapped to
+`int` and becomes a string, with the `type_non_reconnu` warning.
+
 ### Fixed
 
 - **`colonnes_ignorees` removes what refers to the column.** An index or a
@@ -124,7 +134,10 @@ ignored column: remove it from the diff before applying it.
   the identifier. The column stays a property, with the
   `reference_hors_identifiant` warning, and a forced relation towards any
   column other than the primary key is refused.
-
+- **An array column is no longer typed as its element.** `integer[]` became
+  `int`, and Doctrine hydrated `{1,2}` into a wrong value without any error. It
+  is rendered as a string, which keeps the literal, with the `type_non_reconnu`
+  warning.
 - **The sequence name of a `serial` key is read from the default.** The
   logical layer copied the whole expression, `nextval('facture_id_seq'::regclass)`,
   into `#[ORM\SequenceGenerator]`. A default that does not name its sequence now

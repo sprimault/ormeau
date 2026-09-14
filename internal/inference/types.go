@@ -60,12 +60,24 @@ var parTypeNormalise = map[calque.TypeNorm]correspondance{
 // Le second retour dit si la correspondance est sûre. Un type non reconnu rend
 // une chaîne — la valeur reste lisible — mais l'appelant doit le signaler
 // plutôt que de laisser croire à une traduction fidèle.
+//
+// Un tableau PostgreSQL porte le type normalisé de son élément, et seuls les
+// crochets de type_brut disent le reste. Aucun type Doctrine ne lit son
+// littéral {1,2} : typé comme l'élément, il serait hydraté par transtypage en
+// une valeur fausse, sans erreur. La chaîne le garde tel quel, et simple_array
+// ne conviendrait pas, qui sépare par virgules sans accolades ni échappement.
 func typerColonne(c *calque.Colonne) (correspondance, bool) {
 	corr, connu := parTypeNormalise[c.TypeNormalise]
-	if !connu {
+	if !connu || estTableau(c) {
 		return correspondance{"string", "string"}, false
 	}
 	return affiner(corr, c), true
+}
+
+// estTableau dit si la colonne est un tableau : format_type écrit toujours ses
+// crochets en fin de type, character varying(20)[] comme integer[][].
+func estTableau(c *calque.Colonne) bool {
+	return strings.HasSuffix(strings.TrimSpace(c.TypeBrut), "[]")
 }
 
 // affiner départage ce que le vocabulaire fermé ne distingue pas. Le type
