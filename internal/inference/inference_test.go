@@ -92,8 +92,8 @@ func TestTrierAvertissementsDepartageParCode(t *testing.T) {
 	}
 }
 
-// TestDefautVideEcarteParUnTypeForce vérifie qu'un DEFAULT '' tombe avec la
-// requalification, et que le message le montre.
+// TestDefautVideEcarteParUnTypeForce vérifie qu'un défaut de chaîne vide tombe
+// avec la requalification, et que le message le montre.
 //
 // Tant que le défaut était une chaîne, le vide passait pour une absence : il
 // n'était ni reporté, ni signalé en tombant. Et sans apostrophes, le message
