@@ -169,6 +169,21 @@ final class Hierarchies
             return sprintf('le parent %s est absent du calque', $heritage->parent);
         }
 
+        // Une chaîne qui revient sur une entité déjà vue produirait des classes
+        // en héritage circulaire, sur lesquelles PHP s'arrête au chargement.
+        // racine() ne tourne pas indéfiniment, mais rend une racine différente
+        // selon l'entité de départ : c'est ici que la boucle se refuse.
+        $chaine = [$entite->nom];
+        $courante = $entite;
+        while (($parent = $this->parent($courante)) !== null) {
+            $dejaVue = in_array($parent->nom, $chaine, true);
+            $chaine[] = $parent->nom;
+            if ($dejaVue) {
+                return sprintf('la chaîne de parents de %s boucle : %s', $entite->nom, implode(' → ', $chaine));
+            }
+            $courante = $parent;
+        }
+
         $racine = $this->racine($entite);
         if ($racine === null) {
             return null;
@@ -179,6 +194,27 @@ final class Hierarchies
                 $racine->nom,
                 $entite->nom,
             );
+        }
+
+        // La carte est indexée par valeur : une valeur répétée y écraserait une
+        // classe, que Doctrine refuserait ensuite de charger, et le contrôle de
+        // la racine ne verrait rien, puisqu'il compare à la même carte. L'inférence
+        // refuse déjà cette décision ; un calque retouché ne passe pas ici non
+        // plus.
+        foreach ($this->membres($racine) as $membre) {
+            if ($membre !== $entite && $membre->valeurDiscriminante === $entite->valeurDiscriminante) {
+                $noms = array_values(array_filter(
+                    array_map(static fn(Entite $e): string => $e->nom, $this->entites),
+                    static fn(string $nom): bool => $nom === $entite->nom || $nom === $membre->nom,
+                ));
+
+                return sprintf(
+                    'la valeur discriminante « %s » est donnée à %s et à %s',
+                    $entite->valeurDiscriminante,
+                    $noms[0],
+                    $noms[1],
+                );
+            }
         }
 
         $cle = self::colonnesDeCle($entite);

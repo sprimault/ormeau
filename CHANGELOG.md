@@ -55,6 +55,15 @@ chiffrement dans le nouveau champ, puis « Mettre à jour ce profil ».
 
 ### Corrigé
 
+- **Une classe d'entité illisible arrête `ormeau:generer` avant toute
+  écriture.** Rangée dans un sous-répertoire et en cours d'édition, elle était
+  ignorée, et la génération en créait une seconde à la racine. La commande
+  nomme désormais chaque fichier illisible avec sa ligne, n'écrit rien et rend
+  1.
+- **Une chaîne de parents qui boucle, ou deux classes d'une hiérarchie
+  partageant une valeur discriminante, écartent la hiérarchie avec sa raison.**
+  Un calque retouché produisait des classes en héritage circulaire, ou une
+  carte amputée que Doctrine refusait de charger.
 - **Un profil enregistré depuis une chaîne `clé=valeur` sans port se rouvre.**
   Son SGBD restait vide et la connexion échouait. Cette forme est celle de
   libpq : elle désigne PostgreSQL.
@@ -137,6 +146,14 @@ new field, then “Update this profile”.
 
 ### Fixed
 
+- **An unreadable entity class stops `ormeau:generer` before anything is
+  written.** Stored in a subdirectory and being edited, it was ignored, and the
+  generation created a second one at the root. The command now names each
+  unreadable file with its line, writes nothing and returns 1.
+- **A chain of parents that loops, or two classes of a hierarchy sharing a
+  discriminator value, set the hierarchy aside with its reason.** An edited
+  layer produced classes with circular inheritance, or a truncated map that
+  Doctrine refused to load.
 - **A profile saved from a `key=value` string without a port reopens.** Its
   DBMS stayed empty and the connection failed. This is libpq's form: it means
   PostgreSQL.

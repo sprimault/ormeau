@@ -7,7 +7,6 @@ declare(strict_types=1);
 
 namespace Ormeau\Doctrine\Generation;
 
-use PhpParser\Error;
 use PhpParser\Node;
 use PhpParser\Node\Attribute;
 use PhpParser\Node\Expr;
@@ -19,9 +18,6 @@ use PhpParser\Node\Scalar\Int_;
 use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\NodeFinder;
-use PhpParser\NodeTraverser;
-use PhpParser\NodeVisitor\NameResolver;
-use PhpParser\ParserFactory;
 
 /**
  * Relit une classe de l'utilisateur et dit en quoi elle ne correspond plus au
@@ -60,8 +56,15 @@ final class ControleClasseUtilisateur
     /**
      * Compare une classe de l'utilisateur à ce que le calque attend.
      *
+     * Le fichier n'est pas relu : la source et l'AST viennent du parcours des
+     * classes de l'utilisateur, qui a déjà refusé la génération sur un fichier
+     * illisible. Une seule lecture, et aucun écart entre ce qui a été retrouvé
+     * et ce qui est contrôlé.
+     *
      * @param string                                   $chemin     fichier de la classe, tel qu'on l'affiche
-     * @param string                                   $source     contenu du fichier
+     * @param string                                   $source     contenu du fichier, pour citer un attribut tel
+     *                                                             qu'il est écrit
+     * @param array<Node>                              $ast        AST du fichier, noms résolus
      * @param string                                   $classe     nom court de la classe attendue
      * @param string                                   $base       nom qualifié de sa classe de base
      * @param array{name: string, schema: string|null, options: array{comment: string}|null} $table arguments attendus de
@@ -73,15 +76,8 @@ final class ControleClasseUtilisateur
      *
      * @return list<Divergence> vide quand la classe correspond
      */
-    public function comparer(string $chemin, string $source, string $classe, string $base, array $table, ?RacineHeritage $racine = null, ?array $tableEn050 = null): array
+    public function comparer(string $chemin, string $source, array $ast, string $classe, string $base, array $table, ?RacineHeritage $racine = null, ?array $tableEn050 = null): array
     {
-        try {
-            $ast = (new ParserFactory())->createForNewestSupportedVersion()->parse($source) ?? [];
-        } catch (Error $e) {
-            return [new Divergence($chemin, max(1, $e->getStartLine()), '', 'fichier illisible : ' . $e->getRawMessage())];
-        }
-        $ast = (new NodeTraverser(new NameResolver()))->traverse($ast);
-
         $noeud = (new NodeFinder())->findFirst(
             $ast,
             static fn(Node $n): bool => $n instanceof Class_ && $n->name?->toString() === $classe,

@@ -153,10 +153,10 @@ calque : `gescom` pour `gescom.logique.json`. Une autre base générée dans le
 même répertoire ne réécrit pas ces fichiers ; la commande nomme le fichier et
 les deux bases. Chaque base a son répertoire et son espace de noms, ou
 `--remplacer=gescom` accepte explicitement d'écraser les fichiers de `gescom`
-— un calque renommé, un répertoire repris. Le code de retour distingue les
-trois cas : une entité écartée et une divergence rendent 0, elles disent quoi
-reprendre ; un refus d'écrasement rend 1, la génération demandée n'a pas eu
-lieu.
+— un calque renommé, un répertoire repris. Seul ce qui empêche la génération
+demandée rend 1 : un refus d'écrasement, ou un fichier PHP illisible sous le
+répertoire des entités, avant toute écriture. Une entité écartée et une
+divergence rendent 0 : elles disent quoi reprendre.
 
 Cette forme en deux classes est le prix d'une régénération qui n'écrase rien, et
 elle change quelques habitudes. Les propriétés sont déclarées dans `Base/`, qui

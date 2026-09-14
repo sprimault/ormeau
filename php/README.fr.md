@@ -39,9 +39,10 @@ $ bin/console ormeau:generer gescom.logique.json
 ```
 
 Une base par répertoire d'entités : les fichiers nomment leur base, et une
-autre base ne les écrase pas sans `--remplacer=<base>`. Codes de retour : 0
-quand des entités sont écartées ou des classes divergent, 1 quand un fichier
-d'une autre base a bloqué la génération.
+autre base ne les écrase pas sans `--remplacer=<base>`. Seul ce qui empêche la
+génération demandée rend 1 : un fichier d'une autre base, ou un fichier PHP
+illisible sous le répertoire des entités. Des entités écartées et des classes
+qui divergent rendent 0.
 
 La chaîne complète — extraire le calque, inférer, arbitrer, générer — est
 décrite dans le [README principal](https://github.com/sprimault/ormeau/blob/master/README.fr.md),
