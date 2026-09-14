@@ -216,7 +216,14 @@ final class GenerateurEntite
         // fille appelle le constructeur de son parent selon les collections
         // qui lui restent, côtés inverses omis déduits.
         $hierarchies = new Hierarchies($generees);
+        $sequences = [];
         foreach ($generees as $entite) {
+            $identifiant = $entite->identifiant;
+            if ($cible->ormMajeure === 2 && $identifiant !== null && $identifiant->strategie === StrategieIdentifiant::Sequence
+                && $identifiant->sequence !== null && $identifiant->sequenceIncrement !== null && $identifiant->sequenceIncrement !== 1) {
+                $sequences[] = new SequenceNonAlignee($entite->nom, $identifiant->sequence, $identifiant->sequenceIncrement);
+            }
+
             $base = $repertoire . '/Base/' . RenduEntite::nomBase($entite) . '.php';
             $fichiers[] = new Fichier($base, $this->ecrire($base, $rendu->classeBase($entite, $hierarchies), $repertoire));
 
@@ -244,7 +251,7 @@ final class GenerateurEntite
             ));
         }
 
-        return new Rapport($fichiers, $ecartees, $divergences, $omises, $ecrasements);
+        return new Rapport($fichiers, $ecartees, $divergences, $omises, $ecrasements, $sequences);
     }
 
     /**

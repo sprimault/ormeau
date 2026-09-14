@@ -220,6 +220,66 @@
       }
     },
     {
+      "nom": "bloc",
+      "schema": "public",
+      "commentaire": "séquence incrémentée de 10 à partir de 5 : blocs réservés ou nœuds décalés, la base ne dit pas lequel",
+      "colonnes": [
+        {
+          "nom": "id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false,
+          "defaut": {
+            "genre": "sequence",
+            "valeur": "nextval('public.bloc_id_seq'::regclass)"
+          }
+        },
+        {
+          "nom": "numero",
+          "position": 2,
+          "type_brut": "character varying(20)",
+          "type_normalise": "texte",
+          "longueur": 20,
+          "nullable": false
+        }
+      ],
+      "cle_primaire": {
+        "nom": "bloc_pkey",
+        "colonnes": ["id"]
+      }
+    },
+    {
+      "nom": "doublon",
+      "schema": "public",
+      "commentaire": "calque ancien : nom nu d'une séquence présente dans deux schémas, rien n'est rattaché",
+      "colonnes": [
+        {
+          "nom": "id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false,
+          "defaut": {
+            "genre": "sequence",
+            "valeur": "nextval('doublon_id_seq'::regclass)"
+          }
+        },
+        {
+          "nom": "numero",
+          "position": 2,
+          "type_brut": "character varying(20)",
+          "type_normalise": "texte",
+          "longueur": 20,
+          "nullable": false
+        }
+      ],
+      "cle_primaire": {
+        "nom": "doublon_pkey",
+        "colonnes": ["id"]
+      }
+    },
+    {
       "nom": "dynamique",
       "schema": "public",
       "commentaire": "séquence choisie à l'exécution : aucun nom à lire",
@@ -336,6 +396,14 @@
       "cyclique": false
     },
     {
+      "nom": "doublon_id_seq",
+      "schema": "gescom",
+      "increment": 1,
+      "minimum": 1,
+      "maximum": 2147483647,
+      "cyclique": false
+    },
+    {
       "nom": "Journal_Id_seq",
       "schema": "public",
       "increment": 1,
@@ -357,6 +425,22 @@
       "increment": 1,
       "minimum": 1,
       "maximum": 9223372036854775807,
+      "cyclique": false
+    },
+    {
+      "nom": "bloc_id_seq",
+      "schema": "public",
+      "increment": 10,
+      "minimum": 5,
+      "maximum": 2147483647,
+      "cyclique": false
+    },
+    {
+      "nom": "doublon_id_seq",
+      "schema": "public",
+      "increment": 1,
+      "minimum": 1,
+      "maximum": 2147483647,
       "cyclique": false
     },
     {

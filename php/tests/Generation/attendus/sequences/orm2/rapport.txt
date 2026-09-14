@@ -10,6 +10,10 @@ créé Base/MajusculeBase.php
 créé Majuscule.php
 créé Base/AncienneBase.php
 créé Ancienne.php
+créé Base/BlocBase.php
+créé Bloc.php
+créé Base/DoublonBase.php
+créé Doublon.php
 créé Base/DynamiqueBase.php
 créé Dynamique.php
 créé Base/FactureBase.php
@@ -17,3 +21,4 @@ créé Facture.php
 créé Base/ReglementBase.php
 créé Reglement.php
 écartée Apostrophe : la séquence "séq'bizarre" porte une apostrophe, que Doctrine ORM 2 n'échappe pas dans NEXTVAL : à renommer en base
+séquence Bloc : schema:update et migrations:diff proposeront « ALTER SEQUENCE bloc_id_seq INCREMENT BY 1 ». Ne pas l'appliquer : la base incrémente cette séquence de 10, et l'ALTER la modifierait. Ormeau n'aligne pas allocationSize, car un incrément de 10 réserve des blocs d'identifiants ou sépare ceux de plusieurs nœuds, la base ne dit pas lequel, et aligner produirait des collisions dans le second cas ; chaque identifiant est lu par nextval, ce qui reste juste dans les deux.

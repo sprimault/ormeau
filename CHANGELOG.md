@@ -40,11 +40,25 @@ préambule reste en français : il n'est jamais publié.
 que la base ait bougé : les objets de `public` y sortent qualifiés, dans
 `type_brut` (`public.citext`), les défauts, les vérifications, les prédicats
 d'index et les vues. `version_ri` ne bouge pas, et un calque plus ancien reste
-lisible. Le calque logique et les entités ne changent pas, sauf une séquence
-hors de `public` extraite par une session dont le `search_path` contenait son
-schéma : sous ORM 2, son nom se qualifie dans `Base/`.
+lisible. L'extraction seule ne change ni le calque logique ni les entités, sauf
+une séquence hors de `public` extraite par une session dont le `search_path`
+contenait son schéma : sous ORM 2, son nom se qualifie dans `Base/`.
+
+**Sous ORM 2, une clé dont la séquence n'a pas 1 pour minimum change à la
+régénération** : `#[ORM\SequenceGenerator]` reçoit `initialValue`. Relancer
+`ormeau inferer`, puis `ormeau:generer` ; le calque logique porte désormais
+l'incrément et le minimum de la séquence.
 
 ### Corrigé
+
+- **`migrations:diff` ne propose plus de modifier le minimum d'une séquence**,
+  sous ORM 2. DBAL 3 le relit comme valeur initiale et le comparait au 1 par
+  défaut : l'`ALTER SEQUENCE` proposé réussissait, y compris sur une base
+  partagée entre applications. Quand l'incrément diffère de 1, l'`ALTER` reste
+  proposé, et `ormeau:generer` dit de ne pas l'appliquer : un incrément de 10
+  réserve des blocs ou sépare plusieurs nœuds, la base ne dit pas lequel, et
+  aligner `allocationSize` produirait des collisions d'identifiants dans le
+  second cas.
 
 - **Deux extractions de la même base ne dépendent plus de la session.** Le
   `search_path` du rôle ou du DSN décidait quels noms le catalogue qualifiait :
@@ -69,12 +83,26 @@ schéma : sous ORM 2, son nom se qualifie dans `Base/`.
 **A PostgreSQL layer already saved changes at its next extraction**, although
 the database has not moved: objects in `public` come out qualified, in
 `type_brut` (`public.citext`), defaults, checks, index predicates and views.
-`version_ri` does not change, and an older layer stays readable. The logical
-layer and the entities do not change, except for a sequence outside `public`
-extracted by a session whose `search_path` contained its schema: under ORM 2,
-its name becomes qualified in `Base/`.
+`version_ri` does not change, and an older layer stays readable. Extraction
+alone changes neither the logical layer nor the entities, except for a sequence
+outside `public` extracted by a session whose `search_path` contained its
+schema: under ORM 2, its name becomes qualified in `Base/`.
+
+**Under ORM 2, a key whose sequence does not have 1 as its minimum changes on
+regeneration**: `#[ORM\SequenceGenerator]` gets `initialValue`. Run
+`ormeau inferer`, then `ormeau:generer`; the logical layer now carries the
+sequence's increment and minimum.
 
 ### Fixed
+
+- **`migrations:diff` no longer proposes to change a sequence's minimum**,
+  under ORM 2. DBAL 3 reads it back as the initial value and compared it with
+  the default 1: the proposed `ALTER SEQUENCE` succeeded, including on a
+  database shared between applications. When the increment is not 1, the
+  `ALTER` is still proposed, and `ormeau:generer` says not to apply it: an
+  increment of 10 either reserves blocks or separates several nodes, the
+  database does not say which, and aligning `allocationSize` would cause
+  identifier collisions in the second case.
 
 - **Two extractions of the same database no longer depend on the session.**
   The `search_path` of the role or the DSN decided which names the catalogue

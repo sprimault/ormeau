@@ -117,6 +117,15 @@ export interface Identifiant {
   proprietes: string[];
   strategie: StrategieIdentifiant;
   sequence?: string;
+  /**
+   * SequenceIncrement et SequenceMinimum recopient la séquence du physique
+   * quand le nom lu dans le défaut la désigne sans ambiguïté, et restent
+   * absents sinon. Ce sont des faits et non des réglages d'ORM : un incrément
+   * de 10 réserve des blocs ou sépare plusieurs nœuds, et la base ne dit pas
+   * lequel. Pointeurs, parce qu'un minimum vaut souvent 0.
+   */
+  sequence_increment?: number /* int64 */;
+  sequence_minimum?: number /* int64 */;
 }
 /**
  * StrategieIdentifiant dit qui produit la valeur de la clé.

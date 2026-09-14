@@ -103,6 +103,9 @@ final class AttendusTest extends TestCase
         foreach ($rapport->divergences as $divergence) {
             $lignes[] = 'à reprendre ' . $divergence->message();
         }
+        foreach ($rapport->sequences as $sequence) {
+            $lignes[] = 'séquence ' . $sequence->message();
+        }
 
         return implode("\n", $lignes) . "\n";
     }

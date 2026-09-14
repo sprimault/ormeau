@@ -306,7 +306,7 @@ func inferrerEntite(t *calque.Table, d *Decisions, prefixes []string, schema *sc
 	avertissements = append(avertissements, avs...)
 	entite.Associations = associations
 
-	identifiant, avs := inferrerIdentifiant(t, cible, parColonne)
+	identifiant, avs := inferrerIdentifiant(t, cible, parColonne, schema.sequences)
 	avertissements = append(avertissements, avs...)
 	entite.Identifiant = identifiant
 
@@ -440,7 +440,7 @@ func inferrerPropriete(c *calque.Colonne, cibleTable string, d *Decisions) (calq
 // Une table sans clé primaire n'en reçoit pas d'inventée : Doctrine refusera
 // l'entité, et c'est préférable à une clé choisie au hasard qui produirait des
 // doublons silencieux.
-func inferrerIdentifiant(t *calque.Table, cible string, parColonne map[string]*calque.Propriete) (*calque.Identifiant, []calque.Avertissement) {
+func inferrerIdentifiant(t *calque.Table, cible string, parColonne map[string]*calque.Propriete, sequences []calque.Sequence) (*calque.Identifiant, []calque.Avertissement) {
 	var avertissements []calque.Avertissement
 
 	if t.ClePrimaire == nil || len(t.ClePrimaire.Colonnes) == 0 {
@@ -485,6 +485,18 @@ func inferrerIdentifiant(t *calque.Table, cible string, parColonne map[string]*c
 			}
 			identifiant.Strategie = calque.IdentifiantSequence
 			identifiant.Sequence = nom
+
+			ecrit, _ := nomEcritDeSequence(colonnePhysique.Defaut.Valeur)
+			if s := rattacherSequence(ecrit, sequences); s != nil {
+				if s.Increment != 0 {
+					increment := s.Increment
+					identifiant.SequenceIncrement = &increment
+				}
+				if s.Minimum != nil {
+					minimum := *s.Minimum
+					identifiant.SequenceMinimum = &minimum
+				}
+			}
 		}
 	}
 
@@ -494,6 +506,7 @@ func inferrerIdentifiant(t *calque.Table, cible string, parColonne map[string]*c
 		// surprise à la génération.
 		identifiant.Strategie = calque.IdentifiantAssignee
 		identifiant.Sequence = ""
+		identifiant.SequenceIncrement, identifiant.SequenceMinimum = nil, nil
 		avertissements = append(avertissements, calque.Avertissement{
 			Code:       calque.CodeClePrimaireComposite,
 			Cible:      cible,

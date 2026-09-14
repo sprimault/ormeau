@@ -141,6 +141,9 @@ final class GenererCommande extends Command
         foreach ($rapport->divergences as $divergence) {
             $sortie->writeln('<comment>à reprendre ' . OutputFormatter::escape($divergence->message()) . '</comment>');
         }
+        foreach ($rapport->sequences as $sequence) {
+            $sortie->writeln('<comment>séquence ' . OutputFormatter::escape($sequence->message()) . '</comment>');
+        }
 
         if ($calque->avertissements !== []) {
             $sortie->writeln(sprintf('%d avertissement(s) dans le calque :', count($calque->avertissements)));
