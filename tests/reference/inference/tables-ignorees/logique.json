@@ -1,0 +1,22 @@
+{
+  "version_ri": 1,
+  "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000023",
+  "espace_de_noms": "App\\Entity",
+  "entites": [],
+  "avertissements": [
+    {
+      "code": "table_ignoree",
+      "cible": "public.journal_import",
+      "message": "table écartée par une décision",
+      "resolution": "ignoree",
+      "confiance": 1
+    },
+    {
+      "code": "table_ignoree",
+      "cible": "public.migrations",
+      "message": "table écartée par une décision",
+      "resolution": "ignoree",
+      "confiance": 1
+    }
+  ]
+}

@@ -45,6 +45,10 @@ func Inferer(p *calque.Physique, d *Decisions) (*calque.Logique, []calque.Averti
 		VersionRI:         calque.VersionCourante,
 		EmpreintePhysique: p.Source.Empreinte,
 		EspaceDeNoms:      espaceDeNoms(d),
+		// Vide et non nulle : le schéma exige une liste, et un calque dont
+		// toutes les tables sont écartées s'écrirait sinon "entites": null, que
+		// le lecteur PHP prend pour un champ absent.
+		Entites: []calque.Entite{},
 	}
 
 	ignorees := ensemble(d.TablesIgnorees)

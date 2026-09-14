@@ -101,18 +101,27 @@ final class LecteurCalqueTest extends TestCase
     }
 
     /**
-     * Une version antérieure passe : elle ne contient rien d'inconnu.
+     * Aucune version antérieure à 1 n'a existé : 0 et les négatifs sont refusés,
+     * comme par le JSON Schema et les lecteurs Go. Tant qu'il n'y a qu'une
+     * version, c'est tout ce qu'« antérieure » peut vouloir dire.
      */
-    public function testAccepteUneVersionAnterieure(): void
+    public function testRefuseUneVersionInferieureAUn(): void
     {
-        $chemin = $this->fichier([
-            'version_ri' => 1,
-            'empreinte_physique' => 'sha256:' . str_repeat('b', 64),
-            'espace_de_noms' => 'App\\Entity',
-            'entites' => [],
-        ]);
+        foreach ([0, -3] as $version) {
+            $chemin = $this->fichier([
+                'version_ri' => $version,
+                'empreinte_physique' => 'sha256:' . str_repeat('b', 64),
+                'espace_de_noms' => 'App\\Entity',
+                'entites' => [],
+            ]);
 
-        self::assertSame(1, (new LecteurCalque())->lire($chemin)->versionRi);
+            try {
+                (new LecteurCalque())->lire($chemin);
+                self::fail(sprintf('calque accepté en version %d', $version));
+            } catch (CalqueInvalide $e) {
+                self::assertStringContainsString('version_ri', $e->getMessage());
+            }
+        }
     }
 
     /**

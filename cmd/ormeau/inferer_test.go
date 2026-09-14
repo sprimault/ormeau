@@ -63,6 +63,31 @@ func TestInfererDeduitLesTroisChemins(t *testing.T) {
 	}
 }
 
+// Le calque logique passé à la place du physique : il porte une version
+// valide, et la commande écrivait gescom.logique.logique.json, vide, avec son
+// fichier de décisions. Elle refuse désormais, en nommant le champ absent, et
+// n'écrit rien.
+func TestInfererRefuseUnCalqueLogique(t *testing.T) {
+	t.Parallel()
+
+	chemin := calqueDEssai(t, "gescom.calque.json")
+	if err := inferer([]string{chemin}); err != nil {
+		t.Fatalf("inferer : %v", err)
+	}
+	repertoire := filepath.Dir(chemin)
+	logique := filepath.Join(repertoire, "gescom.logique.json")
+
+	err := inferer([]string{logique})
+	if err == nil || !strings.Contains(err.Error(), "source") {
+		t.Fatalf("erreur %v, attendu un refus qui nomme source", err)
+	}
+	for _, produit := range []string{"gescom.logique.logique.json", "gescom.logique.decisions.yaml"} {
+		if _, err := os.Stat(filepath.Join(repertoire, produit)); err == nil {
+			t.Errorf("%s écrit malgré le refus", produit)
+		}
+	}
+}
+
 // TestInfererNEcrasePasLesDecisions est le test qui protège le travail de
 // l'utilisateur.
 //
