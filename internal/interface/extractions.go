@@ -11,7 +11,6 @@ import (
 	"log/slog"
 	"net/http"
 	"path/filepath"
-	"regexp"
 	"slices"
 	"strconv"
 	"sync"
@@ -46,18 +45,11 @@ const (
 	evenementRetrait    = "retrait"
 )
 
-// motifBase est ce qu'un nom de base doit respecter pour nommer un fichier.
-//
-// Refusé plutôt que nettoyé : PostgreSQL accepte « ../x » comme nom de base
-// entre guillemets, et un nettoyage se contourne là où un refus tient. L'écran
-// d'arbitrage recevra ce même nom du front pour relire le calque, et doit
-// appliquer la même règle : une base extraite ici doit pouvoir y être rouverte.
-var motifBase = regexp.MustCompile(`^[\p{L}\p{N}_-]+$`)
-
 // baseValide refuse un nom de base qui ne peut pas nommer un fichier du
-// répertoire de travail. Rend false quand il a déjà répondu.
+// répertoire de travail, selon la règle que la ligne de commande applique
+// aussi. Rend false quand il a déjà répondu.
 func baseValide(w http.ResponseWriter, base string) bool {
-	if motifBase.MatchString(base) {
+	if calque.NomDeBaseValide(base) {
 		return true
 	}
 	repondreErreur(w, http.StatusBadRequest,

@@ -110,6 +110,11 @@ chiffrement dans le nouveau champ, puis « Mettre à jour ce profil ».
   composants partait toujours avec le défaut du pilote, `prefer` : TLS sans
   vérification du certificat, avec repli en clair. Il se choisit dans le
   formulaire, se garde dans le profil et parvient au pilote.
+- **`ormeau extraire` sans `--base` n'écrit plus hors du répertoire de
+  sortie.** Le nom d'une base servait tel quel à nommer son calque, et
+  PostgreSQL accepte `../x` comme nom de base. Une base dont le nom ne peut pas
+  nommer un fichier est sautée et signalée, avec la règle déjà appliquée par
+  l'interface.
 
 ***
 
@@ -187,6 +192,10 @@ new field, then “Update this profile”.
   driver default, `prefer`: TLS without certificate verification, falling back
   to plain text. It is chosen in the form, kept in the profile and reaches the
   driver.
+- **`ormeau extraire` without `--base` no longer writes outside the output
+  directory.** A database name was used as is to name its layer, and PostgreSQL
+  accepts `../x` as a database name. A database whose name cannot name a file
+  is skipped and reported, with the rule the interface already applies.
 
 ## [0.5.1] — 2026-09-14 — Ce que les bases réelles cassaient
 

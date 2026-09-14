@@ -129,7 +129,7 @@ func TestProfilEnregistreDepuisUnDSN(t *testing.T) {
 
 	reponse := decoderReponse[ReponseProfils](t, poster(s, routeur, "/api/profils", RequeteProfil{
 		Profil:                config.Profil{Nom: "depuis dsn"},
-		DSN:                   "postgresql://postgres:secret@192.168.0.184:30432/cadensio_main",
+		DSN:                   "postgresql://app:secret@192.168.1.10:5433/gescom",
 		EnregistrerMotDePasse: true,
 	}))
 
@@ -142,9 +142,9 @@ func TestProfilEnregistreDepuisUnDSN(t *testing.T) {
 	// le profil porte, pas le préfixe tel qu'il a été tapé.
 	case p.SGBD != "postgres":
 		t.Errorf("sgbd %q", p.SGBD)
-	case p.Hote != "192.168.0.184" || p.Port != 30432:
+	case p.Hote != "192.168.1.10" || p.Port != 5433:
 		t.Errorf("hôte %s:%d", p.Hote, p.Port)
-	case p.Utilisateur != "postgres" || p.Base != "cadensio_main":
+	case p.Utilisateur != "app" || p.Base != "gescom":
 		t.Errorf("utilisateur %q, base %q", p.Utilisateur, p.Base)
 	case !reponse.Profils[0].MotDePasseEnregistre:
 		t.Error("le mot de passe du DSN n'a pas été retenu")
@@ -165,13 +165,13 @@ func TestDSNSansCaseNEnregistrePasLeMotDePasse(t *testing.T) {
 
 	reponse := decoderReponse[ReponseProfils](t, poster(s, routeur, "/api/profils", RequeteProfil{
 		Profil: config.Profil{Nom: "depuis dsn"},
-		DSN:    "postgresql://postgres:secret@192.168.0.184:30432/cadensio_main",
+		DSN:    "postgresql://app:secret@192.168.1.10:5433/gescom",
 	}))
 
 	if reponse.Profils[0].MotDePasseEnregistre {
 		t.Error("un mot de passe de DSN est enregistré sans que la case soit cochée")
 	}
-	if reponse.Profils[0].Profil.Hote != "192.168.0.184" {
+	if reponse.Profils[0].Profil.Hote != "192.168.1.10" {
 		t.Errorf("le reste du DSN n'a pas été retenu : %+v", reponse.Profils[0].Profil)
 	}
 }
@@ -260,8 +260,8 @@ func TestProfilSansDSNDepuisLOngletChaine(t *testing.T) {
 
 	s, _ := serveurDeTest(t)
 	if _, err := s.emplacements.EnregistrerProfil(config.Profil{
-		Nom: "nas", SGBD: "postgres", Hote: "192.168.0.184", Port: 30432,
-		Utilisateur: "postgres", Base: "cadensio_main",
+		Nom: "nas", SGBD: "postgres", Hote: "192.168.1.10", Port: 5433,
+		Utilisateur: "app", Base: "gescom",
 	}, "secret", true); err != nil {
 		t.Fatalf("enregistrement : %v", err)
 	}
@@ -275,7 +275,7 @@ func TestProfilSansDSNDepuisLOngletChaine(t *testing.T) {
 	if err != nil {
 		t.Fatalf("composition : %v", err)
 	}
-	if !strings.Contains(dsn, "192.168.0.184:30432") || !strings.Contains(dsn, "cadensio_main") {
+	if !strings.Contains(dsn, "192.168.1.10:5433") || !strings.Contains(dsn, "gescom") {
 		t.Errorf("dsn composé sans le profil")
 	}
 	if !strings.Contains(dsn, "secret") {
