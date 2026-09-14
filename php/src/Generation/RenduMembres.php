@@ -334,7 +334,7 @@ final class RenduMembres
         }
 
         $lignes[] = Emetteur::attribut('ORM\Column', [
-            'name' => RenduEntite::identifiantSql($propriete->colonne),
+            'name' => IdentifiantsSql::colonne($propriete->colonne),
             'type' => $propriete->typeDoctrine,
             'length' => $propriete->longueur,
             'precision' => $propriete->precision,
@@ -400,10 +400,7 @@ final class RenduMembres
 
         if ($association->proprietaire && $association->tableJointure !== null) {
             $table = $association->tableJointure;
-            $lignes[] = Emetteur::attribut('ORM\JoinTable', [
-                'name' => RenduEntite::identifiantSql($table->nom),
-                'schema' => $this->avecSchema ? RenduEntite::identifiantSql($table->schema) : null,
-            ], $i);
+            $lignes[] = Emetteur::attribut('ORM\JoinTable', IdentifiantsSql::table($table->nom, $this->avecSchema ? $table->schema : null), $i);
             foreach ($table->jointure as $jointure) {
                 $lignes[] = Emetteur::attribut('ORM\JoinColumn', self::argumentsJointure($jointure, false), $i);
             }
@@ -437,8 +434,8 @@ final class RenduMembres
         $action = $jointure->aLaSuppression;
 
         return [
-            'name' => RenduEntite::identifiantSql($jointure->colonne),
-            'referencedColumnName' => RenduEntite::identifiantSql($jointure->colonneReferencee),
+            'name' => IdentifiantsSql::colonne($jointure->colonne),
+            'referencedColumnName' => IdentifiantsSql::colonne($jointure->colonneReferencee),
             'nullable' => $surLEntite && !$jointure->nullable ? false : null,
             'onDelete' => $action === null || $action === ActionSuppression::Aucune ? null : self::ON_DELETE[$action->value],
         ];

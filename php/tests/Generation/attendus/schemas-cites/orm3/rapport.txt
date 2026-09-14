@@ -1,0 +1,14 @@
+créé Base/AvoirBase.php
+créé Avoir.php
+créé Base/ProduitBase.php
+créé Produit.php
+créé Base/TagBase.php
+créé Tag.php
+créé Base/UserBase.php
+créé User.php
+créé Base/ClientBase.php
+créé Client.php
+créé Base/LeftBase.php
+créé Left.php
+omise Produit::tag : table de jointure Compta.produit_tag dans un schéma à citer, que Doctrine n'écrit pas cité
+omise Tag::produit : table de jointure Compta.produit_tag dans un schéma à citer, que Doctrine n'écrit pas cité

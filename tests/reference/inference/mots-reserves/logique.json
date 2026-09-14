@@ -1,0 +1,115 @@
+{
+  "version_ri": 1,
+  "empreinte_physique": "sha256:000000000000000000000000000000000000000000000000000000000000001b",
+  "espace_de_noms": "App\\Entity",
+  "entites": [
+    {
+      "nom": "Group",
+      "table": {
+        "nom": "group",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "userId",
+          "colonne": "user_id",
+          "type_php": "?int",
+          "type_doctrine": "integer",
+          "nullable": true,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "user",
+          "genre": "plusieurs_vers_un",
+          "cible": "User",
+          "proprietaire": true,
+          "inversee_par": "group",
+          "jointure": [
+            {
+              "colonne": "user_id",
+              "colonne_referencee": "id",
+              "nullable": true
+            }
+          ],
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "un seul schéma, donc aucun schéma écrit : la table réservée se cite",
+      "origine": "nommage"
+    },
+    {
+      "nom": "User",
+      "table": {
+        "nom": "user",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "order",
+          "colonne": "order",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "left",
+          "colonne": "left",
+          "type_php": "?string",
+          "type_doctrine": "text",
+          "nullable": true,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "between",
+          "colonne": "between",
+          "type_php": "?int",
+          "type_doctrine": "integer",
+          "nullable": true,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "group",
+          "genre": "un_vers_plusieurs",
+          "cible": "Group",
+          "proprietaire": false,
+          "mappee_par": "user",
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    }
+  ]
+}

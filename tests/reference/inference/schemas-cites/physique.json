@@ -1,0 +1,182 @@
+{
+  "version_ri": 1,
+  "source": {
+    "sgbd": "postgres",
+    "version": "17.6",
+    "catalogue": "gescom",
+    "schema": "public",
+    "extrait_le": "2026-01-01T00:00:00Z",
+    "empreinte": "sha256:000000000000000000000000000000000000000000000000000000000000001a"
+  },
+  "tables": [
+    {
+      "nom": "avoir",
+      "schema": "Compta",
+      "commentaire": "seul le schéma est à citer",
+      "colonnes": [
+        {
+          "nom": "id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true
+        },
+        {
+          "nom": "numero",
+          "position": 2,
+          "type_brut": "character varying(20)",
+          "type_normalise": "texte",
+          "longueur": 20,
+          "nullable": false
+        }
+      ],
+      "cle_primaire": {
+        "nom": "avoir_pkey",
+        "colonnes": ["id"]
+      }
+    },
+    {
+      "nom": "produit",
+      "schema": "Compta",
+      "colonnes": [
+        {
+          "nom": "id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true
+        }
+      ],
+      "cle_primaire": {
+        "nom": "produit_pkey",
+        "colonnes": ["id"]
+      }
+    },
+    {
+      "nom": "produit_tag",
+      "schema": "Compta",
+      "commentaire": "table de jointure dans un schéma à citer : aucune forme portable",
+      "colonnes": [
+        {
+          "nom": "produit_id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false
+        },
+        {
+          "nom": "tag_id",
+          "position": 2,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false
+        }
+      ],
+      "cle_primaire": {
+        "nom": "produit_tag_pkey",
+        "colonnes": ["produit_id", "tag_id"]
+      },
+      "cles_etrangeres": [
+        {
+          "nom": "produit_tag_produit_id_fkey",
+          "colonnes": ["produit_id"],
+          "table_cible": "produit",
+          "schema_cible": "Compta",
+          "colonnes_cibles": ["id"]
+        },
+        {
+          "nom": "produit_tag_tag_id_fkey",
+          "colonnes": ["tag_id"],
+          "table_cible": "tag",
+          "schema_cible": "Compta",
+          "colonnes_cibles": ["id"]
+        }
+      ]
+    },
+    {
+      "nom": "tag",
+      "schema": "Compta",
+      "colonnes": [
+        {
+          "nom": "id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true
+        }
+      ],
+      "cle_primaire": {
+        "nom": "tag_pkey",
+        "colonnes": ["id"]
+      }
+    },
+    {
+      "nom": "user",
+      "schema": "order",
+      "commentaire": "schéma et table en mots réservés, sans majuscule ni accent",
+      "colonnes": [
+        {
+          "nom": "id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true
+        },
+        {
+          "nom": "select",
+          "position": 2,
+          "type_brut": "character varying(20)",
+          "type_normalise": "texte",
+          "longueur": 20,
+          "nullable": true
+        }
+      ],
+      "cle_primaire": {
+        "nom": "user_pkey",
+        "colonnes": ["id"]
+      }
+    },
+    {
+      "nom": "client",
+      "schema": "public",
+      "commentaire": "schéma par défaut : rien ne change",
+      "colonnes": [
+        {
+          "nom": "id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true
+        }
+      ],
+      "cle_primaire": {
+        "nom": "client_pkey",
+        "colonnes": ["id"]
+      }
+    },
+    {
+      "nom": "left",
+      "schema": "public",
+      "commentaire": "mot réservé derrière un schéma ordinaire : accepté tel quel, comme en 0.5.0",
+      "colonnes": [
+        {
+          "nom": "id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true
+        }
+      ],
+      "cle_primaire": {
+        "nom": "left_pkey",
+        "colonnes": ["id"]
+      }
+    }
+  ]
+}

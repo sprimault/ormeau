@@ -107,6 +107,45 @@ final class RegenerationTest extends TestCase
     }
 
     /**
+     * Une classe créée en 0.5.0 dans un schéma à citer porte des backticks sur
+     * le schéma, forme que PostgreSQL refusait : la divergence le dit, pour
+     * que la régénération ne passe pas pour la cause. Même chose pour un mot
+     * réservé écrit nu sans schéma.
+     */
+    public function testUneFormeCasseeEn050SeSignaleCommeInutilisable(): void
+    {
+        $this->generer(self::schemas());
+        $avoir = $this->sortie . '/Avoir.php';
+        file_put_contents($avoir, str_replace(
+            "#[ORM\\Table(name: '`avoir`', schema: 'Compta')]",
+            "#[ORM\\Table(name: 'avoir', schema: '`Compta`')]",
+            (string) file_get_contents($avoir),
+        ));
+        $avant = (string) file_get_contents($avoir);
+
+        $messages = array_map(static fn($d): string => $d->message(), $this->generer(self::schemas())->divergences);
+
+        self::assertSame($avant, file_get_contents($avoir));
+        $actuel = $avoir . " ligne 13 : #[ORM\\Table(name: 'avoir', schema: '`Compta`')], ";
+        $cassee = ' ; forme écrite par la 0.5.0, que PostgreSQL refuse : cette table était inutilisable';
+        self::assertSame([
+            $actuel . 'la table s\'appelle maintenant `avoir`' . $cassee,
+            $actuel . 'la table est dans le schéma Compta' . $cassee,
+        ], $messages);
+
+        Repertoires::supprimer($this->sortie);
+        $this->sortie = Repertoires::creer();
+        $this->generer(self::calque('user'));
+        $client = $this->sortie . '/Client.php';
+        file_put_contents($client, str_replace("name: '`user`'", "name: 'user'", (string) file_get_contents($client)));
+
+        self::assertSame(
+            [$client . " ligne 13 : #[ORM\\Table(name: 'user')], la table s'appelle maintenant `user`" . $cassee],
+            array_map(static fn($d): string => $d->message(), $this->generer(self::calque('user'))->divergences),
+        );
+    }
+
+    /**
      * Un commentaire de table ajouté, changé ou retiré en base se signale sur
      * #[ORM\Table], qui le porte pour schema:create ; le docblock de la classe
      * appartient à l'utilisateur et n'est pas relu.
@@ -314,6 +353,35 @@ final class RegenerationTest extends TestCase
                         'nom' => 'client', 'genre' => 'plusieurs_vers_un', 'cible' => 'Client', 'proprietaire' => true, 'origine' => 'contrainte',
                         'jointure' => [['colonne' => 'client_id', 'colonne_referencee' => 'id', 'nullable' => false]],
                     ]],
+                ],
+            ],
+        ]);
+    }
+
+    /**
+     * Un calque sur deux schémas : un Avoir dans Compta, schéma à citer, et un
+     * Client dans public.
+     */
+    private static function schemas(): CalqueLogique
+    {
+        $id = ['nom' => 'id', 'colonne' => 'id', 'type_php' => 'int', 'type_doctrine' => 'integer', 'nullable' => false];
+
+        return CalqueLogique::depuisTableau([
+            'version_ri' => 1,
+            'empreinte_physique' => 'sha256:' . str_repeat('a', 64),
+            'espace_de_noms' => 'App\\Entity',
+            'entites' => [
+                [
+                    'nom' => 'Avoir',
+                    'table' => ['nom' => 'avoir', 'schema' => 'Compta'],
+                    'identifiant' => ['proprietes' => ['id'], 'strategie' => 'identite'],
+                    'proprietes' => [$id],
+                ],
+                [
+                    'nom' => 'Client',
+                    'table' => ['nom' => 'client', 'schema' => 'public'],
+                    'identifiant' => ['proprietes' => ['id'], 'strategie' => 'identite'],
+                    'proprietes' => [$id],
                 ],
             ],
         ]);

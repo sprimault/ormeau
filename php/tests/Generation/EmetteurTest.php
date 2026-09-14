@@ -67,19 +67,6 @@ final class EmetteurTest extends TestCase
     }
 
     /**
-     * Seul un identifiant SQL simple en minuscules reste nu : une majuscule, un
-     * espace ou un accent imposent les backticks, sans quoi PostgreSQL
-     * chercherait une autre table.
-     */
-    public function testCiteCeQuiNestPasUnIdentifiantSimple(): void
-    {
-        self::assertSame('client_id', RenduEntite::identifiantSql('client_id'));
-        self::assertSame('`T_CLIENTS`', RenduEntite::identifiantSql('T_CLIENTS'));
-        self::assertSame('`N° Commande`', RenduEntite::identifiantSql('N° Commande'));
-        self::assertSame('`1er`', RenduEntite::identifiantSql('1er'));
-    }
-
-    /**
      * Un commentaire de base qui ferme le docblock n'injecte pas de code : la
      * barre oblique qui suit l'étoile est échappée, et le docblock produit se
      * relit comme un seul commentaire.

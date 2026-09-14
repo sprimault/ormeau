@@ -68,10 +68,12 @@ final class ControleClasseUtilisateur
      *                                                                                             #[ORM\Table]
      * @param RacineHeritage|null                      $racine     ce que la classe déclare comme racine d'un
      *                                                             héritage ; null quand elle n'en est pas une
+     * @param array{name: string, schema: string|null}|null $tableEn050 name et schema tels que la 0.5.0 les
+     *                                                                   écrivait (RenduEntite::argumentsTableEn050)
      *
      * @return list<Divergence> vide quand la classe correspond
      */
-    public function comparer(string $chemin, string $source, string $classe, string $base, array $table, ?RacineHeritage $racine = null): array
+    public function comparer(string $chemin, string $source, string $classe, string $base, array $table, ?RacineHeritage $racine = null, ?array $tableEn050 = null): array
     {
         try {
             $ast = (new ParserFactory())->createForNewestSupportedVersion()->parse($source) ?? [];
@@ -111,16 +113,21 @@ final class ControleClasseUtilisateur
             ));
         } else {
             $actuel = self::texte($source, $attribut);
-            if ($this->argument($attribut, 'name', 0) !== $table['name']) {
+            $nomActuel = $this->argument($attribut, 'name', 0);
+            $schemaActuel = $this->argument($attribut, 'schema', 1);
+            $en050 = self::cassee050($nomActuel, $schemaActuel, $table, $tableEn050);
+            if ($nomActuel !== $table['name']) {
                 $divergences[] = new Divergence($chemin, $attribut->getStartLine(), $actuel, sprintf(
-                    'la table s\'appelle maintenant %s',
+                    'la table s\'appelle maintenant %s%s',
                     $table['name'],
+                    $en050,
                 ));
             }
-            if ($table['schema'] !== null && $this->argument($attribut, 'schema', 1) !== $table['schema']) {
+            if ($table['schema'] !== null && $schemaActuel !== $table['schema']) {
                 $divergences[] = new Divergence($chemin, $attribut->getStartLine(), $actuel, sprintf(
-                    'la table est dans le schéma %s',
+                    'la table est dans le schéma %s%s',
                     $table['schema'],
+                    $en050,
                 ));
             }
             $commentaire = $table['options']['comment'] ?? null;
@@ -268,6 +275,32 @@ final class ControleClasseUtilisateur
         }
 
         return null;
+    }
+
+    /**
+     * Rend le complément du message quand la classe porte la forme cassée de
+     * la 0.5.0, ou une chaîne vide.
+     *
+     * Rétro-compatibilité datée, isolée ici avec RenduEntite::
+     * argumentsTableEn050 : sans elle, l'utilisateur lirait qu'une
+     * régénération casse une table qui ne fonctionnait pas. La condition est
+     * stricte — l'attribut est exactement ce que la 0.5.0 écrivait, et cette
+     * forme diffère de l'attendue — : hors de là, la phrase serait fausse. À
+     * retirer avec argumentsTableEn050.
+     *
+     * @param array{name: string, schema: string|null, options: array{comment: string}|null} $table      attendus
+     * @param array{name: string, schema: string|null}|null                                  $tableEn050 forme 0.5.0
+     */
+    private static function cassee050(?string $nom, ?string $schema, array $table, ?array $tableEn050): string
+    {
+        if ($tableEn050 === null
+            || ($tableEn050['name'] === $table['name'] && $tableEn050['schema'] === $table['schema'])
+            || $nom !== $tableEn050['name']
+            || $schema !== $tableEn050['schema']) {
+            return '';
+        }
+
+        return ' ; forme écrite par la 0.5.0, que PostgreSQL refuse : cette table était inutilisable';
     }
 
     /**

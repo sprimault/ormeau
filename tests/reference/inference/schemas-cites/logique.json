@@ -1,0 +1,220 @@
+{
+  "version_ri": 1,
+  "empreinte_physique": "sha256:000000000000000000000000000000000000000000000000000000000000001a",
+  "espace_de_noms": "App\\Entity",
+  "entites": [
+    {
+      "nom": "Avoir",
+      "table": {
+        "nom": "avoir",
+        "schema": "Compta"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "numero",
+          "colonne": "numero",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 20,
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "seul le schéma est à citer",
+      "origine": "nommage"
+    },
+    {
+      "nom": "Produit",
+      "table": {
+        "nom": "produit",
+        "schema": "Compta"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "tag",
+          "genre": "plusieurs_vers_plusieurs",
+          "cible": "Tag",
+          "proprietaire": true,
+          "inversee_par": "produit",
+          "table_jointure": {
+            "nom": "produit_tag",
+            "schema": "Compta",
+            "jointure": [
+              {
+                "colonne": "produit_id",
+                "colonne_referencee": "id",
+                "nullable": false
+              }
+            ],
+            "jointure_inverse": [
+              {
+                "colonne": "tag_id",
+                "colonne_referencee": "id",
+                "nullable": false
+              }
+            ]
+          },
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "Tag",
+      "table": {
+        "nom": "tag",
+        "schema": "Compta"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "produit",
+          "genre": "plusieurs_vers_plusieurs",
+          "cible": "Produit",
+          "proprietaire": false,
+          "mappee_par": "tag",
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "User",
+      "table": {
+        "nom": "user",
+        "schema": "order"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "select",
+          "colonne": "select",
+          "type_php": "?string",
+          "type_doctrine": "string",
+          "nullable": true,
+          "longueur": 20,
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "schéma et table en mots réservés, sans majuscule ni accent",
+      "origine": "nommage"
+    },
+    {
+      "nom": "Client",
+      "table": {
+        "nom": "client",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "schéma par défaut : rien ne change",
+      "origine": "nommage"
+    },
+    {
+      "nom": "Left",
+      "table": {
+        "nom": "left",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "mot réservé derrière un schéma ordinaire : accepté tel quel, comme en 0.5.0",
+      "origine": "nommage"
+    }
+  ],
+  "avertissements": [
+    {
+      "code": "table_de_jointure",
+      "cible": "Compta.produit_tag",
+      "message": "deux clés étrangères et rien d'autre : rendue en association Produit vers Tag, sans entité",
+      "resolution": "par_defaut",
+      "confiance": 0.9
+    }
+  ]
+}
