@@ -330,6 +330,20 @@ final class GenerateurEntite
         if ($entite->identifiant === null) {
             return 'la table n\'a pas de clé primaire, et Doctrine exige un identifiant';
         }
+        // Deux valeurs que le contrat v1 déclare et qu'aucune version d'Ormeau
+        // ne produit : leur rendu n'a jamais été essayé, et orphanRemoval
+        // supprime des lignes — Doctrine le refuse même sur un
+        // plusieurs-vers-un. Seul un calque retouché à la main les porte ;
+        // elles quittent le format à sa prochaine version.
+        $retouche = 'calque retouché, à recalculer par ormeau inferer';
+        if ($entite->identifiant->strategie === StrategieIdentifiant::Aucune) {
+            return sprintf('la stratégie d\'identifiant aucune n\'est produite par aucune version d\'Ormeau (une table sans clé n\'a pas d\'identifiant) : %s', $retouche);
+        }
+        foreach ($entite->associations as $association) {
+            if ($association->orphelinsSupprimes) {
+                return sprintf('l\'association %s porte orphelins_supprimes, qu\'aucune version d\'Ormeau ne produit : %s', $association->nom, $retouche);
+            }
+        }
         // Sous ORM 2, la clé par séquence passe par NEXTVAL('<nom>'), que
         // Doctrine écrit sans échapper le nom : une apostrophe y ferait une
         // erreur SQL à chaque persist, ou une injection si le calque a été

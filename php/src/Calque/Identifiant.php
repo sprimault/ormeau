@@ -12,8 +12,8 @@ namespace Ormeau\Doctrine\Calque;
  *
  * Plusieurs propriétés signifient une clé composite, cas courant sur une base
  * reprise et que Doctrine accepte à condition de marquer chacune d'un #[Id].
- * Une table sans clé primaire porte la stratégie Aucune : la génération doit le
- * signaler, pas choisir une colonne à sa place.
+ * Une table sans clé primaire n'en a pas : l'entité n'a pas d'identifiant, et
+ * la génération l'écarte plutôt que de choisir une colonne à sa place.
  */
 final class Identifiant
 {

@@ -16,6 +16,10 @@ enum TypeSupport: string
     /** Énumération adossée à des chaînes. */
     case Chaine = 'string';
 
-    /** Énumération adossée à des entiers. */
+    /**
+     * Énumération adossée à des entiers. Aucune version 1 ne la produit, la
+     * détection ne reconnaissant que des littéraux chaîne : lue et rendue en
+     * attendant l'échantillonnage.
+     */
     case Entier = 'int';
 }

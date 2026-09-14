@@ -64,6 +64,11 @@ chiffrement dans le nouveau champ, puis « Mettre à jour ce profil ».
   partageant une valeur discriminante, écartent la hiérarchie avec sa raison.**
   Un calque retouché produisait des classes en héritage circulaire, ou une
   carte amputée que Doctrine refusait de charger.
+- **Une association qui porte `orphelins_supprimes`, ou un identifiant de
+  stratégie `aucune`, écartent l'entité avec sa raison.** Aucune version ne
+  produit ces valeurs : un calque retouché obtenait un `orphanRemoval` jamais
+  essayé, que Doctrine refuse sur un plusieurs-vers-un. Le code
+  d'avertissement `fk_implicite_probable`, jamais émis, est retiré.
 - **Un profil enregistré depuis une chaîne `clé=valeur` sans port se rouvre.**
   Son SGBD restait vide et la connexion échouait. Cette forme est celle de
   libpq : elle désigne PostgreSQL.
@@ -154,6 +159,11 @@ new field, then “Update this profile”.
   discriminator value, set the hierarchy aside with its reason.** An edited
   layer produced classes with circular inheritance, or a truncated map that
   Doctrine refused to load.
+- **An association carrying `orphelins_supprimes`, or an identifier with the
+  `aucune` strategy, set the entity aside with its reason.** No version
+  produces these values: an edited layer got an untried `orphanRemoval`, which
+  Doctrine refuses on a many-to-one. The `fk_implicite_probable` warning code,
+  never emitted, is removed.
 - **A profile saved from a `key=value` string without a port reopens.** Its
   DBMS stayed empty and the connection failed. This is libpq's form: it means
   PostgreSQL.

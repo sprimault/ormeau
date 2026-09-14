@@ -33,8 +33,10 @@ final class Association
      * @param list<ColonneJointure> $jointure           colonnes portantes, côté propriétaire d'un lien
      *                                                  sans table de jointure
      * @param TableJointure|null    $tableJointure      table d'association d'un plusieurs-vers-plusieurs
-     * @param bool                  $orphelinsSupprimes orphanRemoval : un élément retiré de la
-     *                                                  collection est supprimé en base
+     * @param bool                  $orphelinsSupprimes orphanRemoval ; produit par aucune version
+     *                                                  d'Ormeau et retiré à la prochaine version du
+     *                                                  format : la génération écarte l'entité qui le
+     *                                                  porte
      */
     public function __construct(
         public readonly string $nom,

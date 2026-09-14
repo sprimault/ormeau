@@ -5,8 +5,13 @@ package inference
 
 import (
 	"flag"
+	"go/ast"
+	"go/parser"
+	"go/token"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/sprimault/ormeau/internal/calque"
@@ -109,6 +114,81 @@ func TestReferenceEstDeterministe(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestChaqueCodeDAvertissementAUnCasDeReference exige que chaque code déclaré
+// dans internal/calque apparaisse dans au moins un calque logique attendu.
+//
+// Les codes sont annoncés stables et servent de filtre en CI : un code déclaré
+// que rien ne produit promet un signal qui n'arrive jamais (invariant 16). Le
+// cas fut `fk_implicite_probable`, déclaré et traduit deux phases avant la
+// détection qui l'émettrait. Un test unitaire ne suffit pas : c'est le cas de
+// référence qui montre le code dans le contrat.
+//
+// Les codes se lisent dans le source plutôt que dans une liste recopiée, qui
+// oublierait le prochain.
+func TestChaqueCodeDAvertissementAUnCasDeReference(t *testing.T) {
+	t.Parallel()
+
+	declares := codesDeclares(t, "../calque/logique.go")
+	if len(declares) == 0 {
+		t.Fatal("aucun code Code* lu dans logique.go : le test ne mesurerait rien")
+	}
+
+	produits := map[string]bool{}
+	for _, cas := range casDeReference(t) {
+		logique, err := calque.LireLogique(filepath.Join(racineReference, cas, "logique.json"))
+		if err != nil {
+			t.Fatalf("lecture du logique de %s : %v", cas, err)
+		}
+		for _, a := range logique.Avertissements {
+			produits[a.Code] = true
+		}
+	}
+
+	for _, nom := range clesTriees(declares) {
+		if !produits[declares[nom]] {
+			t.Errorf("%s (%q) n'apparaît dans aucun cas de %s : ajouter le cas qui le produit, ou retirer le code tant que rien ne l'émet",
+				nom, declares[nom], racineReference)
+		}
+	}
+}
+
+// codesDeclares rend, par nom de constante, la valeur des constantes Code* du
+// fichier.
+func codesDeclares(t *testing.T, chemin string) map[string]string {
+	t.Helper()
+
+	fichier, err := parser.ParseFile(token.NewFileSet(), chemin, nil, 0)
+	if err != nil {
+		t.Fatalf("lecture de %s : %v", chemin, err)
+	}
+
+	codes := map[string]string{}
+	for _, decl := range fichier.Decls {
+		gen, ok := decl.(*ast.GenDecl)
+		if !ok || gen.Tok != token.CONST {
+			continue
+		}
+		for _, spec := range gen.Specs {
+			valeurs := spec.(*ast.ValueSpec)
+			for i, nom := range valeurs.Names {
+				if !strings.HasPrefix(nom.Name, "Code") || i >= len(valeurs.Values) {
+					continue
+				}
+				litteral, ok := valeurs.Values[i].(*ast.BasicLit)
+				if !ok || litteral.Kind != token.STRING {
+					t.Fatalf("%s n'est pas une chaîne littérale : le test ne sait pas le lire", nom.Name)
+				}
+				valeur, err := strconv.Unquote(litteral.Value)
+				if err != nil {
+					t.Fatalf("%s : %v", nom.Name, err)
+				}
+				codes[nom.Name] = valeur
+			}
+		}
+	}
+	return codes
 }
 
 // inferer rend le calque logique sérialisé, pour comparer deux exécutions.

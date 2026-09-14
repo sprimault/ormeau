@@ -21,7 +21,7 @@
   },
   "$defs": {
     "origine": {
-      "description": "D'où vient la décision. Sans ce champ, l'outil n'est pas auditable.",
+      "description": "D'où vient la décision. Sans ce champ, l'outil n'est pas auditable. La version 1 du format ne produit pas cardinalite, qui attend l'échantillonnage.",
       "enum": ["contrainte", "verification", "cardinalite", "nommage", "decision"]
     },
     "entite": {
@@ -81,7 +81,10 @@
       "additionalProperties": false,
       "properties": {
         "proprietes": { "type": "array", "minItems": 1, "items": { "type": "string" } },
-        "strategie": { "enum": ["identite", "sequence", "aucune", "assignee"] },
+        "strategie": {
+          "description": "Qui produit la valeur de la clé. Une table sans clé primaire n'a pas d'identifiant du tout. La version 1 du format ne produit pas aucune, qui se retire à la prochaine version ; un générateur peut écarter l'entité qui la porte.",
+          "enum": ["identite", "sequence", "aucune", "assignee"]
+        },
         "sequence": { "type": "string" },
         "sequence_increment": {
           "description": "Incrément de la séquence, tel que le catalogue le déclare. Présent seulement quand la séquence a été retrouvée dans le calque physique. Un fait, pas un réglage : un incrément supérieur à 1 peut réserver des blocs ou séparer les identifiants de plusieurs nœuds, et la base ne dit pas lequel.",
@@ -111,7 +114,10 @@
         "precision": { "type": "integer", "minimum": 0 },
         "echelle": { "type": "integer" },
         "enumeration": { "type": "string" },
-        "defaut": { "type": "string" },
+        "defaut": {
+          "description": "Valeur par défaut littérale de la colonne, telle que la base la stocke. Un défaut calculé (expression, séquence) n'est pas reporté.",
+          "type": "string"
+        },
         "insertable": { "type": "boolean", "default": true },
         "modifiable": { "type": "boolean", "default": true },
         "unique": { "type": "boolean" },
@@ -143,7 +149,10 @@
         },
         "jointure": { "type": "array", "items": { "$ref": "#/$defs/colonneJointure" } },
         "table_jointure": { "$ref": "#/$defs/tableJointure" },
-        "orphelins_supprimes": { "type": "boolean" },
+        "orphelins_supprimes": {
+          "description": "La version 1 du format ne le produit pas, et il se retire à la prochaine version ; un générateur peut écarter l'entité qui le porte.",
+          "type": "boolean"
+        },
         "origine": { "$ref": "#/$defs/origine" }
       }
     },
@@ -185,7 +194,10 @@
       "additionalProperties": false,
       "properties": {
         "nom": { "type": "string" },
-        "type_support": { "enum": ["string", "int"] },
+        "type_support": {
+          "description": "Type sur lequel l'énumération s'adosse. La version 1 du format ne produit que string : la détection ne reconnaît que des littéraux chaîne.",
+          "enum": ["string", "int"]
+        },
         "cas": {
           "type": "array",
           "minItems": 1,

@@ -2,8 +2,10 @@
 # que l'entité ne mappe plus, Doctrine ne sait ni l'indexer ni l'écrire.
 
 colonnes_ignorees:
-  # Un index simple, et une unicité composite dont l'autre colonne reste.
-  public.client: [raison_sociale, siret]
+  # Un index simple, et une unicité composite dont l'autre colonne reste. La
+  # clé primaire est refusée : Doctrine ne charge pas une entité sans
+  # identifiant.
+  public.client: [raison_sociale, siret, id]
   # Une clé étrangère nullable, et une colonne visée par une relation forcée.
   public.commande: [client_id, reference_client]
   # Une colonne d'une clé étrangère composite : l'association part entière.
