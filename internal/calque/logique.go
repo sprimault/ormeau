@@ -87,6 +87,13 @@ type Identifiant struct {
 	Proprietes []string             `json:"proprietes"`
 	Strategie  StrategieIdentifiant `json:"strategie"`
 	Sequence   string               `json:"sequence,omitempty"`
+	// SequenceIncrement et SequenceMinimum recopient la séquence du physique
+	// quand le nom lu dans le défaut la désigne sans ambiguïté, et restent
+	// absents sinon. Ce sont des faits et non des réglages d'ORM : un incrément
+	// de 10 réserve des blocs ou sépare plusieurs nœuds, et la base ne dit pas
+	// lequel. Pointeurs, parce qu'un minimum vaut souvent 0.
+	SequenceIncrement *int64 `json:"sequence_increment,omitempty"`
+	SequenceMinimum   *int64 `json:"sequence_minimum,omitempty"`
 }
 
 // StrategieIdentifiant dit qui produit la valeur de la clé.

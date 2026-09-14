@@ -14,7 +14,9 @@
           "id"
         ],
         "strategie": "sequence",
-        "sequence": "\"Compta\".\"Bon_Livraison_Id_seq\""
+        "sequence": "\"Compta\".\"Bon_Livraison_Id_seq\"",
+        "sequence_increment": 1,
+        "sequence_minimum": 1
       },
       "proprietes": [
         {
@@ -49,7 +51,9 @@
           "id"
         ],
         "strategie": "sequence",
-        "sequence": "\"Public\".ecriture_id_seq"
+        "sequence": "\"Public\".ecriture_id_seq",
+        "sequence_increment": 1,
+        "sequence_minimum": 1
       },
       "proprietes": [
         {
@@ -84,7 +88,9 @@
           "id"
         ],
         "strategie": "sequence",
-        "sequence": "gescom.avoir_id_seq"
+        "sequence": "gescom.avoir_id_seq",
+        "sequence_increment": 1,
+        "sequence_minimum": 1
       },
       "proprietes": [
         {
@@ -119,7 +125,9 @@
           "id"
         ],
         "strategie": "sequence",
-        "sequence": "\"public\".\"Journal_Id_seq\""
+        "sequence": "\"public\".\"Journal_Id_seq\"",
+        "sequence_increment": 1,
+        "sequence_minimum": 1
       },
       "proprietes": [
         {
@@ -154,7 +162,9 @@
           "id"
         ],
         "strategie": "sequence",
-        "sequence": "\"Majuscule_Id_seq\""
+        "sequence": "\"Majuscule_Id_seq\"",
+        "sequence_increment": 1,
+        "sequence_minimum": 1
       },
       "proprietes": [
         {
@@ -189,7 +199,9 @@
           "id"
         ],
         "strategie": "sequence",
-        "sequence": "ancienne_id_seq"
+        "sequence": "ancienne_id_seq",
+        "sequence_increment": 1,
+        "sequence_minimum": 1
       },
       "proprietes": [
         {
@@ -224,7 +236,9 @@
           "id"
         ],
         "strategie": "sequence",
-        "sequence": "\"séq'bizarre\""
+        "sequence": "\"séq'bizarre\"",
+        "sequence_increment": 1,
+        "sequence_minimum": 1
       },
       "proprietes": [
         {
@@ -246,6 +260,78 @@
         }
       ],
       "commentaire": "séquence libre dont le nom porte une apostrophe, doublée dans le littéral",
+      "origine": "nommage"
+    },
+    {
+      "nom": "Bloc",
+      "table": {
+        "nom": "bloc",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "sequence",
+        "sequence": "bloc_id_seq",
+        "sequence_increment": 10,
+        "sequence_minimum": 5
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "numero",
+          "colonne": "numero",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 20,
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "séquence incrémentée de 10 à partir de 5 : blocs réservés ou nœuds décalés, la base ne dit pas lequel",
+      "origine": "nommage"
+    },
+    {
+      "nom": "Doublon",
+      "table": {
+        "nom": "doublon",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "sequence",
+        "sequence": "doublon_id_seq"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "numero",
+          "colonne": "numero",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 20,
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "calque ancien : nom nu d'une séquence présente dans deux schémas, rien n'est rattaché",
       "origine": "nommage"
     },
     {
@@ -293,7 +379,9 @@
           "id"
         ],
         "strategie": "sequence",
-        "sequence": "facture_id_seq"
+        "sequence": "facture_id_seq",
+        "sequence_increment": 1,
+        "sequence_minimum": 1
       },
       "proprietes": [
         {
@@ -328,7 +416,9 @@
           "id"
         ],
         "strategie": "sequence",
-        "sequence": "reglement_id_seq"
+        "sequence": "reglement_id_seq",
+        "sequence_increment": 1,
+        "sequence_minimum": 1
       },
       "proprietes": [
         {

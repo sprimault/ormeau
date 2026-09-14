@@ -82,7 +82,15 @@
       "properties": {
         "proprietes": { "type": "array", "minItems": 1, "items": { "type": "string" } },
         "strategie": { "enum": ["identite", "sequence", "aucune", "assignee"] },
-        "sequence": { "type": "string" }
+        "sequence": { "type": "string" },
+        "sequence_increment": {
+          "description": "Incrément de la séquence, tel que le catalogue le déclare. Présent seulement quand la séquence a été retrouvée dans le calque physique. Un fait, pas un réglage : un incrément supérieur à 1 peut réserver des blocs ou séparer les identifiants de plusieurs nœuds, et la base ne dit pas lequel.",
+          "type": "integer"
+        },
+        "sequence_minimum": {
+          "description": "Valeur minimale de la séquence, tel que le catalogue la déclare. Présente seulement quand la séquence a été retrouvée dans le calque physique.",
+          "type": "integer"
+        }
       }
     },
     "propriete": {

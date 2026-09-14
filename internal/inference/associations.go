@@ -53,6 +53,10 @@ type schemaLogique struct {
 	// relations donne, par table source qualifiée, les relations forcées qui
 	// s'y appliquent.
 	relations map[string][]relationForcee
+
+	// sequences sont celles du physique, où une clé retrouve la séquence que
+	// son défaut nomme.
+	sequences []calque.Sequence
 }
 
 // jointurePure décrit une table qui n'existe que pour relier deux autres.
@@ -74,6 +78,7 @@ func analyser(p *calque.Physique, d *Decisions, prefixes []string) *schemaLogiqu
 		parents:      map[string]*calque.CleEtrangere{},
 		tables:       map[string]*calque.Table{},
 		heritages:    map[string]heritageRetenu{},
+		sequences:    p.Sequences,
 	}
 
 	ignorees := ensemble(d.TablesIgnorees)

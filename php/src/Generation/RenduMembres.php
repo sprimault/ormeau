@@ -317,7 +317,16 @@ final class RenduMembres
                 $sequence = $identifiant->strategie === StrategieIdentifiant::Sequence && $this->cible->ormMajeure === 2;
                 $lignes[] = Emetteur::attribut('ORM\GeneratedValue', ['strategy' => $sequence ? 'SEQUENCE' : 'IDENTITY'], $indentation);
                 if ($sequence && $identifiant->sequence !== null) {
-                    $lignes[] = Emetteur::attribut('ORM\SequenceGenerator', ['sequenceName' => $identifiant->sequence], $indentation);
+                    // DBAL 3 relit le minimum de la séquence comme sa valeur
+                    // initiale : sans lui, schema:update propose un ALTER.
+                    // Doctrine ne s'en sert que pour créer le schéma, jamais
+                    // pour attribuer un identifiant. allocationSize reste à 1,
+                    // voir SequenceNonAlignee.
+                    $arguments = ['sequenceName' => $identifiant->sequence];
+                    if ($identifiant->sequenceMinimum !== null && $identifiant->sequenceMinimum !== 1) {
+                        $arguments['initialValue'] = $identifiant->sequenceMinimum;
+                    }
+                    $lignes[] = Emetteur::attribut('ORM\SequenceGenerator', $arguments, $indentation);
                 }
             }
         }

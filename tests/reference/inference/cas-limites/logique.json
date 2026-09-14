@@ -83,7 +83,9 @@
           "id"
         ],
         "strategie": "sequence",
-        "sequence": "facture_id_seq"
+        "sequence": "facture_id_seq",
+        "sequence_increment": 1,
+        "sequence_minimum": 1
       },
       "proprietes": [
         {

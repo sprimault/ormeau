@@ -12,6 +12,10 @@ créé Base/AncienneBase.php
 créé Ancienne.php
 créé Base/ApostropheBase.php
 créé Apostrophe.php
+créé Base/BlocBase.php
+créé Bloc.php
+créé Base/DoublonBase.php
+créé Doublon.php
 créé Base/DynamiqueBase.php
 créé Dynamique.php
 créé Base/FactureBase.php

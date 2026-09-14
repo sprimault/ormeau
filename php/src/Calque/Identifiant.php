@@ -18,15 +18,23 @@ namespace Ormeau\Doctrine\Calque;
 final class Identifiant
 {
     /**
-     * @param list<string>         $proprietes noms de propriétés de l'entité — pas de colonnes —,
-     *                                         dans l'ordre de la clé primaire
-     * @param StrategieIdentifiant $strategie  qui produit la valeur de la clé
-     * @param string|null          $sequence   nom de la séquence, présent avec la stratégie Sequence
+     * @param list<string>         $proprietes        noms de propriétés de l'entité — pas de colonnes —,
+     *                                                dans l'ordre de la clé primaire
+     * @param StrategieIdentifiant $strategie         qui produit la valeur de la clé
+     * @param string|null          $sequence          nom de la séquence, présent avec la stratégie Sequence
+     * @param int|null             $sequenceIncrement incrément déclaré de la séquence, présent quand l'inférence
+     *                                                l'a retrouvée dans le calque physique ; un fait, pas une
+     *                                                taille d'allocation : au-delà de 1, il réserve des blocs
+     *                                                ou sépare plusieurs nœuds, et la base ne dit pas lequel
+     * @param int|null             $sequenceMinimum   valeur minimale déclarée de la séquence, présente dans le
+     *                                                même cas
      */
     public function __construct(
         public readonly array $proprietes,
         public readonly StrategieIdentifiant $strategie,
         public readonly ?string $sequence = null,
+        public readonly ?int $sequenceIncrement = null,
+        public readonly ?int $sequenceMinimum = null,
     ) {}
 
     /**
@@ -48,7 +56,9 @@ final class Identifiant
 
         $strategie = Lecture::valeur($donnees, 'strategie', $chemin, StrategieIdentifiant::class);
         $sequence = Lecture::chaineOptionnelle($donnees, 'sequence', $chemin);
+        $increment = Lecture::entierOptionnel($donnees, 'sequence_increment', $chemin);
+        $minimum = Lecture::entierOptionnel($donnees, 'sequence_minimum', $chemin);
 
-        return new self($proprietes, $strategie, $sequence);
+        return new self($proprietes, $strategie, $sequence, $increment, $minimum);
     }
 }
