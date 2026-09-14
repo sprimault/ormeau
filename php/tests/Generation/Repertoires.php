@@ -23,34 +23,33 @@ use SplFileInfo;
  */
 final class Repertoires
 {
-    /** Cas d'inférence dont chaque entité relève de la génération actuelle, ou en est écartée. */
-    public const CAS = [
-        'associations',
-        'cas-limites',
-        'cible-ignoree',
-        'colonnes-ignorees',
-        'decisions',
-        'decisions-invalides',
-        'enumerations',
-        'enumerations-decidees',
-        'heritage',
-        'heritage-decide',
-        'identifiants-penibles',
-        'minimal',
-        'mots-reserves',
-        'nommage-court',
-        'prefixes',
-        'reference-hors-identifiant',
-        'relations-forcees',
-        'schemas-cites',
-        'sequences',
-        'singularisation',
-        'traits',
-        'types',
-    ];
-
     /** Calques logiques de référence, à la racine du dépôt. */
     public const REFERENCES = __DIR__ . '/../../../tests/reference/inference';
+
+    /**
+     * Rend les cas de référence, triés : chaque répertoire qui porte un
+     * logique.json.
+     *
+     * Lus sur le disque et non tenus en liste : la règle du projet veut qu'une
+     * heuristique arrive avec son cas, et un cas oublié dans une liste passait
+     * sans attendu ni validation par Doctrine. Un cas nouveau fait échouer
+     * AttendusTest tant que ses attendus ne sont pas écrits.
+     *
+     * @return list<string>
+     *
+     * @throws RuntimeException répertoire des références introuvable ou vide
+     */
+    public static function cas(): array
+    {
+        $fichiers = glob(self::REFERENCES . '/*/logique.json');
+        if ($fichiers === false || $fichiers === []) {
+            throw new RuntimeException('Aucun cas de référence sous ' . self::REFERENCES);
+        }
+        $cas = array_map(static fn(string $fichier): string => basename(dirname($fichier)), $fichiers);
+        sort($cas);
+
+        return $cas;
+    }
 
     /**
      * Crée un répertoire vide et rend son chemin.
