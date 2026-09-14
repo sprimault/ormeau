@@ -371,10 +371,14 @@ func inferrerPropriete(c *calque.Colonne, cibleTable string, d *Decisions) (calq
 		// si — et c'est le cas courant du O/N d'une base reprise.
 		requalifiee = corr.php != avant
 	} else if !sur {
+		message := "type " + c.TypeBrut + " sans correspondance, rendu en chaîne"
+		if estTableau(c) {
+			message = "type " + c.TypeBrut + " : tableau PostgreSQL sans type Doctrine, rendu en chaîne (littéral {…})"
+		}
 		avertissements = append(avertissements, calque.Avertissement{
 			Code:       calque.CodeTypeNonReconnu,
 			Cible:      cible,
-			Message:    "type " + c.TypeBrut + " sans correspondance, rendu en chaîne",
+			Message:    message,
 			Resolution: calque.ResolutionParDefaut,
 			Confiance:  0.3,
 		})

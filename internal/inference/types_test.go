@@ -59,6 +59,16 @@ func TestTyperColonne(t *testing.T) {
 			calque.Colonne{TypeBrut: "hierarchyid", TypeNormalise: calque.TypeInconnu},
 			"string", "string", false,
 		},
+		{
+			"tableau d'entiers longs, pas un bigint",
+			calque.Colonne{TypeBrut: "bigint[]", TypeNormalise: calque.TypeEntier},
+			"string", "string", false,
+		},
+		{
+			"tableau a deux dimensions, ecrit comme une seule par format_type",
+			calque.Colonne{TypeBrut: "integer[]", TypeNormalise: calque.TypeEntier},
+			"string", "string", false,
+		},
 	}
 
 	for _, c := range cas {

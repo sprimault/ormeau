@@ -52,6 +52,12 @@ abstract class EventailBase
     #[ORM\Column(name: 'total_ligne', type: 'decimal', precision: 14, scale: 4, insertable: false, updatable: false)]
     protected string $totalLigne;
 
+    #[ORM\Column(name: 'quantites', type: 'string', nullable: true)]
+    protected ?string $quantites = null;
+
+    #[ORM\Column(name: 'etiquettes', type: 'string', options: ['default' => '{}'])]
+    protected string $etiquettes = '{}';
+
     public function getCle(): string
     {
         return $this->cle;
@@ -201,5 +207,29 @@ abstract class EventailBase
     public function getTotalLigne(): string
     {
         return $this->totalLigne;
+    }
+
+    public function getQuantites(): ?string
+    {
+        return $this->quantites;
+    }
+
+    public function setQuantites(?string $quantites): static
+    {
+        $this->quantites = $quantites;
+
+        return $this;
+    }
+
+    public function getEtiquettes(): string
+    {
+        return $this->etiquettes;
+    }
+
+    public function setEtiquettes(string $etiquettes): static
+    {
+        $this->etiquettes = $etiquettes;
+
+        return $this;
     }
 }

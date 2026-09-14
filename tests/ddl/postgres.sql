@@ -94,7 +94,9 @@ CREATE TABLE t_avoir (
 CREATE TYPE canal AS ENUM ('web', 'telephone', 'agence');
 CREATE TABLE t_commande (
     cmd_id    int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    cmd_canal canal NOT NULL
+    cmd_canal canal NOT NULL,
+    -- tableau : aucun type Doctrine ne lit son littéral {…}
+    cmd_etiquettes text[]
 );
 
 -- Identifiants réservés et accents, pour éprouver l'échappement.

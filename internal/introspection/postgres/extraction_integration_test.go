@@ -107,6 +107,15 @@ func TestExtraireLesCasTordus(t *testing.T) {
 		}
 	})
 
+	// Le calque n'a pas de notion de tableau : l'élément donne le type
+	// normalisé, et seuls les crochets de type_brut disent le reste.
+	t.Run("tableau", func(t *testing.T) {
+		c := colonneOuEchouer(t, p, "t_commande", "cmd_etiquettes")
+		if c.TypeBrut != "text[]" || c.TypeNormalise != calque.TypeTexte {
+			t.Errorf("type %q normalise en %q, attendu text[] normalise en texte", c.TypeBrut, c.TypeNormalise)
+		}
+	})
+
 	// L'expression reste verbatim : c'est l'inférence qui en lit le nom. Le
 	// schéma gescom n'étant pas dans le search_path de la session, le
 	// catalogue qualifie la séquence.
