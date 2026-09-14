@@ -70,6 +70,7 @@ export {
   CodeHeritageDeduit,
   CodeJointurePure,
   CodePrefixeDetecte,
+  CodeReferenceHorsIdentifiant,
   CodeSequenceNonReconnue,
   CodeTableIgnoree,
   CodeTableSansClePrimaire,

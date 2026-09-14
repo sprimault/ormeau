@@ -1,0 +1,432 @@
+{
+  "version_ri": 1,
+  "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000019",
+  "espace_de_noms": "App\\Entity",
+  "entites": [
+    {
+      "nom": "Article",
+      "table": {
+        "nom": "article",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "code",
+          "version"
+        ],
+        "strategie": "assignee"
+      },
+      "proprietes": [
+        {
+          "nom": "code",
+          "colonne": "code",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 20,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "version",
+          "colonne": "version",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "ligne",
+          "genre": "un_vers_plusieurs",
+          "cible": "Ligne",
+          "proprietaire": false,
+          "mappee_par": "article",
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "Client",
+      "table": {
+        "nom": "client",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "code",
+          "colonne": "code",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 10,
+          "unique": true,
+          "origine": "contrainte"
+        }
+      ],
+      "index": [
+        {
+          "nom": "client_code_key",
+          "colonnes": [
+            "code"
+          ],
+          "unique": true
+        }
+      ],
+      "commentaire": "code est unique mais n'est pas la clé primaire",
+      "origine": "nommage"
+    },
+    {
+      "nom": "Commande",
+      "table": {
+        "nom": "commande",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "clientCode",
+          "colonne": "client_code",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 10,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "payeurCode",
+          "colonne": "payeur_code",
+          "type_php": "?string",
+          "type_doctrine": "string",
+          "nullable": true,
+          "longueur": 10,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "livreA",
+          "colonne": "livre_a",
+          "type_php": "?string",
+          "type_doctrine": "string",
+          "nullable": true,
+          "longueur": 80,
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "clé étrangère déclarée vers client.code, et deux relations forcées vers autre chose que l'identifiant",
+      "origine": "nommage"
+    },
+    {
+      "nom": "FicheClient",
+      "table": {
+        "nom": "fiche_client",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "clientCode"
+        ],
+        "strategie": "assignee"
+      },
+      "proprietes": [
+        {
+          "nom": "clientCode",
+          "colonne": "client_code",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 10,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "note",
+          "colonne": "note",
+          "type_php": "?string",
+          "type_doctrine": "text",
+          "nullable": true,
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "clé primaire étrangère vers client.code : ni héritage ni un-vers-un possibles",
+      "origine": "nommage"
+    },
+    {
+      "nom": "Ligne",
+      "table": {
+        "nom": "ligne",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "articleVersion",
+          "colonne": "article_version",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "articleCode",
+          "colonne": "article_code",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 20,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "article",
+          "genre": "plusieurs_vers_un",
+          "cible": "Article",
+          "proprietaire": true,
+          "inversee_par": "ligne",
+          "jointure": [
+            {
+              "colonne": "article_version",
+              "colonne_referencee": "version",
+              "nullable": false
+            },
+            {
+              "colonne": "article_code",
+              "colonne_referencee": "code",
+              "nullable": false
+            }
+          ],
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "clé étrangère composite vers toute la clé primaire d'article : l'association reste",
+      "origine": "nommage"
+    },
+    {
+      "nom": "Produit",
+      "table": {
+        "nom": "produit",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "produitTag",
+          "genre": "un_vers_plusieurs",
+          "cible": "ProduitTag",
+          "proprietaire": false,
+          "mappee_par": "produit",
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "ProduitTag",
+      "table": {
+        "nom": "produit_tag",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "produitId",
+          "tagLibelle"
+        ],
+        "strategie": "assignee"
+      },
+      "proprietes": [
+        {
+          "nom": "produitId",
+          "colonne": "produit_id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "tagLibelle",
+          "colonne": "tag_libelle",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 30,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "produit",
+          "genre": "plusieurs_vers_un",
+          "cible": "Produit",
+          "proprietaire": true,
+          "inversee_par": "produitTag",
+          "jointure": [
+            {
+              "colonne": "produit_id",
+              "colonne_referencee": "id",
+              "nullable": false
+            }
+          ],
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "forme d'une table de jointure, mais une clé vise tag.libelle : pas de plusieurs-vers-plusieurs",
+      "origine": "nommage"
+    },
+    {
+      "nom": "Tag",
+      "table": {
+        "nom": "tag",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "libelle",
+          "colonne": "libelle",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 30,
+          "unique": true,
+          "origine": "contrainte"
+        }
+      ],
+      "index": [
+        {
+          "nom": "tag_libelle_key",
+          "colonnes": [
+            "libelle"
+          ],
+          "unique": true
+        }
+      ],
+      "origine": "nommage"
+    }
+  ],
+  "avertissements": [
+    {
+      "code": "cle_primaire_composite",
+      "cible": "public.article",
+      "message": "clé primaire sur code, version",
+      "resolution": "par_defaut",
+      "confiance": 1
+    },
+    {
+      "code": "colonne_ignoree",
+      "cible": "public.client.nom",
+      "message": "nom est retirée de l'entité ; le calque physique la garde. migrations:diff proposera de supprimer la colonne : à retirer du diff avant de l'appliquer",
+      "resolution": "forcee_par_decision",
+      "confiance": 1
+    },
+    {
+      "code": "reference_hors_identifiant",
+      "cible": "public.commande.client_code",
+      "message": "la clé étrangère désigne public.client (code), qui n'est pas sa clé primaire : Doctrine n'associe que vers l'identifiant ; colonne laissée en propriété",
+      "resolution": "aucune",
+      "confiance": 1
+    },
+    {
+      "code": "decision_sans_cible",
+      "cible": "public.commande.livre_a",
+      "message": "relation forcée vers public.client.nom non appliquée : la cible n'est pas l'identifiant de public.client : Doctrine n'associe que vers la clé primaire",
+      "resolution": "aucune",
+      "confiance": 1
+    },
+    {
+      "code": "decision_sans_cible",
+      "cible": "public.commande.payeur_code",
+      "message": "relation forcée vers public.client.code non appliquée : la cible n'est pas l'identifiant de public.client : Doctrine n'associe que vers la clé primaire",
+      "resolution": "aucune",
+      "confiance": 1
+    },
+    {
+      "code": "reference_hors_identifiant",
+      "cible": "public.fiche_client.client_code",
+      "message": "la clé étrangère désigne public.client (code), qui n'est pas sa clé primaire : Doctrine n'associe que vers l'identifiant ; colonne laissée en propriété",
+      "resolution": "aucune",
+      "confiance": 1
+    },
+    {
+      "code": "cle_primaire_composite",
+      "cible": "public.produit_tag",
+      "message": "clé primaire sur produitId, tagLibelle",
+      "resolution": "par_defaut",
+      "confiance": 1
+    },
+    {
+      "code": "reference_hors_identifiant",
+      "cible": "public.produit_tag.tag_libelle",
+      "message": "la clé étrangère désigne public.tag (libelle), qui n'est pas sa clé primaire : Doctrine n'associe que vers l'identifiant ; colonne laissée en propriété",
+      "resolution": "aucune",
+      "confiance": 1
+    }
+  ]
+}

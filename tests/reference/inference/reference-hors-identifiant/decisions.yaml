@@ -1,0 +1,17 @@
+# Doctrine n'associe que vers l'identifiant de la cible. Une relation forcée
+# vers une autre colonne est refusée, qu'elle soit unique ou ignorée.
+
+colonnes_ignorees:
+  public.client: [nom]
+
+relations_forcees:
+  # client.code est unique, mais ce n'est pas la clé primaire.
+  - source: public.commande.payeur_code
+    cible: public.client.code
+    genre: plusieurs_vers_un
+    nom: payeur
+  # client.nom n'est ni la clé primaire ni mappée.
+  - source: public.commande.livre_a
+    cible: public.client.nom
+    genre: plusieurs_vers_un
+    nom: destinataire

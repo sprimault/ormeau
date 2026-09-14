@@ -1,0 +1,16 @@
+créé Base/ArticleBase.php
+créé Article.php
+créé Base/ClientBase.php
+créé Client.php
+créé Base/CommandeBase.php
+créé Commande.php
+créé Base/FicheClientBase.php
+créé FicheClient.php
+créé Base/LigneBase.php
+créé Ligne.php
+créé Base/ProduitBase.php
+créé Produit.php
+créé Base/ProduitTagBase.php
+créé ProduitTag.php
+créé Base/TagBase.php
+créé Tag.php
