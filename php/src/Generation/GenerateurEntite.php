@@ -84,8 +84,9 @@ final class GenerateurEntite
      * @throws LogicException           mode de régénération qui n'est pas encore écrit
      * @throws InvalidArgumentException espace de noms que PHP refuse, ou nom de base vide ou porteur d'un
      *                                  caractère de contrôle : aucun fichier n'est écrit
-     * @throws RuntimeException         répertoire ou fichier qui ne s'écrit pas, ou qui sortirait du
-     *                                  répertoire des entités
+     * @throws RuntimeException         fichier PHP illisible sous le répertoire des entités, avant toute
+     *                                  écriture ; répertoire ou fichier qui ne s'écrit pas, ou qui
+     *                                  sortirait du répertoire des entités
      */
     public function generer(CalqueLogique $calque, string $repertoire, Cible $cible, string $base, array $remplacables = []): Rapport
     {
@@ -236,13 +237,16 @@ final class GenerateurEntite
             }
 
             $fichiers[] = new Fichier($utilisateur, EtatFichier::Conserve);
-            $source = file_get_contents($utilisateur);
-            if ($source === false) {
-                throw new RuntimeException(sprintf('Classe illisible : %s', $utilisateur));
+            // Le parcours a lu tout le répertoire des entités : un fichier qu'il
+            // n'a pas vu est apparu depuis, pendant la génération.
+            $lecture = $classes->lecture($utilisateur);
+            if ($lecture === null) {
+                throw new RuntimeException(sprintf('Classe apparue pendant la génération, non contrôlée : %s', $utilisateur));
             }
             array_push($divergences, ...$controle->comparer(
                 $utilisateur,
-                $source,
+                $lecture['source'],
+                $lecture['ast'],
                 $entite->nom,
                 $rendu->classeBaseQualifiee($entite),
                 $rendu->argumentsTable($entite),

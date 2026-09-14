@@ -380,8 +380,10 @@ final class GenerateurEntiteTest extends TestCase
 
     /**
      * Ce qu'aucune inférence ne produit mais qu'un calque écrit à la main peut
-     * contenir — table unique, valeur manquante, parent absent — écarte la
-     * hiérarchie plutôt que d'écrire une carte fausse.
+     * contenir — table unique, valeur manquante, parent absent, chaîne de
+     * parents qui boucle, valeur discriminante répétée — écarte la hiérarchie
+     * plutôt que d'écrire une carte fausse ou des classes en héritage
+     * circulaire, sur lesquelles PHP s'arrête au chargement.
      */
     public function testEcarteUnHeritageQueLeCalqueNeDecritPasEntier(): void
     {
@@ -393,6 +395,12 @@ final class GenerateurEntiteTest extends TestCase
                 self::entite('Animal', ['valeur_discriminante' => 'A']),
                 self::entite('Chien', ['heritage' => self::heritage('Animal')]),
                 self::entite('Rose', ['heritage' => self::heritage('Plante'), 'valeur_discriminante' => 'R']),
+                self::entite('Oeuf', ['heritage' => self::heritage('Poule'), 'valeur_discriminante' => 'O']),
+                self::entite('Poule', ['heritage' => self::heritage('Oeuf'), 'valeur_discriminante' => 'P']),
+                self::entite('Ouroboros', ['heritage' => self::heritage('Ouroboros'), 'valeur_discriminante' => 'U']),
+                self::entite('Personne', ['valeur_discriminante' => 'P']),
+                self::entite('Salarie', ['heritage' => self::heritage('Personne'), 'valeur_discriminante' => 'S']),
+                self::entite('Stagiaire', ['heritage' => self::heritage('Personne'), 'valeur_discriminante' => 'S']),
             ]), $sortie, Cible::forcer(3), 'gescom');
 
             self::assertSame([
@@ -401,6 +409,12 @@ final class GenerateurEntiteTest extends TestCase
                 'Animal' => 'même hiérarchie que Chien (public.chien), écartée',
                 'Chien' => 'la hiérarchie de Animal est incomplète : colonne discriminante ou valeur de Chien absente du calque',
                 'Rose' => 'le parent Plante est absent du calque',
+                'Oeuf' => 'la chaîne de parents de Oeuf boucle : Oeuf → Poule → Oeuf',
+                'Poule' => 'la chaîne de parents de Poule boucle : Poule → Oeuf → Poule',
+                'Ouroboros' => 'la chaîne de parents de Ouroboros boucle : Ouroboros → Ouroboros',
+                'Personne' => 'même hiérarchie que Salarie (public.salarie), écartée',
+                'Salarie' => 'la valeur discriminante « S » est donnée à Salarie et à Stagiaire',
+                'Stagiaire' => 'la valeur discriminante « S » est donnée à Salarie et à Stagiaire',
             ], array_column(array_map(static fn($e): array => [$e->nom, $e->raison], $rapport->ecartees), 1, 0));
         } finally {
             Repertoires::supprimer($sortie);

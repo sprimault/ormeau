@@ -14,7 +14,9 @@ use Ormeau\Doctrine\Generation\EtatFichier;
 use Ormeau\Doctrine\Generation\GenerateurEntite;
 use Ormeau\Doctrine\Generation\Rapport;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 /**
  * Régénérer six mois plus tard sans écraser le travail fait entre-temps.
@@ -424,6 +426,127 @@ final class RegenerationTest extends TestCase
     }
 
     /**
+     * Un fichier PHP illisible sous le répertoire des entités arrête la
+     * génération avant la première écriture, où qu'il soit : à la racine, rangé,
+     * ou à côté de la vraie classe rangée ailleurs. Écarter la seule entité
+     * réécrirait les classes de base qui la visent sans leur côté inverse, et
+     * son nom qualifié ne se lit pas dans un fichier qu'on ne sait pas lire.
+     *
+     * @return iterable<string, array{callable(string): string}>
+     */
+    public static function fichiersIllisibles(): iterable
+    {
+        $casser = static function (string $chemin): void {
+            file_put_contents($chemin, "<?php\n\nnamespace App\\Entity;\n\nclass Client extends {\n");
+        };
+
+        yield 'à la racine' => [static function (string $sortie) use ($casser): string {
+            $casser($sortie . '/Client.php');
+
+            return 'Client.php';
+        }];
+        yield 'rangé en sous-répertoire' => [static function (string $sortie) use ($casser): string {
+            $casser(Repertoires::ranger($sortie, 'Client', 'Ventes'));
+
+            return 'Ventes/Client.php';
+        }];
+        yield 'à côté de la classe rangée' => [static function (string $sortie) use ($casser): string {
+            Repertoires::ranger($sortie, 'Client', 'Ventes');
+            $casser($sortie . '/Client.php');
+
+            return 'Client.php';
+        }];
+    }
+
+    /**
+     * Le refus nomme le fichier relatif au répertoire des entités, sa ligne, et
+     * pourquoi ce fichier-là compte ; rien n'est écrit, pas même une classe de
+     * base.
+     *
+     * @param callable(string): string $preparer casse un fichier et rend son chemin relatif
+     */
+    #[DataProvider('fichiersIllisibles')]
+    public function testUnFichierIllisibleArreteLaGenerationSansRienEcrire(callable $preparer): void
+    {
+        $this->generer(self::ventes());
+        $relatif = $preparer($this->sortie);
+        $avant = Repertoires::lire($this->sortie);
+
+        try {
+            $this->generer(self::ventes());
+            self::fail('la génération est passée malgré un fichier illisible');
+        } catch (RuntimeException $e) {
+            self::assertStringContainsString($relatif . ' ligne 5', $e->getMessage());
+            self::assertStringContainsString('rien n\'est écrit', $e->getMessage());
+            self::assertStringContainsString('répertoire des entités', $e->getMessage());
+        }
+        self::assertSame($avant, Repertoires::lire($this->sortie));
+    }
+
+    /**
+     * Une classe renommée dans son fichier n'est plus retrouvée : le fichier
+     * reste à sa place, et le contrôle dit qu'il n'y trouve pas la classe
+     * attendue au lieu d'en créer une seconde.
+     */
+    public function testUneClasseRenommeeDansSonFichierSeSignale(): void
+    {
+        $this->generer(self::calque('t_client'));
+        $client = $this->sortie . '/Client.php';
+        file_put_contents($client, str_replace('class Client extends', 'class Cliente extends', (string) file_get_contents($client)));
+        $avant = (string) file_get_contents($client);
+
+        $rapport = $this->generer(self::calque('t_client'));
+
+        self::assertSame($avant, file_get_contents($client));
+        self::assertSame(
+            [$client . ' ligne 1 : classe Client introuvable, la génération ne peut pas s\'y appuyer'],
+            array_map(static fn($d): string => $d->message(), $rapport->divergences),
+        );
+    }
+
+    /**
+     * Sur un calque à plusieurs schémas, une seconde génération identique ne
+     * signale rien ; une table passée dans un autre schéma se signale sur
+     * #[ORM\Table], qui porte l'argument schema.
+     */
+    public function testUnSchemaChangeSeSignale(): void
+    {
+        $this->generer(self::schemas());
+        self::assertSame([], $this->generer(self::schemas())->divergences);
+
+        $avoir = $this->sortie . '/Avoir.php';
+        self::assertSame(
+            [$avoir . " ligne 13 : #[ORM\\Table(name: '`avoir`', schema: 'Compta')], la table est dans le schéma Ventes"],
+            array_map(static fn($d): string => $d->message(), $this->generer(self::schemas('Ventes'))->divergences),
+        );
+    }
+
+    /**
+     * Une colonne discriminante dont le nom ou la longueur ont changé dans la
+     * classe de la racine se signale, avec l'attribut attendu en entier.
+     */
+    public function testUneColonneDiscriminanteChangeeSeSignale(): void
+    {
+        $this->generer(self::hierarchie(['Salarie' => 'S']));
+        $personne = $this->sortie . '/Personne.php';
+        $attendu = "attendu #[ORM\\DiscriminatorColumn(name: 'nature', type: 'string', length: 1)]";
+
+        foreach (["name: 'genre', type: 'string', length: 1", "name: 'nature', type: 'string', length: 2"] as $ecrit) {
+            file_put_contents($personne, (string) preg_replace(
+                "/#\\[ORM\\\\DiscriminatorColumn\\([^)]*\\)\\]/",
+                '#[ORM\\DiscriminatorColumn(' . $ecrit . ')]',
+                (string) file_get_contents($personne),
+            ));
+
+            self::assertSame(
+                [$attendu],
+                array_map(static fn($d): string => $d->attendu, $this->generer(self::hierarchie(['Salarie' => 'S']))->divergences),
+                $ecrit,
+            );
+        }
+    }
+
+    /**
      * Génère un calque dans le répertoire du test, sous ORM 3, depuis la base
      * donnée, gescom à défaut.
      *
@@ -467,10 +590,10 @@ final class RegenerationTest extends TestCase
     }
 
     /**
-     * Un calque sur deux schémas : un Avoir dans Compta, schéma à citer, et un
-     * Client dans public.
+     * Un calque sur deux schémas : un Avoir dans Compta à défaut, schéma à
+     * citer, et un Client dans public.
      */
-    private static function schemas(): CalqueLogique
+    private static function schemas(string $schemaAvoir = 'Compta'): CalqueLogique
     {
         $id = ['nom' => 'id', 'colonne' => 'id', 'type_php' => 'int', 'type_doctrine' => 'integer', 'nullable' => false];
 
@@ -481,7 +604,7 @@ final class RegenerationTest extends TestCase
             'entites' => [
                 [
                     'nom' => 'Avoir',
-                    'table' => ['nom' => 'avoir', 'schema' => 'Compta'],
+                    'table' => ['nom' => 'avoir', 'schema' => $schemaAvoir],
                     'identifiant' => ['proprietes' => ['id'], 'strategie' => 'identite'],
                     'proprietes' => [$id],
                 ],

@@ -17,6 +17,7 @@ use PhpParser\NodeVisitor\NameResolver;
 use PhpParser\ParserFactory;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use RuntimeException;
 use SplFileInfo;
 
 /**
@@ -46,22 +47,32 @@ final class ClassesUtilisateur
      * @param string                                                   $espaceDeNoms espace de noms des entités du calque
      * @param array<string, list<array{fichier: string, classe: string}>> $trouvees     pour chaque entité, les classes qui
      *                                                                                  la portent, dans l'ordre des chemins
+     * @param array<string, array{source: string, ast: array<Node>}>     $lectures     chaque fichier lu, source et AST noms
+     *                                                                                  résolus, par chemin
      */
     private function __construct(
         private readonly string $espaceDeNoms,
         private readonly array $trouvees,
+        private readonly array $lectures,
     ) {}
 
     /**
      * Parcourt le répertoire des entités et retient, pour chaque nom donné, les
      * classes de ce nom qui héritent de sa classe de base.
      *
-     * Un fichier que PHP ne sait pas lire est ignoré ici : s'il est à la place
-     * attendue, le contrôle de la classe de l'utilisateur le signale.
+     * Un fichier PHP que php-parser refuse arrête tout, avant la première
+     * écriture de la génération. Il peut porter la classe d'une entité que la
+     * génération étend, et rien ne permet de le savoir sans le lire : l'ignorer
+     * faisait créer une seconde classe à la racine, et écarter l'entité aurait
+     * réécrit les classes de base qui la visent sans leur côté inverse. C'est un
+     * état passager, qui se corrige avant de relancer, et non une propriété du
+     * calque, qu'on écarterait avec sa raison.
      *
      * @param string       $racine       répertoire des entités, existant
      * @param string       $espaceDeNoms espace de noms des entités du calque
      * @param list<string> $noms         noms des entités du calque
+     *
+     * @throws RuntimeException un fichier au moins est illisible : le message les nomme tous, ligne comprise
      */
     public static function parcourir(string $racine, string $espaceDeNoms, array $noms): self
     {
@@ -84,14 +95,21 @@ final class ClassesUtilisateur
 
         $parseur = (new ParserFactory())->createForNewestSupportedVersion();
         $trouvees = [];
+        $lectures = [];
+        $illisibles = [];
         foreach ($chemins as $chemin) {
             $source = file_get_contents($chemin);
+            if ($source === false) {
+                throw new RuntimeException(sprintf('Génération refusée, rien n\'est écrit : %s ne se lit pas', $chemin));
+            }
             try {
-                $ast = $source === false ? null : $parseur->parse($source);
-            } catch (Error) {
+                $ast = $parseur->parse($source) ?? [];
+            } catch (Error $e) {
+                $illisibles[] = sprintf('%s ligne %d : %s', substr($chemin, strlen($racine) + 1), max(1, $e->getStartLine()), $e->getRawMessage());
                 continue;
             }
-            $ast = (new NodeTraverser(new NameResolver()))->traverse($ast ?? []);
+            $ast = (new NodeTraverser(new NameResolver()))->traverse($ast);
+            $lectures[$chemin] = ['source' => $source, 'ast' => $ast];
 
             $classes = (new NodeFinder())->find($ast, static fn(Node $n): bool => $n instanceof Class_);
             foreach ($classes as $classe) {
@@ -105,7 +123,27 @@ final class ClassesUtilisateur
             }
         }
 
-        return new self($espaceDeNoms, $trouvees);
+        if ($illisibles !== []) {
+            throw new RuntimeException(sprintf(
+                'Génération refusée, rien n\'est écrit : %s. Sous le répertoire des entités, un fichier illisible peut porter la classe d\'une entité que la génération étend, et elle ne peut pas le savoir sans le lire : le corriger, puis relancer.',
+                implode(' ; ', $illisibles),
+            ));
+        }
+
+        return new self($espaceDeNoms, $trouvees, $lectures);
+    }
+
+    /**
+     * Rend la source et l'AST, noms résolus, d'un fichier lu pendant le
+     * parcours, ou null pour un fichier que le parcours n'a pas vu : le
+     * contrôle de la classe de l'utilisateur compare ce qui a été lu, sans
+     * relire le fichier.
+     *
+     * @return array{source: string, ast: array<Node>}|null
+     */
+    public function lecture(string $chemin): ?array
+    {
+        return $this->lectures[$chemin] ?? null;
     }
 
     /**

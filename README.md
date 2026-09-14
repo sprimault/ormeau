@@ -151,9 +151,10 @@ file name: `gescom` for `gescom.logique.json`. Another database generated into
 the same directory does not rewrite those files; the command names the file and
 both databases. Give each database its own directory and namespace, or pass
 `--remplacer=gescom` to explicitly accept overwriting `gescom`'s files — a
-renamed layer, a directory taken over. The exit code tells the three cases
-apart: a skipped entity and a divergence return 0, they say what to rework; a
-refused overwrite returns 1, the requested generation did not happen.
+renamed layer, a directory taken over. Only what prevents the requested
+generation returns 1: a refused overwrite, or a PHP file under the entities
+directory that cannot be read, before anything is written. A skipped entity and
+a divergence return 0: they say what to rework.
 
 This two-class shape is the price of regenerating without overwriting, and it
 changes a few habits. Properties are declared in `Base/`, which is rewritten:
