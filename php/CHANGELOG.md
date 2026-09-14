@@ -36,6 +36,8 @@ préambule reste en français : il n'est jamais publié.
 
 ## [Non publié]
 
+## [0.5.2] — 2026-09-14 — Ce qui tenait sans être vérifié
+
 **Un calque PostgreSQL déjà enregistré change à sa prochaine extraction**, sans
 que la base ait bougé : les objets de `public` y sortent qualifiés, dans
 `type_brut` (`public.citext`), les défauts, les vérifications, les prédicats
