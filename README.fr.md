@@ -130,7 +130,7 @@ déclare le bundle pour `dev` et `test` ; sans Flex, ajouter
 
 ```console
 $ bin/console ormeau:generer gescom.logique.json
-Cible détectée : PHP 8.4, Doctrine ORM 3.7
+Cible détectée : PHP 8.4, Doctrine ORM 3.7, DBAL 4.4
 Base : gescom
 créé     src/Entity/Enum/StatutClient.php
 créé     src/Entity/Base/ClientBase.php
@@ -146,7 +146,9 @@ Quand il ne correspond plus au calque — une table renommée, une classe fille
 déclarée après coup —, la commande nomme le fichier, la ligne et l'attribut
 attendu. `--repertoire` écrit ailleurs que dans
 `src/Entity`, et `--cible-orm=2` ou `3` vise une autre version d'ORM que celle
-installée.
+installée. Le type PHP de certaines colonnes dépend aussi de DBAL, qu'ORM 3
+accepte en version 3 comme en version 4 : la version forcée d'ORM en suppose
+une, que l'annonce dit déduite, et `--cible-dbal=3.10` la corrige.
 
 Chaque fichier nomme dans son en-tête la base dont il vient, lue dans le nom du
 calque : `gescom` pour `gescom.logique.json`. Une autre base générée dans le

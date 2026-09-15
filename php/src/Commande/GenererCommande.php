@@ -56,7 +56,9 @@ final class GenererCommande extends Command
      *
      * --cible-orm fait partie du contrat, pas seulement des tests : c'est ce
      * qui permet de générer pour une version qu'on n'a pas installée, en CI
-     * comme avant une montée de version.
+     * comme avant une montée de version. --cible-dbal ne sert qu'à s'écarter de
+     * ce que la commande déduit : la version installée, ou la plus récente
+     * qu'accepte la majeure d'ORM forcée.
      */
     protected function configure(): void
     {
@@ -64,6 +66,7 @@ final class GenererCommande extends Command
             ->addArgument('calque', InputArgument::REQUIRED, 'Fichier .logique.json')
             ->addOption('repertoire', null, InputOption::VALUE_REQUIRED, 'Répertoire de sortie', 'src/Entity')
             ->addOption('cible-orm', null, InputOption::VALUE_REQUIRED, 'Majeure de Doctrine ORM visée (2 ou 3), à défaut de celle installée')
+            ->addOption('cible-dbal', null, InputOption::VALUE_REQUIRED, 'Version de DBAL visée (majeure.mineure), à défaut de celle installée ou déduite')
             ->addOption('remplacer', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Base dont les fichiers peuvent être réécrits dans ce répertoire');
     }
 
@@ -93,8 +96,9 @@ final class GenererCommande extends Command
      *
      * @return int 0 si la génération est allée au bout, 1 si un fichier d'une autre base l'a bloquée
      *
-     * @throws InvalidArgumentException chemin absent, --cible-orm hors de 2 et 3, ORM introuvable, nom de base
-     *                                  vide ou porteur d'un caractère de contrôle
+     * @throws InvalidArgumentException chemin absent, --cible-orm hors de 2 et 3, --cible-dbal illisible ou
+     *                                  incompatible, ORM ou DBAL introuvables, nom de base vide ou porteur
+     *                                  d'un caractère de contrôle
      * @throws CalqueInvalide           calque illisible, d'une version inconnue, ou invalide
      * @throws JsonException            fichier qui n'est pas du JSON
      * @throws RuntimeException         fichier ou répertoire qui ne s'écrit pas
@@ -107,7 +111,7 @@ final class GenererCommande extends Command
             throw new InvalidArgumentException('Le calque et le répertoire sont des chemins de fichier.');
         }
 
-        $cible = $this->cible($entree->getOption('cible-orm'));
+        $cible = $this->cible($entree->getOption('cible-orm'), $entree->getOption('cible-dbal'));
         $sortie->writeln($cible->annonce());
         $base = self::base($chemin);
         $sortie->writeln('Base : ' . OutputFormatter::escape($base));
@@ -188,22 +192,27 @@ final class GenererCommande extends Command
     }
 
     /**
-     * Rend la cible forcée par --cible-orm, ou celle de l'application.
+     * Rend la cible forcée par --cible-orm, ou celle de l'application ; la
+     * version de DBAL vient de --cible-dbal quand elle est donnée.
      *
-     * @throws InvalidArgumentException valeur qui n'est pas une majeure connue
+     * @param mixed $orm  valeur de --cible-orm
+     * @param mixed $dbal valeur de --cible-dbal
+     *
+     * @throws InvalidArgumentException majeure d'ORM inconnue, version de DBAL illisible ou incompatible
      */
-    private function cible(mixed $option): Cible
+    private function cible(mixed $orm, mixed $dbal): Cible
     {
-        if ($option === null) {
-            return Cible::detecter();
+        $dbal = is_string($dbal) ? $dbal : null;
+        if ($orm === null) {
+            return Cible::detecter($dbal);
         }
-        if (!is_string($option) || preg_match('/^\d+$/', $option) !== 1) {
+        if (!is_string($orm) || preg_match('/^\d+$/', $orm) !== 1) {
             throw new InvalidArgumentException(sprintf(
                 '--cible-orm attend une majeure de Doctrine ORM (%s).',
                 implode(', ', Cible::MAJEURES_ORM),
             ));
         }
 
-        return Cible::forcer((int) $option);
+        return Cible::forcer((int) $orm, $dbal);
     }
 }

@@ -22,20 +22,24 @@ final class TypesPhpTest extends TestCase
 {
     /**
      * bigint et binary sont les deux types dont l'hydratation change entre
-     * DBAL 3 et DBAL 4. Un int sous ORM 2 ferait croire l'entité modifiée à
-     * chaque flush : DBAL rend "9000000000", la propriété garde 9000000000.
+     * DBAL 3 et DBAL 4, et c'est DBAL qui décide, pas ORM : sous ORM 3 avec
+     * DBAL 3, un int ferait croire l'entité modifiée à chaque flush — DBAL rend
+     * "9000000000", la propriété garde 9000000000 — et un string refuserait la
+     * ressource que DBAL rend pour binary, au chargement.
      */
     #[DataProvider('typesQuiDependentDeLaCible')]
-    public function testLeTypeSuitLaCible(string $typeDoctrine, string $orm2, string $orm3): void
+    public function testLeTypeSuitDbal(string $typeDoctrine, string $avantDbal4, string $dbal4): void
     {
         $propriete = self::propriete($typeDoctrine, 'int');
 
-        self::assertSame($orm2, TypesPhp::declaration($propriete, Cible::forcer(2)));
-        self::assertSame($orm3, TypesPhp::declaration($propriete, Cible::forcer(3)));
+        self::assertSame($avantDbal4, TypesPhp::declaration($propriete, Cible::forcer(2)));
+        self::assertSame($avantDbal4, TypesPhp::declaration($propriete, Cible::forcer(2, '2.13')));
+        self::assertSame($avantDbal4, TypesPhp::declaration($propriete, Cible::forcer(3, '3.10')));
+        self::assertSame($dbal4, TypesPhp::declaration($propriete, Cible::forcer(3)));
     }
 
     /**
-     * Les types qui changent d'une majeure à l'autre.
+     * Les types qui changent avec DBAL 4.
      *
      * @return iterable<string, array{string, string, string}>
      */

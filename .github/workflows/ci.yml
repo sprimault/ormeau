@@ -354,6 +354,13 @@ jobs:
             php: '8.3'
             symfony: '7.4.*'
             orm: '^3.0'
+          # ORM 3 accepte DBAL 3.8 : les types PHP de bigint et binary y
+          # suivent DBAL, pas ORM.
+          - nom: compat-php83-symfony74-orm3-dbal3
+            php: '8.3'
+            symfony: '7.4.*'
+            orm: '^3.0'
+            dbal: '~3.10.0'
     defaults:
       run:
         working-directory: php
@@ -371,6 +378,9 @@ jobs:
       - name: Résoudre la combinaison
         run: |
           composer require --no-update --no-interaction "doctrine/orm:${{ matrix.orm }}"
+          if [ -n "${{ matrix.dbal }}" ]; then
+            composer require --no-update --no-interaction "doctrine/dbal:${{ matrix.dbal }}"
+          fi
           composer update --no-interaction --no-progress --with-all-dependencies
 
       - name: Tests
