@@ -5,8 +5,8 @@
     "version": "17.11",
     "catalogue": "gescom",
     "schema": "gescom",
-    "extrait_le": "2026-09-15T10:15:01Z",
-    "empreinte": "sha256:3d50c47c2cdc633cbf9b2c029d12ae0ba54b1b42d20d47828e796b52132dda31"
+    "extrait_le": "2026-09-15T11:21:27Z",
+    "empreinte": "sha256:26bacdf216e4391078b38ec3ec0656fb27f2d0444509c922b9fa8a35d4a4871d"
   },
   "tables": [
     {
@@ -49,7 +49,8 @@
           "type_brut": "integer",
           "type_normalise": "entier",
           "nullable": false,
-          "auto_increment": true
+          "auto_increment": true,
+          "identite": "toujours"
         },
         {
           "nom": "cat_libelle",
@@ -98,7 +99,8 @@
           "type_brut": "integer",
           "type_normalise": "entier",
           "nullable": false,
-          "auto_increment": true
+          "auto_increment": true,
+          "identite": "toujours"
         },
         {
           "nom": "cli_nom",
@@ -263,7 +265,8 @@
           "type_brut": "integer",
           "type_normalise": "entier",
           "nullable": false,
-          "auto_increment": true
+          "auto_increment": true,
+          "identite": "toujours"
         },
         {
           "nom": "cli_id",
@@ -473,7 +476,8 @@
           "type_brut": "integer",
           "type_normalise": "entier",
           "nullable": false,
-          "auto_increment": true
+          "auto_increment": true,
+          "identite": "toujours"
         },
         {
           "nom": "cmd_canal",
@@ -510,7 +514,8 @@
           "type_brut": "integer",
           "type_normalise": "entier",
           "nullable": false,
-          "auto_increment": true
+          "auto_increment": true,
+          "identite": "toujours"
         },
         {
           "nom": "com_nom",
@@ -550,7 +555,8 @@
           "type_brut": "integer",
           "type_normalise": "entier",
           "nullable": false,
-          "auto_increment": true
+          "auto_increment": true,
+          "identite": "toujours"
         },
         {
           "nom": "fac_cli_id",
@@ -607,7 +613,8 @@
           "type_brut": "integer",
           "type_normalise": "entier",
           "nullable": false,
-          "auto_increment": true
+          "auto_increment": true,
+          "identite": "toujours"
         },
         {
           "nom": "order",
@@ -643,7 +650,8 @@
           "type_brut": "integer",
           "type_normalise": "entier",
           "nullable": false,
-          "auto_increment": true
+          "auto_increment": true,
+          "identite": "par_defaut"
         },
         {
           "nom": "tag_libelle",

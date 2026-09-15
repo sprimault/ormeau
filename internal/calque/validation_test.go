@@ -82,6 +82,15 @@ func TestValiderDetecteLesAnomalies(t *testing.T) {
 			p.TableParNom("public", "client").ColonneParNom("actif").Defaut.Genre = GenreDefaut("calcule")
 		}, CodeGenreDefautInconnu},
 
+		{"nature d'identité inventée", func(p *Physique) {
+			p.TableParNom("public", "client").ColonneParNom("id").Identite = NatureIdentite("parfois")
+		}, CodeIdentiteInvalide},
+
+		{"nature d'identité sans auto_increment", func(p *Physique) {
+			col := p.TableParNom("public", "client").ColonneParNom("id")
+			col.AutoIncrement = false
+		}, CodeIdentiteInvalide},
+
 		{"clé primaire sur colonne absente", func(p *Physique) {
 			p.TableParNom("public", "client").ClePrimaire.Colonnes = []string{"identifiant"}
 		}, CodeColonneIntrouvable},
