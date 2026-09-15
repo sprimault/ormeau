@@ -205,6 +205,13 @@ final class RenduMembres
      * un un-vers-un, et Doctrine crée lui-même l'index unique de sa jointure :
      * le redire sur le champ produit deux index de même nom, et un DDL que
      * DBAL refuse de construire — le validateur de mapping, lui, ne dit rien.
+     *
+     * Le #[ORM\UniqueConstraint] issu de l'index de soutien de la contrainte,
+     * lui, reste. DBAL le substitue à l'index qu'il aurait créé pour la
+     * jointure : un seul index, qui garde le nom de la base. Sans lui, l'index
+     * s'appellerait UNIQ_… et migrations:diff proposerait de renommer celui de
+     * la base d'origine (essai du 2026-09-15, ORM 2.14.3 et 3.7.1 contre
+     * PostgreSQL 17).
      */
     private static function enLectureSeule(Propriete $p): Propriete
     {

@@ -10,6 +10,7 @@ use App\Entity\Client;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\MappedSuperclass]
+#[ORM\UniqueConstraint(name: 'adresse_facturation_client_id_key', columns: ['client_id'])]
 abstract class AdresseFacturationBase
 {
     #[ORM\Id]

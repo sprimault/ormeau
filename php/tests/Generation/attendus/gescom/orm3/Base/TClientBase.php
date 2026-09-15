@@ -7,6 +7,7 @@ declare(strict_types=1);
 namespace App\Entity\Base;
 
 use App\Entity\Enum\TClientCliStatut;
+use App\Entity\TClientAdresse;
 use App\Entity\TClientContact;
 use App\Entity\TClientGrandCompte;
 use App\Entity\TCommercial;
@@ -77,6 +78,9 @@ abstract class TClientBase
     #[ORM\ManyToOne(targetEntity: TCommercial::class, inversedBy: 'tclient')]
     #[ORM\JoinColumn(name: 'cli_com_id', referencedColumnName: 'com_id', onDelete: 'SET NULL')]
     protected ?TCommercial $cliCom = null;
+
+    #[ORM\OneToOne(targetEntity: TClientAdresse::class, mappedBy: 'cli')]
+    protected ?TClientAdresse $tclientAdresse = null;
 
     /** @var Collection<int, TClientContact> */
     #[ORM\OneToMany(targetEntity: TClientContact::class, mappedBy: 'cli')]
@@ -195,6 +199,11 @@ abstract class TClientBase
         $this->cliCom = $cliCom;
 
         return $this;
+    }
+
+    public function getTclientAdresse(): ?TClientAdresse
+    {
+        return $this->tclientAdresse;
     }
 
     /** @return Collection<int, TClientContact> */

@@ -112,6 +112,15 @@
           "origine": "contrainte"
         }
       ],
+      "index": [
+        {
+          "nom": "adresse_facturation_client_id_key",
+          "colonnes": [
+            "client_id"
+          ],
+          "unique": true
+        }
+      ],
       "commentaire": "Un vers un : la FK porte une contrainte d'unicité",
       "origine": "nommage"
     },

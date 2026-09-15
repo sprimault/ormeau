@@ -6,6 +6,8 @@ créé Base/TCategorieBase.php
 créé TCategorie.php
 créé Base/TClientBase.php
 créé TClient.php
+créé Base/TClientAdresseBase.php
+créé TClientAdresse.php
 créé Base/TClientContactBase.php
 créé TClientContact.php
 créé Base/TClientGrandCompteBase.php

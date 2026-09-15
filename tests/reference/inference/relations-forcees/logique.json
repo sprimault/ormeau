@@ -183,6 +183,15 @@
           "origine": "decision"
         }
       ],
+      "index": [
+        {
+          "nom": "profil_utilisateur_ref_key",
+          "colonnes": [
+            "utilisateur_ref"
+          ],
+          "unique": true
+        }
+      ],
       "origine": "nommage"
     },
     {

@@ -10,6 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\MappedSuperclass]
 #[ORM\Index(name: 'client_raison_sociale_idx', columns: ['raison_sociale'])]
+#[ORM\UniqueConstraint(name: 'client_siret_key', columns: ['siret'])]
 abstract class ClientBase
 {
     #[ORM\Id]

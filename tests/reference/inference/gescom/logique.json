@@ -1,6 +1,6 @@
 {
   "version_ri": 1,
-  "empreinte_physique": "sha256:bb1c120096b903543182ad1a76f3f1df1aeea9b8b0182c83bae4f6cca5dffd50",
+  "empreinte_physique": "sha256:3d50c47c2cdc633cbf9b2c029d12ae0ba54b1b42d20d47828e796b52132dda31",
   "espace_de_noms": "App\\Entity",
   "entites": [
     {
@@ -221,6 +221,14 @@
           "origine": "contrainte"
         },
         {
+          "nom": "tclientAdresse",
+          "genre": "un_vers_un",
+          "cible": "TClientAdresse",
+          "proprietaire": false,
+          "mappee_par": "cli",
+          "origine": "contrainte"
+        },
+        {
           "nom": "tclientContact",
           "genre": "un_vers_plusieurs",
           "cible": "TClientContact",
@@ -290,6 +298,75 @@
           "nom": "uq_cli_siret",
           "colonnes": [
             "cli_siret"
+          ],
+          "unique": true
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "TClientAdresse",
+      "table": {
+        "nom": "t_client_adresse",
+        "schema": "gescom"
+      },
+      "identifiant": {
+        "proprietes": [
+          "adrId"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "adrId",
+          "colonne": "adr_id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "cliId",
+          "colonne": "cli_id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "unique": true,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "adrRue",
+          "colonne": "adr_rue",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 200,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "cli",
+          "genre": "un_vers_un",
+          "cible": "TClient",
+          "proprietaire": true,
+          "inversee_par": "tclientAdresse",
+          "jointure": [
+            {
+              "colonne": "cli_id",
+              "colonne_referencee": "cli_id",
+              "nullable": false,
+              "a_la_suppression": "cascade"
+            }
+          ],
+          "origine": "contrainte"
+        }
+      ],
+      "index": [
+        {
+          "nom": "uq_adresse_client",
+          "colonnes": [
+            "cli_id"
           ],
           "unique": true
         }
@@ -697,7 +774,7 @@
     {
       "code": "prefixe_detecte",
       "cible": "gescom",
-      "message": "préfixe t_ commun aux 12 tables, conservé ; prefixes_a_retirer le retirerait des noms de classes",
+      "message": "préfixe t_ commun aux 13 tables, conservé ; prefixes_a_retirer le retirerait des noms de classes",
       "resolution": "aucune",
       "confiance": 0.8
     },

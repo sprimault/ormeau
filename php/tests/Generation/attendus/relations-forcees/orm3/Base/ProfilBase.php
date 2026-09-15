@@ -10,6 +10,7 @@ use App\Entity\Utilisateur;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\MappedSuperclass]
+#[ORM\UniqueConstraint(name: 'profil_utilisateur_ref_key', columns: ['utilisateur_ref'])]
 abstract class ProfilBase
 {
     #[ORM\Id]

@@ -79,6 +79,13 @@
             "raison_sociale"
           ],
           "unique": false
+        },
+        {
+          "nom": "client_siret_key",
+          "colonnes": [
+            "siret"
+          ],
+          "unique": true
         }
       ],
       "commentaire": "Fiche client",
