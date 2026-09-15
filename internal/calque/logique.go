@@ -143,6 +143,12 @@ type Propriete struct {
 	// CURRENT_TIMESTAMP disent la même chose, et c'est ce qu'un générateur
 	// doit traduire. Exclusif de Defaut.
 	DefautExpression ExpressionDefaut `json:"defaut_expression,omitempty"`
+	// Generee reprend du physique l'expression d'une colonne calculée par la
+	// base, verbatim. Insertable et Modifiable disent qu'on n'écrit pas la
+	// colonne, pas pourquoi : une colonne générée est en plus à relire après
+	// chaque écriture, et un générateur ne doit pas le déduire de leur seule
+	// absence.
+	Generee *Generee `json:"generee,omitempty"`
 	// Une colonne générée n'est ni insérable ni modifiable. Les pointeurs
 	// permettent de ne sérialiser que les cas qui s'écartent du défaut.
 	Insertable  *bool   `json:"insertable,omitempty"`

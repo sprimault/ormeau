@@ -326,15 +326,19 @@ var tolerances = []tolerance{
 			})
 		},
 	},
-
-	// À COMBLER : chacune part avec le lot qui la corrige.
 	{
-		code: "colonne_generee_perdue", categorie: aCombler, lot: "10",
-		pourquoi: "l'expression d'une colonne générée n'est pas reportée : Doctrine recrée une colonne ordinaire",
-		couvre: func(e diff.Ecart, _ contexte) bool {
-			return e.Objet == diff.ObjetColonne && e.Propriete == "generee" && e.Apres == ""
+		code: "colonne_generee_non_recreee", categorie: voulu,
+		pourquoi: "une colonne générée est relue après chaque écriture mais recréée ordinaire : seul columnDefinition la recréerait, et l'outil n'écrit pas le DDL d'un dialecte dans une entité",
+		couvre: func(e diff.Ecart, c contexte) bool {
+			if e.Objet != diff.ObjetColonne || e.Propriete != "generee" || e.Apres != "" {
+				return false
+			}
+			p := proprieteLogique(c, e.Schema, e.Table, e.Nom)
+			return p != nil && p.Generee != nil
 		},
 	},
+
+	// À COMBLER : chacune part avec le lot qui la corrige. Aucune ne reste.
 }
 
 // nomGenere reconnaît un nom que Doctrine forme d'un préfixe et d'un hachage

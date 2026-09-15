@@ -269,6 +269,7 @@ final class RenduMembres
             $p->origine,
             $p->defautExpression,
             $p->longueurFixe,
+            $p->generee,
         );
     }
 
@@ -347,6 +348,12 @@ final class RenduMembres
             $note = sprintf('Lecture seule : écrite par l\'association %s.', $ecritePar);
             $texte = $texte === [] ? [$note] : [...$texte, '', $note];
         }
+        if ($propriete->generee !== null) {
+            // L'expression vient de la base comme un commentaire, et se
+            // neutralise de la même façon.
+            $note = Emetteur::commentaire('Calculée par la base : ' . $propriete->generee->expression);
+            $texte = $texte === [] ? $note : [...$texte, '', ...$note];
+        }
         $lignes = Emetteur::docblock($texte, self::estTableau($type) ? ['@var ' . self::typeTableau($type)] : [], $indentation);
         $generee = $this->estGeneree($propriete, $identifiant);
 
@@ -394,6 +401,13 @@ final class RenduMembres
             'nullable' => $propriete->nullable ? true : null,
             'insertable' => $propriete->insertable ? null : false,
             'updatable' => $propriete->modifiable ? null : false,
+            // Relue par un SELECT après chaque INSERT et UPDATE, sans quoi elle
+            // vaut null en mémoire jusqu'au rechargement ; aucun effet sur le DDL,
+            // que DBAL ne sait pas écrire pour une colonne générée (essai du
+            // 2026-09-15, ORM 2.14.3 à 3.7.1). Contrepartie de Doctrine : le
+            // flush qui suit une écriture croit la colonne modifiée, n'émet
+            // rien, mais appelle #[PreUpdate] une fois.
+            'generated' => $propriete->generee === null ? null : 'ALWAYS',
             'enumType' => $enumType,
             'options' => $options === [] ? null : $options,
         ], $indentation);

@@ -164,6 +164,35 @@ final class GenerateurEntiteTest extends TestCase
     }
 
     /**
+     * Une colonne générée est relue après écriture, et son expression
+     * documente la propriété, neutralisée comme un commentaire : un « * / »
+     * venu de la base ne ferme pas le docblock.
+     */
+    public function testUneColonneGenereeEstRelueEtDocumentee(): void
+    {
+        $client = self::entite('Client');
+        $client['proprietes'][] = self::propriete('caHt', 'decimal', [
+            'precision' => 12,
+            'echelle' => 2,
+            'nullable' => true,
+            'insertable' => false,
+            'modifiable' => false,
+            'generee' => ['expression' => '(ca_ttc /*taux*/ / 1.2)', 'stockee' => true],
+        ]);
+
+        $sortie = Repertoires::creer();
+        try {
+            (new GenerateurEntite())->generer(self::calque([$client]), $sortie, Cible::forcer(3), 'gescom');
+            $base = Repertoires::lire($sortie)['Base/ClientBase.php'];
+
+            self::assertStringContainsString('/** Calculée par la base : (ca_ttc /*taux*\/ / 1.2). */', $base);
+            self::assertStringContainsString("updatable: false,\n        generated: 'ALWAYS',\n    )]\n    protected ?string \$caHt = null;", $base);
+        } finally {
+            Repertoires::supprimer($sortie);
+        }
+    }
+
+    /**
      * jsonb et smallfloat se replient sur ce que DBAL connaît : l'option jsonb
      * avant 4.3, float avant 4.1. La longueur fixe s'écrit partout.
      */

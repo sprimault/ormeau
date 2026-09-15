@@ -62,6 +62,7 @@ abstract class TClientBase
     #[ORM\Column(name: 'cli_ca_ttc', type: 'decimal', precision: 12, scale: 2, nullable: true)]
     protected ?string $cliCaTtc = null;
 
+    /** Calculée par la base : (cli_ca_ttc / 1.2). */
     #[ORM\Column(
         name: 'cli_ca_ht',
         type: 'decimal',
@@ -70,6 +71,7 @@ abstract class TClientBase
         nullable: true,
         insertable: false,
         updatable: false,
+        generated: 'ALWAYS',
     )]
     protected ?string $cliCaHt = null;
 

@@ -123,7 +123,8 @@ func horodatagesDe(e *calque.Entite) []calque.Propriete {
 // updated_at facultative et l'autre obligatoire ne peuvent pas partager le même
 // trait. Le défaut calculé et la longueur fixe aussi : partagés, ils
 // passeraient d'une table à l'autre, et migrations:diff proposerait de modifier
-// la colonne en base.
+// la colonne en base. Une colonne générée ne partage son trait qu'avec la même
+// expression : la relire ailleurs rendrait un autre calcul.
 func signatureDe(proprietes []calque.Propriete) string {
 	parties := make([]string, 0, len(proprietes))
 	for _, p := range proprietes {
@@ -133,6 +134,9 @@ func signatureDe(proprietes []calque.Propriete) string {
 		}
 		if p.LongueurFixe {
 			partie += ":fixe"
+		}
+		if p.Generee != nil {
+			partie += ":generee:" + p.Generee.Expression
 		}
 		if p.DefautExpression != "" {
 			partie += ":" + string(p.DefautExpression)

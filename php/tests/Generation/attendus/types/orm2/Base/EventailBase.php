@@ -49,7 +49,16 @@ abstract class EventailBase
     #[ORM\Column(name: 'type_maison', type: 'string', nullable: true)]
     protected ?string $typeMaison = null;
 
-    #[ORM\Column(name: 'total_ligne', type: 'decimal', precision: 14, scale: 4, insertable: false, updatable: false)]
+    /** Calculée par la base : (compteur_long * 1.0). */
+    #[ORM\Column(
+        name: 'total_ligne',
+        type: 'decimal',
+        precision: 14,
+        scale: 4,
+        insertable: false,
+        updatable: false,
+        generated: 'ALWAYS',
+    )]
     protected string $totalLigne;
 
     #[ORM\Column(name: 'quantites', type: 'string', nullable: true)]

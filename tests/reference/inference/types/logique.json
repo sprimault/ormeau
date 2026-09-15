@@ -120,6 +120,10 @@
           "nullable": false,
           "precision": 14,
           "echelle": 4,
+          "generee": {
+            "expression": "(compteur_long * 1.0)",
+            "stockee": true
+          },
           "insertable": false,
           "modifiable": false,
           "origine": "contrainte"
