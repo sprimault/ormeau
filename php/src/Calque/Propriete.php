@@ -44,7 +44,9 @@ final class Propriete
      *                                                après les autres pour ne rien décaler chez un appelant
      * @param bool                  $longueurFixe     chaîne de longueur fixe, que la base complète d'espaces :
      *                                                recréée en longueur variable, la colonne se compare
-     *                                                autrement ; dernier paramètre, pour la même raison
+     *                                                autrement ; après les autres, pour la même raison
+     * @param Generee|null          $generee          calcul d'une colonne générée, à relire après chaque
+     *                                                écriture ; dernier paramètre, pour la même raison
      */
     public function __construct(
         public readonly string $nom,
@@ -64,6 +66,7 @@ final class Propriete
         public readonly ?Origine $origine = null,
         public readonly ?ExpressionDefaut $defautExpression = null,
         public readonly bool $longueurFixe = false,
+        public readonly ?Generee $generee = null,
     ) {}
 
     /**
@@ -97,6 +100,7 @@ final class Propriete
         $origine = Lecture::valeurOptionnelle($donnees, 'origine', $chemin, Origine::class);
         $defautExpression = Lecture::valeurOptionnelle($donnees, 'defaut_expression', $chemin, ExpressionDefaut::class);
         $longueurFixe = Lecture::booleen($donnees, 'longueur_fixe', $chemin, defaut: false);
+        $generee = Lecture::objet($donnees, 'generee', $chemin, Generee::depuisTableau(...));
 
         return new self(
             $nom,
@@ -116,6 +120,7 @@ final class Propriete
             $origine,
             $defautExpression,
             $longueurFixe,
+            $generee,
         );
     }
 }

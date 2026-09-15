@@ -70,6 +70,13 @@ régénération**, après `ormeau inferer` : `options: ['fixed' => true]`, type
 colonne discriminante `char(n)` ne le reçoit que sous ORM 3, et seulement dans
 une hiérarchie nouvelle.
 
+**Une colonne générée change dans `Base/` à la régénération**, après `ormeau
+inferer` : `generated: 'ALWAYS'` et un docblock qui cite son calcul. Doctrine
+relit la valeur après chaque écriture ; en contrepartie, le `flush` qui suit
+une écriture appelle `#[PreUpdate]` une fois sans rien écrire, et un
+`PreUpdate` qui modifie une colonne l'écrit alors une fois de plus.
+`schema:create` recrée toujours une colonne ordinaire.
+
 ### Corrigé
 
 - **Sous ORM 3 avec DBAL 3, une entité à colonne `binary` se charge, et une
@@ -93,6 +100,9 @@ une hiérarchie nouvelle.
   `varchar(n)`**, ni sous DBAL 4 un `jsonb` en `json` et un `real` en
   `double precision`. Appliquée, la conversion changeait ce que la colonne
   stocke et comment elle se compare.
+- **La valeur d'une colonne générée n'est plus `null` en mémoire après un
+  `flush`.** Exclue de l'INSERT et de l'UPDATE, elle n'était relue qu'au
+  rechargement de l'entité.
 
 ### Ajouté
 
@@ -124,6 +134,9 @@ une hiérarchie nouvelle.
   `smallfloat`). Le générateur se replie sur ce que DBAL connaît : `json` avec
   l'option `jsonb` avant DBAL 4.3, `float` avant DBAL 4.1, que `schema:create`
   recrée en `double precision`.
+- **Le calcul d'une colonne générée passe dans le calque logique**
+  (`propriete.generee` : `expression`, `stockee`), repris tel quel du calque
+  physique.
 
 ***
 
@@ -160,6 +173,13 @@ after `ormeau inferer`: `options: ['fixed' => true]`, the `jsonb` type or
 option, the `smallfloat` type, depending on the DBAL version. A `char(n)`
 discriminator column only gets it under ORM 3, and only in a new hierarchy.
 
+**A generated column changes in `Base/` on regeneration**, after `ormeau
+inferer`: `generated: 'ALWAYS'` and a docblock quoting its computation.
+Doctrine reads the value back after every write; in return, the `flush` that
+follows a write calls `#[PreUpdate]` once without writing anything, and a
+`PreUpdate` that modifies a column then writes it once more. `schema:create`
+still recreates an ordinary column.
+
 ### Fixed
 
 - **Under ORM 3 with DBAL 3, an entity with a `binary` column loads, and an
@@ -183,6 +203,9 @@ discriminator column only gets it under ORM 3, and only in a new hierarchy.
   `varchar(n)`**, nor under DBAL 4 a `jsonb` into `json` and a `real` into
   `double precision`. Once applied, the conversion changed what the column
   stores and how it compares.
+- **The value of a generated column is no longer `null` in memory after a
+  `flush`.** Left out of the INSERT and the UPDATE, it was only read back when
+  the entity was reloaded.
 
 ### Added
 
@@ -214,6 +237,9 @@ discriminator column only gets it under ORM 3, and only in a new hierarchy.
   `smallfloat`). The generator falls back on what DBAL knows: `json` with the
   `jsonb` option before DBAL 4.3, `float` before DBAL 4.1, which
   `schema:create` recreates as `double precision`.
+- **The computation of a generated column reaches the logical layer**
+  (`propriete.generee`: `expression`, `stockee`), copied as is from the
+  physical layer.
 
 ## [0.5.2] — 2026-09-14 — Ce qui tenait sans être vérifié
 

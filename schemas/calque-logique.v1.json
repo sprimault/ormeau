@@ -127,6 +127,16 @@
           "description": "Sens d'un défaut calculé reconnu, jamais son texte : now() et CURRENT_TIMESTAMP disent la même chose. L'instant est celui de la transaction. Exclusif de defaut ; un défaut calculé non reconnu n'est pas reporté et produit l'avertissement defaut_non_reporte.",
           "enum": ["horodatage_courant", "date_courante", "heure_courante"]
         },
+        "generee": {
+          "description": "Colonne calculée par la base, reprise du calque physique : expression verbatim, jamais interprétée, et calcul matérialisé ou non. Un générateur relit la valeur après écriture ; l'expression est propre au dialecte d'origine.",
+          "type": "object",
+          "required": ["expression", "stockee"],
+          "additionalProperties": false,
+          "properties": {
+            "expression": { "type": "string" },
+            "stockee": { "type": "boolean" }
+          }
+        },
         "insertable": { "type": "boolean", "default": true },
         "modifiable": { "type": "boolean", "default": true },
         "unique": { "type": "boolean" },

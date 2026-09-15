@@ -17,6 +17,7 @@ use Ormeau\Doctrine\Calque\ColonneJointure;
 use Ormeau\Doctrine\Calque\Entite;
 use Ormeau\Doctrine\Calque\Enumeration;
 use Ormeau\Doctrine\Calque\ExpressionDefaut;
+use Ormeau\Doctrine\Calque\Generee;
 use Ormeau\Doctrine\Calque\GenreAssociation;
 use Ormeau\Doctrine\Calque\Heritage;
 use Ormeau\Doctrine\Calque\Identifiant;
@@ -86,6 +87,7 @@ final class SchemaTest extends TestCase
         yield 'heritage' => [['$defs', 'heritage'], Heritage::class];
         yield 'identifiant' => [['$defs', 'identifiant'], Identifiant::class];
         yield 'propriete' => [['$defs', 'propriete'], Propriete::class];
+        yield 'generee' => [['$defs', 'propriete', 'properties', 'generee'], Generee::class];
         yield 'association' => [['$defs', 'association'], Association::class];
         yield 'colonneJointure' => [['$defs', 'colonneJointure'], ColonneJointure::class];
         yield 'tableJointure' => [['$defs', 'tableJointure'], TableJointure::class];

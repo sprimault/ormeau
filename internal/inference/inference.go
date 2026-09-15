@@ -406,6 +406,8 @@ func inferrerPropriete(c *calque.Colonne, cibleTable string, d *Decisions) (calq
 	// échouerait, et Doctrine doit le savoir pour l'exclure des INSERT.
 	if c.Generee != nil {
 		faux := false
+		generee := *c.Generee
+		propriete.Generee = &generee
 		propriete.Insertable = &faux
 		propriete.Modifiable = &faux
 	}
