@@ -251,7 +251,7 @@ func (p *pilote) lireColonnes(ctx context.Context, schemas []string, jeu *jeuDeT
 	defer lignes.Close()
 
 	for lignes.Next() {
-		var tableNom, tableSchema, typeInterne, generee string
+		var tableNom, tableSchema, typeInterne, identite, generee string
 		var estEnumere bool
 		var longueur, precision, echelle *int
 		var defaut, commentaire, collation *string
@@ -260,9 +260,22 @@ func (p *pilote) lireColonnes(ctx context.Context, schemas []string, jeu *jeuDeT
 		if err := lignes.Scan(
 			&tableNom, &tableSchema, &c.Nom, &c.Position, &c.TypeBrut, &typeInterne,
 			&estEnumere, &longueur, &precision, &echelle, &c.Nullable,
-			&c.AutoIncrement, &defaut, &generee, &commentaire, &collation,
+			&identite, &defaut, &generee, &commentaire, &collation,
 		); err != nil {
 			return fmt.Errorf("lecture d'une colonne: %w", err)
+		}
+
+		// attidentity vaut 'a' pour GENERATED ALWAYS, 'd' pour BY DEFAULT, et
+		// vide hors identité. Une autre valeur arrête l'extraction : la deviner
+		// écrirait un calque faux.
+		switch identite {
+		case "a":
+			c.AutoIncrement, c.Identite = true, calque.IdentiteToujours
+		case "d":
+			c.AutoIncrement, c.Identite = true, calque.IdentiteParDefaut
+		case "":
+		default:
+			return fmt.Errorf("colonne %s.%s.%s: attidentity %q inconnu", tableSchema, tableNom, c.Nom, identite)
 		}
 
 		c.TypeNormalise = normaliserType(typeInterne, estEnumere)

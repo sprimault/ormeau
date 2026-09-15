@@ -65,7 +65,7 @@ func physiqueDeReference() *Physique {
 				Nom:    "client",
 				Schema: "public",
 				Colonnes: []Colonne{
-					{Nom: "id", Position: 1, TypeBrut: "integer", TypeNormalise: TypeEntier, AutoIncrement: true},
+					{Nom: "id", Position: 1, TypeBrut: "integer", TypeNormalise: TypeEntier, AutoIncrement: true, Identite: IdentiteToujours},
 					{
 						Nom: "actif", Position: 2, TypeBrut: "char(1)", TypeNormalise: TypeTexte,
 						Longueur: ptrInt(1), Defaut: &Defaut{Genre: DefautLitteral, Valeur: "O"},

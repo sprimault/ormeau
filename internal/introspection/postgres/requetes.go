@@ -178,7 +178,7 @@ SELECT c.relname                                            AS table_nom,
        CASE WHEN t.typname = 'numeric' AND a.atttypmod > 4
             THEN (a.atttypmod - 4) & 65535 END              AS echelle,
        NOT a.attnotnull                                     AS nullable,
-       a.attidentity <> ''                                  AS identite,
+       a.attidentity::text                                  AS identite,
        pg_get_expr(d.adbin, d.adrelid)                       AS defaut,
        a.attgenerated::text                                 AS generee,
        col_description(c.oid, a.attnum)                     AS commentaire,

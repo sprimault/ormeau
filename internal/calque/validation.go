@@ -27,6 +27,7 @@ const (
 	CodeEmpreinteMalformee     = "empreinte_malformee"
 	CodeTypeHorsVocabulaire    = "type_hors_vocabulaire"
 	CodeGenreDefautInconnu     = "genre_defaut_inconnu"
+	CodeIdentiteInvalide       = "identite_invalide"
 	CodeActionInconnue         = "action_inconnue"
 	CodePositionInvalide       = "position_invalide"
 	CodeTableSansColonne       = "table_sans_colonne"
@@ -173,6 +174,14 @@ func (p *Physique) validerColonne(c *Colonne, cible string) []Anomalie {
 	if c.Defaut != nil && !genresDefaut[c.Defaut.Genre] {
 		a = append(a, anomalie(CodeGenreDefautInconnu, cible,
 			"genre de défaut %q hors du vocabulaire", c.Defaut.Genre))
+	}
+	switch {
+	case c.Identite != "" && !naturesIdentite[c.Identite]:
+		a = append(a, anomalie(CodeIdentiteInvalide, cible,
+			"nature d'identité %q hors du vocabulaire", c.Identite))
+	case c.Identite != "" && !c.AutoIncrement:
+		a = append(a, anomalie(CodeIdentiteInvalide, cible,
+			"nature d'identité %q sur une colonne sans auto_increment", c.Identite))
 	}
 	if c.TypeEnumere != "" && !p.typeEnumereDeclare(c.TypeEnumere) {
 		a = append(a, anomalie(CodeTypeEnumereIntrouvable, cible,
@@ -337,6 +346,11 @@ var typesNormalises = map[TypeNorm]bool{
 // Genres de défaut reconnus.
 var genresDefaut = map[GenreDefaut]bool{
 	DefautLitteral: true, DefautExpression: true, DefautSequence: true,
+}
+
+// Natures d'identité reconnues.
+var naturesIdentite = map[NatureIdentite]bool{
+	IdentiteToujours: true, IdentiteParDefaut: true,
 }
 
 // Actions référentielles reconnues.

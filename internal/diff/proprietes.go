@@ -56,6 +56,7 @@ var proprietesColonne = []propriete[calque.Colonne]{
 	{"echelle", func(c *calque.Colonne) string { return entier(c.Echelle) }},
 	{"nullable", func(c *calque.Colonne) string { return strconv.FormatBool(c.Nullable) }},
 	{"auto_increment", func(c *calque.Colonne) string { return strconv.FormatBool(c.AutoIncrement) }},
+	{"identite", func(c *calque.Colonne) string { return string(c.Identite) }},
 	{"defaut", func(c *calque.Colonne) string {
 		if c.Defaut == nil {
 			return ""

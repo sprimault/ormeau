@@ -6,7 +6,7 @@
     "catalogue": "gescom",
     "schema": "public",
     "extrait_le": "2026-01-01T00:00:00Z",
-    "empreinte": "sha256:55ad5aa008e4120a43ffe4f73da4be532468063af80b0fd20ca0e6606432cff4"
+    "empreinte": "sha256:98d383ec9f65439be686d46f0ea8a7f482be800d9bb88ff1d1ca52a4a20b5a56"
   },
   "tables": [
     {
@@ -32,7 +32,8 @@
           "type_brut": "integer",
           "type_normalise": "entier",
           "nullable": false,
-          "auto_increment": true
+          "auto_increment": true,
+          "identite": "toujours"
         },
         {
           "nom": "actif",
