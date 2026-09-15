@@ -457,7 +457,12 @@ final class RenduMembres
 
         if ($association->proprietaire && $association->tableJointure !== null) {
             $table = $association->tableJointure;
-            $lignes[] = Emetteur::attribut('ORM\JoinTable', IdentifiantsSql::table($table->nom, $this->avecSchema ? $table->schema : null), $i);
+            // La table de jointure n'a pas d'entité : son commentaire va sur
+            // #[JoinTable], accepté par ORM 2.14 comme par ORM 3 (essai du
+            // 2026-09-15).
+            $argumentsTable = IdentifiantsSql::table($table->nom, $this->avecSchema ? $table->schema : null);
+            $argumentsTable['options'] = $table->commentaire === null ? null : ['comment' => $table->commentaire];
+            $lignes[] = Emetteur::attribut('ORM\JoinTable', $argumentsTable, $i);
             foreach ($table->jointure as $jointure) {
                 $lignes[] = Emetteur::attribut('ORM\JoinColumn', self::argumentsJointure($jointure, false), $i);
             }

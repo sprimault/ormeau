@@ -67,6 +67,10 @@ hiérarchie nouvelle : la classe de l'utilisateur, déjà écrite, ne change pas
   reconstruit sans cette distinction change le comportement de la table. Le
   vocabulaire se définit par ce comportement, pour valoir aussi pour
   `IDENTITY` de SQL Server et `AUTO_INCREMENT` de MySQL.
+- **Le commentaire d'une table de jointure est conservé.** Le calque logique le
+  porte (`table_jointure.commentaire`), et `#[ORM\JoinTable]` le reçoit : une
+  association plusieurs-vers-plusieurs change dans `Base/` à la régénération
+  quand sa table en a un. Il faut relancer `ormeau inferer`.
 
 ***
 
@@ -101,6 +105,10 @@ not change.
   distinction changes how the table behaves. The vocabulary is defined by that
   behaviour, so that it also holds for SQL Server `IDENTITY` and MySQL
   `AUTO_INCREMENT`.
+- **The comment of a join table is kept.** The logical layer carries it
+  (`table_jointure.commentaire`), and `#[ORM\JoinTable]` receives it: a
+  many-to-many association changes in `Base/` on regeneration when its table
+  has one. `ormeau inferer` must be run again.
 
 ## [0.5.2] — 2026-09-14 — Ce qui tenait sans être vérifié
 

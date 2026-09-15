@@ -23,12 +23,16 @@ final class TableJointure
      *                                               #[JoinColumn]
      * @param list<ColonneJointure> $jointureInverse colonnes qui mènent à l'entité cible —
      *                                               #[InverseJoinColumn]
+     * @param string|null           $commentaire     commentaire de la table, tel que le catalogue le rend ;
+     *                                               elle n'a pas d'entité pour le porter, il va sur
+     *                                               #[JoinTable]
      */
     public function __construct(
         public readonly string $nom,
         public readonly string $schema,
         public readonly array $jointure,
         public readonly array $jointureInverse,
+        public readonly ?string $commentaire = null,
     ) {}
 
     /**
@@ -46,7 +50,8 @@ final class TableJointure
         $schema = Lecture::chaine($donnees, 'schema', $chemin);
         $jointure = Lecture::objets($donnees, 'jointure', $chemin, ColonneJointure::depuisTableau(...), requise: true);
         $jointureInverse = Lecture::objets($donnees, 'jointure_inverse', $chemin, ColonneJointure::depuisTableau(...), requise: true);
+        $commentaire = Lecture::chaineOptionnelle($donnees, 'commentaire', $chemin);
 
-        return new self($nom, $schema, $jointure, $jointureInverse);
+        return new self($nom, $schema, $jointure, $jointureInverse, $commentaire);
     }
 }

@@ -175,7 +175,11 @@
         "nom": { "type": "string" },
         "schema": { "type": "string" },
         "jointure": { "type": "array", "items": { "$ref": "#/$defs/colonneJointure" } },
-        "jointure_inverse": { "type": "array", "items": { "$ref": "#/$defs/colonneJointure" } }
+        "jointure_inverse": { "type": "array", "items": { "$ref": "#/$defs/colonneJointure" } },
+        "commentaire": {
+          "description": "Commentaire de la table de jointure, tel que le catalogue le rend. Elle ne devient pas une entité : sans ce champ, la régénération du schéma le perdrait.",
+          "type": "string"
+        }
       }
     },
     "indexEntite": {

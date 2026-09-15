@@ -5,8 +5,8 @@
     "version": "17.11",
     "catalogue": "gescom",
     "schema": "gescom",
-    "extrait_le": "2026-09-15T11:44:28Z",
-    "empreinte": "sha256:bec49e58dde28a9146b9b7448b74a73b485911429904f8133898a723b5d3de90"
+    "extrait_le": "2026-09-15T12:19:56Z",
+    "empreinte": "sha256:d103aa0cf75ba9341f0a7d5dffb4d29c2860333c0f2daf57c070adad7baa5aba"
   },
   "tables": [
     {
@@ -418,6 +418,7 @@
     {
       "nom": "t_client_tag",
       "schema": "gescom",
+      "commentaire": "Étiquettes posées sur un client",
       "colonnes": [
         {
           "nom": "cli_id",
