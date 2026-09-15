@@ -35,3 +35,35 @@ make maj-calque-gescom                        # gescom extraction, against the c
 After `make maj-calque-gescom`, `make maj-attendus` recomputes the case's
 logical layer, then `ORMEAU_MAJ_ATTENDUS=1 composer test` regenerates its
 entities under `php/tests/Generation/attendus/`.
+
+## Round trip
+
+`allerretour/` holds the test that checks the whole chain: the test database
+extracted, inferred, generated into Doctrine entities, recreated by Doctrine in
+the container's blank `allerretour` database, extracted again, then compared with
+the original.
+
+```bash
+make aller-retour
+```
+
+The diff is never empty: Doctrine recreates neither views, nor CHECK
+constraints, nor native enumerated types, and names its foreign keys its own
+way. These differences form a closed list, in `allerretour/ecarts_test.go`, each
+with its reason:
+
+- **IMPOSSIBLE**: a limit of Doctrine or DBAL;
+- **VOULU** (intended): a decision of the tool, tolerated only when the logical
+  layer or the generator takes it for that object;
+- **À COMBLER** (to close): a known gap, which goes away with the fix that
+  closes it.
+
+The test fails on a difference the list does not cover, and on an entry that no
+longer covers anything: the list can neither hide a regression nor keep a
+tolerance that became useless.
+
+It needs PHP with the `pdo_pgsql` extension and the dependencies of `php/`
+installed. `ORMEAU_PHP` names the interpreter when it is not `php` — for
+instance a `docker run` command mounting the repository at the same path — and
+the installed ORM version selects the list of differences. The report of the
+last run is written to `.tmp/allerretour/ecarts.txt`.

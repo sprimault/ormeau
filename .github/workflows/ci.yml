@@ -133,6 +133,34 @@ jobs:
         env:
           CGO_ENABLED: '1'
 
+  # L'aller-retour : la base de test extraite, générée en entités, recréée par
+  # Doctrine dans une base vierge, extraite à nouveau, puis comparée à la liste
+  # fermée d'écarts de tests/allerretour. Dépendances PHP depuis le lock, donc
+  # la cible ORM 3 / DBAL 4.
+  aller-retour:
+    name: Aller-retour — PostgreSQL, ORM 3
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+        with:
+          php-version: '8.4'
+          extensions: pdo_pgsql
+          coverage: none
+
+      - name: Installer les dépendances PHP
+        run: composer install --no-interaction --no-progress
+        working-directory: php
+
+      - name: Aller-retour
+        run: make aller-retour
+
   # Job distinct des tests : une CVE publiée en amont n'a rien à voir avec la PR
   # en cours, et son échec ne doit pas se lire comme « ta contribution est
   # cassée ». Le déclencheur planifié le fait tourner même sans contribution.

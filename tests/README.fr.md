@@ -36,3 +36,34 @@ make maj-calque-gescom                        # extraction de gescom, contre le 
 Après `make maj-calque-gescom`, `make maj-attendus` recalcule le calque logique
 du cas, puis `ORMEAU_MAJ_ATTENDUS=1 composer test` régénère ses entités dans
 `php/tests/Generation/attendus/`.
+
+## Aller-retour
+
+`allerretour/` porte le test qui vérifie la chaîne entière : la base de test
+extraite, inférée, générée en entités Doctrine, recréée par Doctrine dans la base
+vierge `allerretour` du conteneur, extraite à nouveau, puis comparée à
+l'originale.
+
+```bash
+make aller-retour
+```
+
+Le diff n'est jamais vide : Doctrine ne recrée ni vues, ni contraintes CHECK, ni
+types énumérés natifs, et nomme ses clés étrangères à sa façon. Ces écarts
+forment une liste fermée, dans `allerretour/ecarts_test.go`, chacun avec sa
+raison :
+
+- **IMPOSSIBLE** : une limite de Doctrine ou de DBAL ;
+- **VOULU** : une décision de l'outil, tolérée seulement quand le calque logique
+  ou le générateur la prend pour cet objet ;
+- **À COMBLER** : un manque connu, qui part avec le correctif qui le comble.
+
+Le test échoue sur un écart que la liste ne couvre pas, et sur une entrée qui ne
+couvre plus rien : la liste ne peut ni masquer une régression, ni garder une
+tolérance devenue inutile.
+
+Il exige PHP avec l'extension `pdo_pgsql` et les dépendances de `php/`
+installées. `ORMEAU_PHP` désigne l'interpréteur quand ce n'est pas `php` — par
+exemple une commande `docker run` qui monte le dépôt au même chemin —, et la
+version d'ORM installée choisit la liste d'écarts. Le relevé du dernier passage
+est écrit dans `.tmp/allerretour/ecarts.txt`.
