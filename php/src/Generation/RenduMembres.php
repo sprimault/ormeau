@@ -79,8 +79,14 @@ final class RenduMembres
      * Rend les propriétés, les associations et leurs accesseurs, avec les
      * imports qu'ils demandent et les collections à initialiser.
      *
-     * Propriétés, puis associations, puis accesseurs dans le même ordre : c'est
-     * l'ordre du calque, celui des colonnes de la table.
+     * Les membres de l'identifiant d'abord, dans l'ordre de la clé primaire —
+     * propriété ou association de clé —, puis les autres propriétés, puis les
+     * autres associations ; les accesseurs suivent le même ordre. Doctrine
+     * forme la clé primaire dans l'ordre de déclaration des membres #[ORM\Id] :
+     * une association de clé rendue après les propriétés inversait la clé, et
+     * migrations:diff proposait de la supprimer puis de la recréer (essai du
+     * 2026-09-15, ORM 2.14.3 et 3.7.1). L'ordre de la clé l'emporte sur la
+     * position des colonnes, que le comparateur de DBAL ignore.
      *
      * @param list<Propriete>   $proprietes   propriétés à rendre, dans l'ordre du calque
      * @param Identifiant|null  $identifiant  clé de l'entité ; null pour un trait, qui n'en porte pas
@@ -93,40 +99,69 @@ final class RenduMembres
         $jointures = self::colonnesDeJointure($associations);
         $clesDerivees = array_flip(self::associationsDeCle($proprietes, $identifiant, $associations));
 
-        $imports = [];
-        $membres = [];
-        $accesseurs = [];
-
+        // Chaque membre, rangé par sa clé : « p:nom » pour une propriété, « a:nom »
+        // pour une association. La propriété d'une colonne qu'une association de
+        // clé écrit n'a pas de membre ; son commentaire et son défaut passent sur
+        // la colonne de jointure.
+        $rendus = [];
+        $retirees = [];
+        $ordre = [];
         foreach ($proprietes as $propriete) {
             $ecritePar = $jointures[$propriete->colonne] ?? null;
             if ($ecritePar !== null) {
                 if (self::dansLaCle($propriete, $identifiant)) {
+                    $retirees[$propriete->colonne] = $propriete;
                     continue;
                 }
                 $propriete = self::enLectureSeule($propriete);
             }
 
             [$type, $import] = $this->type($propriete, $identifiant);
-            if ($import !== null) {
-                $imports[] = $import;
-            }
-            $membres[] = $this->propriete($propriete, $identifiant, $type, $ecritePar);
-            $accesseurs[] = $this->accesseurs($propriete, $identifiant, $type);
+            $rendus['p:' . $propriete->nom] = [
+                'imports' => $import === null ? [] : [$import],
+                'membre' => $this->propriete($propriete, $identifiant, $type, $ecritePar),
+                'accesseurs' => $this->accesseurs($propriete, $identifiant, $type),
+            ];
+            $ordre[] = 'p:' . $propriete->nom;
         }
 
         $collections = [];
         foreach ($associations as $association) {
-            $imports[] = $this->classes?->qualifiee($association->cible) ?? $this->espaceDeNoms . '\\' . $association->cible;
+            $imports = [$this->classes?->qualifiee($association->cible) ?? $this->espaceDeNoms . '\\' . $association->cible];
             if (self::estCollection($association)) {
                 $imports[] = 'Doctrine\Common\Collections\ArrayCollection';
                 $imports[] = 'Doctrine\Common\Collections\Collection';
                 $collections[] = $association->nom;
             }
-            $membres[] = $this->association($association, isset($clesDerivees[$association->nom]));
-            $accesseurs[] = $this->accesseursAssociation($association);
+            $rendus['a:' . $association->nom] = [
+                'imports' => $imports,
+                'membre' => $this->association($association, isset($clesDerivees[$association->nom]), $retirees),
+                'accesseurs' => $this->accesseursAssociation($association),
+            ];
+            $ordre[] = 'a:' . $association->nom;
         }
 
-        return ['imports' => $imports, 'membres' => $membres, 'accesseurs' => $accesseurs, 'collections' => $collections];
+        $cle = [];
+        $parColonne = [];
+        foreach ($proprietes as $propriete) {
+            $parColonne[$propriete->nom] = $propriete->colonne;
+        }
+        foreach ($identifiant->proprietes ?? [] as $nom) {
+            $colonne = $parColonne[$nom] ?? null;
+            $membre = isset($rendus['p:' . $nom]) ? 'p:' . $nom : ($colonne !== null && isset($jointures[$colonne]) ? 'a:' . $jointures[$colonne] : null);
+            if ($membre !== null && !in_array($membre, $cle, true)) {
+                $cle[] = $membre;
+            }
+        }
+
+        $resultat = ['imports' => [], 'membres' => [], 'accesseurs' => [], 'collections' => $collections];
+        foreach ([...$cle, ...array_values(array_diff($ordre, $cle))] as $membre) {
+            array_push($resultat['imports'], ...$rendus[$membre]['imports']);
+            $resultat['membres'][] = $rendus[$membre]['membre'];
+            $resultat['accesseurs'][] = $rendus[$membre]['accesseurs'];
+        }
+
+        return $resultat;
     }
 
     /**
@@ -339,10 +374,7 @@ final class RenduMembres
         }
 
         $defaut = $this->defaut($propriete);
-        $options = array_filter([
-            'default' => $propriete->defaut === null ? null : ($defaut ?? $propriete->defaut),
-            'comment' => $propriete->commentaire,
-        ], static fn($valeur): bool => $valeur !== null);
+        $options = $this->optionsDeColonne($propriete);
 
         $enumType = null;
         if ($propriete->enumeration !== null) {
@@ -386,8 +418,18 @@ final class RenduMembres
      * sait pas ce qu'elle contient. Une association de la clé primaire le dit :
      * Doctrine tire l'identifiant de l'entité visée, et un persist() qui la
      * précède échoue.
+     *
+     * Une colonne de jointure de la clé n'a pas de propriété : son commentaire
+     * et son défaut vont en options de la JoinColumn, sans quoi Doctrine la
+     * recrée avec les options de la colonne visée (essai du 2026-09-15, accepté
+     * par ORM 2.14.3 et 3.7.1).
+     *
+     * @param Association              $association association à rendre
+     * @param bool                     $dansLaCle   l'association porte l'identifiant
+     * @param array<string, Propriete> $retirees    propriétés sans membre, par colonne : celles qu'une
+     *                                              association de clé écrit
      */
-    private function association(Association $association, bool $dansLaCle): string
+    private function association(Association $association, bool $dansLaCle, array $retirees = []): string
     {
         $i = Emetteur::INDENTATION;
         $cible = new Code($association->cible . '::class');
@@ -424,7 +466,13 @@ final class RenduMembres
             }
         } elseif ($association->proprietaire) {
             foreach ($association->jointure as $jointure) {
-                $lignes[] = Emetteur::attribut('ORM\JoinColumn', self::argumentsJointure($jointure, true), $i);
+                $arguments = self::argumentsJointure($jointure, true);
+                $retiree = $dansLaCle ? ($retirees[$jointure->colonne] ?? null) : null;
+                if ($retiree !== null) {
+                    $options = $this->optionsDeColonne($retiree);
+                    $arguments['options'] = $options === [] ? null : $options;
+                }
+                $lignes[] = Emetteur::attribut('ORM\JoinColumn', $arguments, $i);
             }
         }
 
@@ -601,6 +649,24 @@ final class RenduMembres
     private static function typeTableau(string $type): string
     {
         return str_starts_with($type, '?') ? 'array<mixed>|null' : 'array<mixed>';
+    }
+
+    /**
+     * Rend les options de colonne d'une propriété : son défaut, dans le type
+     * de la valeur stockée quand la conversion est certaine, et son
+     * commentaire. Les mêmes pour une colonne rendue en #[ORM\Column] et pour
+     * une colonne de jointure de la clé, qui n'a pas de propriété.
+     *
+     * @return array<string, bool|float|int|string>
+     */
+    public function optionsDeColonne(Propriete $propriete): array
+    {
+        $defaut = $this->defaut($propriete);
+
+        return array_filter([
+            'default' => $propriete->defaut === null ? null : ($defaut ?? $propriete->defaut),
+            'comment' => $propriete->commentaire,
+        ], static fn($valeur): bool => $valeur !== null);
     }
 
     /**

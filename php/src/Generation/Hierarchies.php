@@ -107,8 +107,10 @@ final class Hierarchies
      * @param string                  $espaceDeNoms espace de noms des entités du calque
      * @param ClassesUtilisateur|null $classes      où vivent les classes de l'utilisateur ; la carte
      *                                              cite chacune sous son nom qualifié réel
+     * @param Cible|null              $cible        version d'ORM visée : le commentaire et le défaut de la
+     *                                              colonne ne s'écrivent que sous ORM 3
      */
-    public function racineHeritage(Entite $entite, string $espaceDeNoms, ?ClassesUtilisateur $classes = null): ?RacineHeritage
+    public function racineHeritage(Entite $entite, string $espaceDeNoms, ?ClassesUtilisateur $classes = null, ?Cible $cible = null): ?RacineHeritage
     {
         if ($this->racine($entite) !== $entite) {
             return null;
@@ -121,10 +123,23 @@ final class Hierarchies
             $carte[(string) $membre->valeurDiscriminante] = $qualifiee($membre->nom);
         }
 
+        // ORM 2.14 ne connaît pas le paramètre options de #[DiscriminatorColumn] :
+        // l'écrire rend toutes les métadonnées illisibles (essai du 2026-09-15,
+        // « Unknown named parameter $options »). Le plancher décide, la cible se
+        // raisonne par majeure.
+        $options = [];
+        if ($propriete !== null && $cible !== null && $cible->ormMajeure >= 3) {
+            $options = array_filter([
+                'default' => $propriete->defaut,
+                'comment' => $propriete->commentaire,
+            ], static fn(?string $valeur): bool => $valeur !== null);
+        }
+
         return new RacineHeritage([
             'name' => IdentifiantsSql::colonne((string) $this->colonneDiscriminante($entite)),
             'type' => $propriete?->typeDoctrine,
             'length' => $propriete?->longueur,
+            'options' => $options === [] ? null : $options,
         ], $carte, $qualifiee($entite->nom));
     }
 

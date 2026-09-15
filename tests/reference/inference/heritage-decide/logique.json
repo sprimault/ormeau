@@ -41,6 +41,8 @@
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 1,
+          "defaut": "P",
+          "commentaire": "Nature de la personne",
           "origine": "contrainte"
         }
       ],
@@ -247,6 +249,7 @@
           "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
+          "commentaire": "Salarié affecté",
           "origine": "contrainte"
         },
         {

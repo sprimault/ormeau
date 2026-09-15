@@ -228,7 +228,7 @@ final class GenerateurEntite
             $base = $repertoire . '/Base/' . RenduEntite::nomBase($entite) . '.php';
             $fichiers[] = new Fichier($base, $this->ecrire($base, $rendu->classeBase($entite, $hierarchies), $repertoire));
 
-            $racine = $hierarchies->racineHeritage($entite, $calque->espaceDeNoms, $classes);
+            $racine = $hierarchies->racineHeritage($entite, $calque->espaceDeNoms, $classes, $cible);
             $utilisateur = $classes->fichier($entite->nom, $repertoire);
             if (!is_file($utilisateur)) {
                 $this->ecrire($utilisateur, $rendu->classeUtilisateur($entite, $racine), $repertoire);

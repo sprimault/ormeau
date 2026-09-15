@@ -55,13 +55,16 @@ CREATE TABLE t_client_tag (
     PRIMARY KEY (cli_id, tag_id)
 );
 
--- Table de liaison portant une donnée propre : doit rester une entité.
+-- Table de liaison portant une donnée propre : doit rester une entité. La clé
+-- commence par la colonne d'identité dérivée, et celle-ci porte un commentaire
+-- sans propriété pour le recevoir.
 CREATE TABLE t_client_contact (
     cli_id     int NOT NULL REFERENCES t_client (cli_id),
     ctc_id     int NOT NULL,
     role       varchar(30) NOT NULL,
     PRIMARY KEY (cli_id, ctc_id)
 );
+COMMENT ON COLUMN t_client_contact.cli_id IS 'Client du contact';
 
 -- Un-vers-un hors clé primaire : la clé étrangère porte une contrainte
 -- d'unicité, dont PostgreSQL crée l'index de soutien du même nom.

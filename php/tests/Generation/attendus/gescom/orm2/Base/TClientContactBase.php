@@ -12,6 +12,17 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\MappedSuperclass]
 abstract class TClientContactBase
 {
+    /** Fait partie de l'identifiant : à renseigner avant persist(). */
+    #[ORM\Id]
+    #[ORM\ManyToOne(targetEntity: TClient::class, inversedBy: 'tclientContact')]
+    #[ORM\JoinColumn(
+        name: 'cli_id',
+        referencedColumnName: 'cli_id',
+        nullable: false,
+        options: ['comment' => 'Client du contact'],
+    )]
+    protected TClient $cli;
+
     #[ORM\Id]
     #[ORM\Column(name: 'ctc_id', type: 'integer')]
     protected int $ctcId;
@@ -19,11 +30,17 @@ abstract class TClientContactBase
     #[ORM\Column(name: 'role', type: 'string', length: 30)]
     protected string $role;
 
-    /** Fait partie de l'identifiant : à renseigner avant persist(). */
-    #[ORM\Id]
-    #[ORM\ManyToOne(targetEntity: TClient::class, inversedBy: 'tclientContact')]
-    #[ORM\JoinColumn(name: 'cli_id', referencedColumnName: 'cli_id', nullable: false)]
-    protected TClient $cli;
+    public function getCli(): TClient
+    {
+        return $this->cli;
+    }
+
+    public function setCli(TClient $cli): static
+    {
+        $this->cli = $cli;
+
+        return $this;
+    }
 
     public function getCtcId(): int
     {
@@ -45,18 +62,6 @@ abstract class TClientContactBase
     public function setRole(string $role): static
     {
         $this->role = $role;
-
-        return $this;
-    }
-
-    public function getCli(): TClient
-    {
-        return $this->cli;
-    }
-
-    public function setCli(TClient $cli): static
-    {
-        $this->cli = $cli;
 
         return $this;
     }

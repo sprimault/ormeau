@@ -27,10 +27,11 @@ final class RacineHeritage
     public const STRATEGIE = 'JOINED';
 
     /**
-     * @param array{name: string, type: string|null, length: int|null} $colonne arguments de
+     * @param array{name: string, type: string|null, length: int|null, options?: array<string, string>|null} $colonne arguments de
      *                                                                           #[ORM\DiscriminatorColumn] ; type
      *                                                                           et longueur absents quand la
-     *                                                                           colonne n'est pas une propriété
+     *                                                                           colonne n'est pas une propriété,
+     *                                                                           options sous ORM 3 seulement
      * @param array<string, string>                                     $carte   valeur discriminante vers le nom
      *                                                                           qualifié de la classe, dans
      *                                                                           l'ordre du calque
