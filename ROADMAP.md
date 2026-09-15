@@ -11,7 +11,7 @@ générateur.
 | 3 — Inférence et calque logique | terminée, hors clés étrangères implicites |
 | 4 — Interface | terminée |
 | 5 — Génération Doctrine | terminée |
-| 6 — Aller-retour | en cours |
+| 6 — Aller-retour | terminée |
 | 7 à 10 | non commencées |
 | 11 — Publication | faite |
 
