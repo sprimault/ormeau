@@ -78,8 +78,15 @@ cover: web-build
 # -count=1 désactive le cache : Go le réutilise tant que le code ne bouge pas,
 # alors que le résultat dépend ici de l'état de la base. Un « ok (cached) »
 # devant un conteneur recréé ne prouve rien.
+#
+# Seuls les paquets qui portent l'étiquette, et pas ./... : internal/interface
+# ne compile pas sans le front construit (go:embed), et un pilote SQL n'a pas à
+# exiger Node pour se tester. Les tests unitaires restent à `make test`.
+# --untracked : un fichier d'intégration neuf compte avant d'être ajouté.
+PAQUETS_INTEGRATION = $(sort $(foreach f,$(shell git grep --untracked -l '^//go:build integration' -- '*_test.go'),./$(dir $(f))))
+
 test-integration: containers
-	go test -race -count=1 -tags integration ./...
+	go test -race -count=1 -tags integration $(PAQUETS_INTEGRATION)
 
 # La vérification des types générés est accrochée à lint, pas à test :
 # `make test` doit rester exécutable sur un clone frais sans outil Go à
@@ -284,8 +291,12 @@ php-lint:
 		&& composer audit
 
 # ── SGBD de test ────────────────────────────────────────────────────
+# Recréé à chaque appel, volume compris : l'image n'exécute tests/ddl/ que sur
+# un volume vide, et un conteneur resté debout garderait l'ancien schéma. Les
+# tests d'intégration le vérifient de toute façon (empreinte du DDL en
+# commentaire de la base) ; ceci évite d'y tomber par le chemin normal.
 containers:
-	docker compose -f tests/docker-compose.yml up -d --wait
+	docker compose -f tests/docker-compose.yml up -d --wait --force-recreate --renew-anon-volumes
 
 containers-down:
 	docker compose -f tests/docker-compose.yml down -v

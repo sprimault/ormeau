@@ -108,7 +108,11 @@ _ := $(shell mkdir -p "$(GOTMPDIR)" "$(GOCACHE)")
 Le fichier n'est pas versionné, et rien n'oblige à le créer.
 
 Le conteneur peut tourner ailleurs que sur le poste : `ORMEAU_TEST_DSN`
-surcharge le DSN visé par les tests d'intégration.
+surcharge le DSN visé par les tests d'intégration. Il doit viser une base créée
+depuis `tests/ddl/` : elle porte en commentaire l'empreinte du DDL qui l'a
+créée, et les tests refusent de tourner si elle manque ou ne correspond pas au
+fichier du dépôt. `make containers` recrée le conteneur à chaque appel, volume
+compris, pour qu'un DDL modifié soit toujours celui qu'on teste.
 
 Avant d'ouvrir une pull request, lancer au moins `make lint` et `make test`. La
 CI les exécute aussi, mais après coup, quand la branche est déjà poussée.

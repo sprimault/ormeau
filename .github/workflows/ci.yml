@@ -112,6 +112,27 @@ jobs:
           check-jsonschema --schemafile schemas/calque-logique.v1.json \
             tests/reference/inference/*/logique.json
 
+  # Le seul endroit où le pilote rencontre un vrai PostgreSQL après la fusion.
+  # Par make containers et pas par `services:` : un service démarre avant le
+  # checkout et ne peut pas monter tests/ddl/, il faudrait une seconde façon
+  # de créer la base, qui divergerait de celle des contributeurs. Ni Node ni
+  # front : la cible ne compile que les paquets étiquetés integration.
+  integration:
+    name: Go — intégration PostgreSQL
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Tests d'intégration
+        run: make test-integration
+        env:
+          CGO_ENABLED: '1'
+
   # Job distinct des tests : une CVE publiée en amont n'a rien à voir avec la PR
   # en cours, et son échec ne doit pas se lire comme « ta contribution est
   # cassée ». Le déclencheur planifié le fait tourner même sans contribution.
