@@ -8,8 +8,12 @@ services:
       - "35432:5432"
     volumes:
       - ./ddl/postgres.sql:/docker-entrypoint-initdb.d/10-gescom.sql:ro
+      - ./ddl/20-empreinte.sh:/docker-entrypoint-initdb.d/20-empreinte.sh:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d gescom"]
+      # Par TCP : pendant l'initialisation, l'image fait tourner un serveur
+      # temporaire joignable seulement par le socket Unix. Sans -h, le conteneur
+      # se dirait prêt avant la fin de tests/ddl/, empreinte comprise.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres -d gescom"]
       interval: 2s
       timeout: 3s
       retries: 30

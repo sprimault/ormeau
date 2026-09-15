@@ -103,7 +103,12 @@ _ := $(shell mkdir -p "$(GOTMPDIR)" "$(GOCACHE)")
 The file is not versioned, and nothing requires you to create it.
 
 The container may run elsewhere than on your workstation: `ORMEAU_TEST_DSN`
-overrides the DSN the integration tests target.
+overrides the DSN the integration tests target. It must point to a database
+created from `tests/ddl/`: the database carries, as a comment, the fingerprint
+of the DDL that created it, and the tests refuse to run when it is missing or
+does not match the file in the repository. `make containers` recreates the
+container on every call, volume included, so that a modified DDL is always the
+one under test.
 
 Before opening a pull request, run at least `make lint` and `make test`. CI
 runs them too, but it does so after the branch is already pushed.

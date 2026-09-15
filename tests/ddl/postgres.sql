@@ -41,10 +41,15 @@ CREATE INDEX ix_cli_actifs ON t_client (cli_com_id) WHERE cli_statut = 'ACTIF';
 -- et deux index de comportements différents deviennent indistinguables.
 CREATE INDEX ix_cli_nom_prefixe ON t_client (cli_nom text_pattern_ops);
 
+CREATE TABLE t_tag (
+    tag_id      int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    tag_libelle varchar(40) NOT NULL
+);
+
 -- Table de jointure pure : doit produire une association, pas une entité.
 CREATE TABLE t_client_tag (
     cli_id int NOT NULL REFERENCES t_client (cli_id) ON DELETE CASCADE,
-    tag_id int NOT NULL,
+    tag_id int NOT NULL REFERENCES t_tag (tag_id),
     PRIMARY KEY (cli_id, tag_id)
 );
 
