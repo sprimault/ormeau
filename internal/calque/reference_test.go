@@ -16,8 +16,9 @@ import (
 //	go test ./internal/calque/ -maj-attendus
 var majAttendus = flag.Bool("maj-attendus", false, "réécrit les fichiers de référence")
 
-// Le calque de référence, seul exemple versionné : il vient de tests/ddl/, pas
-// d'une base réelle.
+// Le calque de référence, écrit à la main par physiqueDeReference : il fige la
+// sérialisation des structures, et ne vient ni de tests/ddl/ ni d'une base
+// réelle.
 const cheminReference = "../../tests/reference/exemple.calque.json"
 
 // Ce fichier est le pont entre les deux moitiés du projet : la CI le valide

@@ -7,10 +7,17 @@ package postgres
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
+	"errors"
+	"fmt"
+	"net/url"
 	"os"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgconn"
 
 	"github.com/sprimault/ormeau/internal/introspection"
 )
@@ -29,6 +36,61 @@ func dsnDeTest() string {
 		return dsn
 	}
 	return dsnParDefaut
+}
+
+// cheminDDL est le DDL dont la base de test doit être issue.
+const cheminDDL = "../../../tests/ddl/postgres.sql"
+
+// TestMain refuse de lancer la suite contre une base qui ne vient pas du DDL
+// du dépôt. Deux cas passeraient sinon sans rien signaler : un conteneur dont
+// le volume a survécu à une modification du DDL, qui fait tester l'ancien
+// schéma, et un ORMEAU_TEST_DSN qui vise une autre base que celle du
+// conteneur.
+func TestMain(m *testing.M) {
+	if err := controlerBaseDeTest(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	os.Exit(m.Run())
+}
+
+// controlerBaseDeTest compare l'empreinte du DDL du dépôt à celle que
+// tests/ddl/20-empreinte.sh a posée en commentaire de la base à sa création.
+func controlerBaseDeTest() error {
+	contenu, err := os.ReadFile(cheminDDL)
+	if err != nil {
+		return fmt.Errorf("lecture du DDL de test: %w", err)
+	}
+	somme := sha256.Sum256(contenu)
+	attendu := "ddl-sha256:" + hex.EncodeToString(somme[:])
+
+	ctx, annuler := context.WithTimeout(context.Background(), 10*time.Second)
+	defer annuler()
+
+	i, err := Ouvrir(ctx, dsnDeTest())
+	if err != nil {
+		return fmt.Errorf("connexion a la base de test (make containers ?): %w", err)
+	}
+	defer func() { _ = i.Fermer() }()
+
+	var commentaire *string
+	err = i.(*pilote).conn.QueryRow(ctx, `
+SELECT shobj_description(oid, 'pg_database')
+FROM pg_database
+WHERE datname = current_database()`).Scan(&commentaire)
+	if err != nil {
+		return fmt.Errorf("lecture de l'empreinte du DDL: %w", err)
+	}
+
+	switch {
+	case commentaire == nil || !strings.HasPrefix(*commentaire, "ddl-sha256:"):
+		return errors.New("la base visee ne vient pas de tests/ddl/, aucune empreinte de DDL " +
+			"en commentaire: verifier ORMEAU_TEST_DSN, ou recreer le conteneur par make containers")
+	case *commentaire != attendu:
+		return fmt.Errorf("la base de test vient d'un autre DDL que tests/ddl/postgres.sql "+
+			"(base %s, fichier %s): make containers la recree", *commentaire, attendu)
+	}
+	return nil
 }
 
 // ouvrirOuEchouer ouvre une connexion et l'inscrit au nettoyage du test.
@@ -122,9 +184,10 @@ func TestInventorier(t *testing.T) {
 		{"t_commercial", true, ""},
 		{"t_client", true, "gescom.t_commercial"},
 		{"t_client_tag", true, "gescom.t_client"},
-		{"t_log_import", false, ""}, // aucune clé primaire, cas courant sur du legacy
-		{"t_facture", true, ""},     // clé étrangère implicite : rien de déclaré
-		{"t_référence", true, ""},   // identifiants accentués et réservés
+		{"t_client_tag", true, "gescom.t_tag"}, // jointure pure
+		{"t_log_import", false, ""},            // aucune clé primaire, cas courant sur du legacy
+		{"t_facture", true, ""},                // clé étrangère implicite : rien de déclaré
+		{"t_référence", true, ""},              // identifiants accentués et réservés
 	}
 
 	for _, c := range cas {
@@ -319,15 +382,31 @@ func TestColonnesTableInconnue(t *testing.T) {
 }
 
 // Le DSN ne doit ressortir d'aucune erreur du pilote, pas même masqué.
+//
+// L'absence du secret dans l'erreur ne prouve rien s'il n'a pas été soumis :
+// un serveur injoignable refuse la connexion avant tout échange, et le test
+// passerait. D'où les deux préconditions — le vrai DSN se connecte, et le
+// refus sous le faux mot de passe est bien celui de l'authentification.
 func TestConnexionRefuseeSansFuiteDuSecret(t *testing.T) {
+	_ = ouvrirOuEchouer(t)
+
+	const secret = "Mot-De-Passe-Qui-Ne-Doit-Pas-Fuiter"
+	u, err := url.Parse(dsnDeTest())
+	if err != nil || u.User == nil || (u.Scheme != "postgres" && u.Scheme != "postgresql") {
+		t.Fatal("ce test exige un DSN de test en URL postgres:// qui nomme un utilisateur")
+	}
+	u.User = url.UserPassword(u.User.Username(), secret)
+
 	ctx, annuler := context.WithTimeout(context.Background(), 10*time.Second)
 	defer annuler()
 
-	const secret = "Mot-De-Passe-Qui-Ne-Doit-Pas-Fuiter"
-	_, err := introspection.Ouvrir(ctx, "postgres",
-		"postgres://postgres:"+secret+"@127.0.0.1:35432/gescom")
+	_, err = introspection.Ouvrir(ctx, "postgres", u.String())
 	if err == nil {
 		t.Fatal("connexion acceptee avec un mot de passe faux")
+	}
+	var refus *pgconn.PgError
+	if !errors.As(err, &refus) || refus.Code != "28P01" {
+		t.Fatalf("refus d'authentification (28P01) attendu, le mot de passe n'a pas ete soumis : %v", err)
 	}
 	if strings.Contains(err.Error(), secret) {
 		t.Error("le mot de passe apparait dans l'erreur de connexion")

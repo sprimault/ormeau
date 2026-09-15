@@ -87,8 +87,8 @@ func TestExtraireEstDeterministe(t *testing.T) {
 	}
 }
 
-// Le test précédent réutilise la même session, et ne voit donc pas ce qui
-// dépend d'elle. Ici deux connexions dont le search_path diffère : sous
+// Le test précédent extrait deux fois sous le même DSN, et ne voit donc pas ce
+// qui dépend de la session. Ici deux connexions dont le search_path diffère : sous
 // gescom, le catalogue écrirait les séquences du schéma sans le qualifier. Les
 // octets doivent rester les mêmes, sinon le calque dépend de qui l'extrait.
 func TestExtraireNeDependPasDuSearchPath(t *testing.T) {
@@ -388,9 +388,19 @@ func TestExtraireLesCasTordus(t *testing.T) {
 		}
 	})
 
+	// Une séquence par origine : le serial de t_avoir, l'identité de
+	// t_commercial.
 	t.Run("sequences", func(t *testing.T) {
-		if len(p.Sequences) == 0 {
-			t.Error("aucune sequence : les colonnes IDENTITY en creent")
+		for _, nom := range []string{"t_avoir_avo_id_seq", "t_commercial_com_id_seq"} {
+			trouvee := false
+			for _, s := range p.Sequences {
+				if s.Schema == "gescom" && s.Nom == nom {
+					trouvee = true
+				}
+			}
+			if !trouvee {
+				t.Errorf("sequence %s absente du calque", nom)
+			}
 		}
 	})
 
