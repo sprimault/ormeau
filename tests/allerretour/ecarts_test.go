@@ -51,7 +51,7 @@ type tolerance struct {
 
 // ciblesConnues sont celles dont les écarts ont été relevés. Une autre cible
 // échoue au lieu de comparer à une liste qui ne la concerne pas.
-var ciblesConnues = []string{"orm3-dbal4"}
+var ciblesConnues = []string{"orm2-dbal3", "orm3-dbal4"}
 
 // tolerances est la liste fermée. Une entrée s'ajoute avec l'écart qui la
 // justifie, et part avec lui. Les raisons renvoient à la matrice de fidélité
@@ -115,6 +115,50 @@ var tolerances = []tolerance{
 		},
 	},
 	{
+		code: "identite_recreee_en_serial", categorie: impossible, cibles: []string{"orm2-dbal3"},
+		pourquoi: "DBAL 3 recrée une colonne d'identité en SERIAL : défaut nextval au lieu de l'identité",
+		couvre: func(e diff.Ecart, c contexte) bool {
+			col := colonneOrigine(c, e)
+			if col == nil || !col.AutoIncrement {
+				return false
+			}
+			return (e.Propriete == "auto_increment" && e.Avant == "true" && e.Apres == "false") ||
+				(e.Propriete == "defaut" && e.Avant == "" && strings.HasPrefix(e.Apres, string(calque.DefautSequence)+" nextval("))
+		},
+	},
+	{
+		code: "serial_recree_en_sequence", categorie: impossible, cibles: []string{"orm2-dbal3"},
+		pourquoi: "une clé serial est rendue SEQUENCE sous ORM 2 : la séquence est créée à part, sans DEFAULT nextval sur la colonne",
+		couvre: func(e diff.Ecart, c contexte) bool {
+			col := colonneOrigine(c, e)
+			return col != nil && col.Defaut != nil && col.Defaut.Genre == calque.DefautSequence &&
+				e.Propriete == "defaut" && e.Apres == ""
+		},
+	},
+	{
+		code: "bornes_de_sequence_par_defaut", categorie: impossible, cibles: []string{"orm2-dbal3"},
+		pourquoi: "Doctrine crée la séquence d'un identifiant sans maximum : celui du type bigint remplace celui d'origine",
+		couvre: func(e diff.Ecart, c contexte) bool {
+			if e.Objet != diff.ObjetSequence || e.Propriete != "maximum" {
+				return false
+			}
+			nom := e.Schema + "." + e.Nom
+			return slices.ContainsFunc(c.logique.Entites, func(en calque.Entite) bool {
+				return en.Identifiant != nil && en.Identifiant.Strategie == calque.IdentifiantSequence && en.Identifiant.Sequence == nom
+			})
+		},
+	},
+	{
+		code: "ordre_des_colonnes_dbal3", categorie: impossible, cibles: []string{"orm2-dbal3"},
+		pourquoi: "DBAL 3 rend les colonnes d'une table clé primaire d'abord, puis clés étrangères, puis le reste (Table::getColumns)",
+		couvre: func(e diff.Ecart, c contexte) bool {
+			if e.Objet != diff.ObjetColonne || e.Propriete != "position" {
+				return false
+			}
+			return ordonneeParDBAL3(c.origine.TableParNom(e.Schema, e.Table), c.recree.TableParNom(e.Schema, e.Table))
+		},
+	},
+	{
 		code: "nom_de_cle_etrangere_genere", categorie: impossible,
 		pourquoi: "Doctrine nomme ses clés étrangères FK_ suivi d'un hachage",
 		couvre: func(e diff.Ecart, _ contexte) bool {
@@ -173,7 +217,7 @@ var tolerances = []tolerance{
 		},
 	},
 	{
-		code: "position_identite_derivee", categorie: impossible,
+		code: "position_identite_derivee", categorie: impossible, cibles: []string{"orm3-dbal4"},
 		pourquoi: "SchemaTool place une colonne de jointure sans propriété, clé d'une identité dérivée, après les champs",
 		couvre: func(e diff.Ecart, c contexte) bool {
 			if e.Objet != diff.ObjetColonne || e.Propriete != "position" {
@@ -213,6 +257,17 @@ var tolerances = []tolerance{
 				}
 			}
 			return false
+		},
+	},
+	{
+		code: "commentaire_de_type_immutable", categorie: voulu, cibles: []string{"orm2-dbal3"},
+		pourquoi: "l'outil rend les dates en types immutables, que DBAL 3 signale par un commentaire (DC2Type:…)",
+		couvre: func(e diff.Ecart, c contexte) bool {
+			if e.Objet != diff.ObjetColonne || e.Propriete != "commentaire" {
+				return false
+			}
+			typ := typeDoctrine(c, e.Schema, e.Table, e.Nom)
+			return strings.HasSuffix(typ, "_immutable") && e.Apres == e.Avant+"(DC2Type:"+typ+")"
 		},
 	},
 	{
@@ -272,6 +327,81 @@ var tolerances = []tolerance{
 // nomGenere reconnaît un nom que Doctrine forme d'un préfixe et d'un hachage
 // hexadécimal, replié en minuscules par PostgreSQL.
 var nomGenere = regexp.MustCompile(`^[a-z]+_[0-9a-f]{16}$`)
+
+// ordonneeParDBAL3 dit si la table recréée suit exactement l'ordre de DBAL 3 :
+// colonnes de la clé primaire dans leur ordre, puis colonnes de clé étrangère,
+// puis les autres dans l'ordre d'origine. Un déplacement qui ne s'explique pas
+// ainsi n'est pas couvert.
+func ordonneeParDBAL3(origine, recree *calque.Table) bool {
+	if origine == nil || recree == nil {
+		return false
+	}
+	noms := make([]string, len(recree.Colonnes))
+	for i, col := range recree.Colonnes {
+		noms[i] = col.Nom
+	}
+
+	var cle []string
+	if recree.ClePrimaire != nil {
+		cle = recree.ClePrimaire.Colonnes
+	}
+	if len(noms) < len(cle) || !slices.Equal(noms[:len(cle)], cle) {
+		return false
+	}
+
+	etrangeres := map[string]bool{}
+	for _, fk := range recree.ClesEtrangeres {
+		for _, col := range fk.Colonnes {
+			if !slices.Contains(cle, col) {
+				etrangeres[col] = true
+			}
+		}
+	}
+	suite := noms[len(cle):]
+	if len(suite) < len(etrangeres) {
+		return false
+	}
+	for _, col := range suite[:len(etrangeres)] {
+		if !etrangeres[col] {
+			return false
+		}
+	}
+
+	var reste []string
+	for _, col := range origine.Colonnes {
+		if !slices.Contains(cle, col.Nom) && !etrangeres[col.Nom] && recree.ColonneParNom(col.Nom) != nil {
+			reste = append(reste, col.Nom)
+		}
+	}
+	return slices.Equal(suite[len(etrangeres):], reste)
+}
+
+// typeDoctrine rend le type Doctrine que le calque logique donne à une
+// colonne, propriétés des traits de l'entité comprises ; vide si aucune
+// propriété ne la porte.
+func typeDoctrine(c contexte, schema, table, colonne string) string {
+	for _, entite := range c.logique.Entites {
+		if entite.Table.Schema != schema || entite.Table.Nom != table {
+			continue
+		}
+		for _, p := range entite.Proprietes {
+			if p.Colonne == colonne {
+				return p.TypeDoctrine
+			}
+		}
+		for _, trait := range c.logique.Traits {
+			if !slices.Contains(entite.Traits, trait.Nom) {
+				continue
+			}
+			for _, p := range trait.Proprietes {
+				if p.Colonne == colonne {
+					return p.TypeDoctrine
+				}
+			}
+		}
+	}
+	return ""
+}
 
 // colonneOrigine rend la colonne d'origine que désigne un écart de colonne.
 func colonneOrigine(c contexte, e diff.Ecart) *calque.Colonne {

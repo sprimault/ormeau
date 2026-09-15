@@ -322,10 +322,10 @@ jobs:
       - name: Vulnérabilités des dépendances
         run: composer audit
 
-  # Les seuls jobs dispensés du lock, et la liste est fermée : elle se tient
-  # alignée sur la règle de livraison. Chacun fixe Symfony et ORM, résout le
-  # reste pour sa version de PHP, et ne lance que les tests — l'analyse et le
-  # style ne dépendent pas des versions installées.
+  # Les seuls jobs dispensés du lock, avec aller-retour-orm2 plus bas, et la
+  # liste est fermée : elle se tient alignée sur la règle de livraison. Chacun
+  # fixe Symfony et ORM, résout le reste pour sa version de PHP, et ne lance que
+  # des tests — l'analyse et le style ne dépendent pas des versions installées.
   #
   # Le bas de la plage est ORM 2.14 exactement : les versions antérieures
   # refusent une classe de base mappée placée sous une entité. Une promesse de
@@ -375,3 +375,36 @@ jobs:
 
       - name: Tests
         run: composer test
+
+  # L'aller-retour sous la seconde cible de sa liste d'écarts : le plancher
+  # promis, ORM 2.14 et DBAL 3, résolu comme compat-php81-symfony54-orm2. C'est
+  # là que le rendu diffère le plus d'ORM 3 (séquences, SERIAL, ordre des
+  # colonnes, commentaires de type).
+  aller-retour-orm2:
+    name: Aller-retour — PostgreSQL, ORM 2.14
+    runs-on: ubuntu-latest
+    env:
+      SYMFONY_REQUIRE: '5.4.*'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+        with:
+          php-version: '8.1'
+          extensions: pdo_pgsql
+          tools: flex
+          coverage: none
+
+      - name: Résoudre ORM 2.14
+        working-directory: php
+        run: |
+          composer require --no-update --no-interaction "doctrine/orm:~2.14.0"
+          composer update --no-interaction --no-progress --with-all-dependencies
+
+      - name: Aller-retour
+        run: make aller-retour

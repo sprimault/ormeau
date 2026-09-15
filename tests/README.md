@@ -67,3 +67,9 @@ installed. `ORMEAU_PHP` names the interpreter when it is not `php` — for
 instance a `docker run` command mounting the repository at the same path — and
 the installed ORM version selects the list of differences. The report of the
 last run is written to `.tmp/allerretour/ecarts.txt`.
+
+Two targets have their list, both ends of the promised range: ORM 3 with DBAL 4,
+from `composer.lock`, and ORM 2.14 with DBAL 3, which CI resolves without the
+lock (job `aller-retour-orm2`). An entry that only holds for one says so; an
+entry that covers nothing under a target fails, and must be restricted
+explicitly.
