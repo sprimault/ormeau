@@ -37,7 +37,7 @@ abstract class EventailBase
     protected ?\DateInterval $duree = null;
 
     /** @var array<mixed>|null */
-    #[ORM\Column(name: 'charge_utile', type: 'json', nullable: true)]
+    #[ORM\Column(name: 'charge_utile', type: 'jsonb', nullable: true)]
     protected ?array $chargeUtile = null;
 
     #[ORM\Column(name: 'empreinte', type: 'blob', nullable: true)]
@@ -57,6 +57,12 @@ abstract class EventailBase
 
     #[ORM\Column(name: 'etiquettes', type: 'string', options: ['default' => '{}'])]
     protected string $etiquettes = '{}';
+
+    #[ORM\Column(name: 'taux', type: 'smallfloat', nullable: true)]
+    protected ?float $taux = null;
+
+    #[ORM\Column(name: 'code_pays', type: 'string', length: 2, nullable: true, options: ['fixed' => true])]
+    protected ?string $codePays = null;
 
     public function getCle(): string
     {
@@ -229,6 +235,30 @@ abstract class EventailBase
     public function setEtiquettes(string $etiquettes): static
     {
         $this->etiquettes = $etiquettes;
+
+        return $this;
+    }
+
+    public function getTaux(): ?float
+    {
+        return $this->taux;
+    }
+
+    public function setTaux(?float $taux): static
+    {
+        $this->taux = $taux;
+
+        return $this;
+    }
+
+    public function getCodePays(): ?string
+    {
+        return $this->codePays;
+    }
+
+    public function setCodePays(?string $codePays): static
+    {
+        $this->codePays = $codePays;
 
         return $this;
     }

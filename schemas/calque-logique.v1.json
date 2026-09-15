@@ -114,6 +114,10 @@
         "longueur": { "type": "integer", "minimum": 0 },
         "precision": { "type": "integer", "minimum": 0 },
         "echelle": { "type": "integer" },
+        "longueur_fixe": {
+          "description": "Chaîne de longueur fixe : la base complète ses valeurs d'espaces jusqu'à la longueur. Un fait de colonne, absent pour une longueur variable, et retiré quand une décision force un autre type.",
+          "type": "boolean"
+        },
         "enumeration": { "type": "string" },
         "defaut": {
           "description": "Valeur par défaut littérale de la colonne, telle que la base la stocke. Un défaut calculé est dans defaut_expression, ou n'est pas reporté.",

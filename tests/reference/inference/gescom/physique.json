@@ -5,8 +5,8 @@
     "version": "17.11",
     "catalogue": "gescom",
     "schema": "gescom",
-    "extrait_le": "2026-09-15T16:43:16Z",
-    "empreinte": "sha256:58ee50dd7c5e38fdf2954a602bd3bbad405b793509cd0ccabed18db9c9e27dc6"
+    "extrait_le": "2026-09-15T17:17:09Z",
+    "empreinte": "sha256:488733cac668e1f36b1453df0c5dab2d7b633ea367287e55f6be12fcac32c546"
   },
   "tables": [
     {
@@ -518,6 +518,22 @@
             "genre": "expression",
             "valeur": "LOCALTIME"
           }
+        },
+        {
+          "nom": "cmd_pay_code",
+          "position": 6,
+          "type_brut": "character(2)",
+          "type_normalise": "texte",
+          "longueur": 2,
+          "nullable": true,
+          "collation": "default"
+        },
+        {
+          "nom": "cmd_options",
+          "position": 7,
+          "type_brut": "jsonb",
+          "type_normalise": "json",
+          "nullable": true
         }
       ],
       "cle_primaire": {
@@ -525,7 +541,20 @@
         "colonnes": [
           "cmd_id"
         ]
-      }
+      },
+      "cles_etrangeres": [
+        {
+          "nom": "t_commande_cmd_pay_code_fkey",
+          "colonnes": [
+            "cmd_pay_code"
+          ],
+          "table_cible": "t_pays",
+          "schema_cible": "gescom",
+          "colonnes_cibles": [
+            "pay_code"
+          ]
+        }
+      ]
     },
     {
       "nom": "t_commercial",
@@ -643,6 +672,13 @@
             "genre": "expression",
             "valeur": "now()"
           }
+        },
+        {
+          "nom": "fac_taux",
+          "position": 6,
+          "type_brut": "real",
+          "type_normalise": "flottant",
+          "nullable": true
         }
       ],
       "cle_primaire": {
@@ -672,6 +708,36 @@
           "collation": "default"
         }
       ]
+    },
+    {
+      "nom": "t_pays",
+      "schema": "gescom",
+      "colonnes": [
+        {
+          "nom": "pay_code",
+          "position": 1,
+          "type_brut": "character(2)",
+          "type_normalise": "texte",
+          "longueur": 2,
+          "nullable": false,
+          "collation": "default"
+        },
+        {
+          "nom": "pay_libelle",
+          "position": 2,
+          "type_brut": "character varying(60)",
+          "type_normalise": "texte",
+          "longueur": 60,
+          "nullable": false,
+          "collation": "default"
+        }
+      ],
+      "cle_primaire": {
+        "nom": "t_pays_pkey",
+        "colonnes": [
+          "pay_code"
+        ]
+      }
     },
     {
       "nom": "t_référence",

@@ -164,6 +164,25 @@ final class Cible
     }
 
     /**
+     * Dit si DBAL connaît le type smallfloat, introduit en 4.1 : avant, une
+     * simple précision n'a que float, recréé en DOUBLE PRECISION.
+     */
+    public function connaitSmallfloat(): bool
+    {
+        return $this->dbalMajeure === 4 && $this->dbalMineure >= 1;
+    }
+
+    /**
+     * Dit si DBAL connaît le type jsonb, introduit en 4.3, qui y déprécie
+     * l'option de colonne jsonb. Avant, seule l'option le décrit, et le type
+     * est inconnu (essai du 2026-09-15, DBAL 4.2.5).
+     */
+    public function connaitJsonb(): bool
+    {
+        return $this->dbalMajeure === 4 && $this->dbalMineure >= 3;
+    }
+
+    /**
      * La ligne annoncée en tête d'exécution : « Cible détectée : PHP 8.2,
      * Doctrine ORM 2.14, DBAL 3.10 » ou « Cible forcée : Doctrine ORM 3,
      * DBAL 4.4 (déduite) ».

@@ -113,8 +113,29 @@ func affiner(corr correspondance, c *calque.Colonne) correspondance {
 		if c.Longueur == nil && (strings.Contains(brut, "text") || strings.Contains(brut, "clob")) {
 			return correspondance{"string", "text"}
 		}
+	case calque.TypeFlottant:
+		// Doctrine distingue la simple précision depuis DBAL 4.1 ; c'est au
+		// générateur de replier sur float quand la cible ne la connaît pas.
+		if brut == "real" {
+			return correspondance{corr.php, "smallfloat"}
+		}
+	case calque.TypeJSON:
+		// jsonb dédoublonne et réordonne les clés à l'écriture : recréé en
+		// json, il garderait tout ce qu'il écrasait. Type Doctrine depuis
+		// DBAL 4.3, option de colonne avant, repli au générateur.
+		if brut == "jsonb" {
+			return correspondance{corr.php, "jsonb"}
+		}
 	}
 	return corr
+}
+
+// longueurFixe dit si une colonne texte est de longueur fixe, ce que le type
+// normalisé ne dit pas : format_type rend character(n), et character varying(n)
+// pour la longueur variable.
+func longueurFixe(c *calque.Colonne) bool {
+	return c.TypeNormalise == calque.TypeTexte && !estTableau(c) &&
+		strings.HasPrefix(strings.ToLower(c.TypeBrut), "character(")
 }
 
 // avecFuseau dit si un horodatage ou une heure porte un fuseau, ce que le type
@@ -129,11 +150,12 @@ func avecFuseau(c *calque.Colonne) bool {
 // ci-dessus : plusieurs types Doctrine rendent la même chaîne PHP, et une
 // inversion mécanique en aurait perdu la moitié.
 var phpParTypeDoctrine = map[string]string{
-	"integer":  "int",
-	"smallint": "int",
-	"bigint":   "int",
-	"float":    "float",
-	"boolean":  "bool",
+	"integer":    "int",
+	"smallint":   "int",
+	"bigint":     "int",
+	"float":      "float",
+	"smallfloat": "float",
+	"boolean":    "bool",
 
 	"decimal": "string",
 	"string":  "string",
@@ -149,6 +171,7 @@ var phpParTypeDoctrine = map[string]string{
 	"dateinterval":         "\\DateInterval",
 
 	"json":         "array",
+	"jsonb":        "array",
 	"simple_array": "array",
 }
 

@@ -41,6 +41,7 @@
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 1,
+          "longueur_fixe": true,
           "defaut": "P",
           "commentaire": "Nature de la personne",
           "origine": "contrainte"

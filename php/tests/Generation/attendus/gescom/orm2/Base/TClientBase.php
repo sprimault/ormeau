@@ -42,7 +42,7 @@ abstract class TClientBase
         length: 14,
         unique: true,
         nullable: true,
-        options: ['comment' => 'Nul tant que la fiche n\'est pas validée'],
+        options: ['comment' => 'Nul tant que la fiche n\'est pas validée', 'fixed' => true],
     )]
     protected ?string $cliSiret = null;
 

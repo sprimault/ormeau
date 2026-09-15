@@ -174,6 +174,12 @@ export interface Propriete {
   longueur?: number /* int */;
   precision?: number /* int */;
   echelle?: number /* int */;
+  /**
+   * Une chaîne de longueur fixe complète ses valeurs d'espaces, et se compare
+   * autrement qu'une chaîne variable de même longueur : recréée sans ce
+   * fait, la colonne change de comportement. Un fait de colonne, pas un type.
+   */
+  longueur_fixe?: boolean;
   enumeration?: string;
   /**
    * DEFAULT '' est un défaut : absent et vide doivent rester distinguables,

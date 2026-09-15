@@ -110,7 +110,10 @@ CREATE TABLE t_facture (
     -- défauts calculés : le sens d'une expression dépend du type de la colonne,
     -- now() sur une date vaut CURRENT_DATE.
     fac_date   date NOT NULL DEFAULT CURRENT_DATE,
-    fac_saisie date DEFAULT now()
+    fac_saisie date DEFAULT now(),
+    -- simple précision : recréé en double precision faute d'un type Doctrine
+    -- sous DBAL 3
+    fac_taux   real
 );
 
 -- Clé serial : la forme historique, un défaut nextval(...) sur une séquence
@@ -118,6 +121,14 @@ CREATE TABLE t_facture (
 CREATE TABLE t_avoir (
     avo_id     serial PRIMARY KEY,
     avo_fac_id int NOT NULL
+);
+
+-- Clé en longueur fixe, visée par une clé étrangère du même type. Recréé en
+-- varchar, un char(n) ne complète plus ses valeurs d'espaces, et ses
+-- comparaisons changent.
+CREATE TABLE t_pays (
+    pay_code    char(2) PRIMARY KEY,
+    pay_libelle varchar(60) NOT NULL
 );
 
 -- Type énuméré natif.
@@ -129,7 +140,10 @@ CREATE TABLE t_commande (
     cmd_etiquettes text[],
     -- expression sans équivalent Doctrine : non reportée, avec avertissement
     cmd_ref   uuid NOT NULL DEFAULT gen_random_uuid(),
-    cmd_heure time DEFAULT LOCALTIME
+    cmd_heure time DEFAULT LOCALTIME,
+    cmd_pay_code char(2) REFERENCES t_pays (pay_code),
+    -- jsonb n'est pas json : clés dédoublonnées et réordonnées à l'écriture
+    cmd_options jsonb
 );
 
 -- Identifiants réservés et accents, pour éprouver l'échappement.

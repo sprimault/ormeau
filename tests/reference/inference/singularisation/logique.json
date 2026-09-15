@@ -143,6 +143,7 @@
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 2,
+          "longueur_fixe": true,
           "origine": "contrainte"
         }
       ],

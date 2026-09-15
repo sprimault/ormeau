@@ -1,6 +1,6 @@
 {
   "version_ri": 1,
-  "empreinte_physique": "sha256:58ee50dd7c5e38fdf2954a602bd3bbad405b793509cd0ccabed18db9c9e27dc6",
+  "empreinte_physique": "sha256:488733cac668e1f36b1453df0c5dab2d7b633ea367287e55f6be12fcac32c546",
   "espace_de_noms": "App\\Entity",
   "entites": [
     {
@@ -141,6 +141,7 @@
           "type_doctrine": "string",
           "nullable": true,
           "longueur": 14,
+          "longueur_fixe": true,
           "unique": true,
           "commentaire": "Nul tant que la fiche n'est pas validée",
           "origine": "contrainte"
@@ -541,6 +542,41 @@
           "nullable": true,
           "defaut_expression": "heure_courante",
           "origine": "contrainte"
+        },
+        {
+          "nom": "cmdPayCode",
+          "colonne": "cmd_pay_code",
+          "type_php": "?string",
+          "type_doctrine": "string",
+          "nullable": true,
+          "longueur": 2,
+          "longueur_fixe": true,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "cmdOptions",
+          "colonne": "cmd_options",
+          "type_php": "?array",
+          "type_doctrine": "jsonb",
+          "nullable": true,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "cmdPay",
+          "genre": "plusieurs_vers_un",
+          "cible": "TPays",
+          "proprietaire": true,
+          "inversee_par": "tcommande",
+          "jointure": [
+            {
+              "colonne": "cmd_pay_code",
+              "colonne_referencee": "pay_code",
+              "nullable": true
+            }
+          ],
+          "origine": "contrainte"
         }
       ],
       "origine": "nommage"
@@ -673,6 +709,14 @@
           "nullable": true,
           "defaut_expression": "date_courante",
           "origine": "contrainte"
+        },
+        {
+          "nom": "facTaux",
+          "colonne": "fac_taux",
+          "type_php": "?float",
+          "type_doctrine": "smallfloat",
+          "nullable": true,
+          "origine": "contrainte"
         }
       ],
       "origine": "nommage"
@@ -698,6 +742,51 @@
           "type_php": "?string",
           "type_doctrine": "text",
           "nullable": true,
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "TPays",
+      "table": {
+        "nom": "t_pays",
+        "schema": "gescom"
+      },
+      "identifiant": {
+        "proprietes": [
+          "payCode"
+        ],
+        "strategie": "assignee"
+      },
+      "proprietes": [
+        {
+          "nom": "payCode",
+          "colonne": "pay_code",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 2,
+          "longueur_fixe": true,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "payLibelle",
+          "colonne": "pay_libelle",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 60,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "tcommande",
+          "genre": "un_vers_plusieurs",
+          "cible": "TCommande",
+          "proprietaire": false,
+          "mappee_par": "cmdPay",
           "origine": "contrainte"
         }
       ],
@@ -832,7 +921,7 @@
     {
       "code": "prefixe_detecte",
       "cible": "gescom",
-      "message": "préfixe t_ commun aux 13 tables, conservé ; prefixes_a_retirer le retirerait des noms de classes",
+      "message": "préfixe t_ commun aux 14 tables, conservé ; prefixes_a_retirer le retirerait des noms de classes",
       "resolution": "aucune",
       "confiance": 0.8
     },

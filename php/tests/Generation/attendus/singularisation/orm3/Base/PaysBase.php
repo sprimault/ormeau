@@ -12,7 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
 abstract class PaysBase
 {
     #[ORM\Id]
-    #[ORM\Column(name: 'code', type: 'string', length: 2)]
+    #[ORM\Column(name: 'code', type: 'string', length: 2, options: ['fixed' => true])]
     protected string $code;
 
     public function getCode(): string

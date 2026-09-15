@@ -107,8 +107,8 @@ final class Hierarchies
      * @param string                  $espaceDeNoms espace de noms des entités du calque
      * @param ClassesUtilisateur|null $classes      où vivent les classes de l'utilisateur ; la carte
      *                                              cite chacune sous son nom qualifié réel
-     * @param Cible|null              $cible        version d'ORM visée : le commentaire et le défaut de la
-     *                                              colonne ne s'écrivent que sous ORM 3
+     * @param Cible|null              $cible        version d'ORM visée : le commentaire, le défaut et la
+     *                                              longueur fixe de la colonne ne s'écrivent que sous ORM 3
      */
     public function racineHeritage(Entite $entite, string $espaceDeNoms, ?ClassesUtilisateur $classes = null, ?Cible $cible = null): ?RacineHeritage
     {
@@ -132,7 +132,8 @@ final class Hierarchies
             $options = array_filter([
                 'default' => $propriete->defaut,
                 'comment' => $propriete->commentaire,
-            ], static fn(?string $valeur): bool => $valeur !== null);
+                'fixed' => $propriete->longueurFixe ? true : null,
+            ], static fn(bool|string|null $valeur): bool => $valeur !== null);
         }
 
         return new RacineHeritage([

@@ -44,7 +44,7 @@ abstract class ClientBase
         type: 'string',
         length: 1,
         enumType: ClientActif::class,
-        options: ['comment' => 'O/N : des cas nommés O et N n\'apprendraient rien'],
+        options: ['comment' => 'O/N : des cas nommés O et N n\'apprendraient rien', 'fixed' => true],
     )]
     protected ClientActif $actif;
 

@@ -41,6 +41,7 @@
           "type_doctrine": "string",
           "nullable": true,
           "longueur": 14,
+          "longueur_fixe": true,
           "unique": true,
           "origine": "contrainte"
         },

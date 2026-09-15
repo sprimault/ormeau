@@ -268,6 +268,7 @@ final class RenduMembres
             $p->commentaire,
             $p->origine,
             $p->defautExpression,
+            $p->longueurFixe,
         );
     }
 
@@ -385,7 +386,7 @@ final class RenduMembres
 
         $lignes[] = Emetteur::attribut('ORM\Column', [
             'name' => IdentifiantsSql::colonne($propriete->colonne),
-            'type' => $propriete->typeDoctrine,
+            'type' => $this->typeDeColonne($propriete),
             'length' => $propriete->longueur,
             'precision' => $propriete->precision,
             'scale' => $propriete->echelle,
@@ -660,9 +661,14 @@ final class RenduMembres
 
     /**
      * Rend les options de colonne d'une propriété : son défaut, dans le type
-     * de la valeur stockée quand la conversion est certaine, et son
-     * commentaire. Les mêmes pour une colonne rendue en #[ORM\Column] et pour
-     * une colonne de jointure de la clé, qui n'a pas de propriété.
+     * de la valeur stockée quand la conversion est certaine, son commentaire,
+     * sa longueur fixe, et l'option jsonb quand la cible n'a pas le type. Les
+     * mêmes pour une colonne rendue en #[ORM\Column] et pour une colonne de
+     * jointure de la clé, qui n'a pas de propriété.
+     *
+     * Une colonne de jointure hors clé n'en reçoit pas : Doctrine la crée avec
+     * les options de la colonne visée, longueur fixe comprise (essai du
+     * 2026-09-15, ORM 2.14.3 et 3.7.1).
      *
      * @return array<string, bool|Code|float|int|string>
      */
@@ -673,7 +679,28 @@ final class RenduMembres
         return array_filter([
             'default' => $propriete->defaut === null ? $this->defautCalcule($propriete) : ($defaut ?? $propriete->defaut),
             'comment' => $propriete->commentaire,
+            'fixed' => $propriete->longueurFixe ? true : null,
+            'jsonb' => $propriete->typeDoctrine === 'jsonb' && !$this->cible->connaitJsonb() ? true : null,
         ], static fn($valeur): bool => $valeur !== null);
+    }
+
+    /**
+     * Rend le type Doctrine écrit dans #[ORM\Column], replié sur ce que la
+     * cible connaît.
+     *
+     * jsonb devient json, son option dit le reste : les deux recréent JSONB et
+     * se relisent sans écart, sous DBAL 3.10 comme 4.2 (essai du 2026-09-15).
+     * smallfloat devient float, qui recrée DOUBLE PRECISION : aucune forme ne
+     * décrit la simple précision avant DBAL 4.1, et migrations:diff ne propose
+     * rien face à la base d'origine, DBAL 3 relisant real en float.
+     */
+    private function typeDeColonne(Propriete $propriete): string
+    {
+        return match (true) {
+            $propriete->typeDoctrine === 'jsonb' && !$this->cible->connaitJsonb() => 'json',
+            $propriete->typeDoctrine === 'smallfloat' && !$this->cible->connaitSmallfloat() => 'float',
+            default => $propriete->typeDoctrine,
+        };
     }
 
     /**

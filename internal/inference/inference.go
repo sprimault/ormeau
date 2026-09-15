@@ -397,6 +397,7 @@ func inferrerPropriete(c *calque.Colonne, cibleTable string, d *Decisions) (calq
 		Longueur:     c.Longueur,
 		Precision:    c.Precision,
 		Echelle:      c.Echelle,
+		LongueurFixe: longueurFixe(c),
 		Commentaire:  c.Commentaire,
 		Origine:      origine,
 	}
@@ -432,6 +433,7 @@ func inferrerPropriete(c *calque.Colonne, cibleTable string, d *Decisions) (calq
 		// mieux du bruit — une longueur sur un booléen —, au pire une entité
 		// qui ne compile pas : private bool $actif = 'O'.
 		propriete.Longueur, propriete.Precision, propriete.Echelle = nil, nil, nil
+		propriete.LongueurFixe = false
 
 		if propriete.Defaut != nil || propriete.DefautExpression != "" {
 			valeur := c.Defaut.Valeur

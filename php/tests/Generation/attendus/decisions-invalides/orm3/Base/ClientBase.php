@@ -25,7 +25,7 @@ abstract class ClientBase
     #[ORM\Column(name: 'canal', type: 'string', length: 20, enumType: ClientCanal::class)]
     protected ClientCanal $canal;
 
-    #[ORM\Column(name: 'actif', type: 'string', length: 1, enumType: OuiNon::class)]
+    #[ORM\Column(name: 'actif', type: 'string', length: 1, enumType: OuiNon::class, options: ['fixed' => true])]
     protected OuiNon $actif;
 
     /** Lecture seule : écrite par l'association client. */

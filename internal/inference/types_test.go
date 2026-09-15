@@ -46,8 +46,23 @@ func TestTyperColonne(t *testing.T) {
 		},
 		{
 			"json",
-			calque.Colonne{TypeBrut: "jsonb", TypeNormalise: calque.TypeJSON},
+			calque.Colonne{TypeBrut: "json", TypeNormalise: calque.TypeJSON},
 			"array", "json", true,
+		},
+		{
+			"jsonb, qui ne se recrée pas en json",
+			calque.Colonne{TypeBrut: "jsonb", TypeNormalise: calque.TypeJSON},
+			"array", "jsonb", true,
+		},
+		{
+			"simple précision",
+			calque.Colonne{TypeBrut: "real", TypeNormalise: calque.TypeFlottant},
+			"float", "smallfloat", true,
+		},
+		{
+			"double précision",
+			calque.Colonne{TypeBrut: "double precision", TypeNormalise: calque.TypeFlottant},
+			"float", "float", true,
 		},
 		{
 			"intervalle",
@@ -190,6 +205,36 @@ func TestForcerAccordeLeTypePHP(t *testing.T) {
 					c.depart, c.force, corr.php, corr.doctrine, c.php, c.doctrine)
 			}
 		})
+	}
+}
+
+// La longueur fixe se lit dans type_brut, et tombe avec un type forcé : la
+// longueur est retirée elle aussi, et un booléen décidé sur un char(1) valant
+// O ou N n'a plus rien d'une chaîne complétée d'espaces.
+func TestLongueurFixe(t *testing.T) {
+	t.Parallel()
+
+	deux := 2
+	colonnes := []calque.Colonne{
+		{Nom: "id", Position: 1, TypeBrut: "integer", TypeNormalise: calque.TypeEntier},
+		{Nom: "code", Position: 2, TypeBrut: "character(2)", TypeNormalise: calque.TypeTexte, Longueur: &deux},
+		{Nom: "libre", Position: 3, TypeBrut: "character varying(2)", TypeNormalise: calque.TypeTexte, Longueur: &deux},
+		{Nom: "codes", Position: 4, TypeBrut: "character(2)[]", TypeNormalise: calque.TypeTexte},
+		{Nom: "actif", Position: 5, TypeBrut: "character(1)", TypeNormalise: calque.TypeTexte, Longueur: &deux},
+	}
+	physique := &calque.Physique{VersionRI: calque.VersionCourante, Tables: []calque.Table{{
+		Schema: "public", Nom: "pays", Colonnes: colonnes,
+		ClePrimaire: &calque.ClePrimaire{Colonnes: []string{"id"}},
+	}}}
+	decisions := &Decisions{TypesForces: map[string]string{"public.pays.actif": "boolean"}}
+
+	logique, _ := Inferer(physique, decisions)
+
+	attendu := map[string]bool{"id": false, "code": true, "libre": false, "codes": false, "actif": false}
+	for _, p := range logique.Entites[0].Proprietes {
+		if p.LongueurFixe != attendu[p.Colonne] {
+			t.Errorf("%s : longueur_fixe %v, attendue %v", p.Colonne, p.LongueurFixe, attendu[p.Colonne])
+		}
 	}
 }
 
