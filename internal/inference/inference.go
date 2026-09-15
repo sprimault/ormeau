@@ -539,8 +539,8 @@ func inferrerIdentifiant(t *calque.Table, cible string, parColonne map[string]*c
 }
 
 // reporterIndex recopie les index du physique pour que la régénération du
-// schéma reste fidèle. Prédicat et classe d'opérateurs n'y survivent pas :
-// Doctrine ne sait pas les exprimer.
+// schéma reste fidèle. Le prédicat d'un index partiel suit tel quel ; méthode
+// et classe d'opérateurs n'y survivent pas, Doctrine ne sait pas les exprimer.
 //
 // Les unicités composites y sont jointes : elles ne se rattachent à aucune
 // propriété seule, et sans ça elles ne seraient nulle part. Une unicité que le
@@ -549,13 +549,18 @@ func inferrerIdentifiant(t *calque.Table, cible string, parColonne map[string]*c
 //
 // Un index qui cite une colonne écartée part entier, noté dans parties pour
 // chacune de ses colonnes écartées : lui retirer la seule colonne en changerait
-// le sens, et une unicité sur (nom, siret) réduite à nom serait fausse.
+// le sens, et une unicité sur (nom, siret) réduite à nom serait fausse. Son
+// prédicat compte aussi : il désignerait une colonne que migrations:diff
+// propose de supprimer. Le nom y est cherché comme un mot entier, nu ou entre
+// délimiteurs ; le prédicat n'est pas analysé, et un littéral qui porte le nom
+// fait partir l'index à tort, ce que l'avertissement montre.
 func reporterIndex(t *calque.Table, ecartees map[string]bool, parties map[string][]string) []calque.IndexEntite {
 	var index []calque.IndexEntite
 	for _, idx := range indexReportables(t) {
 		cite := false
-		for _, colonne := range idx.Colonnes {
-			if ecartees[colonne] {
+		for i := range t.Colonnes {
+			colonne := t.Colonnes[i].Nom
+			if ecartees[colonne] && (slices.Contains(idx.Colonnes, colonne) || mentionne(idx.Predicat, colonne)) {
 				cite = true
 				parties[colonne] = append(parties[colonne], "index "+idx.Nom)
 			}
@@ -579,6 +584,7 @@ func indexReportables(t *calque.Table) []calque.IndexEntite {
 			Nom:      idx.Nom,
 			Colonnes: idx.Colonnes,
 			Unique:   idx.Unique,
+			Predicat: idx.Predicat,
 		})
 	}
 

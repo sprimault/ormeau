@@ -1,6 +1,6 @@
 {
   "version_ri": 1,
-  "empreinte_physique": "sha256:8f8a9a2d531aebc8196975bedb8ce27869076b507233b8d9463a05f1e0eaa671",
+  "empreinte_physique": "sha256:58ee50dd7c5e38fdf2954a602bd3bbad405b793509cd0ccabed18db9c9e27dc6",
   "espace_de_noms": "App\\Entity",
   "entites": [
     {
@@ -280,7 +280,8 @@
           "colonnes": [
             "cli_com_id"
           ],
-          "unique": false
+          "unique": false,
+          "predicat": "((cli_statut)::text = 'ACTIF'::text)"
         },
         {
           "nom": "ix_cli_nom",
@@ -601,6 +602,16 @@
           "proprietaire": false,
           "mappee_par": "cliCom",
           "origine": "contrainte"
+        }
+      ],
+      "index": [
+        {
+          "nom": "uq_com_email_actif",
+          "colonnes": [
+            "com_email"
+          ],
+          "unique": true,
+          "predicat": "com_actif"
         }
       ],
       "commentaire": "Force de vente",

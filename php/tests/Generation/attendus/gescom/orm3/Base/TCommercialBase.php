@@ -12,6 +12,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\MappedSuperclass]
+#[ORM\UniqueConstraint(name: 'uq_com_email_actif', columns: ['com_email'], options: ['where' => 'com_actif'])]
 abstract class TCommercialBase
 {
     #[ORM\Id]

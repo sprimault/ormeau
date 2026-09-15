@@ -61,7 +61,16 @@
       "cle_primaire": {
         "nom": "PK_catégories",
         "colonnes": ["Libellé"]
-      }
+      },
+      "index": [
+        {
+          "nom": "IX_Libelle_hors_defaut",
+          "colonnes": ["Libellé"],
+          "unique": true,
+          "predicat": "([Libellé]<>'l''a\\b')",
+          "methode": "nonclustered"
+        }
+      ]
     },
     {
       "nom": "Lignes de commande",

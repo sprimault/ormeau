@@ -18,6 +18,9 @@ CREATE TABLE t_commercial (
     com_email  varchar(120) DEFAULT NULL
 );
 COMMENT ON TABLE t_commercial IS 'Force de vente';
+-- unicité partielle : recréée sans son prédicat, elle refuserait deux anciens
+-- commerciaux de même adresse que la base accepte.
+CREATE UNIQUE INDEX uq_com_email_actif ON t_commercial (com_email) WHERE com_actif;
 
 CREATE TABLE t_client (
     cli_id      int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

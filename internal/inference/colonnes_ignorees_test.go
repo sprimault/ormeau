@@ -94,6 +94,50 @@ func TestColonnesIgnoreesGardeLaClePrimaire(t *testing.T) {
 	}
 }
 
+// Un index partiel dont le prédicat cite une colonne écartée part entier, même
+// quand ses colonnes restent : recréé, il désignerait une colonne que
+// migrations:diff propose de supprimer. Le nom se cherche comme un mot entier,
+// quel que soit le délimiteur du dialecte.
+func TestColonnesIgnoreesRetireLIndexDontLePredicatLesCite(t *testing.T) {
+	t.Parallel()
+
+	cas := []struct {
+		nom      string
+		predicat string
+		retire   bool
+	}{
+		{"nom nu", "(photo IS NOT NULL)", true},
+		{"guillemets doubles", `("photo" IS NOT NULL)`, true},
+		{"crochets", "([photo] IS NOT NULL)", true},
+		{"nom plus long", "(photo_valide)", false},
+		{"sans prédicat", "", false},
+	}
+	for _, c := range cas {
+		t.Run(c.nom, func(t *testing.T) {
+			t.Parallel()
+
+			physique := physiqueClients()
+			physique.Tables[0].Index = []calque.Index{{Nom: "clients_nom_idx", Colonnes: []string{"nom"}, Predicat: c.predicat}}
+			decisions := &Decisions{ColonnesIgnorees: map[string][]string{"public.clients": {"photo"}}}
+
+			logique, avertissements := Inferer(physique, decisions)
+
+			if retire := len(logique.Entites[0].Index) == 0; retire != c.retire {
+				t.Errorf("index retiré : %v, attendu %v", retire, c.retire)
+			}
+			var message string
+			for _, a := range avertissements {
+				if a.Code == calque.CodeColonneIgnoree {
+					message = a.Message
+				}
+			}
+			if cite := strings.Contains(message, "index clients_nom_idx"); cite != c.retire {
+				t.Errorf("avertissement %q : l'index parti doit y être nommé, et lui seul", message)
+			}
+		})
+	}
+}
+
 // Une décision qui ne correspond à rien signale que la base a bougé sous le
 // fichier — c'est ce qu'on veut apprendre en régénérant six mois plus tard.
 func TestColonnesIgnoreesSignaleUneCibleAbsente(t *testing.T) {

@@ -194,7 +194,11 @@
       "properties": {
         "nom": { "type": "string" },
         "colonnes": { "type": "array", "minItems": 1, "items": { "type": "string" } },
-        "unique": { "type": "boolean" }
+        "unique": { "type": "boolean" },
+        "predicat": {
+          "description": "Condition d'un index partiel, verbatim du calque physique, jamais interprétée. Sans elle, l'index serait recréé complet, et une unicité partielle plus stricte que la base.",
+          "type": "string"
+        }
       }
     },
     "enumeration": {
