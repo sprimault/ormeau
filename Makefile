@@ -1,4 +1,4 @@
-.PHONY: dev test cover maj-attendus maj-calque-gescom lint outils vulncheck sec build binaries web-deps web-build web-types web-types-check web-lint web-test php-changelog php-test php-lint image image-tags image-push clean
+.PHONY: dev test cover maj-attendus maj-calque-gescom aller-retour lint outils vulncheck sec build binaries web-deps web-build web-types web-types-check web-lint web-test php-changelog php-test php-lint image image-tags image-push clean
 
 # Répertoire de travail local, ignoré par git : sorties de `make build`,
 # profils de couverture, tout ce qui ne se publie pas.
@@ -87,6 +87,16 @@ PAQUETS_INTEGRATION = $(sort $(foreach f,$(shell git grep --untracked -l '^//go:
 
 test-integration: containers
 	go test -race -count=1 -tags integration $(PAQUETS_INTEGRATION)
+
+# aller-retour extrait gescom, en génère les entités, laisse Doctrine recréer
+# leur schéma dans la base allerretour du conteneur, extrait celle-ci et
+# compare. Il exige PHP avec pdo_pgsql et les dépendances de php/ installées :
+# ORMEAU_PHP désigne l'interpréteur quand ce n'est pas `php` (une commande
+# docker run qui monte le dépôt au même chemin, par exemple), et la version
+# d'ORM installée fixe la cible, donc la liste d'écarts. Pas de -race : le
+# harnais ne lance aucune goroutine, et le détecteur ralentit l'extraction.
+aller-retour: containers
+	go test -count=1 -tags allerretour ./tests/allerretour/
 
 # Le calque de gescom est l'extraction réelle de tests/ddl/, versionnée comme
 # entrée du cas d'inférence du même nom. Il se régénère contre un conteneur

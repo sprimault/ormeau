@@ -112,6 +112,13 @@ one under test. Its image is pinned to a PostgreSQL minor version: the server
 version is part of the `gescom` reference layer, and moving to another version
 goes through `make maj-calque-gescom`, diff reviewed (see `tests/README.md`).
 
+`make aller-retour` checks the whole chain against that same container:
+database extracted, entities generated, schema recreated by Doctrine, comparison
+with a closed list of differences. It also needs PHP with `pdo_pgsql` and
+`composer install` in `php/`; `ORMEAU_PHP` names the interpreter when PHP runs
+elsewhere than on the machine (see `tests/README.md`). A change that makes a
+difference appear or disappear updates the list in the same pull request.
+
 Before opening a pull request, run at least `make lint` and `make test`. CI
 runs them too, but it does so after the branch is already pushed.
 

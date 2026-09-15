@@ -117,6 +117,13 @@ compris, pour qu'un DDL modifié soit toujours celui qu'on teste. Son image est
 dans le calque de référence de `gescom`, et monter de version se fait par
 `make maj-calque-gescom`, diff relu (voir `tests/README.fr.md`).
 
+`make aller-retour` vérifie la chaîne entière contre ce même conteneur : base
+extraite, entités générées, schéma recréé par Doctrine, comparaison à une liste
+fermée d'écarts. Il exige en plus PHP avec `pdo_pgsql` et `composer install`
+dans `php/` ; `ORMEAU_PHP` désigne l'interpréteur quand PHP tourne ailleurs que
+sur la machine (voir `tests/README.fr.md`). Un changement qui fait apparaître ou
+disparaître un écart met à jour la liste dans la même pull request.
+
 Avant d'ouvrir une pull request, lancer au moins `make lint` et `make test`. La
 CI les exécute aussi, mais après coup, quand la branche est déjà poussée.
 

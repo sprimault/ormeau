@@ -9,6 +9,7 @@ services:
     volumes:
       - ./ddl/postgres.sql:/docker-entrypoint-initdb.d/10-gescom.sql:ro
       - ./ddl/20-empreinte.sh:/docker-entrypoint-initdb.d/20-empreinte.sh:ro
+      - ./ddl/30-allerretour.sql:/docker-entrypoint-initdb.d/30-allerretour.sql:ro
     healthcheck:
       # Par TCP : pendant l'initialisation, l'image fait tourner un serveur
       # temporaire joignable seulement par le socket Unix. Sans -h, le conteneur
