@@ -36,6 +36,8 @@ préambule reste en français : il n'est jamais publié.
 
 ## [Non publié]
 
+## [0.6.0] — 2026-09-15 — Aller-retour
+
 **Un calque PostgreSQL déjà enregistré change à sa prochaine extraction** si la
 base a des colonnes d'identité, sans que le schéma ait bougé : chacune reçoit
 `identite`, et l'empreinte change. `version_ri` ne bouge pas, et un calque plus

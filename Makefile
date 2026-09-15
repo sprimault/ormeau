@@ -350,7 +350,7 @@ image: binaries
 
 # Le refus passe avant binaires : sans étiquette, rien n'est construit.
 image-tags:
-	@test -n "$(IMAGE_TAGS)" || { echo "IMAGE_TAGS requis, par exemple IMAGE_TAGS=ghcr.io/sprimault/ormeau:v0.5.2 ; une version se publie par release.yml"; exit 1; }
+	@test -n "$(IMAGE_TAGS)" || { echo "IMAGE_TAGS requis, par exemple IMAGE_TAGS=ghcr.io/sprimault/ormeau:vX.Y.Z ; une version se publie par release.yml"; exit 1; }
 
 image-push: image-tags binaries
 	docker buildx build --platform $(PLATFORMS) --push \
