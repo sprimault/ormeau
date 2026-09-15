@@ -22,7 +22,7 @@ abstract class ClientBase
     #[ORM\Column(name: 'raison_sociale', type: 'string', length: 120, options: ['comment' => 'Dénomination légale'])]
     protected string $raisonSociale;
 
-    #[ORM\Column(name: 'siret', type: 'string', length: 14, unique: true, nullable: true)]
+    #[ORM\Column(name: 'siret', type: 'string', length: 14, unique: true, nullable: true, options: ['fixed' => true])]
     protected ?string $siret = null;
 
     #[ORM\Column(name: 'chiffre_affaires', type: 'decimal', precision: 12, scale: 2, nullable: true)]

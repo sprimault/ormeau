@@ -7,6 +7,7 @@ declare(strict_types=1);
 namespace App\Entity\Base;
 
 use App\Entity\Enum\Canal;
+use App\Entity\TPays;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\MappedSuperclass]
@@ -28,6 +29,26 @@ abstract class TCommandeBase
 
     #[ORM\Column(name: 'cmd_heure', type: 'time_immutable', nullable: true, options: ['default' => 'CURRENT_TIME'])]
     protected ?\DateTimeImmutable $cmdHeure = null;
+
+    /** Lecture seule : écrite par l'association cmdPay. */
+    #[ORM\Column(
+        name: 'cmd_pay_code',
+        type: 'string',
+        length: 2,
+        nullable: true,
+        insertable: false,
+        updatable: false,
+        options: ['fixed' => true],
+    )]
+    protected ?string $cmdPayCode = null;
+
+    /** @var array<mixed>|null */
+    #[ORM\Column(name: 'cmd_options', type: 'json', nullable: true, options: ['jsonb' => true])]
+    protected ?array $cmdOptions = null;
+
+    #[ORM\ManyToOne(targetEntity: TPays::class, inversedBy: 'tcommande')]
+    #[ORM\JoinColumn(name: 'cmd_pay_code', referencedColumnName: 'pay_code')]
+    protected ?TPays $cmdPay = null;
 
     public function getCmdId(): ?int
     {
@@ -78,6 +99,37 @@ abstract class TCommandeBase
     public function setCmdHeure(?\DateTimeImmutable $cmdHeure): static
     {
         $this->cmdHeure = $cmdHeure;
+
+        return $this;
+    }
+
+    public function getCmdPayCode(): ?string
+    {
+        return $this->cmdPayCode;
+    }
+
+    /** @return array<mixed>|null */
+    public function getCmdOptions(): ?array
+    {
+        return $this->cmdOptions;
+    }
+
+    /** @param array<mixed>|null $cmdOptions */
+    public function setCmdOptions(?array $cmdOptions): static
+    {
+        $this->cmdOptions = $cmdOptions;
+
+        return $this;
+    }
+
+    public function getCmdPay(): ?TPays
+    {
+        return $this->cmdPay;
+    }
+
+    public function setCmdPay(?TPays $cmdPay): static
+    {
+        $this->cmdPay = $cmdPay;
 
         return $this;
     }

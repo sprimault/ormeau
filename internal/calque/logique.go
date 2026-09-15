@@ -131,6 +131,10 @@ type Propriete struct {
 	Longueur     *int   `json:"longueur,omitempty"`
 	Precision    *int   `json:"precision,omitempty"`
 	Echelle      *int   `json:"echelle,omitempty"`
+	// Une chaîne de longueur fixe complète ses valeurs d'espaces, et se compare
+	// autrement qu'une chaîne variable de même longueur : recréée sans ce
+	// fait, la colonne change de comportement. Un fait de colonne, pas un type.
+	LongueurFixe bool   `json:"longueur_fixe,omitempty"`
 	Enumeration  string `json:"enumeration,omitempty"`
 	// DEFAULT '' est un défaut : absent et vide doivent rester distinguables,
 	// comme pour la longueur.

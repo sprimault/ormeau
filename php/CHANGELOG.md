@@ -64,6 +64,12 @@ seulement a ce défaut se scinde en deux.
 régénération**, après `ormeau inferer` : son `#[ORM\Index]` ou son
 `#[ORM\UniqueConstraint]` reçoit le prédicat dans `options`.
 
+**Une colonne `char(n)`, `jsonb` ou `real` change dans `Base/` à la
+régénération**, après `ormeau inferer` : `options: ['fixed' => true]`, type
+`jsonb` ou option `jsonb`, type `smallfloat` selon la version de DBAL. Une
+colonne discriminante `char(n)` ne le reçoit que sous ORM 3, et seulement dans
+une hiérarchie nouvelle.
+
 ### Corrigé
 
 - **Sous ORM 3 avec DBAL 3, une entité à colonne `binary` se charge, et une
@@ -83,6 +89,10 @@ régénération**, après `ormeau inferer` : son `#[ORM\Index]` ou son
 - **`migrations:diff` ne propose plus de supprimer un index partiel pour le
   recréer sans son prédicat.** Appliquée, une unicité partielle devenait plus
   stricte que la base, et refusait des lignes que celle-ci accepte.
+- **`migrations:diff` ne propose plus de convertir un `char(n)` en
+  `varchar(n)`**, ni sous DBAL 4 un `jsonb` en `json` et un `real` en
+  `double precision`. Appliquée, la conversion changeait ce que la colonne
+  stocke et comment elle se compare.
 
 ### Ajouté
 
@@ -109,6 +119,11 @@ régénération**, après `ormeau inferer` : son `#[ORM\Index]` ou son
   le prédicat cite une colonne de `colonnes_ignorees` part avec elle. Le texte
   arrive tel quel dans le DDL de Doctrine : un calque logique reçu d'ailleurs
   se relit comme une migration.
+- **La longueur fixe d'une chaîne est reportée** (`propriete.longueur_fixe`),
+  et **`jsonb` et `real` gardent leur type** (`type_doctrine` `jsonb` et
+  `smallfloat`). Le générateur se replie sur ce que DBAL connaît : `json` avec
+  l'option `jsonb` avant DBAL 4.3, `float` avant DBAL 4.1, que `schema:create`
+  recrée en `double precision`.
 
 ***
 
@@ -140,6 +155,11 @@ some have that default splits in two.
 regeneration**, after `ormeau inferer`: its `#[ORM\Index]` or
 `#[ORM\UniqueConstraint]` gets the predicate in `options`.
 
+**A `char(n)`, `jsonb` or `real` column changes in `Base/` on regeneration**,
+after `ormeau inferer`: `options: ['fixed' => true]`, the `jsonb` type or
+option, the `smallfloat` type, depending on the DBAL version. A `char(n)`
+discriminator column only gets it under ORM 3, and only in a new hierarchy.
+
 ### Fixed
 
 - **Under ORM 3 with DBAL 3, an entity with a `binary` column loads, and an
@@ -159,6 +179,10 @@ regeneration**, after `ormeau inferer`: its `#[ORM\Index]` or
 - **`migrations:diff` no longer proposes to drop a partial index and recreate
   it without its predicate.** Once applied, a partial unique index became
   stricter than the database, and rejected rows the database accepts.
+- **`migrations:diff` no longer proposes to convert a `char(n)` into
+  `varchar(n)`**, nor under DBAL 4 a `jsonb` into `json` and a `real` into
+  `double precision`. Once applied, the conversion changed what the column
+  stores and how it compares.
 
 ### Added
 
@@ -185,6 +209,11 @@ regeneration**, after `ormeau inferer`: its `#[ORM\Index]` or
   index whose predicate mentions a column from `colonnes_ignorees` goes with
   it. The text reaches Doctrine's DDL unchanged: a logical layer received from
   elsewhere is to be reviewed like a migration.
+- **The fixed length of a string is carried over** (`propriete.longueur_fixe`),
+  and **`jsonb` and `real` keep their type** (`type_doctrine` `jsonb` and
+  `smallfloat`). The generator falls back on what DBAL knows: `json` with the
+  `jsonb` option before DBAL 4.3, `float` before DBAL 4.1, which
+  `schema:create` recreates as `double precision`.
 
 ## [0.5.2] — 2026-09-14 — Ce qui tenait sans être vérifié
 

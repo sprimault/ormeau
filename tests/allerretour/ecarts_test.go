@@ -170,6 +170,13 @@ var tolerances = []tolerance{
 		},
 	},
 	{
+		code: "simple_precision_recreee_en_double", categorie: impossible, cibles: []string{"orm2-dbal3"},
+		pourquoi: "DBAL 3 n'a pas de type smallfloat : une colonne real est recréée en double precision",
+		couvre: func(e diff.Ecart, _ contexte) bool {
+			return e.Objet == diff.ObjetColonne && e.Propriete == "type_brut" && e.Avant == "real" && e.Apres == "double precision"
+		},
+	},
+	{
 		code: "nom_de_cle_etrangere_genere", categorie: impossible,
 		pourquoi: "Doctrine nomme ses clés étrangères FK_ suivi d'un hachage",
 		couvre: func(e diff.Ecart, _ contexte) bool {
@@ -321,14 +328,6 @@ var tolerances = []tolerance{
 	},
 
 	// À COMBLER : chacune part avec le lot qui la corrige.
-	{
-		code: "longueur_fixe_perdue", categorie: aCombler, lot: "9",
-		pourquoi: "char(n) est rendu en chaîne de longueur variable",
-		couvre: func(e diff.Ecart, _ contexte) bool {
-			return e.Objet == diff.ObjetColonne && e.Propriete == "type_brut" &&
-				strings.HasPrefix(e.Avant, "character(") && strings.HasPrefix(e.Apres, "character varying(")
-		},
-	},
 	{
 		code: "colonne_generee_perdue", categorie: aCombler, lot: "10",
 		pourquoi: "l'expression d'une colonne générée n'est pas reportée : Doctrine recrée une colonne ordinaire",

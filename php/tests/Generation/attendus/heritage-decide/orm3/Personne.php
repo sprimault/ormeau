@@ -20,7 +20,7 @@ use Doctrine\ORM\Mapping as ORM;
     name: 'nature',
     type: 'string',
     length: 1,
-    options: ['default' => 'P', 'comment' => 'Nature de la personne'],
+    options: ['default' => 'P', 'comment' => 'Nature de la personne', 'fixed' => true],
 )]
 #[ORM\DiscriminatorMap(['P' => Personne::class, 'S' => Salarie::class])]
 class Personne extends PersonneBase {}

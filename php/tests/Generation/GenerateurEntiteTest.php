@@ -164,6 +164,36 @@ final class GenerateurEntiteTest extends TestCase
     }
 
     /**
+     * jsonb et smallfloat se replient sur ce que DBAL connaît : l'option jsonb
+     * avant 4.3, float avant 4.1. La longueur fixe s'écrit partout.
+     */
+    public function testLesTypesSeReplientSurDbal(): void
+    {
+        $client = self::entite('Client');
+        $client['proprietes'][] = self::propriete('options', 'jsonb', ['type_php' => '?array', 'nullable' => true]);
+        $client['proprietes'][] = self::propriete('taux', 'smallfloat', ['type_php' => 'float']);
+        $client['proprietes'][] = self::propriete('pays', 'string', ['longueur' => 2, 'longueur_fixe' => true]);
+
+        foreach ([
+            '3.10' => ["type: 'json', nullable: true, options: ['jsonb' => true])]", "type: 'float')]"],
+            '4.2' => ["type: 'json', nullable: true, options: ['jsonb' => true])]", "type: 'smallfloat')]"],
+            '4.4' => ["type: 'jsonb', nullable: true)]", "type: 'smallfloat')]"],
+        ] as $dbal => [$json, $flottant]) {
+            $sortie = Repertoires::creer();
+            try {
+                (new GenerateurEntite())->generer(self::calque([$client]), $sortie, Cible::forcer(3, (string) $dbal), 'gescom');
+                $base = Repertoires::lire($sortie)['Base/ClientBase.php'];
+
+                self::assertStringContainsString($json . "\n    protected ?array \$options = null;", $base, 'DBAL ' . $dbal);
+                self::assertStringContainsString($flottant . "\n    protected float \$taux;", $base, 'DBAL ' . $dbal);
+                self::assertStringContainsString("length: 2, options: ['fixed' => true])]\n    protected string \$pays;", $base, 'DBAL ' . $dbal);
+            } finally {
+                Repertoires::supprimer($sortie);
+            }
+        }
+    }
+
+    /**
      * Un défaut calculé suit DBAL, pas ORM : ORM 3 avec DBAL 3.10 garde la
      * chaîne, l'objet n'existant pas encore. Aucun des deux n'initialise la
      * propriété, dont la valeur n'est connue qu'à l'insertion.

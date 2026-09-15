@@ -101,6 +101,23 @@ final class CibleTest extends TestCase
     }
 
     /**
+     * smallfloat existe depuis DBAL 4.1, le type jsonb depuis 4.3 : lus dans
+     * Types.php aux tags 4.0.0 à 4.3.0.
+     */
+    public function testLesTypesRecentsAttendentLeurMineure(): void
+    {
+        self::assertFalse(Cible::forcer(2)->connaitSmallfloat());
+        self::assertFalse(Cible::forcer(3, '3.10')->connaitSmallfloat());
+        self::assertFalse(Cible::forcer(3, '4.0')->connaitSmallfloat());
+        self::assertTrue(Cible::forcer(3, '4.1')->connaitSmallfloat());
+
+        self::assertFalse(Cible::forcer(3, '3.10')->connaitJsonb());
+        self::assertFalse(Cible::forcer(3, '4.2')->connaitJsonb());
+        self::assertTrue(Cible::forcer(3, '4.3')->connaitJsonb());
+        self::assertTrue(Cible::forcer(3)->connaitJsonb());
+    }
+
+    /**
      * Une majeure qu'aucun rendu ne connaît est refusée, y compris une
      * version future : on ne promet pas ce qu'on n'a pas vu.
      */

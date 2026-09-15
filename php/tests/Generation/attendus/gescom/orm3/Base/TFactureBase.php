@@ -37,6 +37,9 @@ abstract class TFactureBase
     )]
     protected ?\DateTimeImmutable $facSaisie = null;
 
+    #[ORM\Column(name: 'fac_taux', type: 'smallfloat', nullable: true)]
+    protected ?float $facTaux = null;
+
     public function getFacId(): ?int
     {
         return $this->facId;
@@ -86,6 +89,18 @@ abstract class TFactureBase
     public function setFacSaisie(?\DateTimeImmutable $facSaisie): static
     {
         $this->facSaisie = $facSaisie;
+
+        return $this;
+    }
+
+    public function getFacTaux(): ?float
+    {
+        return $this->facTaux;
+    }
+
+    public function setFacTaux(?float $facTaux): static
+    {
+        $this->facTaux = $facTaux;
 
         return $this;
     }

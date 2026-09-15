@@ -41,6 +41,7 @@
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 1,
+          "longueur_fixe": true,
           "enumeration": "OuiNon",
           "origine": "contrainte"
         },

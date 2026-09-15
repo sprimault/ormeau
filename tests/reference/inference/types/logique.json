@@ -84,7 +84,7 @@
           "nom": "chargeUtile",
           "colonne": "charge_utile",
           "type_php": "?array",
-          "type_doctrine": "json",
+          "type_doctrine": "jsonb",
           "nullable": true,
           "origine": "contrainte"
         },
@@ -139,6 +139,24 @@
           "type_doctrine": "string",
           "nullable": false,
           "defaut": "{}",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "taux",
+          "colonne": "taux",
+          "type_php": "?float",
+          "type_doctrine": "smallfloat",
+          "nullable": true,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "codePays",
+          "colonne": "code_pays",
+          "type_php": "?string",
+          "type_doctrine": "string",
+          "nullable": true,
+          "longueur": 2,
+          "longueur_fixe": true,
           "origine": "contrainte"
         }
       ],

@@ -52,6 +52,7 @@
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 1,
+          "longueur_fixe": true,
           "enumeration": "ClientActif",
           "commentaire": "O/N : des cas nommés O et N n'apprendraient rien",
           "origine": "contrainte"

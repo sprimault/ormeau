@@ -18,6 +18,8 @@ créé Base/TCommercialBase.php
 créé TCommercial.php
 créé Base/TFactureBase.php
 créé TFacture.php
+créé Base/TPaysBase.php
+créé TPays.php
 créé Base/TRéférenceBase.php
 créé TRéférence.php
 créé Base/TTagBase.php

@@ -127,6 +127,21 @@
             "genre": "litteral",
             "valeur": "{}"
           }
+        },
+        {
+          "nom": "taux",
+          "position": 16,
+          "type_brut": "real",
+          "type_normalise": "flottant",
+          "nullable": true
+        },
+        {
+          "nom": "code_pays",
+          "position": 17,
+          "type_brut": "character(2)",
+          "type_normalise": "texte",
+          "longueur": 2,
+          "nullable": true
         }
       ],
       "cle_primaire": {

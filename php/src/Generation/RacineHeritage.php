@@ -27,7 +27,7 @@ final class RacineHeritage
     public const STRATEGIE = 'JOINED';
 
     /**
-     * @param array{name: string, type: string|null, length: int|null, options?: array<string, string>|null} $colonne arguments de
+     * @param array{name: string, type: string|null, length: int|null, options?: array<string, bool|string>|null} $colonne arguments de
      *                                                                           #[ORM\DiscriminatorColumn] ; type
      *                                                                           et longueur absents quand la
      *                                                                           colonne n'est pas une propriété,
