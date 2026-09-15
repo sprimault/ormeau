@@ -1,4 +1,4 @@
-.PHONY: dev test cover maj-attendus lint outils vulncheck sec build binaries web-deps web-build web-types web-types-check web-lint web-test php-changelog php-test php-lint image image-tags image-push clean
+.PHONY: dev test cover maj-attendus maj-calque-gescom lint outils vulncheck sec build binaries web-deps web-build web-types web-types-check web-lint web-test php-changelog php-test php-lint image image-tags image-push clean
 
 # Répertoire de travail local, ignoré par git : sorties de `make build`,
 # profils de couverture, tout ce qui ne se publie pas.
@@ -87,6 +87,14 @@ PAQUETS_INTEGRATION = $(sort $(foreach f,$(shell git grep --untracked -l '^//go:
 
 test-integration: containers
 	go test -race -count=1 -tags integration $(PAQUETS_INTEGRATION)
+
+# Le calque de gescom est l'extraction réelle de tests/ddl/, versionnée comme
+# entrée du cas d'inférence du même nom. Il se régénère contre un conteneur
+# recréé, puis make maj-attendus en tire le calque logique : les deux diffs se
+# relisent avant de commiter.
+maj-calque-gescom: containers
+	go test -count=1 -tags integration ./internal/introspection/postgres/ -run TestExtraireCommeLaReference -maj-attendus
+	@echo "Calque reecrit. Relire 'git diff tests/reference/inference/gescom/', puis make maj-attendus."
 
 # La vérification des types générés est accrochée à lint, pas à test :
 # `make test` doit rester exécutable sur un clone frais sans outil Go à

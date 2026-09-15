@@ -1,0 +1,675 @@
+{
+  "version_ri": 1,
+  "source": {
+    "sgbd": "postgres",
+    "version": "17.11",
+    "catalogue": "gescom",
+    "schema": "gescom",
+    "extrait_le": "2026-09-15T09:34:16Z",
+    "empreinte": "sha256:bb1c120096b903543182ad1a76f3f1df1aeea9b8b0182c83bae4f6cca5dffd50"
+  },
+  "tables": [
+    {
+      "nom": "t_avoir",
+      "schema": "gescom",
+      "colonnes": [
+        {
+          "nom": "avo_id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false,
+          "defaut": {
+            "genre": "sequence",
+            "valeur": "nextval('gescom.t_avoir_avo_id_seq'::regclass)"
+          }
+        },
+        {
+          "nom": "avo_fac_id",
+          "position": 2,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false
+        }
+      ],
+      "cle_primaire": {
+        "nom": "t_avoir_pkey",
+        "colonnes": [
+          "avo_id"
+        ]
+      }
+    },
+    {
+      "nom": "t_categorie",
+      "schema": "gescom",
+      "colonnes": [
+        {
+          "nom": "cat_id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true
+        },
+        {
+          "nom": "cat_libelle",
+          "position": 2,
+          "type_brut": "character varying(60)",
+          "type_normalise": "texte",
+          "longueur": 60,
+          "nullable": false,
+          "collation": "default"
+        },
+        {
+          "nom": "cat_parent",
+          "position": 3,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": true
+        }
+      ],
+      "cle_primaire": {
+        "nom": "t_categorie_pkey",
+        "colonnes": [
+          "cat_id"
+        ]
+      },
+      "cles_etrangeres": [
+        {
+          "nom": "t_categorie_cat_parent_fkey",
+          "colonnes": [
+            "cat_parent"
+          ],
+          "table_cible": "t_categorie",
+          "schema_cible": "gescom",
+          "colonnes_cibles": [
+            "cat_id"
+          ]
+        }
+      ]
+    },
+    {
+      "nom": "t_client",
+      "schema": "gescom",
+      "colonnes": [
+        {
+          "nom": "cli_id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true
+        },
+        {
+          "nom": "cli_nom",
+          "position": 2,
+          "type_brut": "character varying(120)",
+          "type_normalise": "texte",
+          "longueur": 120,
+          "nullable": false,
+          "collation": "default"
+        },
+        {
+          "nom": "cli_siret",
+          "position": 3,
+          "type_brut": "character(14)",
+          "type_normalise": "texte",
+          "longueur": 14,
+          "nullable": true,
+          "collation": "default",
+          "commentaire": "Nul tant que la fiche n'est pas validée"
+        },
+        {
+          "nom": "cli_statut",
+          "position": 4,
+          "type_brut": "character varying(20)",
+          "type_normalise": "texte",
+          "longueur": 20,
+          "nullable": false,
+          "defaut": {
+            "genre": "litteral",
+            "valeur": "ACTIF"
+          },
+          "collation": "default"
+        },
+        {
+          "nom": "cli_com_id",
+          "position": 5,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": true
+        },
+        {
+          "nom": "cli_ca_ttc",
+          "position": 6,
+          "type_brut": "numeric(12,2)",
+          "type_normalise": "decimal",
+          "precision": 12,
+          "echelle": 2,
+          "nullable": true
+        },
+        {
+          "nom": "cli_ca_ht",
+          "position": 7,
+          "type_brut": "numeric(12,2)",
+          "type_normalise": "decimal",
+          "precision": 12,
+          "echelle": 2,
+          "nullable": true,
+          "generee": {
+            "expression": "(cli_ca_ttc / 1.2)",
+            "stockee": true
+          }
+        },
+        {
+          "nom": "created_at",
+          "position": 8,
+          "type_brut": "timestamp with time zone",
+          "type_normalise": "horodatage",
+          "nullable": false,
+          "defaut": {
+            "genre": "expression",
+            "valeur": "now()"
+          }
+        },
+        {
+          "nom": "updated_at",
+          "position": 9,
+          "type_brut": "timestamp with time zone",
+          "type_normalise": "horodatage",
+          "nullable": true
+        }
+      ],
+      "cle_primaire": {
+        "nom": "t_client_pkey",
+        "colonnes": [
+          "cli_id"
+        ]
+      },
+      "cles_etrangeres": [
+        {
+          "nom": "fk_client_commercial",
+          "colonnes": [
+            "cli_com_id"
+          ],
+          "table_cible": "t_commercial",
+          "schema_cible": "gescom",
+          "colonnes_cibles": [
+            "com_id"
+          ],
+          "a_la_suppression": "set_null"
+        }
+      ],
+      "unicites": [
+        {
+          "nom": "uq_cli_siret",
+          "colonnes": [
+            "cli_siret"
+          ]
+        }
+      ],
+      "index": [
+        {
+          "nom": "ix_cli_actifs",
+          "colonnes": [
+            "cli_com_id"
+          ],
+          "unique": false,
+          "predicat": "((cli_statut)::text = 'ACTIF'::text)",
+          "methode": "btree"
+        },
+        {
+          "nom": "ix_cli_nom",
+          "colonnes": [
+            "cli_nom"
+          ],
+          "unique": false,
+          "methode": "btree"
+        },
+        {
+          "nom": "ix_cli_nom_prefixe",
+          "colonnes": [
+            "cli_nom"
+          ],
+          "unique": false,
+          "methode": "btree",
+          "operateurs": [
+            "text_pattern_ops"
+          ]
+        },
+        {
+          "nom": "uq_cli_siret",
+          "colonnes": [
+            "cli_siret"
+          ],
+          "unique": true,
+          "methode": "btree"
+        }
+      ],
+      "verifications": [
+        {
+          "nom": "ck_cli_statut",
+          "expression": "CHECK (((cli_statut)::text = ANY ((ARRAY['ACTIF'::character varying, 'SUSPENDU'::character varying, 'ARCHIVE'::character varying])::text[])))"
+        }
+      ]
+    },
+    {
+      "nom": "t_client_contact",
+      "schema": "gescom",
+      "colonnes": [
+        {
+          "nom": "cli_id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false
+        },
+        {
+          "nom": "ctc_id",
+          "position": 2,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false
+        },
+        {
+          "nom": "role",
+          "position": 3,
+          "type_brut": "character varying(30)",
+          "type_normalise": "texte",
+          "longueur": 30,
+          "nullable": false,
+          "collation": "default"
+        }
+      ],
+      "cle_primaire": {
+        "nom": "t_client_contact_pkey",
+        "colonnes": [
+          "cli_id",
+          "ctc_id"
+        ]
+      },
+      "cles_etrangeres": [
+        {
+          "nom": "t_client_contact_cli_id_fkey",
+          "colonnes": [
+            "cli_id"
+          ],
+          "table_cible": "t_client",
+          "schema_cible": "gescom",
+          "colonnes_cibles": [
+            "cli_id"
+          ]
+        }
+      ]
+    },
+    {
+      "nom": "t_client_grand_compte",
+      "schema": "gescom",
+      "colonnes": [
+        {
+          "nom": "cli_id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false
+        },
+        {
+          "nom": "remise_taux",
+          "position": 2,
+          "type_brut": "numeric(4,2)",
+          "type_normalise": "decimal",
+          "precision": 4,
+          "echelle": 2,
+          "nullable": false
+        }
+      ],
+      "cle_primaire": {
+        "nom": "t_client_grand_compte_pkey",
+        "colonnes": [
+          "cli_id"
+        ]
+      },
+      "cles_etrangeres": [
+        {
+          "nom": "t_client_grand_compte_cli_id_fkey",
+          "colonnes": [
+            "cli_id"
+          ],
+          "table_cible": "t_client",
+          "schema_cible": "gescom",
+          "colonnes_cibles": [
+            "cli_id"
+          ]
+        }
+      ]
+    },
+    {
+      "nom": "t_client_tag",
+      "schema": "gescom",
+      "colonnes": [
+        {
+          "nom": "cli_id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false
+        },
+        {
+          "nom": "tag_id",
+          "position": 2,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false
+        }
+      ],
+      "cle_primaire": {
+        "nom": "t_client_tag_pkey",
+        "colonnes": [
+          "cli_id",
+          "tag_id"
+        ]
+      },
+      "cles_etrangeres": [
+        {
+          "nom": "t_client_tag_cli_id_fkey",
+          "colonnes": [
+            "cli_id"
+          ],
+          "table_cible": "t_client",
+          "schema_cible": "gescom",
+          "colonnes_cibles": [
+            "cli_id"
+          ],
+          "a_la_suppression": "cascade"
+        },
+        {
+          "nom": "t_client_tag_tag_id_fkey",
+          "colonnes": [
+            "tag_id"
+          ],
+          "table_cible": "t_tag",
+          "schema_cible": "gescom",
+          "colonnes_cibles": [
+            "tag_id"
+          ]
+        }
+      ]
+    },
+    {
+      "nom": "t_commande",
+      "schema": "gescom",
+      "colonnes": [
+        {
+          "nom": "cmd_id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true
+        },
+        {
+          "nom": "cmd_canal",
+          "position": 2,
+          "type_brut": "gescom.canal",
+          "type_normalise": "enumere",
+          "nullable": false,
+          "type_enumere": "canal"
+        },
+        {
+          "nom": "cmd_etiquettes",
+          "position": 3,
+          "type_brut": "text[]",
+          "type_normalise": "texte",
+          "nullable": true,
+          "collation": "default"
+        }
+      ],
+      "cle_primaire": {
+        "nom": "t_commande_pkey",
+        "colonnes": [
+          "cmd_id"
+        ]
+      }
+    },
+    {
+      "nom": "t_commercial",
+      "schema": "gescom",
+      "commentaire": "Force de vente",
+      "colonnes": [
+        {
+          "nom": "com_id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true
+        },
+        {
+          "nom": "com_nom",
+          "position": 2,
+          "type_brut": "character varying(80)",
+          "type_normalise": "texte",
+          "longueur": 80,
+          "nullable": false,
+          "collation": "default"
+        },
+        {
+          "nom": "com_actif",
+          "position": 3,
+          "type_brut": "boolean",
+          "type_normalise": "booleen",
+          "nullable": false,
+          "defaut": {
+            "genre": "litteral",
+            "valeur": "true"
+          }
+        }
+      ],
+      "cle_primaire": {
+        "nom": "t_commercial_pkey",
+        "colonnes": [
+          "com_id"
+        ]
+      }
+    },
+    {
+      "nom": "t_facture",
+      "schema": "gescom",
+      "colonnes": [
+        {
+          "nom": "fac_id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true
+        },
+        {
+          "nom": "fac_cli_id",
+          "position": 2,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false
+        },
+        {
+          "nom": "fac_total",
+          "position": 3,
+          "type_brut": "numeric(12,2)",
+          "type_normalise": "decimal",
+          "precision": 12,
+          "echelle": 2,
+          "nullable": false
+        }
+      ],
+      "cle_primaire": {
+        "nom": "t_facture_pkey",
+        "colonnes": [
+          "fac_id"
+        ]
+      }
+    },
+    {
+      "nom": "t_log_import",
+      "schema": "gescom",
+      "colonnes": [
+        {
+          "nom": "horodatage",
+          "position": 1,
+          "type_brut": "timestamp with time zone",
+          "type_normalise": "horodatage",
+          "nullable": false
+        },
+        {
+          "nom": "message",
+          "position": 2,
+          "type_brut": "text",
+          "type_normalise": "texte",
+          "nullable": true,
+          "collation": "default"
+        }
+      ]
+    },
+    {
+      "nom": "t_référence",
+      "schema": "gescom",
+      "colonnes": [
+        {
+          "nom": "id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true
+        },
+        {
+          "nom": "order",
+          "position": 2,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": true
+        },
+        {
+          "nom": "select",
+          "position": 3,
+          "type_brut": "character varying(10)",
+          "type_normalise": "texte",
+          "longueur": 10,
+          "nullable": true,
+          "collation": "default"
+        }
+      ],
+      "cle_primaire": {
+        "nom": "t_référence_pkey",
+        "colonnes": [
+          "id"
+        ]
+      }
+    },
+    {
+      "nom": "t_tag",
+      "schema": "gescom",
+      "colonnes": [
+        {
+          "nom": "tag_id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true
+        },
+        {
+          "nom": "tag_libelle",
+          "position": 2,
+          "type_brut": "character varying(40)",
+          "type_normalise": "texte",
+          "longueur": 40,
+          "nullable": false,
+          "collation": "default"
+        }
+      ],
+      "cle_primaire": {
+        "nom": "t_tag_pkey",
+        "colonnes": [
+          "tag_id"
+        ]
+      }
+    }
+  ],
+  "sequences": [
+    {
+      "nom": "t_avoir_avo_id_seq",
+      "schema": "gescom",
+      "increment": 1,
+      "minimum": 1,
+      "maximum": 2147483647
+    },
+    {
+      "nom": "t_categorie_cat_id_seq",
+      "schema": "gescom",
+      "increment": 1,
+      "minimum": 1,
+      "maximum": 2147483647
+    },
+    {
+      "nom": "t_client_cli_id_seq",
+      "schema": "gescom",
+      "increment": 1,
+      "minimum": 1,
+      "maximum": 2147483647
+    },
+    {
+      "nom": "t_commande_cmd_id_seq",
+      "schema": "gescom",
+      "increment": 1,
+      "minimum": 1,
+      "maximum": 2147483647
+    },
+    {
+      "nom": "t_commercial_com_id_seq",
+      "schema": "gescom",
+      "increment": 1,
+      "minimum": 1,
+      "maximum": 2147483647
+    },
+    {
+      "nom": "t_facture_fac_id_seq",
+      "schema": "gescom",
+      "increment": 1,
+      "minimum": 1,
+      "maximum": 2147483647
+    },
+    {
+      "nom": "t_référence_id_seq",
+      "schema": "gescom",
+      "increment": 1,
+      "minimum": 1,
+      "maximum": 2147483647
+    },
+    {
+      "nom": "t_tag_tag_id_seq",
+      "schema": "gescom",
+      "increment": 1,
+      "minimum": 1,
+      "maximum": 2147483647
+    }
+  ],
+  "types_enumeres": [
+    {
+      "nom": "canal",
+      "schema": "gescom",
+      "valeurs": [
+        "web",
+        "telephone",
+        "agence"
+      ]
+    }
+  ],
+  "vues": [
+    {
+      "nom": "v_client_actif",
+      "schema": "gescom",
+      "definition": " SELECT cli_id,\n    cli_nom\n   FROM gescom.t_client\n  WHERE cli_statut::text = 'ACTIF'::text;",
+      "materialisee": false
+    }
+  ]
+}
