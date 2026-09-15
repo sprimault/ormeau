@@ -1,0 +1,77 @@
+{
+  "version_ri": 1,
+  "source": {
+    "sgbd": "postgres",
+    "version": "17.11",
+    "catalogue": "gescom",
+    "schema": "public",
+    "extrait_le": "2026-01-01T00:00:00Z",
+    "empreinte": "sha256:0000000000000000000000000000000000000000000000000000000000000024"
+  },
+  "tables": [
+    {
+      "nom": "evenement",
+      "schema": "public",
+      "commentaire": "Défauts calculés, sous les formes que rend pg_get_expr : le sens dépend de l'expression et du type de la colonne",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false, "auto_increment": true, "identite": "toujours" },
+        { "nom": "horodate", "position": 2, "type_brut": "timestamp with time zone", "type_normalise": "horodatage", "nullable": false, "defaut": { "genre": "expression", "valeur": "now()" } },
+        { "nom": "horodate_sql", "position": 3, "type_brut": "timestamp with time zone", "type_normalise": "horodatage", "nullable": true, "defaut": { "genre": "expression", "valeur": "CURRENT_TIMESTAMP" } },
+        { "nom": "horodate_transaction", "position": 4, "type_brut": "timestamp with time zone", "type_normalise": "horodatage", "nullable": true, "defaut": { "genre": "expression", "valeur": "transaction_timestamp()" } },
+        { "nom": "horodate_local", "position": 5, "type_brut": "timestamp without time zone", "type_normalise": "horodatage", "nullable": true, "defaut": { "genre": "expression", "valeur": "LOCALTIMESTAMP" } },
+        { "nom": "horodate_local_fuseau", "position": 6, "type_brut": "timestamp with time zone", "type_normalise": "horodatage", "nullable": true, "defaut": { "genre": "expression", "valeur": "LOCALTIMESTAMP" }, "commentaire": "Heure locale convertie selon le fuseau de la session : non reconnu" },
+        { "nom": "horloge", "position": 7, "type_brut": "timestamp with time zone", "type_normalise": "horodatage", "nullable": true, "defaut": { "genre": "expression", "valeur": "clock_timestamp()" }, "commentaire": "Instant de l'horloge, pas de la transaction : non reconnu" },
+        { "nom": "horodate_arrondi", "position": 8, "type_brut": "timestamp with time zone", "type_normalise": "horodatage", "nullable": true, "defaut": { "genre": "expression", "valeur": "CURRENT_TIMESTAMP(0)" } },
+        { "nom": "horodate_jour", "position": 9, "type_brut": "timestamp without time zone", "type_normalise": "horodatage", "nullable": true, "defaut": { "genre": "expression", "valeur": "CURRENT_DATE" }, "commentaire": "Minuit du jour : non reconnu" },
+        { "nom": "jour", "position": 10, "type_brut": "date", "type_normalise": "date", "nullable": false, "defaut": { "genre": "expression", "valeur": "CURRENT_DATE" } },
+        { "nom": "jour_maintenant", "position": 11, "type_brut": "date", "type_normalise": "date", "nullable": true, "defaut": { "genre": "expression", "valeur": "now()" } },
+        { "nom": "jour_local", "position": 12, "type_brut": "date", "type_normalise": "date", "nullable": true, "defaut": { "genre": "expression", "valeur": "LOCALTIMESTAMP" } },
+        { "nom": "jour_force", "position": 13, "type_brut": "date", "type_normalise": "date", "nullable": true, "defaut": { "genre": "expression", "valeur": "CURRENT_DATE" }, "commentaire": "Type forcé par décision : le défaut tombe" },
+        { "nom": "heure", "position": 14, "type_brut": "time without time zone", "type_normalise": "heure", "nullable": true, "defaut": { "genre": "expression", "valeur": "CURRENT_TIME" } },
+        { "nom": "heure_locale", "position": 15, "type_brut": "time without time zone", "type_normalise": "heure", "nullable": true, "defaut": { "genre": "expression", "valeur": "LOCALTIME" } },
+        { "nom": "heure_maintenant", "position": 16, "type_brut": "time without time zone", "type_normalise": "heure", "nullable": true, "defaut": { "genre": "expression", "valeur": "now()" } },
+        { "nom": "libelle", "position": 17, "type_brut": "character varying(20)", "type_normalise": "texte", "longueur": 20, "nullable": true, "defaut": { "genre": "expression", "valeur": "NULL::character varying" }, "commentaire": "DEFAULT NULL : aucun défaut, et rien à signaler" },
+        { "nom": "reference", "position": 18, "type_brut": "uuid", "type_normalise": "uuid", "nullable": false, "defaut": { "genre": "expression", "valeur": "gen_random_uuid()" } }
+      ],
+      "cle_primaire": { "nom": "evenement_pkey", "colonnes": ["id"] }
+    },
+    {
+      "nom": "commande",
+      "schema": "public",
+      "commentaire": "Horodatage avec défaut, comme livraison : un trait",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false, "auto_increment": true, "identite": "toujours" },
+        { "nom": "created_at", "position": 2, "type_brut": "timestamp with time zone", "type_normalise": "horodatage", "nullable": false, "defaut": { "genre": "expression", "valeur": "now()" } }
+      ],
+      "cle_primaire": { "nom": "commande_pkey", "colonnes": ["id"] }
+    },
+    {
+      "nom": "livraison",
+      "schema": "public",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false, "auto_increment": true, "identite": "toujours" },
+        { "nom": "created_at", "position": 2, "type_brut": "timestamp with time zone", "type_normalise": "horodatage", "nullable": false, "defaut": { "genre": "expression", "valeur": "CURRENT_TIMESTAMP" } }
+      ],
+      "cle_primaire": { "nom": "livraison_pkey", "colonnes": ["id"] }
+    },
+    {
+      "nom": "retour",
+      "schema": "public",
+      "commentaire": "Même horodatage sans défaut, comme avoir : un autre trait, sans quoi le défaut passerait d'une table à l'autre",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false, "auto_increment": true, "identite": "toujours" },
+        { "nom": "created_at", "position": 2, "type_brut": "timestamp with time zone", "type_normalise": "horodatage", "nullable": false }
+      ],
+      "cle_primaire": { "nom": "retour_pkey", "colonnes": ["id"] }
+    },
+    {
+      "nom": "avoir",
+      "schema": "public",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false, "auto_increment": true, "identite": "toujours" },
+        { "nom": "created_at", "position": 2, "type_brut": "timestamp with time zone", "type_normalise": "horodatage", "nullable": false }
+      ],
+      "cle_primaire": { "nom": "avoir_pkey", "colonnes": ["id"] }
+    }
+  ]
+}

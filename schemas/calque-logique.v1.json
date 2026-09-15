@@ -100,6 +100,7 @@
       "type": "object",
       "required": ["nom", "colonne", "type_php", "type_doctrine", "nullable"],
       "additionalProperties": false,
+      "not": { "required": ["defaut", "defaut_expression"] },
       "properties": {
         "nom": { "type": "string" },
         "colonne": { "type": "string" },
@@ -115,8 +116,12 @@
         "echelle": { "type": "integer" },
         "enumeration": { "type": "string" },
         "defaut": {
-          "description": "Valeur par défaut littérale de la colonne, telle que la base la stocke. Un défaut calculé (expression, séquence) n'est pas reporté.",
+          "description": "Valeur par défaut littérale de la colonne, telle que la base la stocke. Un défaut calculé est dans defaut_expression, ou n'est pas reporté.",
           "type": "string"
+        },
+        "defaut_expression": {
+          "description": "Sens d'un défaut calculé reconnu, jamais son texte : now() et CURRENT_TIMESTAMP disent la même chose. L'instant est celui de la transaction. Exclusif de defaut ; un défaut calculé non reconnu n'est pas reporté et produit l'avertissement defaut_non_reporte.",
+          "enum": ["horodatage_courant", "date_courante", "heure_courante"]
         },
         "insertable": { "type": "boolean", "default": true },
         "modifiable": { "type": "boolean", "default": true },

@@ -1,0 +1,5 @@
+# Un type forcé change la famille PHP de la colonne : son défaut calculé tombe,
+# comme un défaut littéral.
+
+types_forces:
+  public.evenement.jour_force: string

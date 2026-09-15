@@ -90,11 +90,11 @@ func affiner(corr correspondance, c *calque.Colonne) correspondance {
 	case calque.TypeHorodatage:
 		// Un horodatage avec fuseau perd son décalage s'il est mappé en
 		// datetime_immutable : la valeur relue n'est plus la même instant.
-		if strings.Contains(brut, "with time zone") || strings.Contains(brut, "timestamptz") {
+		if avecFuseau(c) {
 			return correspondance{corr.php, "datetimetz_immutable"}
 		}
 	case calque.TypeHeure:
-		if strings.Contains(brut, "with time zone") || strings.Contains(brut, "timetz") {
+		if avecFuseau(c) {
 			return correspondance{corr.php, "time_immutable"}
 		}
 	case calque.TypeEntier:
@@ -115,6 +115,13 @@ func affiner(corr correspondance, c *calque.Colonne) correspondance {
 		}
 	}
 	return corr
+}
+
+// avecFuseau dit si un horodatage ou une heure porte un fuseau, ce que le type
+// normalisé ne dit pas.
+func avecFuseau(c *calque.Colonne) bool {
+	brut := strings.ToLower(c.TypeBrut)
+	return strings.Contains(brut, "with time zone") || strings.Contains(brut, "timestamptz") || strings.Contains(brut, "timetz")
 }
 
 // Type PHP de chaque type Doctrine, pour les cas où le type Doctrine est donné

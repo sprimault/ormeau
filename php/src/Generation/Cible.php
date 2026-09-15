@@ -154,6 +154,16 @@ final class Cible
     }
 
     /**
+     * Dit si DBAL décrit un défaut calculé par un objet de
+     * Doctrine\DBAL\Schema\DefaultExpression, introduit en 4.4 : la chaîne
+     * 'CURRENT_TIMESTAMP' y est dépréciée, et reste la seule forme avant.
+     */
+    public function defautParExpression(): bool
+    {
+        return $this->dbalMajeure === 4 && $this->dbalMineure >= 4;
+    }
+
+    /**
      * La ligne annoncée en tête d'exécution : « Cible détectée : PHP 8.2,
      * Doctrine ORM 2.14, DBAL 3.10 » ou « Cible forcée : Doctrine ORM 3,
      * DBAL 4.4 (déduite) ».

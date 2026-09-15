@@ -164,6 +164,31 @@ final class GenerateurEntiteTest extends TestCase
     }
 
     /**
+     * Un défaut calculé suit DBAL, pas ORM : ORM 3 avec DBAL 3.10 garde la
+     * chaîne, l'objet n'existant pas encore. Aucun des deux n'initialise la
+     * propriété, dont la valeur n'est connue qu'à l'insertion.
+     */
+    public function testUnDefautCalculeSuitDbal(): void
+    {
+        $client = self::entite('Client');
+        $client['proprietes'][] = self::propriete('creeLe', 'datetimetz_immutable', ['defaut_expression' => 'horodatage_courant']);
+
+        foreach ([
+            '3.10' => "options: ['default' => 'CURRENT_TIMESTAMP'])]\n    protected \\DateTimeImmutable \$creeLe;",
+            '4.4' => "options: ['default' => new \\Doctrine\\DBAL\\Schema\\DefaultExpression\\CurrentTimestamp()],\n    )]\n    protected \\DateTimeImmutable \$creeLe;",
+        ] as $dbal => $attendu) {
+            $sortie = Repertoires::creer();
+            try {
+                (new GenerateurEntite())->generer(self::calque([$client]), $sortie, Cible::forcer(3, (string) $dbal), 'gescom');
+
+                self::assertStringContainsString($attendu, Repertoires::lire($sortie)['Base/ClientBase.php']);
+            } finally {
+                Repertoires::supprimer($sortie);
+            }
+        }
+    }
+
+    /**
      * Une entité qui nomme un trait ou une énumération absents du calque, ou
      * que PHP refuse d'écrire, est écartée avec le nom en cause ; le fichier
      * refusé n'est pas écrit. Un trait dont une propriété nomme une

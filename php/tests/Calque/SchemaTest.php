@@ -16,6 +16,7 @@ use Ormeau\Doctrine\Calque\CasEnumeration;
 use Ormeau\Doctrine\Calque\ColonneJointure;
 use Ormeau\Doctrine\Calque\Entite;
 use Ormeau\Doctrine\Calque\Enumeration;
+use Ormeau\Doctrine\Calque\ExpressionDefaut;
 use Ormeau\Doctrine\Calque\GenreAssociation;
 use Ormeau\Doctrine\Calque\Heritage;
 use Ormeau\Doctrine\Calque\Identifiant;
@@ -129,6 +130,7 @@ final class SchemaTest extends TestCase
         yield 'association.genre' => [$champ('association', 'genre'), GenreAssociation::class];
         yield 'colonneJointure.a_la_suppression' => [$champ('colonneJointure', 'a_la_suppression'), ActionSuppression::class];
         yield 'enumeration.type_support' => [$champ('enumeration', 'type_support'), TypeSupport::class];
+        yield 'propriete.defaut_expression' => [$champ('propriete', 'defaut_expression'), ExpressionDefaut::class];
         yield 'avertissement.resolution' => [$champ('avertissement', 'resolution'), Resolution::class];
     }
 

@@ -1,0 +1,401 @@
+{
+  "version_ri": 1,
+  "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000024",
+  "espace_de_noms": "App\\Entity",
+  "entites": [
+    {
+      "nom": "Evenement",
+      "table": {
+        "nom": "evenement",
+        "schema": "public"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "horodate",
+          "colonne": "horodate",
+          "type_php": "\\DateTimeImmutable",
+          "type_doctrine": "datetimetz_immutable",
+          "nullable": false,
+          "defaut_expression": "horodatage_courant",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "horodateSql",
+          "colonne": "horodate_sql",
+          "type_php": "?\\DateTimeImmutable",
+          "type_doctrine": "datetimetz_immutable",
+          "nullable": true,
+          "defaut_expression": "horodatage_courant",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "horodateTransaction",
+          "colonne": "horodate_transaction",
+          "type_php": "?\\DateTimeImmutable",
+          "type_doctrine": "datetimetz_immutable",
+          "nullable": true,
+          "defaut_expression": "horodatage_courant",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "horodateLocal",
+          "colonne": "horodate_local",
+          "type_php": "?\\DateTimeImmutable",
+          "type_doctrine": "datetime_immutable",
+          "nullable": true,
+          "defaut_expression": "horodatage_courant",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "horodateLocalFuseau",
+          "colonne": "horodate_local_fuseau",
+          "type_php": "?\\DateTimeImmutable",
+          "type_doctrine": "datetimetz_immutable",
+          "nullable": true,
+          "commentaire": "Heure locale convertie selon le fuseau de la session : non reconnu",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "horloge",
+          "colonne": "horloge",
+          "type_php": "?\\DateTimeImmutable",
+          "type_doctrine": "datetimetz_immutable",
+          "nullable": true,
+          "commentaire": "Instant de l'horloge, pas de la transaction : non reconnu",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "horodateArrondi",
+          "colonne": "horodate_arrondi",
+          "type_php": "?\\DateTimeImmutable",
+          "type_doctrine": "datetimetz_immutable",
+          "nullable": true,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "horodateJour",
+          "colonne": "horodate_jour",
+          "type_php": "?\\DateTimeImmutable",
+          "type_doctrine": "datetime_immutable",
+          "nullable": true,
+          "commentaire": "Minuit du jour : non reconnu",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "jour",
+          "colonne": "jour",
+          "type_php": "\\DateTimeImmutable",
+          "type_doctrine": "date_immutable",
+          "nullable": false,
+          "defaut_expression": "date_courante",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "jourMaintenant",
+          "colonne": "jour_maintenant",
+          "type_php": "?\\DateTimeImmutable",
+          "type_doctrine": "date_immutable",
+          "nullable": true,
+          "defaut_expression": "date_courante",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "jourLocal",
+          "colonne": "jour_local",
+          "type_php": "?\\DateTimeImmutable",
+          "type_doctrine": "date_immutable",
+          "nullable": true,
+          "defaut_expression": "date_courante",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "jourForce",
+          "colonne": "jour_force",
+          "type_php": "?string",
+          "type_doctrine": "string",
+          "nullable": true,
+          "commentaire": "Type forcé par décision : le défaut tombe",
+          "origine": "decision"
+        },
+        {
+          "nom": "heure",
+          "colonne": "heure",
+          "type_php": "?\\DateTimeImmutable",
+          "type_doctrine": "time_immutable",
+          "nullable": true,
+          "defaut_expression": "heure_courante",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "heureLocale",
+          "colonne": "heure_locale",
+          "type_php": "?\\DateTimeImmutable",
+          "type_doctrine": "time_immutable",
+          "nullable": true,
+          "defaut_expression": "heure_courante",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "heureMaintenant",
+          "colonne": "heure_maintenant",
+          "type_php": "?\\DateTimeImmutable",
+          "type_doctrine": "time_immutable",
+          "nullable": true,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "libelle",
+          "colonne": "libelle",
+          "type_php": "?string",
+          "type_doctrine": "string",
+          "nullable": true,
+          "longueur": 20,
+          "commentaire": "DEFAULT NULL : aucun défaut, et rien à signaler",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "reference",
+          "colonne": "reference",
+          "type_php": "string",
+          "type_doctrine": "guid",
+          "nullable": false,
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "Défauts calculés, sous les formes que rend pg_get_expr : le sens dépend de l'expression et du type de la colonne",
+      "origine": "nommage"
+    },
+    {
+      "nom": "Commande",
+      "table": {
+        "nom": "commande",
+        "schema": "public"
+      },
+      "traits": [
+        "CreatedAt"
+      ],
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "Horodatage avec défaut, comme livraison : un trait",
+      "origine": "nommage"
+    },
+    {
+      "nom": "Livraison",
+      "table": {
+        "nom": "livraison",
+        "schema": "public"
+      },
+      "traits": [
+        "CreatedAt"
+      ],
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "Retour",
+      "table": {
+        "nom": "retour",
+        "schema": "public"
+      },
+      "traits": [
+        "Horodatage"
+      ],
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "Même horodatage sans défaut, comme avoir : un autre trait, sans quoi le défaut passerait d'une table à l'autre",
+      "origine": "nommage"
+    },
+    {
+      "nom": "Avoir",
+      "table": {
+        "nom": "avoir",
+        "schema": "public"
+      },
+      "traits": [
+        "Horodatage"
+      ],
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    }
+  ],
+  "traits": [
+    {
+      "nom": "Horodatage",
+      "proprietes": [
+        {
+          "nom": "createdAt",
+          "colonne": "created_at",
+          "type_php": "\\DateTimeImmutable",
+          "type_doctrine": "datetimetz_immutable",
+          "nullable": false,
+          "origine": "contrainte"
+        }
+      ]
+    },
+    {
+      "nom": "CreatedAt",
+      "proprietes": [
+        {
+          "nom": "createdAt",
+          "colonne": "created_at",
+          "type_php": "\\DateTimeImmutable",
+          "type_doctrine": "datetimetz_immutable",
+          "nullable": false,
+          "defaut_expression": "horodatage_courant",
+          "origine": "contrainte"
+        }
+      ]
+    }
+  ],
+  "avertissements": [
+    {
+      "code": "trait_deduit",
+      "cible": "public.avoir",
+      "message": "colonnes d'horodatage sorties dans le trait Horodatage, partagé par Retour, Avoir",
+      "resolution": "par_defaut",
+      "confiance": 0.8
+    },
+    {
+      "code": "trait_deduit",
+      "cible": "public.commande",
+      "message": "colonnes d'horodatage sorties dans le trait CreatedAt, partagé par Commande, Livraison",
+      "resolution": "par_defaut",
+      "confiance": 0.8
+    },
+    {
+      "code": "defaut_non_reporte",
+      "cible": "public.evenement.heure_maintenant",
+      "message": "défaut now() non reconnu, non reporté : la valeur est à fournir par l'application",
+      "resolution": "ignoree",
+      "confiance": 1
+    },
+    {
+      "code": "defaut_non_reporte",
+      "cible": "public.evenement.horloge",
+      "message": "défaut clock_timestamp() non reconnu, non reporté : la valeur est à fournir par l'application",
+      "resolution": "ignoree",
+      "confiance": 1
+    },
+    {
+      "code": "defaut_non_reporte",
+      "cible": "public.evenement.horodate_arrondi",
+      "message": "défaut CURRENT_TIMESTAMP(0) non reconnu, non reporté : la valeur est à fournir par l'application",
+      "resolution": "ignoree",
+      "confiance": 1
+    },
+    {
+      "code": "defaut_non_reporte",
+      "cible": "public.evenement.horodate_jour",
+      "message": "défaut CURRENT_DATE non reconnu, non reporté : la valeur est à fournir par l'application",
+      "resolution": "ignoree",
+      "confiance": 1
+    },
+    {
+      "code": "defaut_non_reporte",
+      "cible": "public.evenement.horodate_local_fuseau",
+      "message": "défaut LOCALTIMESTAMP non reconnu, non reporté : la valeur est à fournir par l'application",
+      "resolution": "ignoree",
+      "confiance": 1
+    },
+    {
+      "code": "defaut_incompatible",
+      "cible": "public.evenement.jour_force",
+      "message": "défaut CURRENT_DATE écarté, incompatible avec le type string décidé",
+      "resolution": "forcee_par_decision",
+      "confiance": 1
+    },
+    {
+      "code": "defaut_non_reporte",
+      "cible": "public.evenement.reference",
+      "message": "défaut gen_random_uuid() non reconnu, non reporté : la valeur est à fournir par l'application",
+      "resolution": "ignoree",
+      "confiance": 1
+    },
+    {
+      "code": "trait_deduit",
+      "cible": "public.livraison",
+      "message": "colonnes d'horodatage sorties dans le trait CreatedAt, partagé par Commande, Livraison",
+      "resolution": "par_defaut",
+      "confiance": 0.8
+    },
+    {
+      "code": "trait_deduit",
+      "cible": "public.retour",
+      "message": "colonnes d'horodatage sorties dans le trait Horodatage, partagé par Retour, Avoir",
+      "resolution": "par_defaut",
+      "confiance": 0.8
+    }
+  ]
+}

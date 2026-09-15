@@ -22,6 +22,21 @@ abstract class TFactureBase
     #[ORM\Column(name: 'fac_total', type: 'decimal', precision: 12, scale: 2)]
     protected string $facTotal;
 
+    #[ORM\Column(
+        name: 'fac_date',
+        type: 'date_immutable',
+        options: ['default' => new \Doctrine\DBAL\Schema\DefaultExpression\CurrentDate()],
+    )]
+    protected \DateTimeImmutable $facDate;
+
+    #[ORM\Column(
+        name: 'fac_saisie',
+        type: 'date_immutable',
+        nullable: true,
+        options: ['default' => new \Doctrine\DBAL\Schema\DefaultExpression\CurrentDate()],
+    )]
+    protected ?\DateTimeImmutable $facSaisie = null;
+
     public function getFacId(): ?int
     {
         return $this->facId;
@@ -47,6 +62,30 @@ abstract class TFactureBase
     public function setFacTotal(string $facTotal): static
     {
         $this->facTotal = $facTotal;
+
+        return $this;
+    }
+
+    public function getFacDate(): \DateTimeImmutable
+    {
+        return $this->facDate;
+    }
+
+    public function setFacDate(\DateTimeImmutable $facDate): static
+    {
+        $this->facDate = $facDate;
+
+        return $this;
+    }
+
+    public function getFacSaisie(): ?\DateTimeImmutable
+    {
+        return $this->facSaisie;
+    }
+
+    public function setFacSaisie(?\DateTimeImmutable $facSaisie): static
+    {
+        $this->facSaisie = $facSaisie;
 
         return $this;
     }

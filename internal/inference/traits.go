@@ -121,13 +121,17 @@ func horodatagesDe(e *calque.Entite) []calque.Propriete {
 //
 // Le nom, le type et la nullabilité en font partie : deux tables dont l'une a
 // updated_at facultative et l'autre obligatoire ne peuvent pas partager le même
-// trait.
+// trait. Le défaut calculé aussi : partagé, il passerait d'une table à l'autre,
+// et migrations:diff proposerait de l'ajouter en base.
 func signatureDe(proprietes []calque.Propriete) string {
 	parties := make([]string, 0, len(proprietes))
 	for _, p := range proprietes {
 		partie := p.Nom + ":" + p.TypePHP + ":" + p.TypeDoctrine
 		if p.Nullable {
 			partie += ":nullable"
+		}
+		if p.DefautExpression != "" {
+			partie += ":" + string(p.DefautExpression)
 		}
 		parties = append(parties, partie)
 	}

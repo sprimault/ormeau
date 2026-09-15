@@ -1,6 +1,6 @@
 {
   "version_ri": 1,
-  "empreinte_physique": "sha256:d103aa0cf75ba9341f0a7d5dffb4d29c2860333c0f2daf57c070adad7baa5aba",
+  "empreinte_physique": "sha256:8f8a9a2d531aebc8196975bedb8ce27869076b507233b8d9463a05f1e0eaa671",
   "espace_de_noms": "App\\Entity",
   "entites": [
     {
@@ -192,6 +192,7 @@
           "type_php": "\\DateTimeImmutable",
           "type_doctrine": "datetimetz_immutable",
           "nullable": false,
+          "defaut_expression": "horodatage_courant",
           "origine": "contrainte"
         },
         {
@@ -522,6 +523,23 @@
           "type_doctrine": "string",
           "nullable": true,
           "origine": "contrainte"
+        },
+        {
+          "nom": "cmdRef",
+          "colonne": "cmd_ref",
+          "type_php": "string",
+          "type_doctrine": "guid",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "cmdHeure",
+          "colonne": "cmd_heure",
+          "type_php": "?\\DateTimeImmutable",
+          "type_doctrine": "time_immutable",
+          "nullable": true,
+          "defaut_expression": "heure_courante",
+          "origine": "contrainte"
         }
       ],
       "origine": "nommage"
@@ -563,6 +581,15 @@
           "type_doctrine": "boolean",
           "nullable": false,
           "defaut": "true",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "comEmail",
+          "colonne": "com_email",
+          "type_php": "?string",
+          "type_doctrine": "string",
+          "nullable": true,
+          "longueur": 120,
           "origine": "contrainte"
         }
       ],
@@ -616,6 +643,24 @@
           "nullable": false,
           "precision": 12,
           "echelle": 2,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "facDate",
+          "colonne": "fac_date",
+          "type_php": "\\DateTimeImmutable",
+          "type_doctrine": "date_immutable",
+          "nullable": false,
+          "defaut_expression": "date_courante",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "facSaisie",
+          "colonne": "fac_saisie",
+          "type_php": "?\\DateTimeImmutable",
+          "type_doctrine": "date_immutable",
+          "nullable": true,
+          "defaut_expression": "date_courante",
           "origine": "contrainte"
         }
       ],
@@ -807,6 +852,13 @@
       "message": "type text[] : tableau PostgreSQL sans type Doctrine, rendu en chaîne (littéral {…})",
       "resolution": "par_defaut",
       "confiance": 0.3
+    },
+    {
+      "code": "defaut_non_reporte",
+      "cible": "gescom.t_commande.cmd_ref",
+      "message": "défaut gen_random_uuid() non reconnu, non reporté : la valeur est à fournir par l'application",
+      "resolution": "ignoree",
+      "confiance": 1
     },
     {
       "code": "table_sans_cle_primaire",

@@ -249,6 +249,18 @@ var tolerances = []tolerance{
 		},
 	},
 
+	{
+		code: "defaut_calcule_sous_la_forme_de_dbal", categorie: impossible,
+		pourquoi: "DBAL écrit un défaut calculé sous sa forme : now() devient CURRENT_TIMESTAMP, LOCALTIME CURRENT_TIME ; même sens",
+		couvre: func(e diff.Ecart, c contexte) bool {
+			if e.Objet != diff.ObjetColonne || e.Propriete != "defaut" || !strings.HasPrefix(e.Avant, string(calque.DefautExpression)+" ") {
+				return false
+			}
+			p := proprieteLogique(c, e.Schema, e.Table, e.Nom)
+			return p != nil && p.DefautExpression != "" && e.Apres == string(calque.DefautExpression)+" "+formesDoctrine[p.DefautExpression]
+		},
+	},
+
 	// VOULU : décisions de l'outil, tolérées seulement quand elles sont prises.
 	{
 		code: "table_ecartee_par_le_generateur", categorie: voulu,
@@ -277,8 +289,8 @@ var tolerances = []tolerance{
 			if e.Objet != diff.ObjetColonne || e.Propriete != "commentaire" {
 				return false
 			}
-			typ := typeDoctrine(c, e.Schema, e.Table, e.Nom)
-			return strings.HasSuffix(typ, "_immutable") && e.Apres == e.Avant+"(DC2Type:"+typ+")"
+			p := proprieteLogique(c, e.Schema, e.Table, e.Nom)
+			return p != nil && strings.HasSuffix(p.TypeDoctrine, "_immutable") && e.Apres == e.Avant+"(DC2Type:"+p.TypeDoctrine+")"
 		},
 	},
 	{
@@ -294,16 +306,21 @@ var tolerances = []tolerance{
 			})
 		},
 	},
-
-	// À COMBLER : chacune part avec le lot qui la corrige.
 	{
-		code: "defaut_par_expression_perdu", categorie: aCombler, lot: "7",
-		pourquoi: "un défaut calculé (now()) n'est pas reporté dans le calque logique",
-		couvre: func(e diff.Ecart, _ contexte) bool {
-			return e.Objet == diff.ObjetColonne && e.Propriete == "defaut" && e.Apres == "" &&
-				strings.HasPrefix(e.Avant, string(calque.DefautExpression)+" ")
+		code: "defaut_calcule_non_reconnu", categorie: voulu,
+		pourquoi: "un défaut calculé dont le sens n'est pas reconnu n'est pas reporté, avec l'avertissement defaut_non_reporte",
+		couvre: func(e diff.Ecart, c contexte) bool {
+			if e.Objet != diff.ObjetColonne || e.Propriete != "defaut" || e.Apres != "" {
+				return false
+			}
+			cible := e.Schema + "." + e.Table + "." + e.Nom
+			return slices.ContainsFunc(c.logique.Avertissements, func(a calque.Avertissement) bool {
+				return a.Code == calque.CodeDefautNonReporte && a.Cible == cible
+			})
 		},
 	},
+
+	// À COMBLER : chacune part avec le lot qui la corrige.
 	{
 		code: "predicat_d_index_perdu", categorie: aCombler, lot: "8",
 		pourquoi: "le prédicat d'un index partiel n'est pas reporté dans le calque logique",
@@ -387,31 +404,39 @@ func ordonneeParDBAL3(origine, recree *calque.Table) bool {
 	return slices.Equal(suite[len(etrangeres):], reste)
 }
 
-// typeDoctrine rend le type Doctrine que le calque logique donne à une
-// colonne, propriétés des traits de l'entité comprises ; vide si aucune
+// proprieteLogique rend la propriété que le calque logique donne à une
+// colonne, propriétés des traits de l'entité comprises ; nil si aucune
 // propriété ne la porte.
-func typeDoctrine(c contexte, schema, table, colonne string) string {
+func proprieteLogique(c contexte, schema, table, colonne string) *calque.Propriete {
 	for _, entite := range c.logique.Entites {
 		if entite.Table.Schema != schema || entite.Table.Nom != table {
 			continue
 		}
-		for _, p := range entite.Proprietes {
-			if p.Colonne == colonne {
-				return p.TypeDoctrine
+		for i := range entite.Proprietes {
+			if entite.Proprietes[i].Colonne == colonne {
+				return &entite.Proprietes[i]
 			}
 		}
 		for _, trait := range c.logique.Traits {
 			if !slices.Contains(entite.Traits, trait.Nom) {
 				continue
 			}
-			for _, p := range trait.Proprietes {
-				if p.Colonne == colonne {
-					return p.TypeDoctrine
+			for i := range trait.Proprietes {
+				if trait.Proprietes[i].Colonne == colonne {
+					return &trait.Proprietes[i]
 				}
 			}
 		}
 	}
-	return ""
+	return nil
+}
+
+// formesDoctrine sont les expressions qu'écrit la plateforme PostgreSQL de
+// DBAL pour chaque défaut calculé, chaîne ou objet DefaultExpression.
+var formesDoctrine = map[calque.ExpressionDefaut]string{
+	calque.DefautHorodatageCourant: "CURRENT_TIMESTAMP",
+	calque.DefautDateCourante:      "CURRENT_DATE",
+	calque.DefautHeureCourante:     "CURRENT_TIME",
 }
 
 // colonneOrigine rend la colonne d'origine que désigne un écart de colonne.

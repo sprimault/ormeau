@@ -33,13 +33,15 @@ final class Propriete
      * @param int|null     $echelle      chiffres après la virgule d'un décimal
      * @param string|null  $enumeration  nom de l'énumération PHP du calque qui type la propriété ;
      *                                   le type Doctrine reste celui de la valeur stockée
-     * @param string|null  $defaut       défaut littéral, dans sa forme textuelle ; une expression
-     *                                   comme now() n'y figure jamais, elle ne se traduit pas en PHP
+     * @param string|null  $defaut       défaut littéral, dans sa forme textuelle ; un défaut calculé
+     *                                   n'y figure jamais, son sens est dans $defautExpression
      * @param bool         $insertable   faux pour une colonne générée : l'écrire depuis PHP échouerait
      * @param bool         $modifiable   faux pour une colonne générée, pour la même raison
      * @param bool         $unique       vrai quand une contrainte d'unicité porte sur cette seule colonne
      * @param string|null  $commentaire  commentaire de la colonne en base
      * @param Origine|null $origine      d'où vient le type retenu
+     * @param ExpressionDefaut|null $defautExpression sens d'un défaut calculé reconnu, exclusif de $defaut ;
+     *                                                dernier paramètre pour ne rien décaler chez un appelant
      */
     public function __construct(
         public readonly string $nom,
@@ -57,6 +59,7 @@ final class Propriete
         public readonly bool $unique = false,
         public readonly ?string $commentaire = null,
         public readonly ?Origine $origine = null,
+        public readonly ?ExpressionDefaut $defautExpression = null,
     ) {}
 
     /**
@@ -88,6 +91,7 @@ final class Propriete
         $unique = Lecture::booleen($donnees, 'unique', $chemin, defaut: false);
         $commentaire = Lecture::chaineOptionnelle($donnees, 'commentaire', $chemin);
         $origine = Lecture::valeurOptionnelle($donnees, 'origine', $chemin, Origine::class);
+        $defautExpression = Lecture::valeurOptionnelle($donnees, 'defaut_expression', $chemin, ExpressionDefaut::class);
 
         return new self(
             $nom,
@@ -105,6 +109,7 @@ final class Propriete
             $unique,
             $commentaire,
             $origine,
+            $defautExpression,
         );
     }
 }
