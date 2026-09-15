@@ -48,8 +48,19 @@ et sa colonne de jointure reçoit le commentaire et le défaut de la base. Une
 colonne discriminante n'en reçoit que sous ORM 3, et seulement dans une
 hiérarchie nouvelle : la classe de l'utilisateur, déjà écrite, ne change pas.
 
+**Sous Doctrine ORM 3 avec DBAL 3, les propriétés `bigint` et `binary` changent
+de type dans `Base/` à la régénération** : `string` au lieu de `int`, `mixed`
+au lieu de `string`. Le type PHP suit désormais la version de DBAL installée,
+et non plus celle d'ORM, et l'annonce en tête d'exécution la donne.
+
 ### Corrigé
 
+- **Sous ORM 3 avec DBAL 3, une entité à colonne `binary` se charge, et une
+  entité à colonne `bigint` n'est plus crue modifiée à chaque flush.** Le
+  générateur choisissait le type PHP d'après la version d'ORM, alors que DBAL
+  3 hydrate une ressource et une chaîne : le chargement levait une
+  `TypeError`, et chaque flush émettait un `UPDATE`. `--cible-dbal` s'écarte
+  de la version déduite quand `--cible-orm` vise une version non installée.
 - **`migrations:diff` ne propose plus de supprimer puis recréer la clé
   primaire d'une table dont la clé commence par une clé étrangère.** Le
   générateur déclarait l'association de clé après les propriétés, et Doctrine
@@ -86,8 +97,19 @@ gets the database comment and default. A discriminator column only gets them
 under ORM 3, and only in a new hierarchy: the user class, already written, does
 not change.
 
+**Under Doctrine ORM 3 with DBAL 3, `bigint` and `binary` properties change
+type in `Base/` on regeneration**: `string` instead of `int`, `mixed` instead
+of `string`. The PHP type now follows the installed DBAL version rather than
+the ORM one, and the announcement at the start of the run gives it.
+
 ### Fixed
 
+- **Under ORM 3 with DBAL 3, an entity with a `binary` column loads, and an
+  entity with a `bigint` column is no longer seen as changed on every flush.**
+  The generator chose the PHP type from the ORM version, while DBAL 3 hydrates
+  a resource and a string: loading raised a `TypeError`, and every flush issued
+  an `UPDATE`. `--cible-dbal` departs from the deduced version when
+  `--cible-orm` targets a version that is not installed.
 - **`migrations:diff` no longer proposes to drop and recreate the primary key
   of a table whose key starts with a foreign key.** The generator declared the
   key association after the properties, and Doctrine built the key in the

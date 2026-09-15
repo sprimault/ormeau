@@ -63,7 +63,7 @@ final class GenererCommandeTest extends TestCase
     {
         $sortie = $this->executer(['--cible-orm' => '2']);
 
-        self::assertStringStartsWith("Cible forcée : Doctrine ORM 2\n", $sortie);
+        self::assertStringStartsWith("Cible forcée : Doctrine ORM 2, DBAL 3.10 (déduite)\n", $sortie);
         self::assertStringContainsString('créé     ' . $this->sortie . '/Base/LigneCommandeBase.php', $sortie);
         self::assertStringContainsString('écartée  Journal : la table n\'a pas de clé primaire', $sortie);
         self::assertStringContainsString('avertissement(s) dans le calque :', $sortie);
@@ -81,6 +81,43 @@ final class GenererCommandeTest extends TestCase
             self::fail('cible acceptée');
         } catch (InvalidArgumentException $e) {
             self::assertSame('--cible-orm attend une majeure de Doctrine ORM (2, 3).', $e->getMessage());
+        }
+
+        self::assertSame([], Repertoires::lire($this->sortie));
+    }
+
+    /**
+     * --cible-dbal s'écarte de la version déduite, avec --cible-orm comme sans,
+     * et l'annonce dit qu'elle est forcée.
+     */
+    public function testUneVersionDeDbalForcee(): void
+    {
+        $avecOrm = $this->executer(['--cible-orm' => '3', '--cible-dbal' => '3.10']);
+        self::assertStringStartsWith("Cible forcée : Doctrine ORM 3, DBAL 3.10 (forcée)\n", $avecOrm);
+
+        Repertoires::supprimer($this->sortie);
+        $this->sortie = Repertoires::creer();
+        $seule = $this->executer(['--cible-dbal' => Cible::detecter()->dbalMajeure . '.0']);
+        self::assertSame(Cible::detecter(Cible::detecter()->dbalMajeure . '.0')->annonce(), strtok($seule, "\n"));
+        self::assertStringEndsWith('.0 (forcée)', (string) strtok($seule, "\n"));
+    }
+
+    /**
+     * Une version de DBAL illisible, ou que la majeure d'ORM n'accepte pas, est
+     * refusée avant toute écriture.
+     */
+    public function testRefuseUneVersionDeDbalIllisibleOuIncompatible(): void
+    {
+        foreach ([
+            [['--cible-orm' => '3', '--cible-dbal' => '4'], 'Version de DBAL illisible, « majeure.mineure » attendu : « 4 ».'],
+            [['--cible-orm' => '2', '--cible-dbal' => '4.4'], 'Doctrine ORM 2 ne s\'installe pas avec DBAL 4 (DBAL 2, 3).'],
+        ] as [$options, $message]) {
+            try {
+                $this->executer($options);
+                self::fail('version de DBAL acceptée : ' . json_encode($options));
+            } catch (InvalidArgumentException $e) {
+                self::assertSame($message, $e->getMessage());
+            }
         }
 
         self::assertSame([], Repertoires::lire($this->sortie));

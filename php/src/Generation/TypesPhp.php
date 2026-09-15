@@ -10,7 +10,7 @@ namespace Ormeau\Doctrine\Generation;
 use Ormeau\Doctrine\Calque\Propriete;
 
 /**
- * Le type PHP qu'hydrate chaque type Doctrine, selon la cible.
+ * Le type PHP qu'hydrate chaque type Doctrine, selon la version de DBAL visée.
  *
  * C'est ici, et non dans le calque, que le type PHP se décide : il dépend de
  * DBAL, que le calque ignore. Chaque entrée suit ce que convertToPHPValue rend
@@ -18,9 +18,13 @@ use Ormeau\Doctrine\Calque\Propriete;
  * documentation. Un type PHP qui ne correspond pas à l'hydratation produit une
  * entité que Doctrine charge, puis croit modifiée à chaque flush.
  *
- * Deux types changent d'une majeure à l'autre, et justifient à eux seuls la
- * cible : bigint, rendu en chaîne par DBAL 3 et en entier par DBAL 4, et binary,
- * rendu en ressource par DBAL 3 et en chaîne par DBAL 4.
+ * Deux types changent avec DBAL 4 : bigint, rendu en chaîne par DBAL 2 et 3 et
+ * en entier par DBAL 4, et binary, rendu en ressource par DBAL 2 et 3 et en
+ * chaîne par DBAL 4. La table s'indexe par DBAL et non par ORM : ORM 3 accepte
+ * DBAL 3.8, sous lequel binary en chaîne empêchait de charger l'entité
+ * (TypeError) et bigint en entier la faisait croire modifiée (essai du
+ * 2026-09-15, ORM 3.7.1 avec DBAL 3.10.6, et ORM 2.14.3 avec DBAL 2.13.9, qui
+ * hydrate comme DBAL 3).
  *
  * Le champ type_php du calque n'est lu que pour un type absent de cette table,
  * typiquement un type personnalisé forcé par décision : seul son auteur sait ce
@@ -29,9 +33,10 @@ use Ormeau\Doctrine\Calque\Propriete;
 final class TypesPhp
 {
     /**
-     * Type PHP par type Doctrine et par majeure d'ORM.
+     * Type PHP par type Doctrine, sous DBAL 2 ou 3 (clé 3) et sous DBAL 4
+     * (clé 4).
      *
-     * mixed pour blob, et pour binary sous DBAL 3 : une ressource n'a pas de
+     * mixed pour blob, et pour binary avant DBAL 4 : une ressource n'a pas de
      * type déclarable. int pour bigint sous DBAL 4, qui rend une chaîne au-delà
      * de PHP_INT_MAX — un BIGINT UNSIGNED de MySQL, rare en pratique et qu'un
      * type forcé par décision traite. array pour json, comme l'écrit
@@ -39,24 +44,24 @@ final class TypesPhp
      * base reprise porte des objets.
      */
     private const TABLE = [
-        'integer' => [2 => 'int', 3 => 'int'],
-        'smallint' => [2 => 'int', 3 => 'int'],
-        'bigint' => [2 => 'string', 3 => 'int'],
-        'float' => [2 => 'float', 3 => 'float'],
-        'boolean' => [2 => 'bool', 3 => 'bool'],
-        'decimal' => [2 => 'string', 3 => 'string'],
-        'string' => [2 => 'string', 3 => 'string'],
-        'text' => [2 => 'string', 3 => 'string'],
-        'guid' => [2 => 'string', 3 => 'string'],
-        'blob' => [2 => 'mixed', 3 => 'mixed'],
-        'binary' => [2 => 'mixed', 3 => 'string'],
-        'json' => [2 => 'array', 3 => 'array'],
-        'simple_array' => [2 => 'array', 3 => 'array'],
-        'date_immutable' => [2 => '\DateTimeImmutable', 3 => '\DateTimeImmutable'],
-        'time_immutable' => [2 => '\DateTimeImmutable', 3 => '\DateTimeImmutable'],
-        'datetime_immutable' => [2 => '\DateTimeImmutable', 3 => '\DateTimeImmutable'],
-        'datetimetz_immutable' => [2 => '\DateTimeImmutable', 3 => '\DateTimeImmutable'],
-        'dateinterval' => [2 => '\DateInterval', 3 => '\DateInterval'],
+        'integer' => [3 => 'int', 4 => 'int'],
+        'smallint' => [3 => 'int', 4 => 'int'],
+        'bigint' => [3 => 'string', 4 => 'int'],
+        'float' => [3 => 'float', 4 => 'float'],
+        'boolean' => [3 => 'bool', 4 => 'bool'],
+        'decimal' => [3 => 'string', 4 => 'string'],
+        'string' => [3 => 'string', 4 => 'string'],
+        'text' => [3 => 'string', 4 => 'string'],
+        'guid' => [3 => 'string', 4 => 'string'],
+        'blob' => [3 => 'mixed', 4 => 'mixed'],
+        'binary' => [3 => 'mixed', 4 => 'string'],
+        'json' => [3 => 'array', 4 => 'array'],
+        'simple_array' => [3 => 'array', 4 => 'array'],
+        'date_immutable' => [3 => '\DateTimeImmutable', 4 => '\DateTimeImmutable'],
+        'time_immutable' => [3 => '\DateTimeImmutable', 4 => '\DateTimeImmutable'],
+        'datetime_immutable' => [3 => '\DateTimeImmutable', 4 => '\DateTimeImmutable'],
+        'datetimetz_immutable' => [3 => '\DateTimeImmutable', 4 => '\DateTimeImmutable'],
+        'dateinterval' => [3 => '\DateInterval', 4 => '\DateInterval'],
     ];
 
     /**
@@ -90,6 +95,6 @@ final class TypesPhp
      */
     public static function nu(Propriete $propriete, Cible $cible): string
     {
-        return self::TABLE[$propriete->typeDoctrine][$cible->ormMajeure] ?? ltrim($propriete->typePhp, '?');
+        return self::TABLE[$propriete->typeDoctrine][$cible->hydrateCommeDbal4() ? 4 : 3] ?? ltrim($propriete->typePhp, '?');
     }
 }

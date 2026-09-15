@@ -129,7 +129,7 @@ to `config/bundles.php`.
 
 ```console
 $ bin/console ormeau:generer gescom.logique.json
-Cible détectée : PHP 8.4, Doctrine ORM 3.7
+Cible détectée : PHP 8.4, Doctrine ORM 3.7, DBAL 4.4
 Base : gescom
 créé     src/Entity/Enum/StatutClient.php
 créé     src/Entity/Base/ClientBase.php
@@ -144,7 +144,10 @@ refer to it where it now lives. When it no longer matches the layer — a rename
 table, a newly declared subclass —, the command names the file, the line and
 the expected attribute.
 `--repertoire` writes somewhere other than `src/Entity`, and `--cible-orm=2`
-or `3` targets an ORM version other than the installed one.
+or `3` targets an ORM version other than the installed one. The PHP type of
+some columns also depends on DBAL, which ORM 3 accepts in version 3 as in
+version 4: a forced ORM version assumes one, which the announcement calls
+deduced, and `--cible-dbal=3.10` corrects it.
 
 Each file names in its header the database it comes from, read from the layer's
 file name: `gescom` for `gescom.logique.json`. Another database generated into
