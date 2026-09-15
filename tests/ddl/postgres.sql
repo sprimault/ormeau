@@ -54,6 +54,7 @@ CREATE TABLE t_client_tag (
     tag_id int NOT NULL REFERENCES t_tag (tag_id),
     PRIMARY KEY (cli_id, tag_id)
 );
+COMMENT ON TABLE t_client_tag IS 'Étiquettes posées sur un client';
 
 -- Table de liaison portant une donnée propre : doit rester une entité. La clé
 -- commence par la colonne d'identité dérivée, et celle-ci porte un commentaire

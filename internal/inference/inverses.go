@@ -176,6 +176,7 @@ func posterJointures(logique *calque.Logique, s *schemaLogique) []calque.Avertis
 			Schema:          j.table.Schema,
 			Jointure:        colonnesJointure(j.gauche),
 			JointureInverse: colonnesJointure(j.droite),
+			Commentaire:     j.table.Commentaire,
 		}
 
 		// Le nom se vérifie libre sur l'entité qui le portera, pas sur celle

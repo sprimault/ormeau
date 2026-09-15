@@ -91,7 +91,7 @@ abstract class TClientBase
 
     /** @var Collection<int, TTag> */
     #[ORM\ManyToMany(targetEntity: TTag::class, inversedBy: 'tclient')]
-    #[ORM\JoinTable(name: 't_client_tag')]
+    #[ORM\JoinTable(name: 't_client_tag', options: ['comment' => 'Étiquettes posées sur un client'])]
     #[ORM\JoinColumn(name: 'cli_id', referencedColumnName: 'cli_id', onDelete: 'CASCADE')]
     #[ORM\InverseJoinColumn(name: 'tag_id', referencedColumnName: 'tag_id')]
     protected Collection $ttag;

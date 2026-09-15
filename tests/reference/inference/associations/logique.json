@@ -245,7 +245,8 @@
                 "nullable": false,
                 "a_la_suppression": "cascade"
               }
-            ]
+            ],
+            "commentaire": "Table de jointure pure : deux FK, PK composite, rien d'autre"
           },
           "origine": "contrainte"
         }

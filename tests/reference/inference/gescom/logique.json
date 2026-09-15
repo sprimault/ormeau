@@ -1,6 +1,6 @@
 {
   "version_ri": 1,
-  "empreinte_physique": "sha256:bec49e58dde28a9146b9b7448b74a73b485911429904f8133898a723b5d3de90",
+  "empreinte_physique": "sha256:d103aa0cf75ba9341f0a7d5dffb4d29c2860333c0f2daf57c070adad7baa5aba",
   "espace_de_noms": "App\\Entity",
   "entites": [
     {
@@ -267,7 +267,8 @@
                 "colonne_referencee": "tag_id",
                 "nullable": false
               }
-            ]
+            ],
+            "commentaire": "Étiquettes posées sur un client"
           },
           "origine": "contrainte"
         }

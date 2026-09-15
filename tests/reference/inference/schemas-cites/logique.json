@@ -82,7 +82,8 @@
                 "colonne_referencee": "id",
                 "nullable": false
               }
-            ]
+            ],
+            "commentaire": "table de jointure dans un schéma à citer : aucune forme portable"
           },
           "origine": "contrainte"
         }

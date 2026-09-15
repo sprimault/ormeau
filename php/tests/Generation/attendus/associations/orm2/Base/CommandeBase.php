@@ -51,7 +51,10 @@ abstract class CommandeBase
 
     /** @var Collection<int, Article> */
     #[ORM\ManyToMany(targetEntity: Article::class, inversedBy: 'commande')]
-    #[ORM\JoinTable(name: 'commande_article')]
+    #[ORM\JoinTable(
+        name: 'commande_article',
+        options: ['comment' => 'Table de jointure pure : deux FK, PK composite, rien d\'autre'],
+    )]
     #[ORM\JoinColumn(name: 'commande_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
     #[ORM\InverseJoinColumn(name: 'article_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
     protected Collection $article;

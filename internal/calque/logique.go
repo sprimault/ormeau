@@ -186,11 +186,13 @@ type ColonneJointure struct {
 }
 
 // TableJointure décrit la table d'association d'un plusieurs-vers-plusieurs.
+// Elle ne devient pas une entité : son commentaire n'a pas d'autre place.
 type TableJointure struct {
 	Nom             string            `json:"nom"`
 	Schema          string            `json:"schema"`
 	Jointure        []ColonneJointure `json:"jointure"`
 	JointureInverse []ColonneJointure `json:"jointure_inverse"`
+	Commentaire     string            `json:"commentaire,omitempty"`
 }
 
 // IndexEntite reporte un index du physique. Prédicat et méthode n'y survivent

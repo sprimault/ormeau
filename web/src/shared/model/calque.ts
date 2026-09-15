@@ -246,12 +246,14 @@ export interface ColonneJointure {
 }
 /**
  * TableJointure décrit la table d'association d'un plusieurs-vers-plusieurs.
+ * Elle ne devient pas une entité : son commentaire n'a pas d'autre place.
  */
 export interface TableJointure {
   nom: string;
   schema: string;
   jointure: ColonneJointure[];
   jointure_inverse: ColonneJointure[];
+  commentaire?: string;
 }
 /**
  * IndexEntite reporte un index du physique. Prédicat et méthode n'y survivent
