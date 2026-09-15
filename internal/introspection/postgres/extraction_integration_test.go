@@ -6,8 +6,12 @@
 package postgres
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"flag"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -15,6 +19,17 @@ import (
 	"github.com/sprimault/ormeau/internal/calque"
 	"github.com/sprimault/ormeau/internal/introspection"
 )
+
+// majAttendus réécrit le calque de référence de gescom au lieu de le comparer.
+// Jamais automatique : un attendu régénéré sans être relu ne teste plus rien.
+//
+//	make maj-calque-gescom
+var majAttendus = flag.Bool("maj-attendus", false, "réécrit le calque de référence de gescom")
+
+// cheminCalqueGescom est le physique du cas d'inférence gescom. Le même fichier
+// sert d'attendu à l'extraction et d'entrée à l'inférence : deux copies
+// finiraient par diverger.
+const cheminCalqueGescom = "../../../tests/reference/inference/gescom/physique.json"
 
 // extraireOuEchouer rend le calque du schéma de test. Toutes les assertions du
 // fichier partent de là : une extraction en échec arrête le test au lieu de
@@ -87,10 +102,106 @@ func TestExtraireEstDeterministe(t *testing.T) {
 	}
 }
 
-// Le test précédent extrait deux fois sous le même DSN, et ne voit donc pas ce
-// qui dépend de la session. Ici deux connexions dont le search_path diffère : sous
-// gescom, le catalogue écrirait les séquences du schéma sans le qualifier. Les
-// octets doivent rester les mêmes, sinon le calque dépend de qui l'extrait.
+// L'extraction de tests/ddl/ est versionnée : c'est le seul calque du dépôt que
+// le pilote a réellement produit, et les assertions écrites à la main ne
+// couvrent qu'une partie de ce qu'il porte. Une modification du pilote qui
+// change un octet se relit dans le diff du fichier, régénéré par
+// make maj-calque-gescom.
+//
+// extrait_le est repris du fichier avant la comparaison : Extraire ne le pose
+// pas, la ligne de commande si, et il est exclu de l'empreinte.
+func TestExtraireCommeLaReference(t *testing.T) {
+	extrait := extraireOuEchouer(t)
+
+	if *majAttendus {
+		extrait.Source.ExtraitLe = time.Now().UTC().Format(time.RFC3339)
+		if err := os.MkdirAll(filepath.Dir(cheminCalqueGescom), 0o750); err != nil {
+			t.Fatalf("repertoire du calque de reference : %v", err)
+		}
+		if err := extrait.Ecrire(cheminCalqueGescom); err != nil {
+			t.Fatalf("ecriture du calque de reference : %v", err)
+		}
+		t.Log("calque de reference reecrit, relire le diff")
+		return
+	}
+
+	attendu, err := os.ReadFile(cheminCalqueGescom)
+	if err != nil {
+		t.Fatalf("calque de reference illisible, le produire par make maj-calque-gescom : %v", err)
+	}
+	reference, err := calque.LirePhysique(cheminCalqueGescom)
+	if err != nil {
+		t.Fatalf("calque de reference invalide : %v", err)
+	}
+
+	extrait.Source.ExtraitLe = reference.Source.ExtraitLe
+	empreinte, err := extrait.CalculerEmpreinte()
+	if err != nil {
+		t.Fatalf("empreinte : %v", err)
+	}
+	extrait.Source.Empreinte = empreinte
+	obtenu, err := calque.Serialiser(extrait)
+	if err != nil {
+		t.Fatalf("serialisation : %v", err)
+	}
+
+	if !bytes.Equal(obtenu, attendu) {
+		// L'empreinte, en tête du document, diffère dès qu'autre chose diffère :
+		// la ligne à montrer est la suivante, cherchée sans elle des deux côtés.
+		reference.Source.Empreinte, extrait.Source.Empreinte = "", ""
+		sansA, errA := calque.Serialiser(reference)
+		sansB, errB := calque.Serialiser(extrait)
+		if errA != nil || errB != nil {
+			t.Fatalf("serialisation sans empreinte : %v %v", errA, errB)
+		}
+		d := premiereDifference(sansA, sansB)
+		if d.numero == 0 {
+			d = premiereDifference(attendu, obtenu)
+		}
+		t.Errorf("l'extraction differe du calque de reference, ligne %d, sous %s :\n  attendu %s\n  obtenu  %s\n"+
+			"si le changement est voulu : make maj-calque-gescom, puis relire le diff",
+			d.numero, d.objet, d.attendue, d.obtenue)
+	}
+}
+
+// difference situe le premier écart entre deux calques sérialisés.
+type difference struct {
+	numero            int
+	attendue, obtenue string
+	objet             string // dernier "nom" rencontré avant l'écart
+}
+
+// premiereDifference rend la première ligne où deux documents divergent, pour
+// que l'échec désigne l'écart au lieu d'imprimer deux calques entiers. Une
+// ligne seule dit souvent peu (une accolade, une virgule) : le dernier nom qui
+// la précède situe l'objet, table ou colonne.
+func premiereDifference(a, b []byte) difference {
+	lignesA := strings.Split(string(a), "\n")
+	lignesB := strings.Split(string(b), "\n")
+	objet := "la source"
+	for i := 0; i < len(lignesA) || i < len(lignesB); i++ {
+		var la, lb string
+		if i < len(lignesA) {
+			la = strings.TrimSpace(lignesA[i])
+		}
+		if i < len(lignesB) {
+			lb = strings.TrimSpace(lignesB[i])
+		}
+		if la != lb {
+			return difference{numero: i + 1, attendue: la, obtenue: lb, objet: objet}
+		}
+		if strings.HasPrefix(la, `"nom":`) {
+			objet = strings.TrimSuffix(strings.TrimPrefix(la, `"nom": `), ",")
+		}
+	}
+	return difference{}
+}
+
+// TestExtraireEstDeterministe extrait deux fois sous le même DSN, et ne voit
+// donc pas ce qui dépend de la session. Ici deux connexions dont le search_path
+// diffère : sous gescom, le catalogue écrirait les séquences du schéma sans le
+// qualifier. Les octets doivent rester les mêmes, sinon le calque dépend de qui
+// l'extrait.
 func TestExtraireNeDependPasDuSearchPath(t *testing.T) {
 	dsn := dsnDeTest()
 	separateur := "?"

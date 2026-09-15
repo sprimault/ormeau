@@ -1,0 +1,740 @@
+{
+  "version_ri": 1,
+  "empreinte_physique": "sha256:bb1c120096b903543182ad1a76f3f1df1aeea9b8b0182c83bae4f6cca5dffd50",
+  "espace_de_noms": "App\\Entity",
+  "entites": [
+    {
+      "nom": "TAvoir",
+      "table": {
+        "nom": "t_avoir",
+        "schema": "gescom"
+      },
+      "identifiant": {
+        "proprietes": [
+          "avoId"
+        ],
+        "strategie": "sequence",
+        "sequence": "gescom.t_avoir_avo_id_seq",
+        "sequence_increment": 1,
+        "sequence_minimum": 1
+      },
+      "proprietes": [
+        {
+          "nom": "avoId",
+          "colonne": "avo_id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "avoFacId",
+          "colonne": "avo_fac_id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "TCategorie",
+      "table": {
+        "nom": "t_categorie",
+        "schema": "gescom"
+      },
+      "identifiant": {
+        "proprietes": [
+          "catId"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "catId",
+          "colonne": "cat_id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "catLibelle",
+          "colonne": "cat_libelle",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 60,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "catParent",
+          "colonne": "cat_parent",
+          "type_php": "?int",
+          "type_doctrine": "integer",
+          "nullable": true,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "tcategorie",
+          "genre": "plusieurs_vers_un",
+          "cible": "TCategorie",
+          "proprietaire": true,
+          "inversee_par": "tcategorieTcategorie",
+          "jointure": [
+            {
+              "colonne": "cat_parent",
+              "colonne_referencee": "cat_id",
+              "nullable": true
+            }
+          ],
+          "origine": "contrainte"
+        },
+        {
+          "nom": "tcategorieTcategorie",
+          "genre": "un_vers_plusieurs",
+          "cible": "TCategorie",
+          "proprietaire": false,
+          "mappee_par": "tcategorie",
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "TClient",
+      "table": {
+        "nom": "t_client",
+        "schema": "gescom"
+      },
+      "identifiant": {
+        "proprietes": [
+          "cliId"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "cliId",
+          "colonne": "cli_id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "cliNom",
+          "colonne": "cli_nom",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 120,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "cliSiret",
+          "colonne": "cli_siret",
+          "type_php": "?string",
+          "type_doctrine": "string",
+          "nullable": true,
+          "longueur": 14,
+          "unique": true,
+          "commentaire": "Nul tant que la fiche n'est pas validée",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "cliStatut",
+          "colonne": "cli_statut",
+          "type_php": "TClientCliStatut",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 20,
+          "enumeration": "TClientCliStatut",
+          "defaut": "ACTIF",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "cliComId",
+          "colonne": "cli_com_id",
+          "type_php": "?int",
+          "type_doctrine": "integer",
+          "nullable": true,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "cliCaTtc",
+          "colonne": "cli_ca_ttc",
+          "type_php": "?string",
+          "type_doctrine": "decimal",
+          "nullable": true,
+          "precision": 12,
+          "echelle": 2,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "cliCaHt",
+          "colonne": "cli_ca_ht",
+          "type_php": "?string",
+          "type_doctrine": "decimal",
+          "nullable": true,
+          "precision": 12,
+          "echelle": 2,
+          "insertable": false,
+          "modifiable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "createdAt",
+          "colonne": "created_at",
+          "type_php": "\\DateTimeImmutable",
+          "type_doctrine": "datetimetz_immutable",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "updatedAt",
+          "colonne": "updated_at",
+          "type_php": "?\\DateTimeImmutable",
+          "type_doctrine": "datetimetz_immutable",
+          "nullable": true,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "cliCom",
+          "genre": "plusieurs_vers_un",
+          "cible": "TCommercial",
+          "proprietaire": true,
+          "inversee_par": "tclient",
+          "jointure": [
+            {
+              "colonne": "cli_com_id",
+              "colonne_referencee": "com_id",
+              "nullable": true,
+              "a_la_suppression": "set_null"
+            }
+          ],
+          "origine": "contrainte"
+        },
+        {
+          "nom": "tclientContact",
+          "genre": "un_vers_plusieurs",
+          "cible": "TClientContact",
+          "proprietaire": false,
+          "mappee_par": "cli",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "tclientGrandCompte",
+          "genre": "un_vers_un",
+          "cible": "TClientGrandCompte",
+          "proprietaire": false,
+          "mappee_par": "cli",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "ttag",
+          "genre": "plusieurs_vers_plusieurs",
+          "cible": "TTag",
+          "proprietaire": true,
+          "inversee_par": "tclient",
+          "table_jointure": {
+            "nom": "t_client_tag",
+            "schema": "gescom",
+            "jointure": [
+              {
+                "colonne": "cli_id",
+                "colonne_referencee": "cli_id",
+                "nullable": false,
+                "a_la_suppression": "cascade"
+              }
+            ],
+            "jointure_inverse": [
+              {
+                "colonne": "tag_id",
+                "colonne_referencee": "tag_id",
+                "nullable": false
+              }
+            ]
+          },
+          "origine": "contrainte"
+        }
+      ],
+      "index": [
+        {
+          "nom": "ix_cli_actifs",
+          "colonnes": [
+            "cli_com_id"
+          ],
+          "unique": false
+        },
+        {
+          "nom": "ix_cli_nom",
+          "colonnes": [
+            "cli_nom"
+          ],
+          "unique": false
+        },
+        {
+          "nom": "ix_cli_nom_prefixe",
+          "colonnes": [
+            "cli_nom"
+          ],
+          "unique": false
+        },
+        {
+          "nom": "uq_cli_siret",
+          "colonnes": [
+            "cli_siret"
+          ],
+          "unique": true
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "TClientContact",
+      "table": {
+        "nom": "t_client_contact",
+        "schema": "gescom"
+      },
+      "identifiant": {
+        "proprietes": [
+          "cliId",
+          "ctcId"
+        ],
+        "strategie": "assignee"
+      },
+      "proprietes": [
+        {
+          "nom": "cliId",
+          "colonne": "cli_id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "ctcId",
+          "colonne": "ctc_id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "role",
+          "colonne": "role",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 30,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "cli",
+          "genre": "plusieurs_vers_un",
+          "cible": "TClient",
+          "proprietaire": true,
+          "inversee_par": "tclientContact",
+          "jointure": [
+            {
+              "colonne": "cli_id",
+              "colonne_referencee": "cli_id",
+              "nullable": false
+            }
+          ],
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "TClientGrandCompte",
+      "table": {
+        "nom": "t_client_grand_compte",
+        "schema": "gescom"
+      },
+      "identifiant": {
+        "proprietes": [
+          "cliId"
+        ],
+        "strategie": "assignee"
+      },
+      "proprietes": [
+        {
+          "nom": "cliId",
+          "colonne": "cli_id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "remiseTaux",
+          "colonne": "remise_taux",
+          "type_php": "string",
+          "type_doctrine": "decimal",
+          "nullable": false,
+          "precision": 4,
+          "echelle": 2,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "cli",
+          "genre": "un_vers_un",
+          "cible": "TClient",
+          "proprietaire": true,
+          "inversee_par": "tclientGrandCompte",
+          "jointure": [
+            {
+              "colonne": "cli_id",
+              "colonne_referencee": "cli_id",
+              "nullable": false
+            }
+          ],
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "TCommande",
+      "table": {
+        "nom": "t_commande",
+        "schema": "gescom"
+      },
+      "identifiant": {
+        "proprietes": [
+          "cmdId"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "cmdId",
+          "colonne": "cmd_id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "cmdCanal",
+          "colonne": "cmd_canal",
+          "type_php": "Canal",
+          "type_doctrine": "string",
+          "nullable": false,
+          "enumeration": "Canal",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "cmdEtiquettes",
+          "colonne": "cmd_etiquettes",
+          "type_php": "?string",
+          "type_doctrine": "string",
+          "nullable": true,
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "TCommercial",
+      "table": {
+        "nom": "t_commercial",
+        "schema": "gescom"
+      },
+      "identifiant": {
+        "proprietes": [
+          "comId"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "comId",
+          "colonne": "com_id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "comNom",
+          "colonne": "com_nom",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 80,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "comActif",
+          "colonne": "com_actif",
+          "type_php": "bool",
+          "type_doctrine": "boolean",
+          "nullable": false,
+          "defaut": "true",
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "tclient",
+          "genre": "un_vers_plusieurs",
+          "cible": "TClient",
+          "proprietaire": false,
+          "mappee_par": "cliCom",
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "Force de vente",
+      "origine": "nommage"
+    },
+    {
+      "nom": "TFacture",
+      "table": {
+        "nom": "t_facture",
+        "schema": "gescom"
+      },
+      "identifiant": {
+        "proprietes": [
+          "facId"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "facId",
+          "colonne": "fac_id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "facCliId",
+          "colonne": "fac_cli_id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "facTotal",
+          "colonne": "fac_total",
+          "type_php": "string",
+          "type_doctrine": "decimal",
+          "nullable": false,
+          "precision": 12,
+          "echelle": 2,
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "TLogImport",
+      "table": {
+        "nom": "t_log_import",
+        "schema": "gescom"
+      },
+      "proprietes": [
+        {
+          "nom": "horodatage",
+          "colonne": "horodatage",
+          "type_php": "\\DateTimeImmutable",
+          "type_doctrine": "datetimetz_immutable",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "message",
+          "colonne": "message",
+          "type_php": "?string",
+          "type_doctrine": "text",
+          "nullable": true,
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "TRéférence",
+      "table": {
+        "nom": "t_référence",
+        "schema": "gescom"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "order",
+          "colonne": "order",
+          "type_php": "?int",
+          "type_doctrine": "integer",
+          "nullable": true,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "select",
+          "colonne": "select",
+          "type_php": "?string",
+          "type_doctrine": "string",
+          "nullable": true,
+          "longueur": 10,
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    },
+    {
+      "nom": "TTag",
+      "table": {
+        "nom": "t_tag",
+        "schema": "gescom"
+      },
+      "identifiant": {
+        "proprietes": [
+          "tagId"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "tagId",
+          "colonne": "tag_id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "tagLibelle",
+          "colonne": "tag_libelle",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 40,
+          "origine": "contrainte"
+        }
+      ],
+      "associations": [
+        {
+          "nom": "tclient",
+          "genre": "plusieurs_vers_plusieurs",
+          "cible": "TClient",
+          "proprietaire": false,
+          "mappee_par": "ttag",
+          "origine": "contrainte"
+        }
+      ],
+      "origine": "nommage"
+    }
+  ],
+  "enumerations": [
+    {
+      "nom": "Canal",
+      "type_support": "string",
+      "cas": [
+        {
+          "nom": "Web",
+          "valeur": "web"
+        },
+        {
+          "nom": "Telephone",
+          "valeur": "telephone"
+        },
+        {
+          "nom": "Agence",
+          "valeur": "agence"
+        }
+      ],
+      "origine": "contrainte"
+    },
+    {
+      "nom": "TClientCliStatut",
+      "type_support": "string",
+      "cas": [
+        {
+          "nom": "Actif",
+          "valeur": "ACTIF"
+        },
+        {
+          "nom": "Suspendu",
+          "valeur": "SUSPENDU"
+        },
+        {
+          "nom": "Archive",
+          "valeur": "ARCHIVE"
+        }
+      ],
+      "origine": "verification"
+    }
+  ],
+  "avertissements": [
+    {
+      "code": "prefixe_detecte",
+      "cible": "gescom",
+      "message": "préfixe t_ commun aux 12 tables, conservé ; prefixes_a_retirer le retirerait des noms de classes",
+      "resolution": "aucune",
+      "confiance": 0.8
+    },
+    {
+      "code": "cle_primaire_composite",
+      "cible": "gescom.t_client_contact",
+      "message": "clé primaire sur cliId, ctcId",
+      "resolution": "par_defaut",
+      "confiance": 1
+    },
+    {
+      "code": "heritage_deduit",
+      "cible": "gescom.t_client_grand_compte",
+      "message": "clé primaire portant une clé étrangère vers TClient : reliée par un-vers-un, sans héritage. Pour un héritage Doctrine, déclarer heritages: gescom.t_client dans le fichier de décisions, avec une colonne_discriminante (candidate : cli_statut) et une valeur par classe, racine comprise",
+      "resolution": "par_defaut",
+      "confiance": 0.7
+    },
+    {
+      "code": "table_de_jointure",
+      "cible": "gescom.t_client_tag",
+      "message": "deux clés étrangères et rien d'autre : rendue en association TClient vers TTag, sans entité",
+      "resolution": "par_defaut",
+      "confiance": 0.9
+    },
+    {
+      "code": "type_non_reconnu",
+      "cible": "gescom.t_commande.cmd_etiquettes",
+      "message": "type text[] : tableau PostgreSQL sans type Doctrine, rendu en chaîne (littéral {…})",
+      "resolution": "par_defaut",
+      "confiance": 0.3
+    },
+    {
+      "code": "table_sans_cle_primaire",
+      "cible": "gescom.t_log_import",
+      "message": "aucune clé primaire : Doctrine refusera cette entité en l'état",
+      "resolution": "aucune",
+      "confiance": 1
+    }
+  ]
+}

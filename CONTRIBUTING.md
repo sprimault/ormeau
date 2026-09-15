@@ -108,7 +108,9 @@ created from `tests/ddl/`: the database carries, as a comment, the fingerprint
 of the DDL that created it, and the tests refuse to run when it is missing or
 does not match the file in the repository. `make containers` recreates the
 container on every call, volume included, so that a modified DDL is always the
-one under test.
+one under test. Its image is pinned to a PostgreSQL minor version: the server
+version is part of the `gescom` reference layer, and moving to another version
+goes through `make maj-calque-gescom`, diff reviewed (see `tests/README.md`).
 
 Before opening a pull request, run at least `make lint` and `make test`. CI
 runs them too, but it does so after the branch is already pushed.

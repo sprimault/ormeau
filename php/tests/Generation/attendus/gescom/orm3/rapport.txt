@@ -1,0 +1,23 @@
+créé Enum/Canal.php
+créé Enum/TClientCliStatut.php
+créé Base/TAvoirBase.php
+créé TAvoir.php
+créé Base/TCategorieBase.php
+créé TCategorie.php
+créé Base/TClientBase.php
+créé TClient.php
+créé Base/TClientContactBase.php
+créé TClientContact.php
+créé Base/TClientGrandCompteBase.php
+créé TClientGrandCompte.php
+créé Base/TCommandeBase.php
+créé TCommande.php
+créé Base/TCommercialBase.php
+créé TCommercial.php
+créé Base/TFactureBase.php
+créé TFacture.php
+créé Base/TRéférenceBase.php
+créé TRéférence.php
+créé Base/TTagBase.php
+créé TTag.php
+écartée TLogImport : la table n'a pas de clé primaire, et Doctrine exige un identifiant

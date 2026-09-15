@@ -112,7 +112,10 @@ surcharge le DSN visé par les tests d'intégration. Il doit viser une base cré
 depuis `tests/ddl/` : elle porte en commentaire l'empreinte du DDL qui l'a
 créée, et les tests refusent de tourner si elle manque ou ne correspond pas au
 fichier du dépôt. `make containers` recrée le conteneur à chaque appel, volume
-compris, pour qu'un DDL modifié soit toujours celui qu'on teste.
+compris, pour qu'un DDL modifié soit toujours celui qu'on teste. Son image est
+épinglée sur une version mineure de PostgreSQL : la version du serveur entre
+dans le calque de référence de `gescom`, et monter de version se fait par
+`make maj-calque-gescom`, diff relu (voir `tests/README.fr.md`).
 
 Avant d'ouvrir une pull request, lancer au moins `make lint` et `make test`. La
 CI les exécute aussi, mais après coup, quand la branche est déjà poussée.
