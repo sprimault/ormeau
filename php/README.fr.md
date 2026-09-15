@@ -51,12 +51,15 @@ et ce que change chaque version dans le
 
 ## Vérification
 
-Les tests du bundle tournent sous quatre combinaisons de PHP, Symfony et
-Doctrine ORM, de PHP 8.1 avec Symfony 5.4 et ORM 2.14 à PHP 8.4 avec Symfony 8
+Les tests du bundle tournent sous cinq combinaisons de PHP, Symfony, Doctrine
+ORM et DBAL, de PHP 8.1 avec Symfony 5.4 et ORM 2.14 à PHP 8.4 avec Symfony 8
 et ORM 3, et les entités générées pour chaque cas de référence passent le
 validateur de mapping de l'ORM installé. Côté binaire, les tests d'intégration
 tournent contre un vrai SGBD, jamais un catalogue simulé, et l'extraction de la
-base de test est comparée octet pour octet à un calque de référence.
+base de test est comparée octet pour octet à un calque de référence. La chaîne
+entière — extraction, génération, `schema:create` dans une base vierge — est
+rejouée sous ORM 3 et ORM 2.14, et la base recréée comparée à l'originale :
+chaque écart restant est listé avec sa raison.
 
 La CI ne fait que confirmer : chaque changement passe d'abord la même validation
 complète, sur des machines Windows et Linux, avant d'être poussé.

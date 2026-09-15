@@ -325,6 +325,24 @@ l'échantillonnage livré, des valeurs réelles.
 Un calque extrait d'une base de production ne rentre jamais dans un dépôt, ni en
 pièce jointe d'une issue.
 
+## Ce que vaut la chaîne
+
+`make aller-retour` part de la base de test,
+[`tests/ddl/postgres.sql`](tests/ddl/postgres.sql), qui rassemble
+délibérément les cas tordus. Il en extrait le calque, génère les entités,
+laisse Doctrine recréer le schéma dans une base vierge par `schema:create`,
+puis compare la base recréée à l'originale, objet par objet. La CI le fait
+tourner à chaque push et chaque pull request, sous Doctrine ORM 3 avec DBAL 4
+et sous ORM 2.14 avec DBAL 3.
+
+Un diff vide n'est pas atteignable avec Doctrine : une vue, une contrainte
+`CHECK` ou un type énuméré natif ne se recréent pas, quoi que dise l'entité.
+Chaque écart restant est donc listé avec sa raison — une limite de Doctrine ou
+de DBAL, ou un choix de l'outil, comme une collation qu'il refuse d'écrire
+faute de pouvoir la qualifier — et toute autre différence fait échouer la CI.
+La liste qui fait foi est
+[`tests/allerretour/ecarts_test.go`](tests/allerretour/ecarts_test.go).
+
 ## État d'avancement
 
 L'extraction PostgreSQL, l'inférence et la génération d'entités Doctrine
@@ -338,8 +356,8 @@ venir. L'état par phase est dans [`ROADMAP.md`](ROADMAP.md).
 La CI exécute la suite de tests avec le détecteur de courses, `golangci-lint`,
 `gofmt`, `govulncheck`, `gosec` et un contrôle de validité des JSON Schema à
 chaque push et chaque pull request. Le paquet PHP y passe PHPUnit, PHPStan et
-PHP-CS-Fixer, et ses tests tournent sous quatre combinaisons de PHP, Symfony et
-Doctrine ORM, de PHP 8.1 avec Symfony 5.4 à PHP 8.4 avec Symfony 8. Les tests
+PHP-CS-Fixer, et ses tests tournent sous cinq combinaisons de PHP, Symfony,
+Doctrine ORM et DBAL, de PHP 8.1 avec Symfony 5.4 à PHP 8.4 avec Symfony 8. Les tests
 d'intégration y tournent contre un vrai SGBD, jamais un catalogue simulé, et
 l'extraction de la base de test y est comparée octet pour octet à un calque de
 référence.

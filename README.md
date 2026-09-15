@@ -317,6 +317,23 @@ business comments, and with `--echantillonner`, once sampling ships, real
 values. A layer extracted from a production database never enters a repository,
 nor an issue attachment.
 
+## How faithful the chain is
+
+`make aller-retour` starts from the test database,
+[`tests/ddl/postgres.sql`](tests/ddl/postgres.sql), which deliberately gathers
+the messy cases. It extracts the layer, generates the entities, lets Doctrine
+recreate the schema in an empty database with `schema:create`, then compares
+the recreated database with the original, object by object. CI runs it on
+every push and pull request, under Doctrine ORM 3 with DBAL 4 and under
+ORM 2.14 with DBAL 3.
+
+An empty diff is out of reach with Doctrine: a view, a `CHECK` constraint or a
+native enum type is not recreated, whatever the entity says. Each remaining
+difference is therefore listed with its reason — a Doctrine or DBAL limit, or a
+choice of the tool, such as a collation it refuses to write because it cannot
+qualify it — and any other difference fails CI. The authoritative list is
+[`tests/allerretour/ecarts_test.go`](tests/allerretour/ecarts_test.go).
+
 ## Status
 
 PostgreSQL extraction, inference and Doctrine entity generation work:
@@ -330,8 +347,8 @@ phase is in [`ROADMAP.md`](ROADMAP.md).
 CI runs the test suite with the race detector, `golangci-lint`, `gofmt`,
 `govulncheck`, `gosec` and a JSON Schema validity check on every push and pull
 request. The PHP package goes through PHPUnit, PHPStan and PHP-CS-Fixer, and its
-tests run under four combinations of PHP, Symfony and Doctrine ORM, from PHP 8.1
-with Symfony 5.4 to PHP 8.4 with Symfony 8. Integration tests run there against
+tests run under five combinations of PHP, Symfony, Doctrine ORM and DBAL, from
+PHP 8.1 with Symfony 5.4 to PHP 8.4 with Symfony 8. Integration tests run there against
 a real database server, never a simulated catalog, and the extraction of the
 test database is compared byte for byte with a reference layer.
 
