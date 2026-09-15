@@ -67,3 +67,9 @@ installées. `ORMEAU_PHP` désigne l'interpréteur quand ce n'est pas `php` — 
 exemple une commande `docker run` qui monte le dépôt au même chemin —, et la
 version d'ORM installée choisit la liste d'écarts. Le relevé du dernier passage
 est écrit dans `.tmp/allerretour/ecarts.txt`.
+
+Deux cibles ont leur liste, les deux bouts de la plage promise : ORM 3 avec
+DBAL 4, depuis `composer.lock`, et ORM 2.14 avec DBAL 3, que la CI résout sans
+le lock (job `aller-retour-orm2`). Une entrée qui ne vaut que pour l'une le dit ;
+une entrée qui ne couvre rien sous une cible échoue, et doit être restreinte
+explicitement.
