@@ -1,6 +1,6 @@
 {
   "version_ri": 1,
-  "empreinte_physique": "sha256:26bacdf216e4391078b38ec3ec0656fb27f2d0444509c922b9fa8a35d4a4871d",
+  "empreinte_physique": "sha256:bec49e58dde28a9146b9b7448b74a73b485911429904f8133898a723b5d3de90",
   "espace_de_noms": "App\\Entity",
   "entites": [
     {
@@ -393,6 +393,7 @@
           "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
+          "commentaire": "Client du contact",
           "origine": "contrainte"
         },
         {

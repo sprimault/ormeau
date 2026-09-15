@@ -297,13 +297,6 @@ var tolerances = []tolerance{
 
 	// À COMBLER : chacune part avec le lot qui la corrige.
 	{
-		code: "cle_composite_reordonnee", categorie: aCombler, lot: "6",
-		pourquoi: "l'association de clé est rendue après les propriétés : l'ordre de la clé primaire s'inverse",
-		couvre: func(e diff.Ecart, _ contexte) bool {
-			return e.Objet == diff.ObjetClePrimaire && e.Propriete == "colonnes"
-		},
-	},
-	{
 		code: "defaut_par_expression_perdu", categorie: aCombler, lot: "7",
 		pourquoi: "un défaut calculé (now()) n'est pas reporté dans le calque logique",
 		couvre: func(e diff.Ecart, _ contexte) bool {
@@ -340,9 +333,11 @@ var tolerances = []tolerance{
 var nomGenere = regexp.MustCompile(`^[a-z]+_[0-9a-f]{16}$`)
 
 // ordonneeParDBAL3 dit si la table recréée suit exactement l'ordre de DBAL 3 :
-// colonnes de la clé primaire dans leur ordre, puis colonnes de clé étrangère,
-// puis les autres dans l'ordre d'origine. Un déplacement qui ne s'explique pas
-// ainsi n'est pas couvert.
+// colonnes de la clé primaire, puis colonnes de clé étrangère, puis les autres
+// dans l'ordre d'origine. Dans les deux premiers groupes, DBAL garde l'ordre
+// d'ajout à la table (Table::filterColumns), où ORM place les champs avant les
+// colonnes de jointure : seul l'ensemble de chaque groupe est exigé. Un
+// déplacement qui ne s'explique pas ainsi n'est pas couvert.
 func ordonneeParDBAL3(origine, recree *calque.Table) bool {
 	if origine == nil || recree == nil {
 		return false
@@ -356,8 +351,13 @@ func ordonneeParDBAL3(origine, recree *calque.Table) bool {
 	if recree.ClePrimaire != nil {
 		cle = recree.ClePrimaire.Colonnes
 	}
-	if len(noms) < len(cle) || !slices.Equal(noms[:len(cle)], cle) {
+	if len(noms) < len(cle) {
 		return false
+	}
+	for _, col := range noms[:len(cle)] {
+		if !slices.Contains(cle, col) {
+			return false
+		}
 	}
 
 	etrangeres := map[string]bool{}

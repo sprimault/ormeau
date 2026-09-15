@@ -42,6 +42,23 @@ base a des colonnes d'identité, sans que le schéma ait bougé : chacune reçoi
 ancien reste lisible, nature d'identité inconnue. Ni le calque logique ni les
 entités ne changent.
 
+**Une entité dont la clé primaire porte une association change dans `Base/` à
+la régénération** : ses membres de clé passent en tête, dans l'ordre de la clé,
+et sa colonne de jointure reçoit le commentaire et le défaut de la base. Une
+colonne discriminante n'en reçoit que sous ORM 3, et seulement dans une
+hiérarchie nouvelle : la classe de l'utilisateur, déjà écrite, ne change pas.
+
+### Corrigé
+
+- **`migrations:diff` ne propose plus de supprimer puis recréer la clé
+  primaire d'une table dont la clé commence par une clé étrangère.** Le
+  générateur déclarait l'association de clé après les propriétés, et Doctrine
+  formait la clé dans l'ordre inverse de la base, sous ORM 2 comme sous ORM 3.
+- **Le commentaire et le défaut d'une colonne de jointure qui fait partie de
+  la clé ne sont plus perdus**, ni ceux de la colonne discriminante sous
+  ORM 3. ORM 2.14 refuse ces options sur la colonne discriminante : elles n'y
+  sont pas écrites.
+
 ### Ajouté
 
 - **Le calque physique distingue une identité toujours générée d'une identité
@@ -58,6 +75,23 @@ database has identity columns, with no schema change: each gains `identite`,
 and the fingerprint changes. `version_ri` does not move, and an older layer
 stays readable, with an unknown identity kind. Neither the logical layer nor
 the entities change.
+
+**An entity whose primary key carries an association changes in `Base/` on
+regeneration**: its key members move first, in key order, and its join column
+gets the database comment and default. A discriminator column only gets them
+under ORM 3, and only in a new hierarchy: the user class, already written, does
+not change.
+
+### Fixed
+
+- **`migrations:diff` no longer proposes to drop and recreate the primary key
+  of a table whose key starts with a foreign key.** The generator declared the
+  key association after the properties, and Doctrine built the key in the
+  reverse order of the database, under ORM 2 as under ORM 3.
+- **The comment and default of a join column that is part of the key are no
+  longer lost**, nor those of the discriminator column under ORM 3. ORM 2.14
+  refuses these options on the discriminator column: they are not written
+  there.
 
 ### Added
 

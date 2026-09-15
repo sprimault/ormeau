@@ -13,9 +13,6 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\MappedSuperclass]
 abstract class LigneCommandeBase
 {
-    #[ORM\Column(name: 'quantite', type: 'integer')]
-    protected int $quantite;
-
     /** Fait partie de l'identifiant : à renseigner avant persist(). */
     #[ORM\Id]
     #[ORM\ManyToOne(targetEntity: Commande::class, inversedBy: 'ligneCommande')]
@@ -28,17 +25,8 @@ abstract class LigneCommandeBase
     #[ORM\JoinColumn(name: 'article_id', referencedColumnName: 'id', nullable: false)]
     protected Article $article;
 
-    public function getQuantite(): int
-    {
-        return $this->quantite;
-    }
-
-    public function setQuantite(int $quantite): static
-    {
-        $this->quantite = $quantite;
-
-        return $this;
-    }
+    #[ORM\Column(name: 'quantite', type: 'integer')]
+    protected int $quantite;
 
     public function getCommande(): Commande
     {
@@ -60,6 +48,18 @@ abstract class LigneCommandeBase
     public function setArticle(Article $article): static
     {
         $this->article = $article;
+
+        return $this;
+    }
+
+    public function getQuantite(): int
+    {
+        return $this->quantite;
+    }
+
+    public function setQuantite(int $quantite): static
+    {
+        $this->quantite = $quantite;
 
         return $this;
     }
