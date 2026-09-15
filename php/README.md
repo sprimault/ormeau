@@ -49,6 +49,18 @@ is described in the [main README](https://github.com/sprimault/ormeau#readme),
 and what each version changes in the
 [changelog](https://github.com/sprimault/ormeau/blob/master/CHANGELOG.md).
 
+## Verification
+
+The bundle's tests run under four combinations of PHP, Symfony and Doctrine
+ORM, from PHP 8.1 with Symfony 5.4 and ORM 2.14 to PHP 8.4 with Symfony 8 and
+ORM 3, and the entities generated for every reference case pass the mapping
+validator of the installed ORM. On the binary side, integration tests run
+against a real database server, never a simulated catalog, and the extraction
+of the test database is compared byte for byte with a reference layer.
+
+CI only confirms: every change first goes through the same full validation, on
+Windows and Linux machines, before it is pushed.
+
 ## Where the name comes from
 
 *Ormeau* — pronounced roughly *or-MOH* — is French for a young elm, and for the

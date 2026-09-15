@@ -49,6 +49,18 @@ décrite dans le [README principal](https://github.com/sprimault/ormeau/blob/mas
 et ce que change chaque version dans le
 [journal des versions](https://github.com/sprimault/ormeau/blob/master/CHANGELOG.md).
 
+## Vérification
+
+Les tests du bundle tournent sous quatre combinaisons de PHP, Symfony et
+Doctrine ORM, de PHP 8.1 avec Symfony 5.4 et ORM 2.14 à PHP 8.4 avec Symfony 8
+et ORM 3, et les entités générées pour chaque cas de référence passent le
+validateur de mapping de l'ORM installé. Côté binaire, les tests d'intégration
+tournent contre un vrai SGBD, jamais un catalogue simulé, et l'extraction de la
+base de test est comparée octet pour octet à un calque de référence.
+
+La CI ne fait que confirmer : chaque changement passe d'abord la même validation
+complète, sur des machines Windows et Linux, avant d'être poussé.
+
 ## D'où vient le nom
 
 Un ormeau, c'est un jeune orme — et un coquillage à la coquille nacrée, faite de
