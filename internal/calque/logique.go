@@ -135,6 +135,10 @@ type Propriete struct {
 	// DEFAULT '' est un défaut : absent et vide doivent rester distinguables,
 	// comme pour la longueur.
 	Defaut *string `json:"defaut,omitempty"`
+	// Le sens d'un défaut calculé, jamais son texte : now() et
+	// CURRENT_TIMESTAMP disent la même chose, et c'est ce qu'un générateur
+	// doit traduire. Exclusif de Defaut.
+	DefautExpression ExpressionDefaut `json:"defaut_expression,omitempty"`
 	// Une colonne générée n'est ni insérable ni modifiable. Les pointeurs
 	// permettent de ne sérialiser que les cas qui s'écartent du défaut.
 	Insertable  *bool   `json:"insertable,omitempty"`
@@ -143,6 +147,18 @@ type Propriete struct {
 	Commentaire string  `json:"commentaire,omitempty"`
 	Origine     Origine `json:"origine,omitempty"`
 }
+
+// ExpressionDefaut est un vocabulaire fermé : le sens d'un défaut calculé que
+// l'inférence a reconnu. Toute valeur ajoutée incrémente VersionRI.
+type ExpressionDefaut string
+
+// Défauts calculés reconnus. L'instant est celui de la transaction, pas de
+// l'horloge : clock_timestamp() n'en fait pas partie.
+const (
+	DefautHorodatageCourant ExpressionDefaut = "horodatage_courant"
+	DefautDateCourante      ExpressionDefaut = "date_courante"
+	DefautHeureCourante     ExpressionDefaut = "heure_courante"
+)
 
 // Association relie deux entités. Proprietaire décide du côté qui porte la
 // colonne de jointure : s'y tromper produit un mapping que Doctrine accepte et
@@ -282,4 +298,7 @@ const (
 	// signale désormais un héritage possible et non appliqué — l'entité est
 	// reliée à son parent par un-vers-un tant qu'aucune décision ne le déclare.
 	CodeHeritageDeduit = "heritage_deduit"
+	// Un défaut calculé dont le sens n'est pas reconnu : l'entité est générée
+	// sans lui, et l'application doit fournir la valeur.
+	CodeDefautNonReporte = "defaut_non_reporte"
 )

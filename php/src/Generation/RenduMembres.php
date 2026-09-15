@@ -11,6 +11,7 @@ use Ormeau\Doctrine\Calque\ActionSuppression;
 use Ormeau\Doctrine\Calque\Association;
 use Ormeau\Doctrine\Calque\ColonneJointure;
 use Ormeau\Doctrine\Calque\Enumeration;
+use Ormeau\Doctrine\Calque\ExpressionDefaut;
 use Ormeau\Doctrine\Calque\GenreAssociation;
 use Ormeau\Doctrine\Calque\Identifiant;
 use Ormeau\Doctrine\Calque\Propriete;
@@ -266,6 +267,7 @@ final class RenduMembres
             false,
             $p->commentaire,
             $p->origine,
+            $p->defautExpression,
         );
     }
 
@@ -662,16 +664,51 @@ final class RenduMembres
      * commentaire. Les mêmes pour une colonne rendue en #[ORM\Column] et pour
      * une colonne de jointure de la clé, qui n'a pas de propriété.
      *
-     * @return array<string, bool|float|int|string>
+     * @return array<string, bool|Code|float|int|string>
      */
     public function optionsDeColonne(Propriete $propriete): array
     {
         $defaut = $this->defaut($propriete);
 
         return array_filter([
-            'default' => $propriete->defaut === null ? null : ($defaut ?? $propriete->defaut),
+            'default' => $propriete->defaut === null ? $this->defautCalcule($propriete) : ($defaut ?? $propriete->defaut),
             'comment' => $propriete->commentaire,
         ], static fn($valeur): bool => $valeur !== null);
+    }
+
+    /**
+     * Rend le défaut calculé d'une propriété dans la forme que la cible lit.
+     *
+     * DBAL 4.4 le décrit par un objet et déprécie la chaîne 'CURRENT_TIMESTAMP'
+     * (dbal#7195, signalé par le SchemaTool d'ORM 3.7), qui reste la seule
+     * forme avant : la classe n'existe pas sous DBAL 3. Les deux écrivent le
+     * même DDL. Aucune ne reproduit un now() d'origine, que migrations:diff
+     * propose de réécrire en CURRENT_TIMESTAMP : même sens, texte différent
+     * (essai du 2026-09-15, ORM 2.14.3 / DBAL 3.10.6 et ORM 3.7.1 / DBAL 4.4.4).
+     *
+     * La propriété n'est pas initialisée : la valeur n'est connue que de la
+     * base, à l'insertion.
+     */
+    private function defautCalcule(Propriete $propriete): Code|string|null
+    {
+        if ($propriete->defautExpression === null) {
+            return null;
+        }
+        if (!$this->cible->defautParExpression()) {
+            return match ($propriete->defautExpression) {
+                ExpressionDefaut::HorodatageCourant => 'CURRENT_TIMESTAMP',
+                ExpressionDefaut::DateCourante => 'CURRENT_DATE',
+                ExpressionDefaut::HeureCourante => 'CURRENT_TIME',
+            };
+        }
+
+        $classe = match ($propriete->defautExpression) {
+            ExpressionDefaut::HorodatageCourant => 'CurrentTimestamp',
+            ExpressionDefaut::DateCourante => 'CurrentDate',
+            ExpressionDefaut::HeureCourante => 'CurrentTime',
+        };
+
+        return new Code('new \Doctrine\DBAL\Schema\DefaultExpression\\' . $classe . '()');
     }
 
     /**

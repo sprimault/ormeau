@@ -12,7 +12,10 @@ SET search_path TO gescom;
 CREATE TABLE t_commercial (
     com_id     int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     com_nom    varchar(80) NOT NULL,
-    com_actif  boolean     NOT NULL DEFAULT true
+    com_actif  boolean     NOT NULL DEFAULT true,
+    -- DEFAULT NULL : le catalogue rend NULL::character varying, que rien ne
+    -- distingue d'une expression sinon sa forme.
+    com_email  varchar(120) DEFAULT NULL
 );
 COMMENT ON TABLE t_commercial IS 'Force de vente';
 
@@ -100,7 +103,11 @@ CREATE TABLE t_log_import (
 CREATE TABLE t_facture (
     fac_id     int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     fac_cli_id int NOT NULL,
-    fac_total  numeric(12, 2) NOT NULL
+    fac_total  numeric(12, 2) NOT NULL,
+    -- défauts calculés : le sens d'une expression dépend du type de la colonne,
+    -- now() sur une date vaut CURRENT_DATE.
+    fac_date   date NOT NULL DEFAULT CURRENT_DATE,
+    fac_saisie date DEFAULT now()
 );
 
 -- Clé serial : la forme historique, un défaut nextval(...) sur une séquence
@@ -116,7 +123,10 @@ CREATE TABLE t_commande (
     cmd_id    int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     cmd_canal canal NOT NULL,
     -- tableau : aucun type Doctrine ne lit son littéral {…}
-    cmd_etiquettes text[]
+    cmd_etiquettes text[],
+    -- expression sans équivalent Doctrine : non reportée, avec avertissement
+    cmd_ref   uuid NOT NULL DEFAULT gen_random_uuid(),
+    cmd_heure time DEFAULT LOCALTIME
 );
 
 -- Identifiants réservés et accents, pour éprouver l'échappement.

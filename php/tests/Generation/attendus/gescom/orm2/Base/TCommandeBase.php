@@ -23,6 +23,12 @@ abstract class TCommandeBase
     #[ORM\Column(name: 'cmd_etiquettes', type: 'string', nullable: true)]
     protected ?string $cmdEtiquettes = null;
 
+    #[ORM\Column(name: 'cmd_ref', type: 'guid')]
+    protected string $cmdRef;
+
+    #[ORM\Column(name: 'cmd_heure', type: 'time_immutable', nullable: true, options: ['default' => 'CURRENT_TIME'])]
+    protected ?\DateTimeImmutable $cmdHeure = null;
+
     public function getCmdId(): ?int
     {
         return $this->cmdId;
@@ -48,6 +54,30 @@ abstract class TCommandeBase
     public function setCmdEtiquettes(?string $cmdEtiquettes): static
     {
         $this->cmdEtiquettes = $cmdEtiquettes;
+
+        return $this;
+    }
+
+    public function getCmdRef(): string
+    {
+        return $this->cmdRef;
+    }
+
+    public function setCmdRef(string $cmdRef): static
+    {
+        $this->cmdRef = $cmdRef;
+
+        return $this;
+    }
+
+    public function getCmdHeure(): ?\DateTimeImmutable
+    {
+        return $this->cmdHeure;
+    }
+
+    public function setCmdHeure(?\DateTimeImmutable $cmdHeure): static
+    {
+        $this->cmdHeure = $cmdHeure;
 
         return $this;
     }

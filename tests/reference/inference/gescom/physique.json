@@ -5,8 +5,8 @@
     "version": "17.11",
     "catalogue": "gescom",
     "schema": "gescom",
-    "extrait_le": "2026-09-15T12:19:56Z",
-    "empreinte": "sha256:d103aa0cf75ba9341f0a7d5dffb4d29c2860333c0f2daf57c070adad7baa5aba"
+    "extrait_le": "2026-09-15T13:17:55Z",
+    "empreinte": "sha256:8f8a9a2d531aebc8196975bedb8ce27869076b507233b8d9463a05f1e0eaa671"
   },
   "tables": [
     {
@@ -496,6 +496,28 @@
           "type_normalise": "texte",
           "nullable": true,
           "collation": "default"
+        },
+        {
+          "nom": "cmd_ref",
+          "position": 4,
+          "type_brut": "uuid",
+          "type_normalise": "uuid",
+          "nullable": false,
+          "defaut": {
+            "genre": "expression",
+            "valeur": "gen_random_uuid()"
+          }
+        },
+        {
+          "nom": "cmd_heure",
+          "position": 5,
+          "type_brut": "time without time zone",
+          "type_normalise": "heure",
+          "nullable": true,
+          "defaut": {
+            "genre": "expression",
+            "valeur": "LOCALTIME"
+          }
         }
       ],
       "cle_primaire": {
@@ -538,6 +560,19 @@
             "genre": "litteral",
             "valeur": "true"
           }
+        },
+        {
+          "nom": "com_email",
+          "position": 4,
+          "type_brut": "character varying(120)",
+          "type_normalise": "texte",
+          "longueur": 120,
+          "nullable": true,
+          "defaut": {
+            "genre": "expression",
+            "valeur": "NULL::character varying"
+          },
+          "collation": "default"
         }
       ],
       "cle_primaire": {
@@ -575,6 +610,28 @@
           "precision": 12,
           "echelle": 2,
           "nullable": false
+        },
+        {
+          "nom": "fac_date",
+          "position": 4,
+          "type_brut": "date",
+          "type_normalise": "date",
+          "nullable": false,
+          "defaut": {
+            "genre": "expression",
+            "valeur": "CURRENT_DATE"
+          }
+        },
+        {
+          "nom": "fac_saisie",
+          "position": 5,
+          "type_brut": "date",
+          "type_normalise": "date",
+          "nullable": true,
+          "defaut": {
+            "genre": "expression",
+            "valeur": "now()"
+          }
         }
       ],
       "cle_primaire": {

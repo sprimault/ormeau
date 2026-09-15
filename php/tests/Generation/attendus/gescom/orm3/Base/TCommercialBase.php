@@ -25,6 +25,9 @@ abstract class TCommercialBase
     #[ORM\Column(name: 'com_actif', type: 'boolean', options: ['default' => true])]
     protected bool $comActif = true;
 
+    #[ORM\Column(name: 'com_email', type: 'string', length: 120, nullable: true)]
+    protected ?string $comEmail = null;
+
     /** @var Collection<int, TClient> */
     #[ORM\OneToMany(targetEntity: TClient::class, mappedBy: 'cliCom')]
     protected Collection $tclient;
@@ -59,6 +62,18 @@ abstract class TCommercialBase
     public function setComActif(bool $comActif): static
     {
         $this->comActif = $comActif;
+
+        return $this;
+    }
+
+    public function getComEmail(): ?string
+    {
+        return $this->comEmail;
+    }
+
+    public function setComEmail(?string $comEmail): static
+    {
+        $this->comEmail = $comEmail;
 
         return $this;
     }

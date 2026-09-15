@@ -69,7 +69,11 @@ abstract class TClientBase
     )]
     protected ?string $cliCaHt = null;
 
-    #[ORM\Column(name: 'created_at', type: 'datetimetz_immutable')]
+    #[ORM\Column(
+        name: 'created_at',
+        type: 'datetimetz_immutable',
+        options: ['default' => new \Doctrine\DBAL\Schema\DefaultExpression\CurrentTimestamp()],
+    )]
     protected \DateTimeImmutable $createdAt;
 
     #[ORM\Column(name: 'updated_at', type: 'datetimetz_immutable', nullable: true)]

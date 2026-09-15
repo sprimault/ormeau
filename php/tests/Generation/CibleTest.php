@@ -88,6 +88,19 @@ final class CibleTest extends TestCase
     }
 
     /**
+     * L'objet qui décrit un défaut calculé n'existe qu'à partir de DBAL 4.4 ;
+     * ORM 3 accepte DBAL 4.0 à 4.3, où seule la chaîne est lue.
+     */
+    public function testLeDefautParExpressionAttendDbal44(): void
+    {
+        self::assertFalse(Cible::forcer(2)->defautParExpression());
+        self::assertFalse(Cible::forcer(3, '3.10')->defautParExpression());
+        self::assertFalse(Cible::forcer(3, '4.3')->defautParExpression());
+        self::assertTrue(Cible::forcer(3, '4.4')->defautParExpression());
+        self::assertTrue(Cible::forcer(3)->defautParExpression());
+    }
+
+    /**
      * Une majeure qu'aucun rendu ne connaît est refusée, y compris une
      * version future : on ne promet pas ce qu'on n'a pas vu.
      */

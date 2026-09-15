@@ -53,6 +53,13 @@ de type dans `Base/` à la régénération** : `string` au lieu de `int`, `mixed
 au lieu de `string`. Le type PHP suit désormais la version de DBAL installée,
 et non plus celle d'ORM, et l'annonce en tête d'exécution la donne.
 
+**Une colonne à défaut calculé change dans `Base/` à la régénération**, après
+`ormeau inferer` : `now()`, `CURRENT_DATE` et leurs équivalents y reçoivent
+leur défaut. Un `now()` d'origine s'écrit `CURRENT_TIMESTAMP`, et
+`migrations:diff` propose un `SET DEFAULT CURRENT_TIMESTAMP` de même sens, à ne
+pas appliquer. Un trait d'horodatage partagé par des tables dont une partie
+seulement a ce défaut se scinde en deux.
+
 ### Corrigé
 
 - **Sous ORM 3 avec DBAL 3, une entité à colonne `binary` se charge, et une
@@ -82,6 +89,14 @@ et non plus celle d'ORM, et l'annonce en tête d'exécution la donne.
   porte (`table_jointure.commentaire`), et `#[ORM\JoinTable]` le reçoit : une
   association plusieurs-vers-plusieurs change dans `Base/` à la régénération
   quand sa table en a un. Il faut relancer `ormeau inferer`.
+- **Un défaut calculé est reporté quand son sens est certain**
+  (`propriete.defaut_expression` : `horodatage_courant`, `date_courante`,
+  `heure_courante`), lu sur l'expression et le type de la colonne. Il est
+  écrit en objet `DefaultExpression` sous DBAL 4.4, qui déprécie la chaîne
+  `'CURRENT_TIMESTAMP'`, et en chaîne avant. Tout autre défaut calculé,
+  `gen_random_uuid()` ou `clock_timestamp()`, produit l'avertissement
+  `defaut_non_reporte`. La propriété n'est pas initialisée : persister une
+  entité sans lui donner de valeur échoue toujours.
 
 ***
 
@@ -101,6 +116,13 @@ not change.
 type in `Base/` on regeneration**: `string` instead of `int`, `mixed` instead
 of `string`. The PHP type now follows the installed DBAL version rather than
 the ORM one, and the announcement at the start of the run gives it.
+
+**A column with a computed default changes in `Base/` on regeneration**, after
+`ormeau inferer`: `now()`, `CURRENT_DATE` and their equivalents get their
+default there. An original `now()` is written `CURRENT_TIMESTAMP`, and
+`migrations:diff` proposes a `SET DEFAULT CURRENT_TIMESTAMP` with the same
+meaning, not to be applied. A timestamp trait shared by tables of which only
+some have that default splits in two.
 
 ### Fixed
 
@@ -131,6 +153,14 @@ the ORM one, and the announcement at the start of the run gives it.
   (`table_jointure.commentaire`), and `#[ORM\JoinTable]` receives it: a
   many-to-many association changes in `Base/` on regeneration when its table
   has one. `ormeau inferer` must be run again.
+- **A computed default is carried over when its meaning is certain**
+  (`propriete.defaut_expression`: `horodatage_courant`, `date_courante`,
+  `heure_courante`), read from the expression and the column type. It is
+  written as a `DefaultExpression` object under DBAL 4.4, which deprecates the
+  `'CURRENT_TIMESTAMP'` string, and as a string before. Any other computed
+  default, `gen_random_uuid()` or `clock_timestamp()`, raises the
+  `defaut_non_reporte` warning. The property is not initialised: persisting an
+  entity without giving it a value still fails.
 
 ## [0.5.2] — 2026-09-14 — Ce qui tenait sans être vérifié
 

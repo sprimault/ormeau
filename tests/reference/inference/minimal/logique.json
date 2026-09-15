@@ -69,6 +69,7 @@
           "type_php": "\\DateTimeImmutable",
           "type_doctrine": "datetimetz_immutable",
           "nullable": false,
+          "defaut_expression": "horodatage_courant",
           "origine": "contrainte"
         }
       ],

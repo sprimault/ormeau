@@ -412,6 +412,19 @@ func inferrerPropriete(c *calque.Colonne, cibleTable string, d *Decisions) (calq
 		valeur := c.Defaut.Valeur
 		propriete.Defaut = &valeur
 	}
+	if c.Defaut != nil && c.Defaut.Genre == calque.DefautExpression && !estDefautNul(c.Defaut.Valeur) {
+		if sens, reconnu := sensDuDefaut(c); reconnu {
+			propriete.DefautExpression = sens
+		} else {
+			avertissements = append(avertissements, calque.Avertissement{
+				Code:       calque.CodeDefautNonReporte,
+				Cible:      cible,
+				Message:    "défaut " + c.Defaut.Valeur + " non reconnu, non reporté : la valeur est à fournir par l'application",
+				Resolution: calque.ResolutionIgnoree,
+				Confiance:  1,
+			})
+		}
+	}
 
 	if requalifiee {
 		// Longueur, précision, échelle et défaut décrivaient la colonne telle
@@ -420,8 +433,8 @@ func inferrerPropriete(c *calque.Colonne, cibleTable string, d *Decisions) (calq
 		// qui ne compile pas : private bool $actif = 'O'.
 		propriete.Longueur, propriete.Precision, propriete.Echelle = nil, nil, nil
 
-		if propriete.Defaut != nil {
-			valeur := *propriete.Defaut
+		if propriete.Defaut != nil || propriete.DefautExpression != "" {
+			valeur := c.Defaut.Valeur
 			if valeur == "" {
 				valeur = "''"
 			}
@@ -432,7 +445,7 @@ func inferrerPropriete(c *calque.Colonne, cibleTable string, d *Decisions) (calq
 				Resolution: calque.ResolutionForceeParDecision,
 				Confiance:  1,
 			})
-			propriete.Defaut = nil
+			propriete.Defaut, propriete.DefautExpression = nil, ""
 		}
 	}
 

@@ -31,7 +31,7 @@ abstract class ClientBase
     #[ORM\Column(name: 'actif', type: 'boolean', options: ['default' => true])]
     protected bool $actif = true;
 
-    #[ORM\Column(name: 'cree_le', type: 'datetimetz_immutable')]
+    #[ORM\Column(name: 'cree_le', type: 'datetimetz_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
     protected \DateTimeImmutable $creeLe;
 
     public function getId(): ?int
