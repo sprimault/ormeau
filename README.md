@@ -328,7 +328,12 @@ CI runs the test suite with the race detector, `golangci-lint`, `gofmt`,
 `govulncheck`, `gosec` and a JSON Schema validity check on every push and pull
 request. The PHP package goes through PHPUnit, PHPStan and PHP-CS-Fixer, and its
 tests run under four combinations of PHP, Symfony and Doctrine ORM, from PHP 8.1
-with Symfony 5.4 to PHP 8.4 with Symfony 8.
+with Symfony 5.4 to PHP 8.4 with Symfony 8. Integration tests run there against
+a real database server, never a simulated catalog, and the extraction of the
+test database is compared byte for byte with a reference layer.
+
+CI only confirms: every change first goes through the same full validation, on
+Windows and Linux machines, before it is pushed.
 
 ## Going further
 

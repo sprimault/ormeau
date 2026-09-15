@@ -337,7 +337,13 @@ La CI exécute la suite de tests avec le détecteur de courses, `golangci-lint`,
 `gofmt`, `govulncheck`, `gosec` et un contrôle de validité des JSON Schema à
 chaque push et chaque pull request. Le paquet PHP y passe PHPUnit, PHPStan et
 PHP-CS-Fixer, et ses tests tournent sous quatre combinaisons de PHP, Symfony et
-Doctrine ORM, de PHP 8.1 avec Symfony 5.4 à PHP 8.4 avec Symfony 8.
+Doctrine ORM, de PHP 8.1 avec Symfony 5.4 à PHP 8.4 avec Symfony 8. Les tests
+d'intégration y tournent contre un vrai SGBD, jamais un catalogue simulé, et
+l'extraction de la base de test y est comparée octet pour octet à un calque de
+référence.
+
+La CI ne fait que confirmer : chaque changement passe d'abord la même validation
+complète, sur des machines Windows et Linux, avant d'être poussé.
 
 ## Pour aller plus loin
 
