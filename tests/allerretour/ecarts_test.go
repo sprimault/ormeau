@@ -338,6 +338,20 @@ var tolerances = []tolerance{
 		},
 	},
 
+	{
+		code: "collation_hors_pg_catalog_non_recreee", categorie: voulu,
+		pourquoi: "une collation hors de pg_catalog n'est pas reportée, avec l'avertissement collation_non_reportee : Doctrine l'écrirait en un seul identifiant, et son nom seul dépendrait du search_path",
+		couvre: func(e diff.Ecart, c contexte) bool {
+			if e.Objet != diff.ObjetColonne || (e.Propriete != "collation" && e.Propriete != "collation_schema") {
+				return false
+			}
+			cible := e.Schema + "." + e.Table + "." + e.Nom
+			return slices.ContainsFunc(c.logique.Avertissements, func(a calque.Avertissement) bool {
+				return a.Code == calque.CodeCollationNonReportee && a.Cible == cible
+			})
+		},
+	},
+
 	// À COMBLER : chacune part avec le lot qui la corrige. Aucune ne reste.
 }
 

@@ -19,7 +19,7 @@ abstract class TTagBase
     #[ORM\Column(name: 'tag_id', type: 'integer')]
     protected ?int $tagId = null;
 
-    #[ORM\Column(name: 'tag_libelle', type: 'string', length: 40)]
+    #[ORM\Column(name: 'tag_libelle', type: 'string', length: 40, options: ['collation' => 'C'])]
     protected string $tagLibelle;
 
     /** @var Collection<int, TClient> */

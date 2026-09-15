@@ -5,8 +5,8 @@
     "version": "17.11",
     "catalogue": "gescom",
     "schema": "gescom",
-    "extrait_le": "2026-09-15T17:17:09Z",
-    "empreinte": "sha256:488733cac668e1f36b1453df0c5dab2d7b633ea367287e55f6be12fcac32c546"
+    "extrait_le": "2026-09-15T18:05:52Z",
+    "empreinte": "sha256:d2996cf398ab6f4a03802e734129a422337bb7b8d441cc4c3292c8a42bbc6ebf"
   },
   "tables": [
     {
@@ -577,7 +577,8 @@
           "type_normalise": "texte",
           "longueur": 80,
           "nullable": false,
-          "collation": "default"
+          "collation": "fr_ci",
+          "collation_schema": "gescom"
         },
         {
           "nom": "com_actif",
@@ -729,7 +730,7 @@
           "type_normalise": "texte",
           "longueur": 60,
           "nullable": false,
-          "collation": "default"
+          "collation": "fr-FR-x-icu"
         }
       ],
       "cle_primaire": {
@@ -796,7 +797,7 @@
           "type_normalise": "texte",
           "longueur": 40,
           "nullable": false,
-          "collation": "default"
+          "collation": "C"
         }
       ],
       "cle_primaire": {

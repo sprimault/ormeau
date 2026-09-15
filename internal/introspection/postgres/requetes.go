@@ -182,13 +182,15 @@ SELECT c.relname                                            AS table_nom,
        pg_get_expr(d.adbin, d.adrelid)                       AS defaut,
        a.attgenerated::text                                 AS generee,
        col_description(c.oid, a.attnum)                     AS commentaire,
-       co.collname                                          AS collation
+       co.collname                                          AS collation,
+       CASE WHEN cn.nspname <> 'pg_catalog' THEN cn.nspname END AS collation_schema
 FROM pg_attribute a
          JOIN pg_class c ON c.oid = a.attrelid
          JOIN pg_namespace n ON n.oid = c.relnamespace
          JOIN pg_type t ON t.oid = a.atttypid
          LEFT JOIN pg_attrdef d ON d.adrelid = c.oid AND d.adnum = a.attnum
          LEFT JOIN pg_collation co ON co.oid = a.attcollation
+         LEFT JOIN pg_namespace cn ON cn.oid = co.collnamespace
 WHERE c.relkind IN ('r', 'p')
   AND a.attnum > 0
   AND NOT a.attisdropped

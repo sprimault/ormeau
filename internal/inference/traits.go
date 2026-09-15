@@ -121,7 +121,7 @@ func horodatagesDe(e *calque.Entite) []calque.Propriete {
 //
 // Le nom, le type et la nullabilité en font partie : deux tables dont l'une a
 // updated_at facultative et l'autre obligatoire ne peuvent pas partager le même
-// trait. Le défaut calculé et la longueur fixe aussi : partagés, ils
+// trait. Le défaut calculé, la longueur fixe et la collation aussi : partagés, ils
 // passeraient d'une table à l'autre, et migrations:diff proposerait de modifier
 // la colonne en base. Une colonne générée ne partage son trait qu'avec la même
 // expression : la relire ailleurs rendrait un autre calcul.
@@ -134,6 +134,9 @@ func signatureDe(proprietes []calque.Propriete) string {
 		}
 		if p.LongueurFixe {
 			partie += ":fixe"
+		}
+		if p.Collation != "" {
+			partie += ":collation:" + p.Collation
 		}
 		if p.Generee != nil {
 			partie += ":generee:" + p.Generee.Expression

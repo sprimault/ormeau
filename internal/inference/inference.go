@@ -411,6 +411,25 @@ func inferrerPropriete(c *calque.Colonne, cibleTable string, d *Decisions) (calq
 		propriete.Insertable = &faux
 		propriete.Modifiable = &faux
 	}
+	// default n'est pas une collation mais la sentinelle de PostgreSQL pour
+	// « celle de la base ». Hors de pg_catalog, Doctrine écrit le nom qualifié
+	// en un seul identifiant, refusé, et le nom seul ne se résout que par le
+	// search_path de l'application (essai du 2026-09-15) : rien n'est reporté
+	// plutôt qu'une collation qui échouerait ailleurs. Un type forcé dans une
+	// autre famille n'a plus de collation.
+	switch {
+	case c.Collation == "" || c.Collation == "default" || requalifiee:
+	case c.CollationSchema != "":
+		avertissements = append(avertissements, calque.Avertissement{
+			Code:       calque.CodeCollationNonReportee,
+			Cible:      cible,
+			Message:    "collation " + c.CollationSchema + "." + c.Collation + " hors de pg_catalog, non reportée : Doctrine ne l'écrit pas qualifiée, et schema:create recréera la collation par défaut",
+			Resolution: calque.ResolutionIgnoree,
+			Confiance:  1,
+		})
+	default:
+		propriete.Collation = c.Collation
+	}
 	if c.Defaut != nil && c.Defaut.Genre == calque.DefautLitteral {
 		valeur := c.Defaut.Valeur
 		propriete.Defaut = &valeur

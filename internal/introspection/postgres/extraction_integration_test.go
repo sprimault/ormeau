@@ -393,6 +393,22 @@ func TestExtraireLesCasTordus(t *testing.T) {
 		}
 	})
 
+	t.Run("collation et son schema hors de pg_catalog", func(t *testing.T) {
+		cas := []struct{ table, colonne, collation, schema string }{
+			{"t_commercial", "com_nom", "fr_ci", "gescom"},
+			{"t_tag", "tag_libelle", "C", ""},
+			{"t_pays", "pay_libelle", "fr-FR-x-icu", ""},
+			{"t_client", "cli_nom", "default", ""},
+		}
+		for _, attendu := range cas {
+			c := colonneOuEchouer(t, p, attendu.table, attendu.colonne)
+			if c.Collation != attendu.collation || c.CollationSchema != attendu.schema {
+				t.Errorf("%s.%s : collation %q, schema %q ; attendus %q, %q",
+					attendu.table, attendu.colonne, c.Collation, c.CollationSchema, attendu.collation, attendu.schema)
+			}
+		}
+	})
+
 	t.Run("index partiel garde son predicat", func(t *testing.T) {
 		tbl := tableOuEchouer(t, p, "t_client")
 		var partiel *calque.Index

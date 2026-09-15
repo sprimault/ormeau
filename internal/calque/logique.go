@@ -134,8 +134,12 @@ type Propriete struct {
 	// Une chaîne de longueur fixe complète ses valeurs d'espaces, et se compare
 	// autrement qu'une chaîne variable de même longueur : recréée sans ce
 	// fait, la colonne change de comportement. Un fait de colonne, pas un type.
-	LongueurFixe bool   `json:"longueur_fixe,omitempty"`
-	Enumeration  string `json:"enumeration,omitempty"`
+	LongueurFixe bool `json:"longueur_fixe,omitempty"`
+	// Collation explicite de la colonne, sous son nom de catalogue. Absente
+	// pour la collation par défaut de la base, et pour une collation hors du
+	// schéma système, que l'avertissement collation_non_reportee signale.
+	Collation   string `json:"collation,omitempty"`
+	Enumeration string `json:"enumeration,omitempty"`
 	// DEFAULT '' est un défaut : absent et vide doivent rester distinguables,
 	// comme pour la longueur.
 	Defaut *string `json:"defaut,omitempty"`
@@ -316,4 +320,8 @@ const (
 	// Un défaut calculé dont le sens n'est pas reconnu : l'entité est générée
 	// sans lui, et l'application doit fournir la valeur.
 	CodeDefautNonReporte = "defaut_non_reporte"
+	// Une collation hors du schéma système : un générateur ne sait pas
+	// toujours l'écrire qualifiée, et son nom seul dépendrait du chemin de
+	// recherche de l'application. La propriété est rendue sans collation.
+	CodeCollationNonReportee = "collation_non_reportee"
 )

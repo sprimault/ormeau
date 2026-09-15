@@ -238,6 +238,44 @@ func TestLongueurFixe(t *testing.T) {
 	}
 }
 
+// La collation se reporte quand elle est explicite et du schéma système. Celle
+// de la base n'est pas reportée, celle d'un autre schéma non plus mais se
+// signale, et un type forcé dans une autre famille la retire sans rien dire.
+func TestCollation(t *testing.T) {
+	t.Parallel()
+
+	colonnes := []calque.Colonne{
+		{Nom: "id", Position: 1, TypeBrut: "integer", TypeNormalise: calque.TypeEntier},
+		{Nom: "libre", Position: 2, TypeBrut: "text", TypeNormalise: calque.TypeTexte, Collation: "default"},
+		{Nom: "code", Position: 3, TypeBrut: "text", TypeNormalise: calque.TypeTexte, Collation: "C"},
+		{Nom: "nom", Position: 4, TypeBrut: "text", TypeNormalise: calque.TypeTexte, Collation: "fr_ci", CollationSchema: "gescom"},
+		{Nom: "actif", Position: 5, TypeBrut: "text", TypeNormalise: calque.TypeTexte, Collation: "C"},
+	}
+	physique := &calque.Physique{VersionRI: calque.VersionCourante, Tables: []calque.Table{{
+		Schema: "public", Nom: "pays", Colonnes: colonnes,
+		ClePrimaire: &calque.ClePrimaire{Colonnes: []string{"id"}},
+	}}}
+	decisions := &Decisions{TypesForces: map[string]string{"public.pays.actif": "boolean"}}
+
+	logique, avertissements := Inferer(physique, decisions)
+
+	attendu := map[string]string{"id": "", "libre": "", "code": "C", "nom": "", "actif": ""}
+	for _, p := range logique.Entites[0].Proprietes {
+		if p.Collation != attendu[p.Colonne] {
+			t.Errorf("%s : collation %q, attendue %q", p.Colonne, p.Collation, attendu[p.Colonne])
+		}
+	}
+	var signalees []string
+	for _, a := range avertissements {
+		if a.Code == calque.CodeCollationNonReportee {
+			signalees = append(signalees, a.Cible)
+		}
+	}
+	if len(signalees) != 1 || signalees[0] != "public.pays.nom" {
+		t.Errorf("avertissements collation_non_reportee sur %v, attendu seulement public.pays.nom", signalees)
+	}
+}
+
 // TestTypeNullable vérifie le point d'interrogation des propriétés facultatives.
 func TestTypeNullable(t *testing.T) {
 	t.Parallel()

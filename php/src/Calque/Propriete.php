@@ -46,7 +46,11 @@ final class Propriete
      *                                                recréée en longueur variable, la colonne se compare
      *                                                autrement ; après les autres, pour la même raison
      * @param Generee|null          $generee          calcul d'une colonne générée, à relire après chaque
-     *                                                écriture ; dernier paramètre, pour la même raison
+     *                                                écriture ; après les autres, pour la même raison
+     * @param string|null           $collation        collation explicite, sous son nom de catalogue ; absente
+     *                                                pour celle de la base, et pour une collation hors du
+     *                                                schéma système, que l'inférence ne reporte pas ; dernier
+     *                                                paramètre, pour la même raison
      */
     public function __construct(
         public readonly string $nom,
@@ -67,6 +71,7 @@ final class Propriete
         public readonly ?ExpressionDefaut $defautExpression = null,
         public readonly bool $longueurFixe = false,
         public readonly ?Generee $generee = null,
+        public readonly ?string $collation = null,
     ) {}
 
     /**
@@ -101,6 +106,7 @@ final class Propriete
         $defautExpression = Lecture::valeurOptionnelle($donnees, 'defaut_expression', $chemin, ExpressionDefaut::class);
         $longueurFixe = Lecture::booleen($donnees, 'longueur_fixe', $chemin, defaut: false);
         $generee = Lecture::objet($donnees, 'generee', $chemin, Generee::depuisTableau(...));
+        $collation = Lecture::chaineOptionnelle($donnees, 'collation', $chemin);
 
         return new self(
             $nom,
@@ -121,6 +127,7 @@ final class Propriete
             $defautExpression,
             $longueurFixe,
             $generee,
+            $collation,
         );
     }
 }
