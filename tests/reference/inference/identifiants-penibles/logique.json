@@ -69,6 +69,16 @@
           "origine": "contrainte"
         }
       ],
+      "index": [
+        {
+          "nom": "IX_Libelle_hors_defaut",
+          "colonnes": [
+            "Libellé"
+          ],
+          "unique": true,
+          "predicat": "([Libellé]<>'l''a\\b')"
+        }
+      ],
       "commentaire": "Accent et espaces : l'accent suffit à désigner le français",
       "origine": "nommage"
     },

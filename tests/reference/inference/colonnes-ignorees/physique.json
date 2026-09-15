@@ -97,6 +97,13 @@
           "methode": "btree"
         },
         {
+          "nom": "client_nom_raison_idx",
+          "colonnes": ["nom"],
+          "unique": false,
+          "predicat": "(raison_sociale IS NOT NULL)",
+          "methode": "btree"
+        },
+        {
           "nom": "client_nom_siret_key",
           "colonnes": ["nom", "siret"],
           "unique": true,

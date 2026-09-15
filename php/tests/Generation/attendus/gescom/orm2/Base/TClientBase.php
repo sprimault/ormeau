@@ -17,7 +17,11 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\MappedSuperclass]
-#[ORM\Index(name: 'ix_cli_actifs', columns: ['cli_com_id'])]
+#[ORM\Index(
+    name: 'ix_cli_actifs',
+    columns: ['cli_com_id'],
+    options: ['where' => '((cli_statut)::text = \'ACTIF\'::text)'],
+)]
 #[ORM\Index(name: 'ix_cli_nom', columns: ['cli_nom'])]
 #[ORM\Index(name: 'ix_cli_nom_prefixe', columns: ['cli_nom'])]
 #[ORM\UniqueConstraint(name: 'uq_cli_siret', columns: ['cli_siret'])]

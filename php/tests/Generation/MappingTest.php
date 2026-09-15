@@ -176,6 +176,15 @@ final class MappingTest extends TestCase
                     $meta->table['indexes'] ?? [],
                     $classe . ' : index',
                 );
+                // Le prédicat arrive à Doctrine tel que le calque le porte :
+                // un échappement faux le changerait sans rien refuser.
+                foreach ($entite->index as $index) {
+                    if ($index->predicat === null || $index->nom === null) {
+                        continue;
+                    }
+                    $mappe = $meta->table[$index->unique ? 'uniqueConstraints' : 'indexes'][$index->nom] ?? [];
+                    self::assertSame($index->predicat, $mappe['options']['where'] ?? null, $classe . ' : prédicat de ' . $index->nom);
+                }
 
                 foreach ($entite->proprietes as $propriete) {
                     if ($propriete->enumeration !== null) {

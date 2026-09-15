@@ -5,8 +5,8 @@
     "version": "17.11",
     "catalogue": "gescom",
     "schema": "gescom",
-    "extrait_le": "2026-09-15T13:17:55Z",
-    "empreinte": "sha256:8f8a9a2d531aebc8196975bedb8ce27869076b507233b8d9463a05f1e0eaa671"
+    "extrait_le": "2026-09-15T16:43:16Z",
+    "empreinte": "sha256:58ee50dd7c5e38fdf2954a602bd3bbad405b793509cd0ccabed18db9c9e27dc6"
   },
   "tables": [
     {
@@ -580,7 +580,18 @@
         "colonnes": [
           "com_id"
         ]
-      }
+      },
+      "index": [
+        {
+          "nom": "uq_com_email_actif",
+          "colonnes": [
+            "com_email"
+          ],
+          "unique": true,
+          "predicat": "com_actif",
+          "methode": "btree"
+        }
+      ]
     },
     {
       "nom": "t_facture",

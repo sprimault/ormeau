@@ -282,13 +282,20 @@ export interface TableJointure {
   commentaire?: string;
 }
 /**
- * IndexEntite reporte un index du physique. Prédicat et méthode n'y survivent
- * pas : Doctrine ne sait pas les exprimer.
+ * IndexEntite reporte un index du physique. La méthode et la classe
+ * d'opérateurs n'y survivent pas : Doctrine ne sait pas les exprimer.
  */
 export interface IndexEntite {
   nom?: string;
   colonnes: string[];
   unique: boolean;
+  /**
+   * Predicat est la condition d'un index partiel, verbatim et non
+   * interprétée. Sans elle, l'index serait recréé complet : une unicité
+   * partielle deviendrait plus stricte que la base, et refuserait des lignes
+   * qu'elle accepte.
+   */
+  predicat?: string;
 }
 /**
  * Enumeration est un type PHP à générer. Origine dit d'où elle sort — CHECK,

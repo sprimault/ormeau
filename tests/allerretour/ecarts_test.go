@@ -322,13 +322,6 @@ var tolerances = []tolerance{
 
 	// À COMBLER : chacune part avec le lot qui la corrige.
 	{
-		code: "predicat_d_index_perdu", categorie: aCombler, lot: "8",
-		pourquoi: "le prédicat d'un index partiel n'est pas reporté dans le calque logique",
-		couvre: func(e diff.Ecart, _ contexte) bool {
-			return e.Objet == diff.ObjetIndex && e.Propriete == "predicat" && e.Apres == ""
-		},
-	},
-	{
 		code: "longueur_fixe_perdue", categorie: aCombler, lot: "9",
 		pourquoi: "char(n) est rendu en chaîne de longueur variable",
 		couvre: func(e diff.Ecart, _ contexte) bool {

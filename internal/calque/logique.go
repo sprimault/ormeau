@@ -211,12 +211,17 @@ type TableJointure struct {
 	Commentaire     string            `json:"commentaire,omitempty"`
 }
 
-// IndexEntite reporte un index du physique. Prédicat et méthode n'y survivent
-// pas : Doctrine ne sait pas les exprimer.
+// IndexEntite reporte un index du physique. La méthode et la classe
+// d'opérateurs n'y survivent pas : Doctrine ne sait pas les exprimer.
 type IndexEntite struct {
 	Nom      string   `json:"nom,omitempty"`
 	Colonnes []string `json:"colonnes"`
 	Unique   bool     `json:"unique"`
+	// Predicat est la condition d'un index partiel, verbatim et non
+	// interprétée. Sans elle, l'index serait recréé complet : une unicité
+	// partielle deviendrait plus stricte que la base, et refuserait des lignes
+	// qu'elle accepte.
+	Predicat string `json:"predicat,omitempty"`
 }
 
 // Enumeration est un type PHP à générer. Origine dit d'où elle sort — CHECK,

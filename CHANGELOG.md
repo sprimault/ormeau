@@ -60,6 +60,10 @@ leur défaut. Un `now()` d'origine s'écrit `CURRENT_TIMESTAMP`, et
 pas appliquer. Un trait d'horodatage partagé par des tables dont une partie
 seulement a ce défaut se scinde en deux.
 
+**Une entité dont la table a un index partiel change dans `Base/` à la
+régénération**, après `ormeau inferer` : son `#[ORM\Index]` ou son
+`#[ORM\UniqueConstraint]` reçoit le prédicat dans `options`.
+
 ### Corrigé
 
 - **Sous ORM 3 avec DBAL 3, une entité à colonne `binary` se charge, et une
@@ -76,6 +80,9 @@ seulement a ce défaut se scinde en deux.
   la clé ne sont plus perdus**, ni ceux de la colonne discriminante sous
   ORM 3. ORM 2.14 refuse ces options sur la colonne discriminante : elles n'y
   sont pas écrites.
+- **`migrations:diff` ne propose plus de supprimer un index partiel pour le
+  recréer sans son prédicat.** Appliquée, une unicité partielle devenait plus
+  stricte que la base, et refusait des lignes que celle-ci accepte.
 
 ### Ajouté
 
@@ -97,6 +104,11 @@ seulement a ce défaut se scinde en deux.
   `gen_random_uuid()` ou `clock_timestamp()`, produit l'avertissement
   `defaut_non_reporte`. La propriété n'est pas initialisée : persister une
   entité sans lui donner de valeur échoue toujours.
+- **Le prédicat d'un index partiel est reporté** (`index.predicat`), tel que
+  le catalogue le rend, et écrit dans `options: ['where' => …]`. Un index dont
+  le prédicat cite une colonne de `colonnes_ignorees` part avec elle. Le texte
+  arrive tel quel dans le DDL de Doctrine : un calque logique reçu d'ailleurs
+  se relit comme une migration.
 
 ***
 
@@ -124,6 +136,10 @@ default there. An original `now()` is written `CURRENT_TIMESTAMP`, and
 meaning, not to be applied. A timestamp trait shared by tables of which only
 some have that default splits in two.
 
+**An entity whose table has a partial index changes in `Base/` on
+regeneration**, after `ormeau inferer`: its `#[ORM\Index]` or
+`#[ORM\UniqueConstraint]` gets the predicate in `options`.
+
 ### Fixed
 
 - **Under ORM 3 with DBAL 3, an entity with a `binary` column loads, and an
@@ -140,6 +156,9 @@ some have that default splits in two.
   longer lost**, nor those of the discriminator column under ORM 3. ORM 2.14
   refuses these options on the discriminator column: they are not written
   there.
+- **`migrations:diff` no longer proposes to drop a partial index and recreate
+  it without its predicate.** Once applied, a partial unique index became
+  stricter than the database, and rejected rows the database accepts.
 
 ### Added
 
@@ -161,6 +180,11 @@ some have that default splits in two.
   default, `gen_random_uuid()` or `clock_timestamp()`, raises the
   `defaut_non_reporte` warning. The property is not initialised: persisting an
   entity without giving it a value still fails.
+- **The predicate of a partial index is carried over** (`index.predicat`), as
+  the catalogue renders it, and written into `options: ['where' => …]`. An
+  index whose predicate mentions a column from `colonnes_ignorees` goes with
+  it. The text reaches Doctrine's DDL unchanged: a logical layer received from
+  elsewhere is to be reviewed like a migration.
 
 ## [0.5.2] — 2026-09-14 — Ce qui tenait sans être vérifié
 

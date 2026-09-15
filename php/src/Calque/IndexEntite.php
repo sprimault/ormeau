@@ -11,9 +11,10 @@ namespace Ormeau\Doctrine\Calque;
  * Un index reporté du physique, pour que la régénération du schéma soit
  * fidèle.
  *
- * Prédicat et méthode d'un index partiel n'y survivent pas : Doctrine ne sait
- * pas les exprimer, et un index partiel rendu en index complet serait un
- * mensonge plus grave que son absence. C'est le calque physique qui les garde.
+ * La méthode et la classe d'opérateurs n'y survivent pas : Doctrine ne sait
+ * pas les exprimer, et c'est le calque physique qui les garde. Le prédicat
+ * d'un index partiel, lui, suit : recréé complet, l'index mentirait, et une
+ * unicité partielle deviendrait plus stricte que la base.
  */
 final class IndexEntite
 {
@@ -22,11 +23,14 @@ final class IndexEntite
      *                               l'index, qui compte pour l'optimiseur
      * @param bool         $unique   vrai pour un index d'unicité, y compris composite
      * @param string|null  $nom      nom de l'index en base, absent quand le SGBD n'en expose pas
+     * @param string|null  $predicat condition d'un index partiel, verbatim du catalogue et
+     *                               jamais interprétée ; absente pour un index complet
      */
     public function __construct(
         public readonly array $colonnes,
         public readonly bool $unique,
         public readonly ?string $nom = null,
+        public readonly ?string $predicat = null,
     ) {}
 
     /**
@@ -36,7 +40,7 @@ final class IndexEntite
      * @param array<mixed> $donnees objet JSON décodé de l'index
      * @param string       $chemin  chemin de l'objet dans le calque, pour les messages
      *
-     * @throws CalqueInvalide colonnes absentes ou vides, unicité absente
+     * @throws CalqueInvalide colonnes absentes ou vides, unicité absente, prédicat qui n'est pas une chaîne
      */
     public static function depuisTableau(array $donnees, string $chemin): self
     {
@@ -45,7 +49,8 @@ final class IndexEntite
 
         $unique = Lecture::booleen($donnees, 'unique', $chemin);
         $nom = Lecture::chaineOptionnelle($donnees, 'nom', $chemin);
+        $predicat = Lecture::chaineOptionnelle($donnees, 'predicat', $chemin);
 
-        return new self($colonnes, $unique, $nom);
+        return new self($colonnes, $unique, $nom, $predicat);
     }
 }

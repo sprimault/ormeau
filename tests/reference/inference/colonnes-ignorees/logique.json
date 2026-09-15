@@ -209,7 +209,7 @@
     {
       "code": "colonne_ignoree",
       "cible": "public.client.raison_sociale",
-      "message": "raison_sociale est retirée de l'entité ; le calque physique la garde. Avec elle : index client_raison_sociale_idx. migrations:diff proposera de supprimer la colonne : à retirer du diff avant de l'appliquer",
+      "message": "raison_sociale est retirée de l'entité ; le calque physique la garde. Avec elle : index client_nom_raison_idx, index client_raison_sociale_idx. migrations:diff proposera de supprimer la colonne : à retirer du diff avant de l'appliquer",
       "resolution": "forcee_par_decision",
       "confiance": 1
     },
