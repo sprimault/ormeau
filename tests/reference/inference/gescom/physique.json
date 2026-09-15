@@ -5,8 +5,8 @@
     "version": "17.11",
     "catalogue": "gescom",
     "schema": "gescom",
-    "extrait_le": "2026-09-15T09:34:16Z",
-    "empreinte": "sha256:bb1c120096b903543182ad1a76f3f1df1aeea9b8b0182c83bae4f6cca5dffd50"
+    "extrait_le": "2026-09-15T10:15:01Z",
+    "empreinte": "sha256:3d50c47c2cdc633cbf9b2c029d12ae0ba54b1b42d20d47828e796b52132dda31"
   },
   "tables": [
     {
@@ -250,6 +250,74 @@
         {
           "nom": "ck_cli_statut",
           "expression": "CHECK (((cli_statut)::text = ANY ((ARRAY['ACTIF'::character varying, 'SUSPENDU'::character varying, 'ARCHIVE'::character varying])::text[])))"
+        }
+      ]
+    },
+    {
+      "nom": "t_client_adresse",
+      "schema": "gescom",
+      "colonnes": [
+        {
+          "nom": "adr_id",
+          "position": 1,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true
+        },
+        {
+          "nom": "cli_id",
+          "position": 2,
+          "type_brut": "integer",
+          "type_normalise": "entier",
+          "nullable": false
+        },
+        {
+          "nom": "adr_rue",
+          "position": 3,
+          "type_brut": "character varying(200)",
+          "type_normalise": "texte",
+          "longueur": 200,
+          "nullable": false,
+          "collation": "default"
+        }
+      ],
+      "cle_primaire": {
+        "nom": "t_client_adresse_pkey",
+        "colonnes": [
+          "adr_id"
+        ]
+      },
+      "cles_etrangeres": [
+        {
+          "nom": "t_client_adresse_cli_id_fkey",
+          "colonnes": [
+            "cli_id"
+          ],
+          "table_cible": "t_client",
+          "schema_cible": "gescom",
+          "colonnes_cibles": [
+            "cli_id"
+          ],
+          "a_la_suppression": "cascade"
+        }
+      ],
+      "unicites": [
+        {
+          "nom": "uq_adresse_client",
+          "colonnes": [
+            "cli_id"
+          ]
+        }
+      ],
+      "index": [
+        {
+          "nom": "uq_adresse_client",
+          "colonnes": [
+            "cli_id"
+          ],
+          "unique": true,
+          "methode": "btree"
         }
       ]
     },
@@ -605,6 +673,13 @@
     },
     {
       "nom": "t_categorie_cat_id_seq",
+      "schema": "gescom",
+      "increment": 1,
+      "minimum": 1,
+      "maximum": 2147483647
+    },
+    {
+      "nom": "t_client_adresse_adr_id_seq",
       "schema": "gescom",
       "increment": 1,
       "minimum": 1,

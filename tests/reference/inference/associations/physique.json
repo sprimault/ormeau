@@ -40,6 +40,14 @@
           "colonnes_cibles": ["id"],
           "a_la_suppression": "cascade"
         }
+      ],
+      "index": [
+        {
+          "nom": "adresse_facturation_client_id_key",
+          "colonnes": ["client_id"],
+          "unique": true,
+          "methode": "btree"
+        }
       ]
     },
     {

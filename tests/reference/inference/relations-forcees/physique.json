@@ -120,6 +120,14 @@
           "nom": "profil_utilisateur_ref_key",
           "colonnes": ["utilisateur_ref"]
         }
+      ],
+      "index": [
+        {
+          "nom": "profil_utilisateur_ref_key",
+          "colonnes": ["utilisateur_ref"],
+          "unique": true,
+          "methode": "btree"
+        }
       ]
     },
     {

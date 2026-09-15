@@ -61,6 +61,15 @@ CREATE TABLE t_client_contact (
     PRIMARY KEY (cli_id, ctc_id)
 );
 
+-- Un-vers-un hors clé primaire : la clé étrangère porte une contrainte
+-- d'unicité, dont PostgreSQL crée l'index de soutien du même nom.
+CREATE TABLE t_client_adresse (
+    adr_id  int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    cli_id  int NOT NULL REFERENCES t_client (cli_id) ON DELETE CASCADE,
+    adr_rue varchar(200) NOT NULL,
+    CONSTRAINT uq_adresse_client UNIQUE (cli_id)
+);
+
 -- Héritage : la clé primaire est aussi une clé étrangère.
 CREATE TABLE t_client_grand_compte (
     cli_id       int PRIMARY KEY REFERENCES t_client (cli_id),

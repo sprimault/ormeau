@@ -87,6 +87,12 @@
           "colonnes": ["raison_sociale"],
           "unique": false,
           "methode": "btree"
+        },
+        {
+          "nom": "client_siret_key",
+          "colonnes": ["siret"],
+          "unique": true,
+          "methode": "btree"
         }
       ]
     }
