@@ -270,6 +270,7 @@ final class RenduMembres
             $p->defautExpression,
             $p->longueurFixe,
             $p->generee,
+            $p->collation,
         );
     }
 
@@ -681,8 +682,14 @@ final class RenduMembres
      * jointure de la clé, qui n'a pas de propriété.
      *
      * Une colonne de jointure hors clé n'en reçoit pas : Doctrine la crée avec
-     * les options de la colonne visée, longueur fixe comprise (essai du
-     * 2026-09-15, ORM 2.14.3 et 3.7.1).
+     * les options de la colonne visée, longueur fixe et collation comprises
+     * (essais du 2026-09-15, ORM 2.14.3 à 3.7.1).
+     *
+     * La collation part telle que le calque la nomme : DBAL la cite en un seul
+     * identifiant, ce qui convient à une collation du schéma système, la seule
+     * que l'inférence reporte. Un ALTER … TYPE que migrations:diff propose
+     * pour une autre raison la perd pourtant : DBAL n'y écrit pas COLLATE
+     * (essai du 2026-09-15, DBAL 4.4.4).
      *
      * @return array<string, bool|Code|float|int|string>
      */
@@ -694,6 +701,7 @@ final class RenduMembres
             'default' => $propriete->defaut === null ? $this->defautCalcule($propriete) : ($defaut ?? $propriete->defaut),
             'comment' => $propriete->commentaire,
             'fixed' => $propriete->longueurFixe ? true : null,
+            'collation' => $propriete->collation,
             'jsonb' => $propriete->typeDoctrine === 'jsonb' && !$this->cible->connaitJsonb() ? true : null,
         ], static fn($valeur): bool => $valeur !== null);
     }

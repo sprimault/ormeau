@@ -77,6 +77,14 @@ une écriture appelle `#[PreUpdate]` une fois sans rien écrire, et un
 `PreUpdate` qui modifie une colonne l'écrit alors une fois de plus.
 `schema:create` recrée toujours une colonne ordinaire.
 
+**Un calque PostgreSQL déjà enregistré change à sa prochaine extraction** si
+une colonne a une collation hors de `pg_catalog` : elle gagne
+`collation_schema`. **Une colonne à collation explicite change dans `Base/`**
+après `ormeau inferer` : `options: ['collation' => …]`. Une collation d'un
+autre schéma n'est pas écrite. Un `ALTER … TYPE` que `migrations:diff`
+propose pour une autre raison fait perdre la collation, DBAL n'y écrivant pas
+`COLLATE` : à reprendre à la main avant de l'appliquer.
+
 ### Corrigé
 
 - **Sous ORM 3 avec DBAL 3, une entité à colonne `binary` se charge, et une
@@ -103,6 +111,7 @@ une écriture appelle `#[PreUpdate]` une fois sans rien écrire, et un
 - **La valeur d'une colonne générée n'est plus `null` en mémoire après un
   `flush`.** Exclue de l'INSERT et de l'UPDATE, elle n'était relue qu'au
   rechargement de l'entité.
+- **Une collation explicite n'est plus perdue par `schema:create`.**
 
 ### Ajouté
 
@@ -137,6 +146,12 @@ une écriture appelle `#[PreUpdate]` une fois sans rien écrire, et un
 - **Le calcul d'une colonne générée passe dans le calque logique**
   (`propriete.generee` : `expression`, `stockee`), repris tel quel du calque
   physique.
+- **Le calque physique garde le schéma d'une collation** hors de `pg_catalog`
+  (`colonne.collation_schema`), et le calque logique la collation explicite
+  d'une propriété (`propriete.collation`). Une collation d'un autre schéma
+  n'y passe pas : Doctrine l'écrirait en un seul identifiant, et son nom seul
+  dépendrait du `search_path` de l'application. Elle produit l'avertissement
+  `collation_non_reportee`.
 
 ***
 
@@ -180,6 +195,14 @@ follows a write calls `#[PreUpdate]` once without writing anything, and a
 `PreUpdate` that modifies a column then writes it once more. `schema:create`
 still recreates an ordinary column.
 
+**A PostgreSQL layer already saved changes on its next extraction** if a column
+has a collation outside `pg_catalog`: it gains `collation_schema`. **A column
+with an explicit collation changes in `Base/`** after `ormeau inferer`:
+`options: ['collation' => …]`. A collation from another schema is not written.
+An `ALTER … TYPE` that `migrations:diff` proposes for another reason drops the
+collation, since DBAL does not write `COLLATE` there: fix it by hand before
+applying it.
+
 ### Fixed
 
 - **Under ORM 3 with DBAL 3, an entity with a `binary` column loads, and an
@@ -206,6 +229,7 @@ still recreates an ordinary column.
 - **The value of a generated column is no longer `null` in memory after a
   `flush`.** Left out of the INSERT and the UPDATE, it was only read back when
   the entity was reloaded.
+- **An explicit collation is no longer lost by `schema:create`.**
 
 ### Added
 
@@ -240,6 +264,12 @@ still recreates an ordinary column.
 - **The computation of a generated column reaches the logical layer**
   (`propriete.generee`: `expression`, `stockee`), copied as is from the
   physical layer.
+- **The physical layer keeps the schema of a collation** outside `pg_catalog`
+  (`colonne.collation_schema`), and the logical layer the explicit collation
+  of a property (`propriete.collation`). A collation from another schema does
+  not get there: Doctrine would write it as a single identifier, and its bare
+  name would depend on the application's `search_path`. It raises the
+  `collation_non_reportee` warning.
 
 ## [0.5.2] — 2026-09-14 — Ce qui tenait sans être vérifié
 

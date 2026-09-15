@@ -18,7 +18,7 @@ abstract class TPaysBase
     #[ORM\Column(name: 'pay_code', type: 'string', length: 2, options: ['fixed' => true])]
     protected string $payCode;
 
-    #[ORM\Column(name: 'pay_libelle', type: 'string', length: 60)]
+    #[ORM\Column(name: 'pay_libelle', type: 'string', length: 60, options: ['collation' => 'fr-FR-x-icu'])]
     protected string $payLibelle;
 
     /** @var Collection<int, TCommande> */

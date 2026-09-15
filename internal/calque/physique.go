@@ -58,12 +58,17 @@ type Colonne struct {
 	AutoIncrement bool `json:"auto_increment,omitempty"`
 	// Identite n'a de sens qu'avec AutoIncrement. Vide dans un calque extrait
 	// avant qu'elle existe : la nature est alors inconnue, pas « par défaut ».
-	Identite    NatureIdentite `json:"identite,omitempty"`
-	Defaut      *Defaut        `json:"defaut,omitempty"`
-	Generee     *Generee       `json:"generee,omitempty"`
-	Collation   string         `json:"collation,omitempty"`
-	TypeEnumere string         `json:"type_enumere,omitempty"`
-	Commentaire string         `json:"commentaire,omitempty"`
+	Identite  NatureIdentite `json:"identite,omitempty"`
+	Defaut    *Defaut        `json:"defaut,omitempty"`
+	Generee   *Generee       `json:"generee,omitempty"`
+	Collation string         `json:"collation,omitempty"`
+	// CollationSchema n'est présent que pour une collation hors de
+	// pg_catalog : COLLATE gescom."C" n'est pas COLLATE "C", et le nom seul
+	// se résoudrait en silence vers pg_catalog. Absent d'un calque extrait
+	// avant ce champ, il ne dit rien.
+	CollationSchema string `json:"collation_schema,omitempty"`
+	TypeEnumere     string `json:"type_enumere,omitempty"`
+	Commentaire     string `json:"commentaire,omitempty"`
 }
 
 // NatureIdentite dit si une colonne produite par la base accepte une valeur

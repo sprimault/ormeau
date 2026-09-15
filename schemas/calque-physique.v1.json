@@ -81,7 +81,14 @@
         },
         "defaut": { "$ref": "#/$defs/defaut" },
         "generee": { "$ref": "#/$defs/generee" },
-        "collation": { "type": "string" },
+        "collation": {
+          "description": "Nom de la collation, non cité ; default pour la collation par défaut de la base.",
+          "type": "string"
+        },
+        "collation_schema": {
+          "description": "Schéma de la collation, présent seulement hors de pg_catalog : sous un search_path vide, tout le reste se résout sans chemin. Absent d'un calque extrait avant ce champ : schéma inconnu.",
+          "type": "string"
+        },
         "type_enumere": {
           "description": "Nom d'une entrée de types_enumeres, pour les SGBD à types énumérés natifs.",
           "type": "string"

@@ -73,6 +73,7 @@ var proprietesColonne = []propriete[calque.Colonne]{
 		return "virtuelle " + c.Generee.Expression
 	}},
 	{"collation", func(c *calque.Colonne) string { return c.Collation }},
+	{"collation_schema", func(c *calque.Colonne) string { return c.CollationSchema }},
 	{"type_enumere", func(c *calque.Colonne) string { return c.TypeEnumere }},
 	{"commentaire", func(c *calque.Colonne) string { return c.Commentaire }},
 }

@@ -180,6 +180,12 @@ export interface Propriete {
    * fait, la colonne change de comportement. Un fait de colonne, pas un type.
    */
   longueur_fixe?: boolean;
+  /**
+   * Collation explicite de la colonne, sous son nom de catalogue. Absente
+   * pour la collation par défaut de la base, et pour une collation hors du
+   * schéma système, que l'avertissement collation_non_reportee signale.
+   */
+  collation?: string;
   enumeration?: string;
   /**
    * DEFAULT '' est un défaut : absent et vide doivent rester distinguables,
@@ -458,6 +464,12 @@ export const CodeHeritageDeduit = "heritage_deduit";
  * sans lui, et l'application doit fournir la valeur.
  */
 export const CodeDefautNonReporte = "defaut_non_reporte";
+/**
+ * Une collation hors du schéma système : un générateur ne sait pas
+ * toujours l'écrire qualifiée, et son nom seul dépendrait du chemin de
+ * recherche de l'application. La propriété est rendue sans collation.
+ */
+export const CodeCollationNonReportee = "collation_non_reportee";
 
 //////////
 // source: physique.go
@@ -536,6 +548,13 @@ export interface Colonne {
   defaut?: Defaut;
   generee?: Generee;
   collation?: string;
+  /**
+   * CollationSchema n'est présent que pour une collation hors de
+   * pg_catalog : COLLATE gescom."C" n'est pas COLLATE "C", et le nom seul
+   * se résoudrait en silence vers pg_catalog. Absent d'un calque extrait
+   * avant ce champ, il ne dit rien.
+   */
+  collation_schema?: string;
   type_enumere?: string;
   commentaire?: string;
 }

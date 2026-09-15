@@ -254,13 +254,13 @@ func (p *pilote) lireColonnes(ctx context.Context, schemas []string, jeu *jeuDeT
 		var tableNom, tableSchema, typeInterne, identite, generee string
 		var estEnumere bool
 		var longueur, precision, echelle *int
-		var defaut, commentaire, collation *string
+		var defaut, commentaire, collation, collationSchema *string
 
 		c := calque.Colonne{}
 		if err := lignes.Scan(
 			&tableNom, &tableSchema, &c.Nom, &c.Position, &c.TypeBrut, &typeInterne,
 			&estEnumere, &longueur, &precision, &echelle, &c.Nullable,
-			&identite, &defaut, &generee, &commentaire, &collation,
+			&identite, &defaut, &generee, &commentaire, &collation, &collationSchema,
 		); err != nil {
 			return fmt.Errorf("lecture d'une colonne: %w", err)
 		}
@@ -288,6 +288,12 @@ func (p *pilote) lireColonnes(ctx context.Context, schemas []string, jeu *jeuDeT
 		}
 		if collation != nil {
 			c.Collation = *collation
+		}
+		// Seule une collation hors de pg_catalog porte son schéma : c'est la
+		// règle du search_path vide, sous lequel tout le reste se résout sans
+		// chemin, et les calques existants ne changent pas.
+		if collationSchema != nil {
+			c.CollationSchema = *collationSchema
 		}
 		if defaut != nil {
 			c.Defaut = classerDefaut(*defaut)
