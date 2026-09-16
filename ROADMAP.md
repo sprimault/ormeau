@@ -12,8 +12,9 @@ générateur.
 | 4 — Interface | terminée |
 | 5 — Génération Doctrine | terminée |
 | 6 — Aller-retour | terminée |
-| 7 à 10 | non commencées |
-| 11 — Publication | faite |
+| 7 — Introspection SQL Server | en cours |
+| 8 à 11 | non commencées |
+| 12 — Publication | faite |
 
 ## Phase 1 — Le calque physique
 
@@ -95,34 +96,45 @@ migrations.
 valide tout ce qui précède, et probablement celle qui fera remonter le plus de
 manques dans le format.
 
-## Phase 7 — Introspection MySQL, MariaDB et SQL Server
+## Phase 7 — Introspection SQL Server
 
-Deuxième et troisième dialectes. C'est là qu'on découvre ce que le calque v1 ne
-capture pas ; incrémenter `version_ri` si nécessaire, une seule fois de
-préférence.
+Deuxième dialecte, lu dans `sys.*`. C'est là qu'on découvre ce que le calque v1
+ne capture pas ; incrémenter `version_ri` si nécessaire, une seule fois pour
+cette phase et la suivante — ce qui suppose de regarder d'abord ce que MySQL et
+MariaDB exigeront aussi.
 
-MariaDB partage le protocole de MySQL et se traite dans le même paquet, la
-variante étant détectée à la connexion. Elle en diverge assez pour compter comme
-un SGBD à part entière dans le calque : elle a de vraies séquences là où MySQL
-n'a qu'`AUTO_INCREMENT`, et son type `JSON` n'est qu'un alias de `LONGTEXT`.
+SQL Server d'abord parce que c'est la base du public visé : le développeur PHP
+qui reprend une application dont le schéma a été écrit pour ASP classic ou les
+débuts de PHP, et qui porte les traces de cette époque — `binary(64)` alimenté
+hors ORM, `uniqueidentifier` par défaut `newid()`, `bit` partout où un booléen
+serait attendu, colonnes calculées non persistées, noms de colonnes à espaces,
+contraintes `DEFAULT` nommées automatiquement.
 
-## Phase 8 — Échantillonnage
+## Phase 8 — Introspection MySQL et MariaDB
+
+Troisième dialecte. MariaDB partage le protocole de MySQL et se traite dans le
+même paquet, la variante étant détectée à la connexion. Elle en diverge assez
+pour compter comme un SGBD à part entière dans le calque : elle a de vraies
+séquences là où MySQL n'a qu'`AUTO_INCREMENT`, et son type `JSON` n'est qu'un
+alias de `LONGTEXT`.
+
+## Phase 9 — Échantillonnage
 
 Statistiques, détection d'énumérations par cardinalité, détection des clés
 étrangères implicites. Optionnel, plafonné, lecture seule.
 
-## Phase 9 — Diff
+## Phase 10 — Diff
 
 `ormeau diff` entre deux calques physiques, et `ormeau:synchroniser` entre calque
 et entités existantes. Sortie lisible, sortie JSON, code de retour exploitable en
 CI.
 
-## Phase 10 — Régénération par AST
+## Phase 11 — Régénération par AST
 
 Mode avancé : réécriture ciblée avec `nikic/php-parser`, préservation des
 méthodes métier et du formatage. Tests de survie des modifications manuelles.
 
-## Phase 11 — Publication
+## Phase 12 — Publication
 
 README bilingue, documentation d'installation, avertissement d'usage, subtree
 split vers Packagist, image Docker multi-arch, binaires de version.
@@ -131,6 +143,17 @@ Faite en avance : publier une version dès qu'il y avait un usage réel valait
 mieux que d'attendre la fin. Le split est en place depuis la phase 5 : `php/`
 est publié en miroir dans `sprimault/ormeau-doctrine`, inscrit sur Packagist
 et mis à jour à chaque push du miroir.
+
+## Chaque dialecte a sa base de test
+
+Le DDL de référence n'est pas un schéma unique au plus petit dénominateur
+commun : chaque dialecte reçoit le sien, même schéma logique décliné dans ses
+types propres. C'est ce qui rend les aller-retours comparables entre eux, et
+c'est la seule façon d'éprouver ce qu'un dialecte est seul à savoir faire.
+
+Il se tient à jour en même temps que les heuristiques, et couvre délibérément
+les cas que les outils existants gèrent mal. Un type qui n'y figure pas est
+rendu sans avoir jamais été recréé ni relu.
 
 ## Hors périmètre v1
 
