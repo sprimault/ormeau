@@ -14,8 +14,7 @@ namespace Ormeau\Doctrine\Generation;
  * Jusqu'à ORM 2.15 comprise, JoinedSubclassPersister::getInsertColumnList()
  * garde la colonne dans l'INSERT sans lui fournir de valeur : PostgreSQL
  * répond « cannot insert a non-DEFAULT value into column », et aucune entité
- * de la hiérarchie ne s'enregistre, racine comprise (essai du 2026-09-16, ORM
- * 2.14.3 et 2.15.5 contre PostgreSQL 17). Corrigé en 2.16.0 par
+ * de la hiérarchie ne s'enregistre, racine comprise. Corrigé en 2.16.0 par
  * doctrine/orm#10598, jamais rétroporté : la seule sortie est de monter de
  * version.
  *

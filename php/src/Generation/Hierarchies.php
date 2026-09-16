@@ -124,9 +124,9 @@ final class Hierarchies
         }
 
         // ORM 2.14 ne connaît pas le paramètre options de #[DiscriminatorColumn] :
-        // l'écrire rend toutes les métadonnées illisibles (essai du 2026-09-15,
-        // « Unknown named parameter $options »). Le plancher décide, la cible se
-        // raisonne par majeure.
+        // l'écrire rend toutes les métadonnées illisibles, « Unknown named
+        // parameter $options ». Le plancher décide, la cible se raisonne par
+        // majeure.
         $options = [];
         if ($propriete !== null && $cible !== null && $cible->ormMajeure >= 3) {
             $options = array_filter([

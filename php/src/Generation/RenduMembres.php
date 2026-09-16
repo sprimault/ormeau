@@ -84,10 +84,10 @@ final class RenduMembres
      * propriété ou association de clé —, puis les autres propriétés, puis les
      * autres associations ; les accesseurs suivent le même ordre. Doctrine
      * forme la clé primaire dans l'ordre de déclaration des membres #[ORM\Id] :
-     * une association de clé rendue après les propriétés inversait la clé, et
-     * migrations:diff proposait de la supprimer puis de la recréer (essai du
-     * 2026-09-15, ORM 2.14.3 et 3.7.1). L'ordre de la clé l'emporte sur la
-     * position des colonnes, que le comparateur de DBAL ignore.
+     * une association de clé rendue après les propriétés inverse la clé, et
+     * migrations:diff propose alors de la supprimer puis de la recréer.
+     * L'ordre de la clé l'emporte sur la position des colonnes, que le
+     * comparateur de DBAL ignore.
      *
      * @param list<Propriete>   $proprietes   propriétés à rendre, dans l'ordre du calque
      * @param Identifiant|null  $identifiant  clé de l'entité ; null pour un trait, qui n'en porte pas
@@ -246,8 +246,7 @@ final class RenduMembres
      * lui, reste. DBAL le substitue à l'index qu'il aurait créé pour la
      * jointure : un seul index, qui garde le nom de la base. Sans lui, l'index
      * s'appellerait UNIQ_… et migrations:diff proposerait de renommer celui de
-     * la base d'origine (essai du 2026-09-15, ORM 2.14.3 et 3.7.1 contre
-     * PostgreSQL 17).
+     * la base d'origine.
      */
     private static function enLectureSeule(Propriete $p): Propriete
     {
@@ -404,8 +403,8 @@ final class RenduMembres
             'updatable' => $propriete->modifiable ? null : false,
             // Relue par un SELECT après chaque INSERT et UPDATE, sans quoi elle
             // vaut null en mémoire jusqu'au rechargement ; aucun effet sur le DDL,
-            // que DBAL ne sait pas écrire pour une colonne générée (essai du
-            // 2026-09-15, ORM 2.14.3 à 3.7.1). Contrepartie de Doctrine : le
+            // que DBAL ne sait pas écrire pour une colonne générée.
+            // Contrepartie de Doctrine : le
             // flush qui suit une écriture croit la colonne modifiée, n'émet
             // rien, mais appelle #[PreUpdate] une fois.
             'generated' => $propriete->generee === null ? null : 'ALWAYS',
@@ -439,8 +438,7 @@ final class RenduMembres
      *
      * Une colonne de jointure de la clé n'a pas de propriété : son commentaire
      * et son défaut vont en options de la JoinColumn, sans quoi Doctrine la
-     * recrée avec les options de la colonne visée (essai du 2026-09-15, accepté
-     * par ORM 2.14.3 et 3.7.1).
+     * recrée avec les options de la colonne visée.
      *
      * @param Association              $association association à rendre
      * @param bool                     $dansLaCle   l'association porte l'identifiant
@@ -476,8 +474,7 @@ final class RenduMembres
         if ($association->proprietaire && $association->tableJointure !== null) {
             $table = $association->tableJointure;
             // La table de jointure n'a pas d'entité : son commentaire va sur
-            // #[JoinTable], accepté par ORM 2.14 comme par ORM 3 (essai du
-            // 2026-09-15).
+            // #[JoinTable], accepté par ORM 2.14 comme par ORM 3.
             $argumentsTable = IdentifiantsSql::table($table->nom, $this->avecSchema ? $table->schema : null);
             $argumentsTable['options'] = $table->commentaire === null ? null : ['comment' => $table->commentaire];
             $lignes[] = Emetteur::attribut('ORM\JoinTable', $argumentsTable, $i);
@@ -516,8 +513,8 @@ final class RenduMembres
      * l'écrire est déprécié depuis ORM 3.6, erreur annoncée en 4.0
      * (doctrine/orm#12126). C'est la présence de l'attribut qui déclenche la
      * dépréciation, pas sa valeur. Le DDL est identique avec ou sans, sous
-     * ORM 2 comme sous ORM 3 (essai du 2026-09-16, qu'aucun test ne rejoue) :
-     * il n'est donc écrit sous aucune cible, sans règle par version.
+     * ORM 2 comme sous ORM 3 : il n'est donc écrit sous aucune cible, sans
+     * règle par version.
      *
      * @param bool $avecNullable faux là où Doctrine ignore nullable : table de jointure, clé
      *
@@ -690,14 +687,12 @@ final class RenduMembres
      * jointure de la clé, qui n'a pas de propriété.
      *
      * Une colonne de jointure hors clé n'en reçoit pas : Doctrine la crée avec
-     * les options de la colonne visée, longueur fixe et collation comprises
-     * (essais du 2026-09-15, ORM 2.14.3 à 3.7.1).
+     * les options de la colonne visée, longueur fixe et collation comprises.
      *
      * La collation part telle que le calque la nomme : DBAL la cite en un seul
      * identifiant, ce qui convient à une collation du schéma système, la seule
      * que l'inférence reporte. Un ALTER … TYPE que migrations:diff propose
-     * pour une autre raison la perd pourtant : DBAL n'y écrit pas COLLATE
-     * (essai du 2026-09-15, DBAL 4.4.4).
+     * pour une autre raison la perd pourtant : DBAL n'y écrit pas COLLATE.
      *
      * @return array<string, bool|Code|float|int|string>
      */
@@ -719,7 +714,7 @@ final class RenduMembres
      * cible connaît.
      *
      * jsonb devient json, son option dit le reste : les deux recréent JSONB et
-     * se relisent sans écart, sous DBAL 3.10 comme 4.2 (essai du 2026-09-15).
+     * se relisent sans écart, sous DBAL 3.10 comme 4.2.
      * smallfloat devient float, qui recrée DOUBLE PRECISION : aucune forme ne
      * décrit la simple précision avant DBAL 4.1, et migrations:diff ne propose
      * rien face à la base d'origine, DBAL 3 relisant real en float.
@@ -740,8 +735,7 @@ final class RenduMembres
      * (dbal#7195, signalé par le SchemaTool d'ORM 3.7), qui reste la seule
      * forme avant : la classe n'existe pas sous DBAL 3. Les deux écrivent le
      * même DDL. Aucune ne reproduit un now() d'origine, que migrations:diff
-     * propose de réécrire en CURRENT_TIMESTAMP : même sens, texte différent
-     * (essai du 2026-09-15, ORM 2.14.3 / DBAL 3.10.6 et ORM 3.7.1 / DBAL 4.4.4).
+     * propose de réécrire en CURRENT_TIMESTAMP : même sens, texte différent.
      *
      * La propriété n'est pas initialisée : la valeur n'est connue que de la
      * base, à l'insertion.

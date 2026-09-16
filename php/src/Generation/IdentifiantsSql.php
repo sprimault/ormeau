@@ -19,9 +19,8 @@ namespace Ormeau\Doctrine\Generation;
  *
  * Le calque logique ne porte pas le SGBD : la liste des mots réservés est
  * celle des SGBD dont Ormeau extrait les calques, PostgreSQL seul aujourd'hui.
- * Citer un nom exact qui n'en avait pas besoin ne casse rien — essai A2b, sous
- * ORM 2.14 et 3.6 contre PostgreSQL 17 —, l'union des listes suffira donc
- * quand un autre SGBD arrivera.
+ * Citer un nom exact qui n'en avait pas besoin ne casse rien : l'union des
+ * listes suffira donc quand un autre SGBD arrivera.
  *
  * La liste vit ici et non dans DBAL : le code produit ne doit pas changer
  * parce qu'une dépendance s'est mise à jour.

@@ -414,7 +414,7 @@ func inferrerPropriete(c *calque.Colonne, cibleTable string, d *Decisions) (calq
 	// default n'est pas une collation mais la sentinelle de PostgreSQL pour
 	// « celle de la base ». Hors de pg_catalog, Doctrine écrit le nom qualifié
 	// en un seul identifiant, refusé, et le nom seul ne se résout que par le
-	// search_path de l'application (essai du 2026-09-15) : rien n'est reporté
+	// search_path de l'application : rien n'est reporté
 	// plutôt qu'une collation qui échouerait ailleurs. Un type forcé dans une
 	// autre famille n'a plus de collation.
 	switch {

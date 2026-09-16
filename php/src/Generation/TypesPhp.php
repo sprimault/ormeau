@@ -21,10 +21,8 @@ use Ormeau\Doctrine\Calque\Propriete;
  * Deux types changent avec DBAL 4 : bigint, rendu en chaîne par DBAL 2 et 3 et
  * en entier par DBAL 4, et binary, rendu en ressource par DBAL 2 et 3 et en
  * chaîne par DBAL 4. La table s'indexe par DBAL et non par ORM : ORM 3 accepte
- * DBAL 3.8, sous lequel binary en chaîne empêchait de charger l'entité
- * (TypeError) et bigint en entier la faisait croire modifiée (essai du
- * 2026-09-15, ORM 3.7.1 avec DBAL 3.10.6, et ORM 2.14.3 avec DBAL 2.13.9, qui
- * hydrate comme DBAL 3).
+ * DBAL 3.8, sous lequel binary en chaîne empêche de charger l'entité
+ * (TypeError) et bigint en entier la fait croire modifiée.
  *
  * Le champ type_php du calque n'est lu que pour un type absent de cette table,
  * typiquement un type personnalisé forcé par décision : seul son auteur sait ce

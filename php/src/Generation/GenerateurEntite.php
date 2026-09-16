@@ -530,9 +530,8 @@ final class GenerateurEntite
      *
      * Doctrine colle le schéma d'une table de jointure sans jamais le citer
      * (DefaultQuoteStrategy::getJoinTableName) : Compta devient compta, et
-     * aucune forme portable ne passe (essai A2b, ORM 2.14 et 3.6). Seul un
-     * schéma entre guillemets doubles fonctionnait, guillemet propre à
-     * PostgreSQL que MySQL refuse. Les deux côtés partent, l'entité reste : une
+     * aucune forme portable ne passe. Seul un schéma entre guillemets doubles
+     * fonctionne, guillemet propre à PostgreSQL que MySQL refuse. Les deux côtés partent, l'entité reste : une
      * association qui échoue à l'exécution vaut moins que son absence
      * expliquée. Sans schéma écrit, la question ne se pose pas.
      *
