@@ -458,6 +458,34 @@ func TestExtraireLesCasTordus(t *testing.T) {
 		}
 	})
 
+	// Même règle que les classes d'opérateurs : les sens de tri ne sortent que
+	// si l'un d'eux est descendant.
+	t.Run("index descendant", func(t *testing.T) {
+		ordres := map[string][]calque.OrdreIndex{}
+		for _, idx := range tableOuEchouer(t, p, "t_client").Index {
+			ordres[idx.Nom] = idx.Ordres
+		}
+		if o, ok := ordres["ix_cli_nom_desc"]; !ok || len(o) != 1 || o[0] != calque.OrdreDescendant {
+			t.Errorf("ordres de ix_cli_nom_desc : %v (present %v), attendu [desc]", o, ok)
+		}
+		if o := ordres["ix_cli_nom"]; o != nil {
+			t.Errorf("ordres %v sur un index ascendant", o)
+		}
+	})
+
+	// Le départ est lu pour toute séquence, celles d'une identité comprises.
+	t.Run("depart des sequences", func(t *testing.T) {
+		departs := map[string]*int64{}
+		for _, s := range p.Sequences {
+			departs[s.Nom] = s.Depart
+		}
+		for _, nom := range []string{"t_avoir_avo_id_seq", "t_client_cli_id_seq"} {
+			if d, ok := departs[nom]; !ok || d == nil || *d != 1 {
+				t.Errorf("depart de %s : %v (present %v), attendu 1", nom, d, ok)
+			}
+		}
+	})
+
 	t.Run("type enumere natif", func(t *testing.T) {
 		c := colonneOuEchouer(t, p, "t_commande", "cmd_canal")
 		if c.TypeNormalise != calque.TypeEnumereNorm {

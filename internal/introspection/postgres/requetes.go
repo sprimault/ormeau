@@ -53,6 +53,7 @@ const requeteSequences = `
 SELECT n.nspname       AS schema,
        c.relname       AS nom,
        s.seqincrement  AS increment,
+       s.seqstart      AS depart,
        s.seqmin        AS minimum,
        s.seqmax        AS maximum,
        s.seqcycle      AS cyclique
@@ -102,6 +103,9 @@ ORDER BY n.nspname, c.relname
 // rang que la colonne. opcdefault dit si elle est implicite : ne remonter que
 // les classes explicites évite de charger le calque d'un int4_ops par index
 // trivial, et c'est ce que fait pg_get_indexdef lui-même.
+//
+// indoption porte un jeu de bits par colonne, apparié de la même façon : le
+// premier dit DESC. Le second, NULLS FIRST, n'a pas de place dans le calque.
 const requeteColonnesIndex = `
 SELECT n.nspname     AS schema,
        c.relname     AS table_nom,
@@ -109,6 +113,7 @@ SELECT n.nspname     AS schema,
        a.attname     AS colonne,
        o.opcname     AS classe_operateurs,
        o.opcdefault  AS classe_par_defaut,
+       (ix.indoption[k.ordinalite - 1] & 1) = 1 AS descendant,
        k.ordinalite
 FROM pg_index ix
          JOIN pg_class c ON c.oid = ix.indrelid

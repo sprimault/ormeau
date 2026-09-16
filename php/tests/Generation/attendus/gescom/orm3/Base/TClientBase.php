@@ -23,6 +23,7 @@ use Doctrine\ORM\Mapping as ORM;
     options: ['where' => '((cli_statut)::text = \'ACTIF\'::text)'],
 )]
 #[ORM\Index(name: 'ix_cli_nom', columns: ['cli_nom'])]
+#[ORM\Index(name: 'ix_cli_nom_desc', columns: ['cli_nom'])]
 #[ORM\Index(name: 'ix_cli_nom_prefixe', columns: ['cli_nom'])]
 #[ORM\UniqueConstraint(name: 'uq_cli_siret', columns: ['cli_siret'])]
 abstract class TClientBase
