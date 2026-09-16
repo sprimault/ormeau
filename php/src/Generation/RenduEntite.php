@@ -197,7 +197,11 @@ final class RenduEntite
                 $index->unique ? 'ORM\UniqueConstraint' : 'ORM\Index',
                 [
                     'name' => $index->nom,
-                    'columns' => $index->colonnes,
+                    // Citées comme elles le sont dans #[ORM\Column] : DBAL
+                    // recopie ces noms tels quels dans le CREATE INDEX, et un
+                    // identifiant nu y serait replié en minuscules par la base,
+                    // qui refuserait alors la colonne.
+                    'columns' => array_map(IdentifiantsSql::colonne(...), $index->colonnes),
                     'options' => $index->predicat === null ? null : ['where' => $index->predicat],
                 ],
                 '',

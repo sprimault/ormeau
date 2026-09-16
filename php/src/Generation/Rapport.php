@@ -10,14 +10,15 @@ namespace Ormeau\Doctrine\Generation;
 /**
  * Ce qu'une génération a fait, et ce qu'elle laisse à l'utilisateur.
  *
- * Sept listes, parce que ce sont sept questions différentes : qu'est-ce qui a
+ * Huit listes, parce que ce sont huit questions différentes : qu'est-ce qui a
  * été écrit, qu'est-ce qui n'a pas pu l'être, qu'est-ce qui a été écrit sans
  * une partie, qu'est-ce que l'utilisateur doit reprendre à la main dans ses
  * propres classes, qu'est-ce qui appartient à une autre base, qu'est-ce que
- * son outil de migration lui proposera à tort, et qu'est-ce que la version
- * d'ORM installée empêchera d'enregistrer. Aucune ne bloque la génération du
- * reste ; seul un refus d'écrasement dit que la génération demandée n'a pas eu
- * lieu, et fait échouer la commande.
+ * son outil de migration lui proposera à tort, qu'est-ce que la version d'ORM
+ * installée empêchera d'enregistrer, et quel index de la base ne se retrouve
+ * pas dans les entités. Aucune ne bloque la génération du reste ; seul un
+ * refus d'écrasement dit que la génération demandée n'a pas eu lieu, et fait
+ * échouer la commande.
  */
 final class Rapport
 {
@@ -36,6 +37,7 @@ final class Rapport
      * @param list<ColonneGenereeNonExclue> $generees  hiérarchies jointes qu'une version d'ORM antérieure
      *                                                 à 2.16 n'enregistrera pas, à cause d'une colonne
      *                                                 calculée par la base sur la racine
+     * @param list<IndexOmis>               $index     index laissés de côté, DBAL refusant leur nom
      */
     public function __construct(
         public readonly array $fichiers,
@@ -45,5 +47,6 @@ final class Rapport
         public readonly array $refus = [],
         public readonly array $sequences = [],
         public readonly array $generees = [],
+        public readonly array $index = [],
     ) {}
 }

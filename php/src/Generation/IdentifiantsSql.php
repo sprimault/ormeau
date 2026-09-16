@@ -67,6 +67,20 @@ final class IdentifiantsSql
     }
 
     /**
+     * Dit si DBAL refuse ce nom d'index.
+     *
+     * DBAL impose [a-zA-Z0-9_] et lève IndexNameInvalid en construisant la
+     * table, avant tout DDL : l'entité entière cesse alors de produire son
+     * schéma. Le nom ne se rattrape pas, parce que le contrôle a lieu avant la
+     * décitation — des backticks sont refusés comme le reste. L'omettre en
+     * ferait inventer un par Doctrine, à la place de celui que porte la base.
+     */
+    public static function nomDIndexRefuse(string $nom): bool
+    {
+        return preg_match('/^[a-zA-Z0-9_]+$/', $nom) !== 1;
+    }
+
+    /**
      * Rend les arguments name et schema de #[ORM\Table] ou #[ORM\JoinTable].
      *
      * Le schéma reste nu, et c'est le nom qui porte les backticks : Doctrine ne

@@ -13,6 +13,7 @@ use Ormeau\Doctrine\Calque\Association;
 use Ormeau\Doctrine\Calque\CalqueLogique;
 use Ormeau\Doctrine\Calque\Entite;
 use Ormeau\Doctrine\Calque\Enumeration;
+use Ormeau\Doctrine\Calque\IndexEntite;
 use Ormeau\Doctrine\Calque\Propriete;
 use Ormeau\Doctrine\Calque\StrategieIdentifiant;
 use RuntimeException;
@@ -212,6 +213,8 @@ final class GenerateurEntite
             $generees[] = $this->sansCotesInversesOrphelins($entite, $calque->entites, $raisons, $omises);
         }
         $generees = self::sansJointuresEnSchemaCite($generees, count($schemas) > 1, $omises);
+        $indexOmis = [];
+        $generees = self::sansIndexAuNomRefuse($generees, $indexOmis);
 
         // Les hiérarchies se relisent sur les entités retenues : une classe
         // fille appelle le constructeur de son parent selon les collections
@@ -263,7 +266,7 @@ final class GenerateurEntite
             ));
         }
 
-        return new Rapport($fichiers, $ecartees, $divergences, $omises, $ecrasements, $sequences, $colonnesGenerees);
+        return new Rapport($fichiers, $ecartees, $divergences, $omises, $ecrasements, $sequences, $colonnesGenerees, $indexOmis);
     }
 
     /**
@@ -581,6 +584,58 @@ final class GenerateurEntite
         }
 
         return $resultat;
+    }
+
+    /**
+     * Rend les entités sans les index dont DBAL refuse le nom, et note chacun.
+     *
+     * L'index part seul : l'entité, ses propriétés et ses autres index restent
+     * générés. Gardé, il ferait échouer la construction de la table, donc tout
+     * le schéma de l'entité.
+     *
+     * @param list<Entite>    $entites entités retenues
+     * @param list<IndexOmis> $omis    index écartés, complété ici
+     *
+     * @return list<Entite>
+     */
+    private static function sansIndexAuNomRefuse(array $entites, array &$omis): array
+    {
+        $resultat = [];
+        foreach ($entites as $entite) {
+            $gardes = [];
+            foreach ($entite->index as $index) {
+                if ($index->nom === null || !IdentifiantsSql::nomDIndexRefuse($index->nom)) {
+                    $gardes[] = $index;
+                    continue;
+                }
+                $omis[] = new IndexOmis($entite->nom, $index->nom, $index->unique);
+            }
+            $resultat[] = count($gardes) === count($entite->index) ? $entite : self::avecIndex($entite, $gardes);
+        }
+
+        return $resultat;
+    }
+
+    /**
+     * Rend l'entité avec d'autres index, le reste inchangé.
+     *
+     * @param list<IndexEntite> $index index retenus
+     */
+    private static function avecIndex(Entite $entite, array $index): Entite
+    {
+        return new Entite(
+            $entite->nom,
+            $entite->table,
+            $entite->proprietes,
+            $entite->heritage,
+            $entite->traits,
+            $entite->identifiant,
+            $entite->associations,
+            $index,
+            $entite->origine,
+            $entite->valeurDiscriminante,
+            $entite->commentaire,
+        );
     }
 
     /**

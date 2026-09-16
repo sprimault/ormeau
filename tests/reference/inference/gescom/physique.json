@@ -5,8 +5,8 @@
     "version": "17.11",
     "catalogue": "gescom",
     "schema": "gescom",
-    "extrait_le": "2026-09-15T18:05:52Z",
-    "empreinte": "sha256:d2996cf398ab6f4a03802e734129a422337bb7b8d441cc4c3292c8a42bbc6ebf"
+    "extrait_le": "2026-09-16T01:02:13Z",
+    "empreinte": "sha256:7bbd677c38b60febc110d5d94b6e2bc25b7fcfa2ebdce934cd5775c41c971bdf"
   },
   "tables": [
     {
@@ -768,6 +768,15 @@
           "longueur": 10,
           "nullable": true,
           "collation": "default"
+        },
+        {
+          "nom": "Libellé",
+          "position": 4,
+          "type_brut": "character varying(30)",
+          "type_normalise": "texte",
+          "longueur": 30,
+          "nullable": true,
+          "collation": "default"
         }
       ],
       "cle_primaire": {
@@ -775,7 +784,25 @@
         "colonnes": [
           "id"
         ]
-      }
+      },
+      "index": [
+        {
+          "nom": "ix_reference_libelle",
+          "colonnes": [
+            "Libellé"
+          ],
+          "unique": false,
+          "methode": "btree"
+        },
+        {
+          "nom": "ix_reference_order",
+          "colonnes": [
+            "order"
+          ],
+          "unique": false,
+          "methode": "btree"
+        }
+      ]
     },
     {
       "nom": "t_tag",

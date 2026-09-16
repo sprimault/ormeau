@@ -178,19 +178,26 @@ final class MappingTest extends TestCase
                     self::assertTrue($meta->hasAssociation($association->nom), $classe . '::' . $association->nom);
                     self::assertSame($calque->espaceDeNoms . '\\' . $association->cible, $meta->getAssociationTargetClass($association->nom));
                 }
+                // Un index dont DBAL refuse le nom n'est pas mappé, et le
+                // rapport le déclare : le compte se fait sur ce qui reste.
+                $refuses = array_map(
+                    static fn($i): string => $i->nom,
+                    array_filter($rapport->index, static fn($i): bool => $i->entite === $entite->nom),
+                );
+                $retenus = array_filter($entite->index, static fn($i): bool => !in_array($i->nom, $refuses, true));
                 self::assertCount(
-                    count(array_filter($entite->index, static fn($i): bool => $i->unique)),
+                    count(array_filter($retenus, static fn($i): bool => $i->unique)),
                     $meta->table['uniqueConstraints'] ?? [],
                     $classe . ' : contraintes d\'unicité',
                 );
                 self::assertCount(
-                    count(array_filter($entite->index, static fn($i): bool => !$i->unique)),
+                    count(array_filter($retenus, static fn($i): bool => !$i->unique)),
                     $meta->table['indexes'] ?? [],
                     $classe . ' : index',
                 );
                 // Le prédicat arrive à Doctrine tel que le calque le porte :
                 // un échappement faux le changerait sans rien refuser.
-                foreach ($entite->index as $index) {
+                foreach ($retenus as $index) {
                     if ($index->predicat === null || $index->nom === null) {
                         continue;
                     }

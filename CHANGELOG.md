@@ -38,6 +38,18 @@ préambule reste en français : il n'est jamais publié.
 
 ### Corrigé
 
+- **Les colonnes d'un index sont citées comme elles le sont ailleurs.**
+  Doctrine recopie ces noms tels quels dans le `CREATE INDEX` : une colonne
+  dont la forme exige des guillemets — majuscules, accents, espaces — y
+  arrivait nue, la base la repliait en minuscules et refusait la requête.
+  `schema:create` échouait donc sur la table concernée. Un mot réservé, lui,
+  était déjà cité par DBAL.
+- **Un index dont Doctrine refuse le nom est laissé de côté au lieu
+  d'empêcher toute l'entité.** DBAL n'accepte qu'un nom en `[a-zA-Z0-9_]` :
+  un index nommé `IX_Libellé hors défaut` faisait échouer `schema:create`
+  pour l'entité entière, index compris. Il est désormais omis et signalé au
+  rapport, avec ce qu'il en coûte quand il portait une unicité. Le renommer
+  en base le rétablit.
 - **`nullable` n'est plus écrit sur la colonne de jointure d'un
   identifiant.** Doctrine l'y ignore — la clé primaire rend la colonne
   obligatoire —, et l'écrire est déprécié depuis ORM 3.6, erreur annoncée en
@@ -59,6 +71,16 @@ préambule reste en français : il n'est jamais publié.
 
 ### Fixed
 
+- **Index columns are quoted as they are elsewhere.** Doctrine copies those
+  names verbatim into the `CREATE INDEX`: a column whose form requires quoting
+  — uppercase, accents, spaces — arrived bare, the database folded it to
+  lowercase and rejected the statement. `schema:create` therefore failed on
+  that table. A reserved word was already quoted by DBAL.
+- **An index whose name Doctrine rejects is left out instead of blocking the
+  whole entity.** DBAL only accepts a name in `[a-zA-Z0-9_]`: an index named
+  `IX_Libellé hors défaut` made `schema:create` fail for the entire entity,
+  indexes included. It is now omitted and reported, stating what is lost when
+  it carried a unique constraint. Renaming it in the database brings it back.
 - **`nullable` is no longer written on the join column of an identifier.**
   Doctrine ignores it there — the primary key already makes the column
   required — and writing it has been deprecated since ORM 3.6, announced as an

@@ -1,6 +1,6 @@
 {
   "version_ri": 1,
-  "empreinte_physique": "sha256:d2996cf398ab6f4a03802e734129a422337bb7b8d441cc4c3292c8a42bbc6ebf",
+  "empreinte_physique": "sha256:7bbd677c38b60febc110d5d94b6e2bc25b7fcfa2ebdce934cd5775c41c971bdf",
   "espace_de_noms": "App\\Entity",
   "entites": [
     {
@@ -834,6 +834,31 @@
           "nullable": true,
           "longueur": 10,
           "origine": "contrainte"
+        },
+        {
+          "nom": "libellé",
+          "colonne": "Libellé",
+          "type_php": "?string",
+          "type_doctrine": "string",
+          "nullable": true,
+          "longueur": 30,
+          "origine": "contrainte"
+        }
+      ],
+      "index": [
+        {
+          "nom": "ix_reference_libelle",
+          "colonnes": [
+            "Libellé"
+          ],
+          "unique": false
+        },
+        {
+          "nom": "ix_reference_order",
+          "colonnes": [
+            "order"
+          ],
+          "unique": false
         }
       ],
       "origine": "nommage"
