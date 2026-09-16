@@ -455,6 +455,11 @@ export const CodeSequenceNonReconnue = "sequence_non_reconnue";
  */
 export const CodeTexteUnicodeSansEquivalent = "texte_unicode_sans_equivalent";
 /**
+ * Un horodatage avec fuseau à plus de six décimales : Doctrine n'en lit
+ * que six, et la lecture échoue tant que la colonne n'est pas réduite.
+ */
+export const CodeFuseauPrecisionNonLue = "fuseau_precision_non_lue";
+/**
  * Une clé étrangère qui désigne autre chose que la clé primaire de sa
  * cible : Doctrine n'associe que vers l'identifiant, la colonne reste une
  * propriété.
@@ -553,6 +558,18 @@ export interface Colonne {
    * avant ce champ : inconnu, pas « variable ».
    */
   longueur_fixe?: boolean;
+  /**
+   * Fuseau dit qu'un horodatage ou une heure porte son décalage :
+   * timestamptz et timetz de PostgreSQL, datetimeoffset de SQL Server. Même
+   * raison que LongueurFixe, même lecture d'un calque qui ne le porte pas.
+   */
+  fuseau?: boolean;
+  /**
+   * PrecisionFractionnaire est le nombre de décimales des secondes d'un
+   * horodatage ou d'une heure. Pas Precision, qui garde le sens d'un
+   * décimal. Absente quand le type n'en déclare pas.
+   */
+  precision_fractionnaire?: number /* int */;
   nullable: boolean;
   auto_increment?: boolean;
   /**

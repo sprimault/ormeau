@@ -314,6 +314,9 @@ const (
 	// VARCHAR(MAX) : rendu en chaîne plutôt qu'en text, qui perdrait l'Unicode
 	// en silence.
 	CodeTexteUnicodeSansEquivalent = "texte_unicode_sans_equivalent"
+	// Un horodatage avec fuseau à plus de six décimales : Doctrine n'en lit
+	// que six, et la lecture échoue tant que la colonne n'est pas réduite.
+	CodeFuseauPrecisionNonLue = "fuseau_precision_non_lue"
 	// Une clé étrangère qui désigne autre chose que la clé primaire de sa
 	// cible : Doctrine n'associe que vers l'identifiant, la colonne reste une
 	// propriété.

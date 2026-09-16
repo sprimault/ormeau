@@ -396,6 +396,17 @@ func inferrerPropriete(c *calque.Colonne, cibleTable string, d *Decisions) (calq
 			Confiance:  0.5,
 		})
 	}
+	// Après la décision : un type forcé en datetimetz échoue tout autant.
+	if corr.doctrine == "datetimetz_immutable" && c.PrecisionFractionnaire != nil && *c.PrecisionFractionnaire > decimalesLuesAvecFuseau {
+		avertissements = append(avertissements, calque.Avertissement{
+			Code:  calque.CodeFuseauPrecisionNonLue,
+			Cible: cible,
+			Message: "type " + c.TypeBrut + " : Doctrine ne lit que six décimales, et la lecture échoue ; migrations:diff proposera " +
+				"de réduire la colonne à six, au prix des suivantes, sans quoi il faut un type personnalisé",
+			Resolution: calque.ResolutionParDefaut,
+			Confiance:  1,
+		})
+	}
 
 	propriete := calque.Propriete{
 		Nom:          camelCase(c.Nom),

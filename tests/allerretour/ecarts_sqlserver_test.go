@@ -98,8 +98,15 @@ var tolerancesSQLServer = []tolerance{
 	{
 		code: "datetime_recree_en_datetime2", categorie: impossible,
 		pourquoi: "DBAL écrit DATETIME2(6) pour une date et heure : datetime et smalldatetime changent de type et de précision",
-		couvre: func(e diff.Ecart, _ contexte) bool {
-			return e.Objet == diff.ObjetColonne && e.Propriete == "type_brut" &&
+		couvre: func(e diff.Ecart, c contexte) bool {
+			if e.Objet != diff.ObjetColonne {
+				return false
+			}
+			if e.Propriete == "precision_fractionnaire" {
+				col := colonneOrigine(c, e)
+				return col != nil && (col.TypeBrut == "datetime" || col.TypeBrut == "smalldatetime") && e.Avant == "" && e.Apres == "6"
+			}
+			return e.Propriete == "type_brut" &&
 				(e.Avant == "datetime" || e.Avant == "smalldatetime") && e.Apres == "datetime2(6)"
 		},
 	},
@@ -113,8 +120,15 @@ var tolerancesSQLServer = []tolerance{
 	{
 		code: "precision_heure", categorie: impossible,
 		pourquoi: "DBAL écrit TIME(0) : la précision fractionnaire d'origine est perdue",
-		couvre: func(e diff.Ecart, _ contexte) bool {
-			return e.Objet == diff.ObjetColonne && e.Propriete == "type_brut" &&
+		couvre: func(e diff.Ecart, c contexte) bool {
+			if e.Objet != diff.ObjetColonne {
+				return false
+			}
+			if e.Propriete == "precision_fractionnaire" {
+				col := colonneOrigine(c, e)
+				return col != nil && strings.HasPrefix(col.TypeBrut, "time(") && e.Apres == "0"
+			}
+			return e.Propriete == "type_brut" &&
 				strings.HasPrefix(e.Avant, "time(") && e.Apres == "time(0)"
 		},
 	},
@@ -138,15 +152,22 @@ var tolerancesSQLServer = []tolerance{
 				(e.Propriete == "longueur" && e.Avant == "" && e.Apres == "255"))
 		},
 	},
-
-	// À COMBLER : chacune part avec le lot qui la corrige.
 	{
-		code: "fuseau_non_reconnu", categorie: aCombler, lot: "P7-5c — fuseau",
-		pourquoi: "datetimeoffset est recréé sans fuseau : l'inférence ne reconnaît le fuseau que sous l'écriture de PostgreSQL",
-		couvre: func(e diff.Ecart, _ contexte) bool {
-			return e.Objet == diff.ObjetColonne && e.Propriete == "type_brut" && strings.HasPrefix(e.Avant, "datetimeoffset")
+		code: "fuseau_precision_ramenee_a_6", categorie: voulu,
+		pourquoi: "un horodatage avec fuseau est rendu en datetimetz, avec l'avertissement fuseau_precision_non_lue au-delà de six décimales : DBAL le recrée en DATETIMEOFFSET(6), là où le rendu sans fuseau écrirait un instant faux",
+		couvre: func(e diff.Ecart, c contexte) bool {
+			if e.Objet != diff.ObjetColonne {
+				return false
+			}
+			cible := e.Schema + "." + e.Table + "." + e.Nom
+			return slices.ContainsFunc(c.logique.Avertissements, func(a calque.Avertissement) bool {
+				return a.Code == calque.CodeFuseauPrecisionNonLue && a.Cible == cible
+			}) && ((e.Propriete == "type_brut" && strings.HasPrefix(e.Avant, "datetimeoffset(") && e.Apres == "datetimeoffset(6)") ||
+				(e.Propriete == "precision_fractionnaire" && e.Apres == "6"))
 		},
 	},
+
+	// À COMBLER : chacune part avec le lot qui la corrige.
 	{
 		code: "sequence_next_value_for_non_reconnue", categorie: aCombler, lot: "P7-5c — séquence",
 		pourquoi: "une clé par DEFAULT NEXT VALUE FOR n'est pas reconnue : l'identifiant est laissé à l'application, et la séquence n'est pas recréée",

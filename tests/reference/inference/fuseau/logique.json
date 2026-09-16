@@ -1,0 +1,117 @@
+{
+  "version_ri": 1,
+  "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000028",
+  "espace_de_noms": "App\\Entity",
+  "entites": [
+    {
+      "nom": "Evenement",
+      "table": {
+        "nom": "evenement",
+        "schema": "ventes"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "emisLe",
+          "colonne": "emis_le",
+          "type_php": "\\DateTimeImmutable",
+          "type_doctrine": "datetimetz_immutable",
+          "nullable": false,
+          "commentaire": "Précision par défaut : Doctrine n'en lit que six",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "valideLe",
+          "colonne": "valide_le",
+          "type_php": "?\\DateTimeImmutable",
+          "type_doctrine": "datetimetz_immutable",
+          "nullable": true,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "saisiLe",
+          "colonne": "saisi_le",
+          "type_php": "?\\DateTimeImmutable",
+          "type_doctrine": "datetime_immutable",
+          "nullable": true,
+          "commentaire": "Sans fuseau : Doctrine relit sept décimales",
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "Fuseau sous les formes de SQL Server : le fait vient du champ fuseau, pas du nom du type",
+      "origine": "nommage"
+    },
+    {
+      "nom": "Journal",
+      "table": {
+        "nom": "journal",
+        "schema": "ventes"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "consigneLe",
+          "colonne": "consigne_le",
+          "type_php": "\\DateTimeImmutable",
+          "type_doctrine": "datetimetz_immutable",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "heure",
+          "colonne": "heure",
+          "type_php": "?\\DateTimeImmutable",
+          "type_doctrine": "time_immutable",
+          "nullable": true,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "ancien",
+          "colonne": "ancien",
+          "type_php": "?\\DateTimeImmutable",
+          "type_doctrine": "datetimetz_immutable",
+          "nullable": true,
+          "commentaire": "Calque extrait avant le champ fuseau : la forme de PostgreSQL reste lue",
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "Les mêmes cas sous les formes de PostgreSQL",
+      "origine": "nommage"
+    }
+  ],
+  "avertissements": [
+    {
+      "code": "fuseau_precision_non_lue",
+      "cible": "ventes.evenement.emis_le",
+      "message": "type datetimeoffset(7) : Doctrine ne lit que six décimales, et la lecture échoue ; migrations:diff proposera de réduire la colonne à six, au prix des suivantes, sans quoi il faut un type personnalisé",
+      "resolution": "par_defaut",
+      "confiance": 1
+    }
+  ]
+}

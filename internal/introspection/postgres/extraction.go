@@ -254,13 +254,13 @@ func (p *pilote) lireColonnes(ctx context.Context, schemas []string, jeu *jeuDeT
 	for lignes.Next() {
 		var tableNom, tableSchema, typeInterne, identite, generee string
 		var estEnumere bool
-		var longueur, precision, echelle *int
+		var longueur, precision, echelle, precisionFractionnaire *int
 		var defaut, commentaire, collation, collationSchema *string
 
 		c := calque.Colonne{}
 		if err := lignes.Scan(
 			&tableNom, &tableSchema, &c.Nom, &c.Position, &c.TypeBrut, &typeInterne,
-			&estEnumere, &longueur, &precision, &echelle, &c.Nullable,
+			&estEnumere, &longueur, &precision, &echelle, &precisionFractionnaire, &c.Nullable,
 			&identite, &defaut, &generee, &commentaire, &collation, &collationSchema,
 		); err != nil {
 			return fmt.Errorf("lecture d'une colonne: %w", err)
@@ -284,6 +284,8 @@ func (p *pilote) lireColonnes(ctx context.Context, schemas []string, jeu *jeuDeT
 		// bpchar sans longueur déclarée n'est pas complété d'espaces : seul
 		// character(n) est fixe. "char", sur un octet, n'a pas de longueur.
 		c.LongueurFixe = typeInterne == "bpchar" && longueur != nil
+		c.Fuseau = typeInterne == "timestamptz" || typeInterne == "timetz"
+		c.PrecisionFractionnaire = precisionFractionnaire
 		if estEnumere {
 			c.TypeEnumere = typeInterne
 		}

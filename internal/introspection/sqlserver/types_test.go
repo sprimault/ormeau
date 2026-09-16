@@ -83,6 +83,24 @@ func TestLongueurFixe(t *testing.T) {
 	}
 }
 
+// TestPrecisionFractionnaire : datetime a une échelle, qu'il ne déclare pas.
+func TestPrecisionFractionnaire(t *testing.T) {
+	t.Parallel()
+
+	if p := precisionFractionnaire("datetimeoffset", 7); p == nil || *p != 7 {
+		t.Errorf("datetimeoffset(7) : %v", p)
+	}
+	// time(0) : zéro décimale déclarée reste présent.
+	if p := precisionFractionnaire("time", 0); p == nil || *p != 0 {
+		t.Errorf("time(0) : %v", p)
+	}
+	for _, typeSysteme := range []string{"datetime", "smalldatetime", "decimal"} {
+		if p := precisionFractionnaire(typeSysteme, 3); p != nil {
+			t.Errorf("%s : %d, attendue absente", typeSysteme, *p)
+		}
+	}
+}
+
 // TestPrecisionEchelle : seul un décimal les déclare.
 func TestPrecisionEchelle(t *testing.T) {
 	t.Parallel()

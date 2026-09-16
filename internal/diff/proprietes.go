@@ -53,6 +53,8 @@ var proprietesColonne = []propriete[calque.Colonne]{
 	{"type_normalise", func(c *calque.Colonne) string { return string(c.TypeNormalise) }},
 	{"longueur", func(c *calque.Colonne) string { return entier(c.Longueur) }},
 	{"longueur_fixe", func(c *calque.Colonne) string { return strconv.FormatBool(c.LongueurFixe) }},
+	{"fuseau", func(c *calque.Colonne) string { return strconv.FormatBool(c.Fuseau) }},
+	{"precision_fractionnaire", func(c *calque.Colonne) string { return entier(c.PrecisionFractionnaire) }},
 	{"precision", func(c *calque.Colonne) string { return entier(c.Precision) }},
 	{"echelle", func(c *calque.Colonne) string { return entier(c.Echelle) }},
 	{"nullable", func(c *calque.Colonne) string { return strconv.FormatBool(c.Nullable) }},

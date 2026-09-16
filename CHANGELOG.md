@@ -38,6 +38,11 @@ préambule reste en français : il n'est jamais publié.
 
 ### Corrigé
 
+- **Un `datetimeoffset` écrit garde son décalage.** Rendu sans fuseau, il était
+  écrit sans décalage : l'instant stocké était faux, sans erreur. Il est rendu
+  en `datetimetz_immutable` ; au-delà de six décimales, précision par défaut
+  de SQL Server, Doctrine ne sait pas le relire, et l'avertissement
+  `fuseau_precision_non_lue` le dit.
 - **Une chaîne ou un binaire de longueur fixe le reste.** Seul le
   `character(n)` de PostgreSQL était reconnu : un `nchar(n)` ou un `binary(n)`
   de SQL Server était recréé en longueur variable, sans les espaces ou octets
@@ -91,11 +96,19 @@ préambule reste en français : il n'est jamais publié.
   pilote dit si une chaîne ou un binaire est de longueur fixe, que le nom du
   type ne dit pas d'un SGBD à l'autre. Un calque extrait auparavant garde la
   lecture de `character(n)`.
+- **`fuseau` et `precision_fractionnaire` dans le calque physique**, optionnels
+  aussi : le pilote dit si un horodatage porte son décalage, et combien de
+  décimales ses secondes déclarent.
 
 ***
 
 ### Fixed
 
+- **A written `datetimeoffset` keeps its offset.** Rendered without a time
+  zone, it was written without its offset: the stored instant was wrong, with
+  no error. It is rendered as `datetimetz_immutable`; beyond six decimals, SQL
+  Server's default precision, Doctrine cannot read it back, and the
+  `fuseau_precision_non_lue` warning says so.
 - **A fixed-length string or binary stays fixed.** Only PostgreSQL's
   `character(n)` was recognized: a SQL Server `nchar(n)` or `binary(n)` was
   recreated with a variable length, without the spaces or zero bytes padding
@@ -147,6 +160,9 @@ préambule reste en français : il n'est jamais publié.
   whether a string or binary has a fixed length, which the type name does not
   tell consistently across DBMSs. A layer extracted earlier keeps the
   `character(n)` reading.
+- **`fuseau` and `precision_fractionnaire` in the physical layer**, also
+  optional: the driver tells whether a timestamp carries its offset, and how
+  many decimals its seconds declare.
 
 ## [0.6.1] — 2026-09-16 — Ce que rien ne signalait
 
