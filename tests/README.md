@@ -21,15 +21,23 @@ input of inference. The container image is pinned to a minor version, since the
 server version is part of the file: changing it means regenerating the layer and
 reviewing its diff.
 
+`reference/extraction/sqlserver/gescom.calque.json` is the extraction of
+`ddl/sqlserver.sql` by the SQL Server driver, compared the same way. It feeds no
+inference case: a directory under `reference/inference/` carries an expected
+logical layer and generated entities, and inference for this dialect has not
+been reviewed yet. The image is pinned to a cumulative update, for the same
+reason.
+
 Expected outputs are rewritten in bulk behind a flag, never automatically: an
 expected output regenerated without being reviewed no longer tests anything.
-Three packages declare it, and each runs on its own — a `./...` would fail on
+Four packages declare it, and each runs on its own — a `./...` would fail on
 all the others:
 
 ```bash
 go test ./internal/inference/ -maj-attendus   # expected logical layers, also `make maj-attendus`
 go test ./internal/calque/ -maj-attendus      # physical layer serialisation
-make maj-calque-gescom                        # gescom extraction, against the container
+make maj-calque-gescom                        # PostgreSQL gescom extraction, against the container
+make maj-calque-sqlserver                     # SQL Server gescom extraction, against the container
 ```
 
 After `make maj-calque-gescom`, `make maj-attendus` recomputes the case's

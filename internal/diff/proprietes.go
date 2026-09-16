@@ -105,6 +105,13 @@ var proprietesIndex = []propriete[calque.Index]{
 	{"predicat", func(i *calque.Index) string { return i.Predicat }},
 	{"methode", func(i *calque.Index) string { return i.Methode }},
 	{"operateurs", func(i *calque.Index) string { return liste(i.Operateurs) }},
+	{"ordres", func(i *calque.Index) string {
+		ordres := make([]string, len(i.Ordres))
+		for rang, o := range i.Ordres {
+			ordres[rang] = string(o)
+		}
+		return liste(ordres)
+	}},
 }
 
 // proprietesVerification : l'expression fait l'identité.
@@ -123,6 +130,7 @@ var proprietesVue = []propriete[calque.Vue]{
 // de DDL même quand aucune entité n'en dépend.
 var proprietesSequence = []propriete[calque.Sequence]{
 	{"increment", func(s *calque.Sequence) string { return strconv.FormatInt(s.Increment, 10) }},
+	{"depart", func(s *calque.Sequence) string { return entier64(s.Depart) }},
 	{"minimum", func(s *calque.Sequence) string { return entier64(s.Minimum) }},
 	{"maximum", func(s *calque.Sequence) string { return entier64(s.Maximum) }},
 	{"cyclique", func(s *calque.Sequence) string { return strconv.FormatBool(s.Cyclique) }},

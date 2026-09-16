@@ -350,9 +350,9 @@ fonctionnent : `ormeau extraire` puis `ormeau inferer` produisent les trois
 fichiers, et `bin/console ormeau:generer` écrit les entités, leurs associations,
 leurs énumérations et leurs traits, et l'héritage déclaré dans le fichier de
 décisions, en écartant et en le disant ce que Doctrine ne sait pas représenter.
-SQL Server se connecte et se parcourt — bases, schémas, tables et colonnes —,
-mais son extraction n'est pas encore écrite et le dit plutôt que de rendre un
-calque partiel. La comparaison de la base aux entités existantes
+SQL Server se connecte, se parcourt et s'extrait en un calque physique complet ;
+l'inférence et la génération à partir de ce calque n'ont pas encore été relues
+pour ce dialecte. La comparaison de la base aux entités existantes
 (`ormeau:synchroniser`) reste à venir. L'état par phase est dans
 [`ROADMAP.md`](ROADMAP.md).
 

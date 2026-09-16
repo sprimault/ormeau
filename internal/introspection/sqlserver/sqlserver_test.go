@@ -20,8 +20,12 @@ var requetes = map[string]string{
 	"tables extraction":   requeteTablesExtraction,
 	"colonnes extraction": requeteColonnesExtraction,
 	"types decrits":       requeteTypesDecrits,
-	"cles primaires":      requeteClesPrimaires,
+	"cles et unicites":    requeteClesEtUnicites,
 	"cles etrangeres":     requeteClesEtrangeres,
+	"verifications":       requeteVerifications,
+	"index":               requeteIndex,
+	"sequences":           requeteSequences,
+	"vues":                requeteVues,
 }
 
 // verbeDEcriture reconnaît un mot entier, jamais une sous-chaîne : le

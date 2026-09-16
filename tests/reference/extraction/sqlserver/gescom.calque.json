@@ -1,0 +1,1019 @@
+{
+  "version_ri": 1,
+  "source": {
+    "sgbd": "sqlserver",
+    "version": "16.0.4295.3",
+    "catalogue": "gescom",
+    "schema": "ventes",
+    "extrait_le": "2026-09-16T09:40:48Z",
+    "empreinte": "sha256:5ecd95f9c7f7ae150e1f380d97607f30f84191bc5350d4300fb6da95a59aabca"
+  },
+  "tables": [
+    {
+      "nom": "t_avoir",
+      "schema": "ventes",
+      "colonnes": [
+        {
+          "nom": "avo_id",
+          "position": 1,
+          "type_brut": "int",
+          "type_normalise": "entier",
+          "nullable": false,
+          "defaut": {
+            "genre": "sequence",
+            "valeur": "(NEXT VALUE FOR [ventes].[sq_avoir])"
+          }
+        },
+        {
+          "nom": "avo_fac_id",
+          "position": 2,
+          "type_brut": "int",
+          "type_normalise": "entier",
+          "nullable": false
+        }
+      ],
+      "cle_primaire": {
+        "nom": "t_avoir_pkey",
+        "colonnes": [
+          "avo_id"
+        ]
+      }
+    },
+    {
+      "nom": "t_categorie",
+      "schema": "ventes",
+      "colonnes": [
+        {
+          "nom": "cat_id",
+          "position": 1,
+          "type_brut": "int",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true,
+          "identite": "toujours"
+        },
+        {
+          "nom": "cat_libelle",
+          "position": 2,
+          "type_brut": "nvarchar(60)",
+          "type_normalise": "texte",
+          "longueur": 60,
+          "nullable": false,
+          "collation": "default"
+        },
+        {
+          "nom": "cat_parent",
+          "position": 3,
+          "type_brut": "int",
+          "type_normalise": "entier",
+          "nullable": true
+        }
+      ],
+      "cle_primaire": {
+        "nom": "t_categorie_pkey",
+        "colonnes": [
+          "cat_id"
+        ]
+      },
+      "cles_etrangeres": [
+        {
+          "nom": "t_categorie_cat_parent_fkey",
+          "colonnes": [
+            "cat_parent"
+          ],
+          "table_cible": "t_categorie",
+          "schema_cible": "ventes",
+          "colonnes_cibles": [
+            "cat_id"
+          ]
+        }
+      ]
+    },
+    {
+      "nom": "t_client",
+      "schema": "ventes",
+      "colonnes": [
+        {
+          "nom": "cli_id",
+          "position": 1,
+          "type_brut": "int",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true,
+          "identite": "toujours"
+        },
+        {
+          "nom": "cli_nom",
+          "position": 2,
+          "type_brut": "nvarchar(120)",
+          "type_normalise": "texte",
+          "longueur": 120,
+          "nullable": false,
+          "collation": "default"
+        },
+        {
+          "nom": "cli_siret",
+          "position": 3,
+          "type_brut": "nchar(14)",
+          "type_normalise": "texte",
+          "longueur": 14,
+          "nullable": true,
+          "collation": "default",
+          "commentaire": "Nul tant que la fiche n'est pas validée"
+        },
+        {
+          "nom": "cli_statut",
+          "position": 4,
+          "type_brut": "nvarchar(20)",
+          "type_normalise": "texte",
+          "longueur": 20,
+          "nullable": false,
+          "defaut": {
+            "genre": "litteral",
+            "valeur": "ACTIF"
+          },
+          "collation": "default"
+        },
+        {
+          "nom": "cli_com_id",
+          "position": 5,
+          "type_brut": "int",
+          "type_normalise": "entier",
+          "nullable": true
+        },
+        {
+          "nom": "cli_ca_ttc",
+          "position": 6,
+          "type_brut": "decimal(12,2)",
+          "type_normalise": "decimal",
+          "precision": 12,
+          "echelle": 2,
+          "nullable": true
+        },
+        {
+          "nom": "cli_ca_ht",
+          "position": 7,
+          "type_brut": "numeric(17,6)",
+          "type_normalise": "decimal",
+          "precision": 17,
+          "echelle": 6,
+          "nullable": true,
+          "generee": {
+            "expression": "([cli_ca_ttc]/(1.2))",
+            "stockee": true
+          }
+        },
+        {
+          "nom": "created_at",
+          "position": 8,
+          "type_brut": "datetimeoffset(7)",
+          "type_normalise": "horodatage",
+          "nullable": false,
+          "defaut": {
+            "genre": "expression",
+            "valeur": "(sysdatetimeoffset())"
+          }
+        },
+        {
+          "nom": "updated_at",
+          "position": 9,
+          "type_brut": "datetimeoffset(7)",
+          "type_normalise": "horodatage",
+          "nullable": true
+        }
+      ],
+      "cle_primaire": {
+        "nom": "t_client_pkey",
+        "colonnes": [
+          "cli_id"
+        ]
+      },
+      "cles_etrangeres": [
+        {
+          "nom": "fk_client_commercial",
+          "colonnes": [
+            "cli_com_id"
+          ],
+          "table_cible": "t_commercial",
+          "schema_cible": "ventes",
+          "colonnes_cibles": [
+            "com_id"
+          ],
+          "a_la_suppression": "set_null"
+        }
+      ],
+      "unicites": [
+        {
+          "nom": "uq_cli_siret",
+          "colonnes": [
+            "cli_siret"
+          ]
+        }
+      ],
+      "index": [
+        {
+          "nom": "ix_cli_actifs",
+          "colonnes": [
+            "cli_com_id"
+          ],
+          "unique": false,
+          "predicat": "([cli_statut]='ACTIF')",
+          "methode": "nonclustered"
+        },
+        {
+          "nom": "ix_cli_nom",
+          "colonnes": [
+            "cli_nom"
+          ],
+          "unique": false,
+          "methode": "nonclustered"
+        },
+        {
+          "nom": "ix_cli_nom_desc",
+          "colonnes": [
+            "cli_nom"
+          ],
+          "unique": false,
+          "methode": "nonclustered",
+          "ordres": [
+            "desc"
+          ]
+        },
+        {
+          "nom": "uq_cli_siret",
+          "colonnes": [
+            "cli_siret"
+          ],
+          "unique": true,
+          "methode": "nonclustered"
+        }
+      ],
+      "verifications": [
+        {
+          "nom": "ck_cli_statut",
+          "expression": "([cli_statut]='ARCHIVE' OR [cli_statut]='SUSPENDU' OR [cli_statut]='ACTIF')"
+        }
+      ]
+    },
+    {
+      "nom": "t_client_adresse",
+      "schema": "ventes",
+      "colonnes": [
+        {
+          "nom": "adr_id",
+          "position": 1,
+          "type_brut": "int",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true,
+          "identite": "toujours"
+        },
+        {
+          "nom": "cli_id",
+          "position": 2,
+          "type_brut": "int",
+          "type_normalise": "entier",
+          "nullable": false
+        },
+        {
+          "nom": "adr_rue",
+          "position": 3,
+          "type_brut": "nvarchar(200)",
+          "type_normalise": "texte",
+          "longueur": 200,
+          "nullable": false,
+          "collation": "default"
+        }
+      ],
+      "cle_primaire": {
+        "nom": "t_client_adresse_pkey",
+        "colonnes": [
+          "adr_id"
+        ]
+      },
+      "cles_etrangeres": [
+        {
+          "nom": "t_client_adresse_cli_id_fkey",
+          "colonnes": [
+            "cli_id"
+          ],
+          "table_cible": "t_client",
+          "schema_cible": "ventes",
+          "colonnes_cibles": [
+            "cli_id"
+          ],
+          "a_la_suppression": "cascade"
+        }
+      ],
+      "unicites": [
+        {
+          "nom": "uq_adresse_client",
+          "colonnes": [
+            "cli_id"
+          ]
+        }
+      ],
+      "index": [
+        {
+          "nom": "uq_adresse_client",
+          "colonnes": [
+            "cli_id"
+          ],
+          "unique": true,
+          "methode": "nonclustered"
+        }
+      ]
+    },
+    {
+      "nom": "t_client_contact",
+      "schema": "ventes",
+      "colonnes": [
+        {
+          "nom": "cli_id",
+          "position": 1,
+          "type_brut": "int",
+          "type_normalise": "entier",
+          "nullable": false,
+          "commentaire": "Client du contact"
+        },
+        {
+          "nom": "ctc_id",
+          "position": 2,
+          "type_brut": "int",
+          "type_normalise": "entier",
+          "nullable": false
+        },
+        {
+          "nom": "role",
+          "position": 3,
+          "type_brut": "nvarchar(30)",
+          "type_normalise": "texte",
+          "longueur": 30,
+          "nullable": false,
+          "collation": "default"
+        }
+      ],
+      "cle_primaire": {
+        "nom": "t_client_contact_pkey",
+        "colonnes": [
+          "cli_id",
+          "ctc_id"
+        ]
+      },
+      "cles_etrangeres": [
+        {
+          "nom": "t_client_contact_cli_id_fkey",
+          "colonnes": [
+            "cli_id"
+          ],
+          "table_cible": "t_client",
+          "schema_cible": "ventes",
+          "colonnes_cibles": [
+            "cli_id"
+          ]
+        }
+      ]
+    },
+    {
+      "nom": "t_client_grand_compte",
+      "schema": "ventes",
+      "colonnes": [
+        {
+          "nom": "cli_id",
+          "position": 1,
+          "type_brut": "int",
+          "type_normalise": "entier",
+          "nullable": false
+        },
+        {
+          "nom": "remise_taux",
+          "position": 2,
+          "type_brut": "decimal(4,2)",
+          "type_normalise": "decimal",
+          "precision": 4,
+          "echelle": 2,
+          "nullable": false
+        }
+      ],
+      "cle_primaire": {
+        "nom": "t_client_grand_compte_pkey",
+        "colonnes": [
+          "cli_id"
+        ]
+      },
+      "cles_etrangeres": [
+        {
+          "nom": "t_client_grand_compte_cli_id_fkey",
+          "colonnes": [
+            "cli_id"
+          ],
+          "table_cible": "t_client",
+          "schema_cible": "ventes",
+          "colonnes_cibles": [
+            "cli_id"
+          ]
+        }
+      ]
+    },
+    {
+      "nom": "t_client_tag",
+      "schema": "ventes",
+      "commentaire": "Étiquettes posées sur un client",
+      "colonnes": [
+        {
+          "nom": "cli_id",
+          "position": 1,
+          "type_brut": "int",
+          "type_normalise": "entier",
+          "nullable": false
+        },
+        {
+          "nom": "tag_id",
+          "position": 2,
+          "type_brut": "int",
+          "type_normalise": "entier",
+          "nullable": false
+        }
+      ],
+      "cle_primaire": {
+        "nom": "t_client_tag_pkey",
+        "colonnes": [
+          "cli_id",
+          "tag_id"
+        ]
+      },
+      "cles_etrangeres": [
+        {
+          "nom": "t_client_tag_cli_id_fkey",
+          "colonnes": [
+            "cli_id"
+          ],
+          "table_cible": "t_client",
+          "schema_cible": "ventes",
+          "colonnes_cibles": [
+            "cli_id"
+          ],
+          "a_la_suppression": "cascade"
+        },
+        {
+          "nom": "t_client_tag_tag_id_fkey",
+          "colonnes": [
+            "tag_id"
+          ],
+          "table_cible": "t_tag",
+          "schema_cible": "ventes",
+          "colonnes_cibles": [
+            "tag_id"
+          ]
+        }
+      ]
+    },
+    {
+      "nom": "t_commande",
+      "schema": "ventes",
+      "colonnes": [
+        {
+          "nom": "cmd_id",
+          "position": 1,
+          "type_brut": "int",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true,
+          "identite": "toujours"
+        },
+        {
+          "nom": "cmd_canal",
+          "position": 2,
+          "type_brut": "varchar(10)",
+          "type_normalise": "texte",
+          "longueur": 10,
+          "nullable": false,
+          "collation": "default"
+        },
+        {
+          "nom": "cmd_ref",
+          "position": 3,
+          "type_brut": "uniqueidentifier",
+          "type_normalise": "uuid",
+          "nullable": false,
+          "defaut": {
+            "genre": "expression",
+            "valeur": "(newid())"
+          }
+        },
+        {
+          "nom": "cmd_heure",
+          "position": 4,
+          "type_brut": "time(7)",
+          "type_normalise": "heure",
+          "nullable": true
+        },
+        {
+          "nom": "cmd_pay_code",
+          "position": 5,
+          "type_brut": "nchar(2)",
+          "type_normalise": "texte",
+          "longueur": 2,
+          "nullable": true,
+          "collation": "default"
+        },
+        {
+          "nom": "cmd_options",
+          "position": 6,
+          "type_brut": "nvarchar(max)",
+          "type_normalise": "texte",
+          "nullable": true,
+          "collation": "default"
+        }
+      ],
+      "cle_primaire": {
+        "nom": "t_commande_pkey",
+        "colonnes": [
+          "cmd_id"
+        ]
+      },
+      "cles_etrangeres": [
+        {
+          "nom": "t_commande_cmd_pay_code_fkey",
+          "colonnes": [
+            "cmd_pay_code"
+          ],
+          "table_cible": "t_pays",
+          "schema_cible": "ventes",
+          "colonnes_cibles": [
+            "pay_code"
+          ]
+        }
+      ],
+      "verifications": [
+        {
+          "nom": "ck_cmd_canal",
+          "expression": "([cmd_canal]='agence' OR [cmd_canal]='telephone' OR [cmd_canal]='web')"
+        },
+        {
+          "nom": "ck_cmd_options",
+          "expression": "([cmd_options] IS NULL OR isjson([cmd_options])=(1))"
+        }
+      ]
+    },
+    {
+      "nom": "t_commercial",
+      "schema": "ventes",
+      "commentaire": "Force de vente",
+      "colonnes": [
+        {
+          "nom": "com_id",
+          "position": 1,
+          "type_brut": "int",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true,
+          "identite": "toujours"
+        },
+        {
+          "nom": "com_nom",
+          "position": 2,
+          "type_brut": "nvarchar(80)",
+          "type_normalise": "texte",
+          "longueur": 80,
+          "nullable": false,
+          "collation": "French_CI_AS"
+        },
+        {
+          "nom": "com_actif",
+          "position": 3,
+          "type_brut": "bit",
+          "type_normalise": "booleen",
+          "nullable": false,
+          "defaut": {
+            "genre": "litteral",
+            "valeur": "1"
+          }
+        },
+        {
+          "nom": "com_email",
+          "position": 4,
+          "type_brut": "nvarchar(120)",
+          "type_normalise": "texte",
+          "longueur": 120,
+          "nullable": true,
+          "collation": "default"
+        },
+        {
+          "nom": "com_empreinte",
+          "position": 5,
+          "type_brut": "binary(64)",
+          "type_normalise": "binaire",
+          "longueur": 64,
+          "nullable": true
+        }
+      ],
+      "cle_primaire": {
+        "nom": "t_commercial_pkey",
+        "colonnes": [
+          "com_id"
+        ]
+      },
+      "index": [
+        {
+          "nom": "uq_com_email_actif",
+          "colonnes": [
+            "com_email"
+          ],
+          "unique": true,
+          "predicat": "([com_actif]=(1))",
+          "methode": "nonclustered"
+        }
+      ]
+    },
+    {
+      "nom": "t_facture",
+      "schema": "ventes",
+      "colonnes": [
+        {
+          "nom": "fac_id",
+          "position": 1,
+          "type_brut": "int",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true,
+          "identite": "toujours"
+        },
+        {
+          "nom": "fac_cli_id",
+          "position": 2,
+          "type_brut": "int",
+          "type_normalise": "entier",
+          "nullable": false
+        },
+        {
+          "nom": "fac_total",
+          "position": 3,
+          "type_brut": "decimal(12,2)",
+          "type_normalise": "decimal",
+          "precision": 12,
+          "echelle": 2,
+          "nullable": false
+        },
+        {
+          "nom": "fac_date",
+          "position": 4,
+          "type_brut": "date",
+          "type_normalise": "date",
+          "nullable": false,
+          "defaut": {
+            "genre": "expression",
+            "valeur": "(getdate())"
+          }
+        },
+        {
+          "nom": "fac_saisie",
+          "position": 5,
+          "type_brut": "date",
+          "type_normalise": "date",
+          "nullable": true
+        },
+        {
+          "nom": "fac_taux",
+          "position": 6,
+          "type_brut": "real",
+          "type_normalise": "flottant",
+          "nullable": true
+        },
+        {
+          "nom": "fac_remise",
+          "position": 7,
+          "type_brut": "money",
+          "type_normalise": "decimal",
+          "nullable": true
+        }
+      ],
+      "cle_primaire": {
+        "nom": "t_facture_pkey",
+        "colonnes": [
+          "fac_id"
+        ]
+      }
+    },
+    {
+      "nom": "t_log_import",
+      "schema": "ventes",
+      "colonnes": [
+        {
+          "nom": "horodatage",
+          "position": 1,
+          "type_brut": "datetime2(7)",
+          "type_normalise": "horodatage",
+          "nullable": false
+        },
+        {
+          "nom": "message",
+          "position": 2,
+          "type_brut": "nvarchar(max)",
+          "type_normalise": "texte",
+          "nullable": true,
+          "collation": "default"
+        }
+      ]
+    },
+    {
+      "nom": "t_pays",
+      "schema": "ventes",
+      "colonnes": [
+        {
+          "nom": "pay_code",
+          "position": 1,
+          "type_brut": "nchar(2)",
+          "type_normalise": "texte",
+          "longueur": 2,
+          "nullable": false,
+          "collation": "default"
+        },
+        {
+          "nom": "pay_libelle",
+          "position": 2,
+          "type_brut": "nvarchar(60)",
+          "type_normalise": "texte",
+          "longueur": 60,
+          "nullable": false,
+          "collation": "French_CI_AS"
+        }
+      ],
+      "cle_primaire": {
+        "nom": "t_pays_pkey",
+        "colonnes": [
+          "pay_code"
+        ]
+      }
+    },
+    {
+      "nom": "t_référence",
+      "schema": "ventes",
+      "colonnes": [
+        {
+          "nom": "id",
+          "position": 1,
+          "type_brut": "int",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true,
+          "identite": "toujours"
+        },
+        {
+          "nom": "order",
+          "position": 2,
+          "type_brut": "int",
+          "type_normalise": "entier",
+          "nullable": true
+        },
+        {
+          "nom": "select",
+          "position": 3,
+          "type_brut": "nvarchar(10)",
+          "type_normalise": "texte",
+          "longueur": 10,
+          "nullable": true,
+          "collation": "default"
+        },
+        {
+          "nom": "Libellé",
+          "position": 4,
+          "type_brut": "nvarchar(30)",
+          "type_normalise": "texte",
+          "longueur": 30,
+          "nullable": true,
+          "collation": "default"
+        },
+        {
+          "nom": "reprise an",
+          "position": 5,
+          "type_brut": "int",
+          "type_normalise": "entier",
+          "nullable": true
+        }
+      ],
+      "cle_primaire": {
+        "nom": "t_référence_pkey",
+        "colonnes": [
+          "id"
+        ]
+      },
+      "index": [
+        {
+          "nom": "ix_reference_libelle",
+          "colonnes": [
+            "Libellé"
+          ],
+          "unique": false,
+          "methode": "nonclustered"
+        },
+        {
+          "nom": "ix_reference_order",
+          "colonnes": [
+            "order"
+          ],
+          "unique": false,
+          "methode": "nonclustered"
+        }
+      ]
+    },
+    {
+      "nom": "t_tag",
+      "schema": "ventes",
+      "colonnes": [
+        {
+          "nom": "tag_id",
+          "position": 1,
+          "type_brut": "int",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true,
+          "identite": "toujours"
+        },
+        {
+          "nom": "tag_libelle",
+          "position": 2,
+          "type_brut": "nvarchar(40)",
+          "type_normalise": "texte",
+          "longueur": 40,
+          "nullable": false,
+          "collation": "Latin1_General_BIN2"
+        }
+      ],
+      "cle_primaire": {
+        "nom": "t_tag_pkey",
+        "colonnes": [
+          "tag_id"
+        ]
+      }
+    },
+    {
+      "nom": "users",
+      "schema": "ventes",
+      "colonnes": [
+        {
+          "nom": "id_user",
+          "position": 1,
+          "type_brut": "int",
+          "type_normalise": "entier",
+          "nullable": false,
+          "auto_increment": true,
+          "identite": "toujours"
+        },
+        {
+          "nom": "nom",
+          "position": 2,
+          "type_brut": "nvarchar(30)",
+          "type_normalise": "texte",
+          "longueur": 30,
+          "nullable": true,
+          "collation": "default"
+        },
+        {
+          "nom": "prenom",
+          "position": 3,
+          "type_brut": "nvarchar(30)",
+          "type_normalise": "texte",
+          "longueur": 30,
+          "nullable": true,
+          "collation": "default"
+        },
+        {
+          "nom": "email",
+          "position": 4,
+          "type_brut": "nvarchar(100)",
+          "type_normalise": "texte",
+          "longueur": 100,
+          "nullable": true,
+          "collation": "default"
+        },
+        {
+          "nom": "login",
+          "position": 5,
+          "type_brut": "nvarchar(15)",
+          "type_normalise": "texte",
+          "longueur": 15,
+          "nullable": true,
+          "collation": "default"
+        },
+        {
+          "nom": "nivhab",
+          "position": 6,
+          "type_brut": "smallint",
+          "type_normalise": "entier",
+          "nullable": true
+        },
+        {
+          "nom": "mem_montant",
+          "position": 7,
+          "type_brut": "bit",
+          "type_normalise": "booleen",
+          "nullable": true,
+          "defaut": {
+            "genre": "litteral",
+            "valeur": "0"
+          }
+        },
+        {
+          "nom": "Change_mdp",
+          "position": 8,
+          "type_brut": "bit",
+          "type_normalise": "booleen",
+          "nullable": false,
+          "defaut": {
+            "genre": "litteral",
+            "valeur": "0"
+          }
+        },
+        {
+          "nom": "Actif",
+          "position": 9,
+          "type_brut": "bit",
+          "type_normalise": "booleen",
+          "nullable": true
+        },
+        {
+          "nom": "DT_cre_mdp",
+          "position": 10,
+          "type_brut": "datetime",
+          "type_normalise": "horodatage",
+          "nullable": true
+        },
+        {
+          "nom": "Salt",
+          "position": 11,
+          "type_brut": "uniqueidentifier",
+          "type_normalise": "uuid",
+          "nullable": true,
+          "defaut": {
+            "genre": "expression",
+            "valeur": "(newid())"
+          }
+        },
+        {
+          "nom": "PasswordHash",
+          "position": 12,
+          "type_brut": "binary(64)",
+          "type_normalise": "binaire",
+          "longueur": 64,
+          "nullable": true
+        },
+        {
+          "nom": "DT_Change_mdp",
+          "position": 13,
+          "type_brut": "datetime",
+          "type_normalise": "horodatage",
+          "nullable": true,
+          "generee": {
+            "expression": "(dateadd(month,(3),[DT_cre_mdp]))",
+            "stockee": false
+          }
+        },
+        {
+          "nom": "DT_creation",
+          "position": 14,
+          "type_brut": "datetime",
+          "type_normalise": "horodatage",
+          "nullable": false,
+          "defaut": {
+            "genre": "expression",
+            "valeur": "(getdate())"
+          }
+        },
+        {
+          "nom": "session_id",
+          "position": 15,
+          "type_brut": "varchar(255)",
+          "type_normalise": "texte",
+          "longueur": 255,
+          "nullable": true,
+          "collation": "default"
+        }
+      ],
+      "cle_primaire": {
+        "nom": "PK_users",
+        "colonnes": [
+          "id_user"
+        ]
+      }
+    }
+  ],
+  "sequences": [
+    {
+      "nom": "sq_avoir",
+      "schema": "ventes",
+      "increment": 1,
+      "depart": 1,
+      "minimum": -2147483648,
+      "maximum": 2147483647
+    }
+  ],
+  "vues": [
+    {
+      "nom": "v_client_actif",
+      "schema": "ventes",
+      "definition": "\nCREATE VIEW ventes.v_client_actif AS\nSELECT cli_id, cli_nom FROM ventes.t_client WHERE cli_statut = 'ACTIF';\n",
+      "materialisee": false
+    }
+  ]
+}

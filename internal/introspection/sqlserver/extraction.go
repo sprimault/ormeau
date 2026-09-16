@@ -8,32 +8,25 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"slices"
+	"strconv"
+	"strings"
 
 	"github.com/sprimault/ormeau/internal/calque"
 	"github.com/sprimault/ormeau/internal/introspection"
 )
 
-// extractionComplete garde Extraire fermée tant que le calque n'a ni index, ni
-// CHECK, ni séquences, ni colonnes calculées, ni commentaires, ni vues : il
-// passerait pour complet sans l'être. Les tests d'intégration appellent
-// extraire directement en attendant ces lectures.
-const extractionComplete = false
-
 // Extraire lit le catalogue et rend un calque trié.
-func (p *pilote) Extraire(ctx context.Context, portee introspection.Portee) (*calque.Physique, error) {
-	if !extractionComplete {
-		return nil, errors.New("extraction SQL Server pas encore ecrite en entier : index, CHECK, sequences, colonnes calculees, commentaires et vues manquent")
-	}
-	return p.extraire(ctx, portee)
-}
-
-// extraire lit le cœur du catalogue : tables, colonnes, défauts, clés
-// primaires et étrangères.
 //
-// Chaque passe interroge le catalogue schéma par schéma, le nom passant en
-// paramètre : SQL Server n'a pas de tableau paramétrable, et composer une
-// liste IN reviendrait à écrire du SQL avec des noms venus de l'appelant.
-func (p *pilote) extraire(ctx context.Context, portee introspection.Portee) (*calque.Physique, error) {
+// Sept passes, déroulées par introspection.Derouler : celle des types
+// énumérés n'existe pas, SQL Server n'en a pas de nommés. Chaque passe
+// interroge le catalogue schéma par schéma, le nom passant en paramètre : SQL
+// Server n'a pas de tableau paramétrable, et composer une liste IN reviendrait
+// à écrire du SQL avec des noms venus de l'appelant.
+//
+// Ce qui n'est pas capturé ici est perdu : aucune couche en aval ne peut le
+// retrouver.
+func (p *pilote) Extraire(ctx context.Context, portee introspection.Portee) (*calque.Physique, error) {
 	schemas := portee.Schemas
 	if len(schemas) == 0 {
 		// Tous les schémas qui portent une table, et non dbo seul : une base
@@ -69,10 +62,30 @@ func (p *pilote) extraire(ctx context.Context, portee introspection.Portee) (*ca
 		}},
 		introspection.Passe{Etape: introspection.EtapeContraintes, Lire: func(ctx context.Context) error {
 			return parSchema(ctx, schemas, func(ctx context.Context, schema string) error {
-				if err := p.lireClesPrimaires(ctx, schema, jeu); err != nil {
+				if err := p.lireClesEtUnicites(ctx, schema, jeu); err != nil {
 					return err
 				}
-				return p.lireClesEtrangeres(ctx, schema, jeu)
+				if err := p.lireClesEtrangeres(ctx, schema, jeu); err != nil {
+					return err
+				}
+				return p.lireVerifications(ctx, schema, jeu)
+			})
+		}},
+		introspection.Passe{Etape: introspection.EtapeIndex, Lire: func(ctx context.Context) error {
+			return parSchema(ctx, schemas, func(ctx context.Context, schema string) error {
+				return p.lireIndex(ctx, schema, jeu)
+			})
+		}},
+		introspection.Passe{Etape: introspection.EtapeSequences, Lire: func(ctx context.Context) error {
+			return parSchema(ctx, schemas, func(ctx context.Context, schema string) (err error) {
+				physique.Sequences, err = p.lireSequences(ctx, schema, physique.Sequences)
+				return err
+			})
+		}},
+		introspection.Passe{Etape: introspection.EtapeVues, Lire: func(ctx context.Context) error {
+			return parSchema(ctx, schemas, func(ctx context.Context, schema string) (err error) {
+				physique.Vues, err = p.lireVues(ctx, schema, physique.Vues)
+				return err
 			})
 		}},
 	)
@@ -90,6 +103,12 @@ func (p *pilote) extraire(ctx context.Context, portee introspection.Portee) (*ca
 // grandit avec le nombre de schémas.
 func parSchema(ctx context.Context, schemas []string, lire func(context.Context, string) error) error {
 	for _, schema := range schemas {
+		// Relu à chaque schéma, comme Derouler le fait à chaque passe : le
+		// pilote rend sa propre erreur pour une requête annulée, et l'appelant
+		// doit pouvoir reconnaître l'annulation.
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		ctxRequete, annuler := context.WithTimeout(ctx, delaiRequete)
 		err := lire(ctxRequete, schema)
 		annuler()
@@ -161,7 +180,7 @@ func (p *pilote) lireSource(ctx context.Context, schema string) (calque.Source, 
 	return s, nil
 }
 
-// lireTables collecte les tables d'un schéma.
+// lireTables collecte les tables d'un schéma et leur commentaire.
 func (p *pilote) lireTables(ctx context.Context, schema string, jeu *jeuDeTables) error {
 	lignes, err := p.db.QueryContext(ctx, requeteTablesExtraction, schema)
 	if err != nil {
@@ -171,9 +190,11 @@ func (p *pilote) lireTables(ctx context.Context, schema string, jeu *jeuDeTables
 
 	for lignes.Next() {
 		t := &calque.Table{Schema: schema}
-		if err := lignes.Scan(&t.Nom); err != nil {
+		var commentaire sql.NullString
+		if err := lignes.Scan(&t.Nom, &commentaire); err != nil {
 			return fmt.Errorf("lecture d'une table: %w", err)
 		}
+		t.Commentaire = commentaire.String
 		jeu.ajouter(t)
 	}
 	return lignes.Err()
@@ -185,7 +206,8 @@ type cleColonne struct {
 }
 
 // lireColonnes complète les tables d'un schéma : type verbatim et normalisé,
-// longueur, précision, échelle, nullabilité, identité et défaut.
+// longueur, précision, échelle, nullabilité, identité, défaut, calcul,
+// collation et commentaire.
 //
 // Le type verbatim vient d'une autre requête, rapproché par nom : sys.columns
 // porte toutes les colonnes, la description du serveur seulement celles qu'un
@@ -207,11 +229,13 @@ func (p *pilote) lireColonnes(ctx context.Context, schema string, jeu *jeuDeTabl
 		var table, typeSysteme string
 		var maxLength, precision, echelle int
 		var identite bool
-		var defaut sql.NullString
+		var defaut, calcul, collation, commentaire sql.NullString
+		var persistee sql.NullBool
 
 		c := calque.Colonne{}
 		if err := lignes.Scan(&table, &c.Nom, &c.Position, &typeSysteme,
-			&maxLength, &precision, &echelle, &c.Nullable, &identite, &defaut); err != nil {
+			&maxLength, &precision, &echelle, &c.Nullable, &identite, &defaut,
+			&calcul, &persistee, &collation, &commentaire); err != nil {
 			return fmt.Errorf("lecture d'une colonne: %w", err)
 		}
 
@@ -231,6 +255,14 @@ func (p *pilote) lireColonnes(ctx context.Context, schema string, jeu *jeuDeTabl
 		if defaut.Valid {
 			c.Defaut = classerDefaut(defaut.String)
 		}
+		// Une colonne calculée n'accepte pas de contrainte DEFAULT : le calcul
+		// est tout ce qu'elle porte. is_persisted distingue la valeur stockée
+		// de celle que le serveur calcule à chaque lecture.
+		if calcul.Valid {
+			c.Generee = &calque.Generee{Expression: calcul.String, Stockee: persistee.Bool}
+		}
+		c.Collation = collation.String
+		c.Commentaire = commentaire.String
 
 		t := jeu.trouver(schema, table)
 		if t == nil {
@@ -276,27 +308,37 @@ func (p *pilote) lireTypesDecrits(ctx context.Context, schema string) (map[cleCo
 	return types, lignes.Err()
 }
 
-// lireClesPrimaires complète les clés primaires d'un schéma.
-func (p *pilote) lireClesPrimaires(ctx context.Context, schema string, jeu *jeuDeTables) error {
-	lignes, err := p.db.QueryContext(ctx, requeteClesPrimaires, schema)
+// lireClesEtUnicites complète les clés primaires et les contraintes d'unicité
+// d'un schéma. Les lignes d'une même contrainte se suivent.
+func (p *pilote) lireClesEtUnicites(ctx context.Context, schema string, jeu *jeuDeTables) error {
+	lignes, err := p.db.QueryContext(ctx, requeteClesEtUnicites, schema)
 	if err != nil {
-		return fmt.Errorf("lecture des cles primaires de %s: %w", schema, err)
+		return fmt.Errorf("lecture des cles et unicites de %s: %w", schema, err)
 	}
 	defer func() { _ = lignes.Close() }()
 
 	for lignes.Next() {
-		var table, nom, colonne string
-		if err := lignes.Scan(&table, &nom, &colonne); err != nil {
-			return fmt.Errorf("lecture d'une cle primaire: %w", err)
+		var table, genre, nom, colonne string
+		if err := lignes.Scan(&table, &genre, &nom, &colonne); err != nil {
+			return fmt.Errorf("lecture d'une cle: %w", err)
 		}
 		t := jeu.trouver(schema, table)
 		if t == nil {
 			continue
 		}
-		if t.ClePrimaire == nil {
-			t.ClePrimaire = &calque.ClePrimaire{Nom: nom}
+		if genre == "PK" {
+			if t.ClePrimaire == nil {
+				t.ClePrimaire = &calque.ClePrimaire{Nom: nom}
+			}
+			t.ClePrimaire.Colonnes = append(t.ClePrimaire.Colonnes, colonne)
+			continue
 		}
-		t.ClePrimaire.Colonnes = append(t.ClePrimaire.Colonnes, colonne)
+		dernier := len(t.Unicites) - 1
+		if dernier < 0 || t.Unicites[dernier].Nom != nom {
+			t.Unicites = append(t.Unicites, calque.Contrainte{Nom: nom})
+			dernier++
+		}
+		t.Unicites[dernier].Colonnes = append(t.Unicites[dernier].Colonnes, colonne)
 	}
 	return lignes.Err()
 }
@@ -355,4 +397,136 @@ func nouvelleCleEtrangere(nom, schemaCible, tableCible, suppression, miseAJour s
 		ALaSuppression: aLaSuppression,
 		ALaMiseAJour:   aLaMiseAJour,
 	}, nil
+}
+
+// lireVerifications complète les CHECK d'un schéma, verbatim.
+func (p *pilote) lireVerifications(ctx context.Context, schema string, jeu *jeuDeTables) error {
+	lignes, err := p.db.QueryContext(ctx, requeteVerifications, schema)
+	if err != nil {
+		return fmt.Errorf("lecture des verifications de %s: %w", schema, err)
+	}
+	defer func() { _ = lignes.Close() }()
+
+	for lignes.Next() {
+		var table string
+		var v calque.Verification
+		if err := lignes.Scan(&table, &v.Nom, &v.Expression); err != nil {
+			return fmt.Errorf("lecture d'une verification: %w", err)
+		}
+		if t := jeu.trouver(schema, table); t != nil {
+			t.Verifications = append(t.Verifications, v)
+		}
+	}
+	return lignes.Err()
+}
+
+// lireIndex complète les index d'un schéma. Les lignes d'un même index se
+// suivent, dans l'ordre de ses colonnes.
+//
+// La méthode est type_desc en minuscules : clustered ou nonclustered, deux
+// arbres qui ne rangent pas la table de la même façon. Les sens de tri ne sont
+// reportés que si l'un d'eux est descendant, comme les classes d'opérateurs
+// sous PostgreSQL.
+func (p *pilote) lireIndex(ctx context.Context, schema string, jeu *jeuDeTables) error {
+	lignes, err := p.db.QueryContext(ctx, requeteIndex, schema)
+	if err != nil {
+		return fmt.Errorf("lecture des index de %s: %w", schema, err)
+	}
+	defer func() { _ = lignes.Close() }()
+
+	for lignes.Next() {
+		var table, nom, genre, colonne string
+		var unique, desc bool
+		var filtre sql.NullString
+		if err := lignes.Scan(&table, &nom, &genre, &unique, &filtre, &colonne, &desc); err != nil {
+			return fmt.Errorf("lecture d'un index: %w", err)
+		}
+		t := jeu.trouver(schema, table)
+		if t == nil {
+			continue
+		}
+
+		dernier := len(t.Index) - 1
+		if dernier < 0 || t.Index[dernier].Nom != nom {
+			t.Index = append(t.Index, calque.Index{
+				Nom:      nom,
+				Unique:   unique,
+				Methode:  strings.ToLower(genre),
+				Predicat: filtre.String,
+			})
+			dernier++
+		}
+		idx := &t.Index[dernier]
+		idx.Colonnes = append(idx.Colonnes, colonne)
+		ordre := calque.OrdreAscendant
+		if desc {
+			ordre = calque.OrdreDescendant
+		}
+		idx.Ordres = append(idx.Ordres, ordre)
+	}
+	if err := lignes.Err(); err != nil {
+		return err
+	}
+
+	for _, cle := range jeu.ordre {
+		t := jeu.parCle[cle]
+		if t.Schema != schema {
+			continue
+		}
+		for i := range t.Index {
+			if !slices.Contains(t.Index[i].Ordres, calque.OrdreDescendant) {
+				t.Index[i].Ordres = nil
+			}
+		}
+	}
+	return nil
+}
+
+// lireSequences ajoute les séquences d'un schéma à celles déjà lues.
+func (p *pilote) lireSequences(ctx context.Context, schema string, sequences []calque.Sequence) ([]calque.Sequence, error) {
+	lignes, err := p.db.QueryContext(ctx, requeteSequences, schema)
+	if err != nil {
+		return nil, fmt.Errorf("lecture des sequences de %s: %w", schema, err)
+	}
+	defer func() { _ = lignes.Close() }()
+
+	for lignes.Next() {
+		s := calque.Sequence{Schema: schema}
+		var depart, increment, minimum, maximum string
+		if err := lignes.Scan(&s.Nom, &depart, &increment, &minimum, &maximum, &s.Cyclique); err != nil {
+			return nil, fmt.Errorf("lecture d'une sequence: %w", err)
+		}
+
+		valeurs := make([]int64, 4)
+		for i, texte := range []string{depart, increment, minimum, maximum} {
+			if valeurs[i], err = strconv.ParseInt(texte, 10, 64); err != nil {
+				return nil, fmt.Errorf("sequence %s.%s: valeur %s hors d'un entier de 64 bits", schema, s.Nom, texte)
+			}
+		}
+		s.Depart, s.Increment, s.Minimum, s.Maximum = &valeurs[0], valeurs[1], &valeurs[2], &valeurs[3]
+		sequences = append(sequences, s)
+	}
+	return sequences, lignes.Err()
+}
+
+// lireVues ajoute les vues d'un schéma à celles déjà lues. Une vue indexée
+// n'est pas une vue matérialisée au sens de PostgreSQL — elle se met à jour
+// avec ses tables — et reste marquée comme une vue ordinaire.
+func (p *pilote) lireVues(ctx context.Context, schema string, vues []calque.Vue) ([]calque.Vue, error) {
+	lignes, err := p.db.QueryContext(ctx, requeteVues, schema)
+	if err != nil {
+		return nil, fmt.Errorf("lecture des vues de %s: %w", schema, err)
+	}
+	defer func() { _ = lignes.Close() }()
+
+	for lignes.Next() {
+		v := calque.Vue{Schema: schema}
+		var definition sql.NullString
+		if err := lignes.Scan(&v.Nom, &definition); err != nil {
+			return nil, fmt.Errorf("lecture d'une vue: %w", err)
+		}
+		v.Definition = definition.String
+		vues = append(vues, v)
+	}
+	return vues, lignes.Err()
 }

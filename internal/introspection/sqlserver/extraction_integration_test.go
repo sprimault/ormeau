@@ -6,8 +6,14 @@
 package sqlserver
 
 import (
+	"bytes"
 	"context"
+	"errors"
+	"flag"
+	"os"
+	"path/filepath"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -15,9 +21,19 @@ import (
 	"github.com/sprimault/ormeau/internal/introspection"
 )
 
-// extraireOuEchouer rend le cœur du calque de la base de référence, lu par la
-// fonction interne : Extraire refuse tant que le reste du catalogue n'est pas
-// lu.
+// majAttendus réécrit le calque de référence au lieu de le comparer. Jamais
+// automatique : un attendu régénéré sans être relu ne teste plus rien.
+//
+//	make maj-calque-sqlserver
+var majAttendus = flag.Bool("maj-attendus", false, "réécrit le calque de référence SQL Server")
+
+// cheminCalqueGescom est l'extraction versionnée de tests/ddl/sqlserver.sql.
+// Hors de tests/reference/inference/ : un répertoire là porte un cas complet,
+// logique attendu et entités PHP compris, et l'inférence de ce dialecte n'est
+// pas encore relue.
+const cheminCalqueGescom = "../../../tests/reference/extraction/sqlserver/gescom.calque.json"
+
+// extraireOuEchouer rend le calque de la base de référence.
 func extraireOuEchouer(t *testing.T, portee introspection.Portee) *calque.Physique {
 	t.Helper()
 
@@ -25,7 +41,7 @@ func extraireOuEchouer(t *testing.T, portee introspection.Portee) *calque.Physiq
 	ctx, annuler := context.WithTimeout(context.Background(), time.Minute)
 	defer annuler()
 
-	physique, err := i.(*pilote).extraire(ctx, portee)
+	physique, err := i.Extraire(ctx, portee)
 	if err != nil {
 		t.Fatalf("extraction : %v", err)
 	}
@@ -261,5 +277,255 @@ func TestExtrairePorteeFiltrante(t *testing.T) {
 	})
 	if exclu.TableParNom("ventes", "t_log_import") != nil {
 		t.Error("table exclue presente dans le calque")
+	}
+}
+
+// TestExtraireLeCatalogue : ce que le cœur ne lisait pas — commentaires,
+// colonnes calculées, collations, unicités, CHECK, index, séquences, vues.
+func TestExtraireLeCatalogue(t *testing.T) {
+	p := extraireOuEchouer(t, introspection.Portee{Schemas: []string{"ventes"}})
+
+	t.Run("commentaires", func(t *testing.T) {
+		if c := tableOuEchouer(t, p, "t_client_tag").Commentaire; c != "Étiquettes posées sur un client" {
+			t.Errorf("commentaire de table : %q", c)
+		}
+		if c := colonneOuEchouer(t, p, "t_client", "cli_siret").Commentaire; c != "Nul tant que la fiche n'est pas validée" {
+			t.Errorf("commentaire de colonne : %q", c)
+		}
+	})
+
+	// PERSISTED contre calcul à la lecture : stockee: false n'avait jamais été
+	// produit, PostgreSQL ne sachant pas l'exprimer.
+	t.Run("colonnes calculees", func(t *testing.T) {
+		ht := colonneOuEchouer(t, p, "t_client", "cli_ca_ht")
+		if ht.Generee == nil || !ht.Generee.Stockee || ht.Generee.Expression != "([cli_ca_ttc]/(1.2))" {
+			t.Errorf("cli_ca_ht : %+v", ht.Generee)
+		}
+		mdp := colonneOuEchouer(t, p, "users", "DT_Change_mdp")
+		if mdp.Generee == nil || mdp.Generee.Stockee || mdp.Generee.Expression != "(dateadd(month,(3),[DT_cre_mdp]))" {
+			t.Errorf("DT_Change_mdp : %+v", mdp.Generee)
+		}
+		if mdp.Defaut != nil {
+			t.Errorf("une colonne calculee n'a pas de defaut : %+v", mdp.Defaut)
+		}
+	})
+
+	// Celle de la base devient default ; les autres gardent leur nom. Un
+	// entier n'en a pas.
+	t.Run("collations", func(t *testing.T) {
+		cas := map[[2]string]string{
+			{"t_commercial", "com_nom"}:   "French_CI_AS",
+			{"t_tag", "tag_libelle"}:      "Latin1_General_BIN2",
+			{"t_commercial", "com_email"}: "default",
+			{"t_client", "cli_statut"}:    "default",
+			{"t_client", "cli_id"}:        "",
+		}
+		for cle, attendue := range cas {
+			if c := colonneOuEchouer(t, p, cle[0], cle[1]).Collation; c != attendue {
+				t.Errorf("%s.%s : collation %q, attendue %q", cle[0], cle[1], c, attendue)
+			}
+		}
+	})
+
+	t.Run("unicites", func(t *testing.T) {
+		u := tableOuEchouer(t, p, "t_client").Unicites
+		if len(u) != 1 || u[0].Nom != "uq_cli_siret" || !slices.Equal(u[0].Colonnes, []string{"cli_siret"}) {
+			t.Errorf("unicites de t_client : %+v", u)
+		}
+	})
+
+	// Forme réécrite par le serveur : IN devenu OR, dans l'ordre inverse.
+	t.Run("verifications", func(t *testing.T) {
+		v := tableOuEchouer(t, p, "t_commande").Verifications
+		if len(v) != 2 || v[0].Nom != "ck_cmd_canal" ||
+			v[0].Expression != "([cmd_canal]='agence' OR [cmd_canal]='telephone' OR [cmd_canal]='web')" {
+			t.Errorf("verifications de t_commande : %+v", v)
+		}
+	})
+
+	t.Run("index", func(t *testing.T) {
+		par := map[string]calque.Index{}
+		for _, idx := range tableOuEchouer(t, p, "t_client").Index {
+			par[idx.Nom] = idx
+		}
+		if idx := par["ix_cli_actifs"]; idx.Predicat != "([cli_statut]='ACTIF')" || idx.Methode != "nonclustered" || idx.Ordres != nil {
+			t.Errorf("index filtre : %+v", idx)
+		}
+		if idx := par["ix_cli_nom_desc"]; !slices.Equal(idx.Ordres, []calque.OrdreIndex{calque.OrdreDescendant}) {
+			t.Errorf("index descendant : %+v", idx)
+		}
+		// L'index qui soutient la contrainte reste, comme sous PostgreSQL.
+		if idx, ok := par["uq_cli_siret"]; !ok || !idx.Unique {
+			t.Errorf("index de la contrainte d'unicite : %+v", idx)
+		}
+		// Quatre, la clé primaire n'en fait pas partie.
+		if len(par) != 4 {
+			t.Errorf("index de t_client : %v", par)
+		}
+		if ref := tableOuEchouer(t, p, "t_référence").Index; len(ref) != 2 {
+			t.Errorf("index de t_référence : %+v", ref)
+		}
+	})
+
+	// Le départ est ce que le minimum ne dit pas : AS int part de 1, avec un
+	// minimum au bas de l'entier.
+	t.Run("sequences", func(t *testing.T) {
+		if len(p.Sequences) != 1 {
+			t.Fatalf("sequences : %+v", p.Sequences)
+		}
+		s := p.Sequences[0]
+		if s.Nom != "sq_avoir" || s.Depart == nil || *s.Depart != 1 || s.Increment != 1 ||
+			s.Minimum == nil || *s.Minimum != -2147483648 || s.Maximum == nil || *s.Maximum != 2147483647 || s.Cyclique {
+			t.Errorf("sq_avoir : %+v", s)
+		}
+	})
+
+	t.Run("vues", func(t *testing.T) {
+		if len(p.Vues) != 1 || p.Vues[0].Nom != "v_client_actif" ||
+			!strings.Contains(p.Vues[0].Definition, "CREATE VIEW ventes.v_client_actif AS") || p.Vues[0].Materialisee {
+			t.Errorf("vues : %+v", p.Vues)
+		}
+	})
+}
+
+// TestExtraireCommeLaReference compare au calque versionné, qui couvre ce que
+// les assertions écrites à la main ne regardent pas. extrait_le est repris du
+// fichier : Extraire ne le pose pas, et il est exclu de l'empreinte.
+func TestExtraireCommeLaReference(t *testing.T) {
+	extrait := extraireOuEchouer(t, introspection.Portee{Schemas: []string{"ventes"}})
+
+	if *majAttendus {
+		extrait.Source.ExtraitLe = time.Now().UTC().Format(time.RFC3339)
+		if err := os.MkdirAll(filepath.Dir(cheminCalqueGescom), 0o750); err != nil {
+			t.Fatalf("repertoire du calque de reference : %v", err)
+		}
+		if err := extrait.Ecrire(cheminCalqueGescom); err != nil {
+			t.Fatalf("ecriture du calque de reference : %v", err)
+		}
+		t.Log("calque de reference reecrit, relire le diff")
+		return
+	}
+
+	attendu, err := os.ReadFile(cheminCalqueGescom)
+	if err != nil {
+		t.Fatalf("calque de reference illisible, le produire par make maj-calque-sqlserver : %v", err)
+	}
+	reference, err := calque.LirePhysique(cheminCalqueGescom)
+	if err != nil {
+		t.Fatalf("calque de reference invalide : %v", err)
+	}
+
+	extrait.Source.ExtraitLe = reference.Source.ExtraitLe
+	empreinte, err := extrait.CalculerEmpreinte()
+	if err != nil {
+		t.Fatalf("empreinte : %v", err)
+	}
+	extrait.Source.Empreinte = empreinte
+	obtenu, err := calque.Serialiser(extrait)
+	if err != nil {
+		t.Fatalf("serialisation : %v", err)
+	}
+
+	if !bytes.Equal(obtenu, attendu) {
+		reference.Source.Empreinte, extrait.Source.Empreinte = "", ""
+		sansA, errA := calque.Serialiser(reference)
+		sansB, errB := calque.Serialiser(extrait)
+		if errA != nil || errB != nil {
+			t.Fatalf("serialisation sans empreinte : %v %v", errA, errB)
+		}
+		d := premiereDifference(sansA, sansB)
+		if d.numero == 0 {
+			d = premiereDifference(attendu, obtenu)
+		}
+		t.Errorf("l'extraction differe du calque de reference, ligne %d, sous %s :\n  attendu %s\n  obtenu  %s\n"+
+			"si le changement est voulu : make maj-calque-sqlserver, puis relire le diff",
+			d.numero, d.objet, d.attendue, d.obtenue)
+	}
+}
+
+// difference situe le premier écart entre deux calques sérialisés.
+type difference struct {
+	numero            int
+	attendue, obtenue string
+	objet             string // dernier "nom" rencontré avant l'écart
+}
+
+// premiereDifference rend la première ligne où deux documents divergent, et
+// le dernier nom qui la précède pour situer l'objet.
+func premiereDifference(a, b []byte) difference {
+	lignesA := strings.Split(string(a), "\n")
+	lignesB := strings.Split(string(b), "\n")
+	objet := "la source"
+	for i := 0; i < len(lignesA) || i < len(lignesB); i++ {
+		var la, lb string
+		if i < len(lignesA) {
+			la = strings.TrimSpace(lignesA[i])
+		}
+		if i < len(lignesB) {
+			lb = strings.TrimSpace(lignesB[i])
+		}
+		if la != lb {
+			return difference{numero: i + 1, attendue: la, obtenue: lb, objet: objet}
+		}
+		if strings.HasPrefix(la, `"nom":`) {
+			objet = strings.TrimSuffix(strings.TrimPrefix(la, `"nom": `), ",")
+		}
+	}
+	return difference{}
+}
+
+// TestExtraireSignaleSesPasses : sept passes, dans l'ordre, sans celle des
+// types énumérés que SQL Server n'a pas.
+func TestExtraireSignaleSesPasses(t *testing.T) {
+	i := ouvrir(t)
+
+	ctx, annuler := context.WithTimeout(context.Background(), time.Minute)
+	defer annuler()
+
+	var signales []introspection.Avancement
+	ctx = introspection.AvecSuivi(ctx, func(a introspection.Avancement) {
+		signales = append(signales, a)
+	})
+
+	if _, err := i.Extraire(ctx, introspection.Portee{Schemas: []string{"ventes"}}); err != nil {
+		t.Fatalf("extraction : %v", err)
+	}
+
+	etapes := []string{
+		introspection.EtapeSource, introspection.EtapeTables, introspection.EtapeColonnes,
+		introspection.EtapeContraintes, introspection.EtapeIndex, introspection.EtapeSequences,
+		introspection.EtapeVues,
+	}
+	if len(signales) != len(etapes) {
+		t.Fatalf("%d passes signalees, %d attendues : %+v", len(signales), len(etapes), signales)
+	}
+	for rang, a := range signales {
+		attendu := introspection.Avancement{Etape: etapes[rang], Rang: rang + 1, Total: len(etapes)}
+		if a != attendu {
+			t.Errorf("passe %d : %+v, attendu %+v", rang+1, a, attendu)
+		}
+	}
+}
+
+// TestExtraireAnnuleeEnCours : une extraction arrêtée depuis l'interface rend
+// l'annulation, reconnaissable, et aucun calque.
+func TestExtraireAnnuleeEnCours(t *testing.T) {
+	i := ouvrir(t)
+
+	ctx, annuler := context.WithCancel(context.Background())
+	defer annuler()
+
+	ctx = introspection.AvecSuivi(ctx, func(a introspection.Avancement) {
+		if a.Etape == introspection.EtapeColonnes {
+			annuler()
+		}
+	})
+
+	physique, err := i.Extraire(ctx, introspection.Portee{Schemas: []string{"ventes"}})
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("erreur %v, attendu une annulation", err)
+	}
+	if physique != nil {
+		t.Error("calque rendu malgre l'annulation")
 	}
 }

@@ -38,6 +38,7 @@ const (
 	CodeAriteIncoherente       = "arite_incoherente"
 	CodeTypeEnumereIntrouvable = "type_enumere_introuvable"
 	CodeStatistiquesOrphelines = "statistiques_orphelines"
+	CodeOrdreInconnu           = "ordre_inconnu"
 )
 
 // Forme attendue d'une empreinte, telle qu'Ecrire la pose.
@@ -145,9 +146,30 @@ func (p *Physique) validerTable(t *Table) []Anomalie {
 	}
 	for _, idx := range t.Index {
 		a = append(a, colonnesConnues(idx.Colonnes, colonnes, cible, "index "+idx.Nom)...)
+		a = append(a, validerOrdres(&idx, cible)...)
 	}
 	for i := range t.ClesEtrangeres {
 		a = append(a, p.validerCleEtrangere(&t.ClesEtrangeres[i], colonnes, cible)...)
+	}
+	return a
+}
+
+// validerOrdres contrôle les sens de tri d'un index : un par colonne quand ils
+// sont présents, faute de quoi on ne sait plus lequel va à quelle colonne.
+func validerOrdres(idx *Index, cible string) []Anomalie {
+	if len(idx.Ordres) == 0 {
+		return nil
+	}
+	var a []Anomalie
+	if len(idx.Ordres) != len(idx.Colonnes) {
+		a = append(a, anomalie(CodeAriteIncoherente, cible,
+			"index %s : %d ordre(s) pour %d colonne(s)", idx.Nom, len(idx.Ordres), len(idx.Colonnes)))
+	}
+	for _, o := range idx.Ordres {
+		if !ordresIndex[o] {
+			a = append(a, anomalie(CodeOrdreInconnu, cible,
+				"index %s : ordre %q hors du vocabulaire", idx.Nom, o))
+		}
 	}
 	return a
 }
@@ -351,6 +373,11 @@ var genresDefaut = map[GenreDefaut]bool{
 // Natures d'identité reconnues.
 var naturesIdentite = map[NatureIdentite]bool{
 	IdentiteToujours: true, IdentiteParDefaut: true,
+}
+
+// Sens de tri reconnus.
+var ordresIndex = map[OrdreIndex]bool{
+	OrdreAscendant: true, OrdreDescendant: true,
 }
 
 // Actions référentielles reconnues.

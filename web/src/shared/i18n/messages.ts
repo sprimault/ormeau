@@ -218,6 +218,7 @@ const fr = {
   'anomaly.arite_incoherente': 'Nombre de colonnes incohérent',
   'anomaly.type_enumere_introuvable': 'Type énuméré introuvable',
   'anomaly.statistiques_orphelines': 'Statistiques sans table',
+  'anomaly.ordre_inconnu': 'Sens de tri d’index inconnu',
 
   'calque.title': 'Dernier calque produit',
   'calque.help.preview':
@@ -550,6 +551,7 @@ const en: Record<MessageKey, string> = {
   'anomaly.arite_incoherente': 'Column count mismatch',
   'anomaly.type_enumere_introuvable': 'Enumerated type not found',
   'anomaly.statistiques_orphelines': 'Statistics without a table',
+  'anomaly.ordre_inconnu': 'Unknown index sort order',
 
   'calque.title': 'Last produced layer',
   'calque.help.preview':

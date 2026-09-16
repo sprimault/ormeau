@@ -195,6 +195,11 @@
           "description": "Classe d'opérateurs de chaque colonne, dans le même ordre. Absent quand toutes sont celles par défaut, complet sinon. Sans lui, deux index HNSW de distances différentes sont indistinguables.",
           "type": "array",
           "items": { "type": "string" }
+        },
+        "ordres": {
+          "description": "Sens de tri de chaque colonne, dans le même ordre. Absent quand toutes sont ascendantes, complet sinon. Absent d'un calque extrait par un pilote qui ne le lit pas : sens inconnu.",
+          "type": "array",
+          "items": { "enum": ["asc", "desc"] }
         }
       }
     },
@@ -223,6 +228,10 @@
         "nom": { "type": "string" },
         "schema": { "type": "string" },
         "increment": { "type": "integer" },
+        "depart": {
+          "description": "Première valeur rendue, que le minimum ne dit pas. Absent d'un calque extrait par un pilote qui ne le lit pas : valeur inconnue, pas 1.",
+          "type": "integer"
+        },
         "minimum": { "type": "integer" },
         "maximum": { "type": "integer" },
         "cyclique": { "type": "boolean" }

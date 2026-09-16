@@ -20,7 +20,9 @@ services:
       retries: 30
 
   sqlserver:
-    image: mcr.microsoft.com/mssql/server:2022-latest
+    # Épinglée sur une mise à jour cumulative : la version du serveur entre
+    # dans le calque de référence, et 2022-latest la ferait changer seule.
+    image: mcr.microsoft.com/mssql/server:2022-CU27-ubuntu-22.04
     environment:
       ACCEPT_EULA: "Y"
       MSSQL_SA_PASSWORD: "Ormeau!2026"

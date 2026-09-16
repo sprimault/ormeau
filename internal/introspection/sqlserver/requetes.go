@@ -113,12 +113,16 @@ ORDER BY c.column_id`
 // l'extraction les répète schéma par schéma plutôt que de tout lire pour
 // filtrer ensuite, la description des types coûtant une compilation par table.
 const (
-	// requeteTablesExtraction collecte les tables du schéma. Les vues sont
-	// lues à part : elles n'ont ni clé ni défaut à compléter.
+	// requeteTablesExtraction collecte les tables du schéma et leur
+	// commentaire. Les vues sont lues à part : elles n'ont ni clé ni défaut à
+	// compléter.
 	requeteTablesExtraction = `
-SELECT t.name
+SELECT t.name,
+       CONVERT(nvarchar(max), ep.value)
 FROM sys.tables t
 JOIN sys.schemas s ON s.schema_id = t.schema_id
+LEFT JOIN sys.extended_properties ep
+       ON ep.major_id = t.object_id AND ep.minor_id = 0 AND ep.class = 1 AND ep.name = 'MS_Description'
 WHERE t.is_ms_shipped = 0 AND s.name = @p1
 ORDER BY t.name`
 
@@ -130,8 +134,14 @@ ORDER BY t.name`
 	// dérive, que TYPE_NAME rend depuis system_type_id. Les types CLR partagent
 	// tous le system_type_id 240, et gardent leur propre nom.
 	//
-	// Une colonne a au plus une contrainte DEFAULT : la jointure ne duplique
-	// aucune ligne.
+	// Une colonne a au plus une contrainte DEFAULT, une définition de calcul
+	// et un commentaire : les jointures ne dupliquent aucune ligne.
+	//
+	// SQL Server écrit une collation sur chaque colonne texte, déclarée ou
+	// non. Celle de la base devient default, comme le catalogue de PostgreSQL
+	// la rend : sinon chaque propriété texte porterait une collation que
+	// personne n'a choisie. La comparaison se fait en binaire, pour ne pas
+	// dépendre de la collation du catalogue.
 	requeteColonnesExtraction = `
 SELECT t.name,
        c.name,
@@ -142,13 +152,23 @@ SELECT t.name,
        CONVERT(int, c.scale),
        c.is_nullable,
        c.is_identity,
-       dc.definition
+       dc.definition,
+       cc.definition,
+       cc.is_persisted,
+       CASE WHEN c.collation_name COLLATE Latin1_General_BIN2
+                 = CONVERT(sysname, DATABASEPROPERTYEX(DB_NAME(), 'Collation')) COLLATE Latin1_General_BIN2
+            THEN N'default' ELSE c.collation_name END AS collation,
+       CONVERT(nvarchar(max), ep.value)
 FROM sys.columns c
 JOIN sys.tables t ON t.object_id = c.object_id
 JOIN sys.schemas s ON s.schema_id = t.schema_id
 JOIN sys.types ty ON ty.user_type_id = c.user_type_id
 LEFT JOIN sys.default_constraints dc
        ON dc.parent_object_id = c.object_id AND dc.parent_column_id = c.column_id
+LEFT JOIN sys.computed_columns cc
+       ON cc.object_id = c.object_id AND cc.column_id = c.column_id
+LEFT JOIN sys.extended_properties ep
+       ON ep.major_id = c.object_id AND ep.minor_id = c.column_id AND ep.class = 1 AND ep.name = 'MS_Description'
 WHERE t.is_ms_shipped = 0 AND s.name = @p1
 ORDER BY t.name, c.column_id`
 
@@ -179,18 +199,84 @@ CROSS APPLY sys.dm_exec_describe_first_result_set(
 WHERE t.is_ms_shipped = 0 AND s.name = @p1
 ORDER BY t.name, r.column_ordinal`
 
-	// requeteClesPrimaires rend les colonnes de chaque clé primaire dans
-	// l'ordre de la clé, qui n'est pas celui de la table : (b, a) n'est pas
-	// (a, b).
-	requeteClesPrimaires = `
-SELECT t.name, k.name, c.name
+	// requeteClesEtUnicites rend les colonnes de chaque clé primaire et de
+	// chaque contrainte d'unicité, dans l'ordre de la clé, qui n'est pas celui
+	// de la table : (b, a) n'est pas (a, b). key_ordinal nul désigne une
+	// colonne incluse, qui n'appartient pas à la clé.
+	requeteClesEtUnicites = `
+SELECT t.name, k.type, k.name, c.name
 FROM sys.key_constraints k
 JOIN sys.tables t ON t.object_id = k.parent_object_id
 JOIN sys.schemas s ON s.schema_id = t.schema_id
 JOIN sys.index_columns ic ON ic.object_id = k.parent_object_id AND ic.index_id = k.unique_index_id
 JOIN sys.columns c ON c.object_id = ic.object_id AND c.column_id = ic.column_id
-WHERE k.type = 'PK' AND t.is_ms_shipped = 0 AND s.name = @p1
-ORDER BY t.name, ic.key_ordinal`
+WHERE k.type IN ('PK', 'UQ') AND ic.key_ordinal > 0 AND t.is_ms_shipped = 0 AND s.name = @p1
+ORDER BY t.name, k.type, k.name, ic.key_ordinal`
+
+	// requeteVerifications rend les CHECK tels que le catalogue les écrit.
+	// SQL Server les réécrit à la création : un IN devient une suite de OR,
+	// dans l'ordre inverse, et c'est cette forme que l'inférence recevra.
+	requeteVerifications = `
+SELECT t.name, ck.name, ck.definition
+FROM sys.check_constraints ck
+JOIN sys.tables t ON t.object_id = ck.parent_object_id
+JOIN sys.schemas s ON s.schema_id = t.schema_id
+WHERE t.is_ms_shipped = 0 AND s.name = @p1
+ORDER BY t.name, ck.name`
+
+	// requeteIndex rend une ligne par colonne de clé des index ordinaires,
+	// clé primaire exclue, comme sous PostgreSQL : l'index qui soutient une
+	// contrainte d'unicité reste, sous le même nom.
+	//
+	// Seuls les index en arbre (type 1 et 2) sont lus. XML, spatial et
+	// columnstore n'ont pas de colonnes de clé au sens du calque, comme un
+	// index d'expression de PostgreSQL ; un index hypothétique n'est qu'une
+	// statistique de l'assistant d'optimisation.
+	requeteIndex = `
+SELECT t.name,
+       i.name,
+       i.type_desc,
+       i.is_unique,
+       i.filter_definition,
+       c.name,
+       ic.is_descending_key
+FROM sys.indexes i
+JOIN sys.tables t ON t.object_id = i.object_id
+JOIN sys.schemas s ON s.schema_id = t.schema_id
+JOIN sys.index_columns ic ON ic.object_id = i.object_id AND ic.index_id = i.index_id
+JOIN sys.columns c ON c.object_id = ic.object_id AND c.column_id = ic.column_id
+WHERE i.type IN (1, 2) AND i.is_primary_key = 0 AND i.is_hypothetical = 0
+  AND ic.key_ordinal > 0 AND t.is_ms_shipped = 0 AND s.name = @p1
+ORDER BY t.name, i.name, ic.key_ordinal`
+
+	// requeteSequences lit les séquences du schéma. Les bornes sont en
+	// sql_variant du type de la séquence, qui peut être un decimal(38) :
+	// elles arrivent en texte et le pilote refuse ce qui dépasse un entier
+	// de 64 bits en nommant la séquence, plutôt que de laisser le serveur
+	// échouer sur un dépassement sans dire où.
+	requeteSequences = `
+SELECT sq.name,
+       CONVERT(nvarchar(40), sq.start_value),
+       CONVERT(nvarchar(40), sq.increment),
+       CONVERT(nvarchar(40), sq.minimum_value),
+       CONVERT(nvarchar(40), sq.maximum_value),
+       sq.is_cycling
+FROM sys.sequences sq
+JOIN sys.schemas s ON s.schema_id = sq.schema_id
+WHERE sq.is_ms_shipped = 0 AND s.name = @p1
+ORDER BY sq.name`
+
+	// requeteVues rend la définition telle que sys.sql_modules la garde :
+	// l'instruction entière, CREATE VIEW compris, là où PostgreSQL ne rend que
+	// la requête. En retirer l'en-tête demanderait d'analyser du SQL. Une vue
+	// chiffrée n'a pas de définition lisible.
+	requeteVues = `
+SELECT v.name, m.definition
+FROM sys.views v
+JOIN sys.schemas s ON s.schema_id = v.schema_id
+LEFT JOIN sys.sql_modules m ON m.object_id = v.object_id
+WHERE v.is_ms_shipped = 0 AND s.name = @p1
+ORDER BY v.name`
 
 	// requeteClesEtrangeres rend une ligne par couple de colonnes, dans
 	// l'ordre de la contrainte. Les actions sont lues sous leur forme
