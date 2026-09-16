@@ -117,6 +117,20 @@ var tolerancesSQLServer = []tolerance{
 	reprise("defaut_calcule_non_reconnu"),
 	reprise("colonne_generee_non_recreee"),
 	reprise("commentaire_de_type_immutable"),
+	{
+		code: "texte_unicode_recree_en_255", categorie: voulu,
+		pourquoi: "un texte Unicode illimité reste en chaîne, avec l'avertissement texte_unicode_sans_equivalent : Doctrine le recrée en NVARCHAR(255), là où text le recréerait en VARCHAR(MAX) et perdrait l'Unicode sans erreur",
+		couvre: func(e diff.Ecart, c contexte) bool {
+			if e.Objet != diff.ObjetColonne || (e.Propriete != "type_brut" && e.Propriete != "longueur") {
+				return false
+			}
+			cible := e.Schema + "." + e.Table + "." + e.Nom
+			return slices.ContainsFunc(c.logique.Avertissements, func(a calque.Avertissement) bool {
+				return a.Code == calque.CodeTexteUnicodeSansEquivalent && a.Cible == cible
+			}) && ((e.Propriete == "type_brut" && e.Apres == "nvarchar(255)") ||
+				(e.Propriete == "longueur" && e.Avant == "" && e.Apres == "255"))
+		},
+	},
 
 	// À COMBLER : chacune part avec le lot qui la corrige.
 	{
@@ -133,16 +147,6 @@ var tolerancesSQLServer = []tolerance{
 		pourquoi: "datetimeoffset est recréé sans fuseau : l'inférence ne reconnaît le fuseau que sous l'écriture de PostgreSQL",
 		couvre: func(e diff.Ecart, _ contexte) bool {
 			return e.Objet == diff.ObjetColonne && e.Propriete == "type_brut" && strings.HasPrefix(e.Avant, "datetimeoffset")
-		},
-	},
-	{
-		code: "texte_illimite_recree_en_255", categorie: aCombler, lot: "P7-5c — texte (max)",
-		pourquoi: "nvarchar(max) est rendu en chaîne sans longueur, que Doctrine recrée en NVARCHAR(255) : une valeur plus longue serait tronquée",
-		couvre: func(e diff.Ecart, c contexte) bool {
-			col := colonneOrigine(c, e)
-			return col != nil && strings.HasSuffix(col.TypeBrut, "(max)") &&
-				((e.Propriete == "type_brut" && strings.HasSuffix(e.Apres, "(255)")) ||
-					(e.Propriete == "longueur" && e.Avant == "" && e.Apres == "255"))
 		},
 	},
 	{

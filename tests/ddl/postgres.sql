@@ -157,7 +157,9 @@ CREATE TABLE t_commande (
     cmd_heure time DEFAULT LOCALTIME,
     cmd_pay_code char(2) REFERENCES t_pays (pay_code),
     -- jsonb n'est pas json : clés dédoublonnées et réordonnées à l'écriture
-    cmd_options jsonb
+    cmd_options jsonb,
+    -- texte illimité : pendant du varchar(max) de SQL Server
+    cmd_notes text
 );
 
 -- Identifiants réservés et accents, pour éprouver l'échappement.
