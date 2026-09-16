@@ -1,0 +1,61 @@
+{
+  "version_ri": 1,
+  "source": {
+    "sgbd": "postgres",
+    "version": "16.2",
+    "catalogue": "facturation",
+    "schema": "public",
+    "extrait_le": "2026-01-01T00:00:00Z",
+    "empreinte": "sha256:0000000000000000000000000000000000000000000000000000000000000024"
+  },
+  "tables": [
+    {
+      "nom": "document",
+      "schema": "public",
+      "commentaire": "Racine de la hiérarchie, et porte une colonne que la base calcule",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false, "auto_increment": true },
+        { "nom": "nature", "position": 2, "type_brut": "character(1)", "type_normalise": "texte", "longueur": 1, "nullable": false,
+          "defaut": { "genre": "litteral", "valeur": "D" }, "commentaire": "Nature du document" },
+        { "nom": "quantite", "position": 3, "type_brut": "integer", "type_normalise": "entier", "nullable": false,
+          "defaut": { "genre": "litteral", "valeur": "1" } },
+        { "nom": "prix_unitaire", "position": 4, "type_brut": "numeric(12,4)", "type_normalise": "decimal", "precision": 12, "echelle": 4, "nullable": false },
+        {
+          "nom": "total_ht",
+          "position": 5,
+          "type_brut": "numeric(14,4)",
+          "type_normalise": "decimal",
+          "precision": 14,
+          "echelle": 4,
+          "nullable": false,
+          "commentaire": "Montant hors taxes, tenu par la base",
+          "generee": {
+            "expression": "((quantite)::numeric * prix_unitaire)",
+            "stockee": true
+          }
+        }
+      ],
+      "cle_primaire": { "nom": "document_pkey", "colonnes": ["id"] }
+    },
+    {
+      "nom": "facture",
+      "schema": "public",
+      "commentaire": "Déclarée enfant de document par le fichier de décisions",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false },
+        { "nom": "echeance", "position": 2, "type_brut": "date", "type_normalise": "date", "nullable": false }
+      ],
+      "cle_primaire": { "nom": "facture_pkey", "colonnes": ["id"] },
+      "cles_etrangeres": [
+        {
+          "nom": "facture_id_fkey",
+          "colonnes": ["id"],
+          "table_cible": "document",
+          "schema_cible": "public",
+          "colonnes_cibles": ["id"],
+          "a_la_suppression": "cascade"
+        }
+      ]
+    }
+  ]
+}

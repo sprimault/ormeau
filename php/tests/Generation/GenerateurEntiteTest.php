@@ -10,9 +10,12 @@ namespace Ormeau\Doctrine\Tests\Generation;
 use InvalidArgumentException;
 use LogicException;
 use Ormeau\Doctrine\Calque\CalqueLogique;
+use Ormeau\Doctrine\Calque\LecteurCalque;
 use Ormeau\Doctrine\Generation\Cible;
+use Ormeau\Doctrine\Generation\ColonneGenereeNonExclue;
 use Ormeau\Doctrine\Generation\GenerateurEntite;
 use Ormeau\Doctrine\Generation\ModeRegeneration;
+use Ormeau\Doctrine\Generation\Rapport;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -32,6 +35,48 @@ final class GenerateurEntiteTest extends TestCase
     public function testLeModeParDefautEstLaClasseDeBase(): void
     {
         self::assertSame(ModeRegeneration::ClasseDeBase, (new GenerateurEntite())->mode());
+    }
+
+    /**
+     * Une hiérarchie jointe dont la racine porte une colonne générée se génère
+     * entière sous toute cible ; seul le rapport change.
+     *
+     * Le rendu est juste, c'est l'ORM installé qui l'est moins : jusqu'à la
+     * 2.15, son persister joint garde la colonne dans l'INSERT et la base
+     * refuse la ligne. Écarter la hiérarchie retirerait des classes qu'une
+     * mise à jour d'ORM rendrait utilisables telles quelles, alors le rapport
+     * prévient et le code de retour ne bouge pas. AttendusTest, qui force sa
+     * cible, ne voit jamais cet avertissement.
+     */
+    public function testUneColonneGenereeSurUneRacineJointeEstSignaleeAvantOrm216(): void
+    {
+        $calque = (new LecteurCalque())->lire(Repertoires::REFERENCES . '/heritage-genere/logique.json');
+
+        $avant = $this->rapportDe($calque, new Cible(2, 14, '8.1', 3, 10));
+        self::assertCount(1, $avant->generees);
+        $avertissement = $avant->generees[0];
+        self::assertInstanceOf(ColonneGenereeNonExclue::class, $avertissement);
+        self::assertSame('Document', $avertissement->racine);
+        self::assertSame('total_ht', $avertissement->colonne);
+        self::assertStringContainsString('ORM 2.14', $avertissement->message());
+        self::assertStringContainsString('2.16', $avertissement->message());
+        self::assertSame([], $avant->ecartees, 'la hiérarchie reste générée');
+
+        self::assertSame([], $this->rapportDe($calque, new Cible(2, 16, '8.1', 3, 10))->generees);
+        self::assertSame([], $this->rapportDe($calque, new Cible(3, 7, '8.1', 4, 4))->generees);
+    }
+
+    /**
+     * Génère un calque dans un répertoire jetable et rend le rapport.
+     */
+    private function rapportDe(CalqueLogique $calque, Cible $cible): Rapport
+    {
+        $sortie = Repertoires::creer();
+        try {
+            return (new GenerateurEntite())->generer($calque, $sortie, $cible, 'heritage-genere');
+        } finally {
+            Repertoires::supprimer($sortie);
+        }
     }
 
     /**

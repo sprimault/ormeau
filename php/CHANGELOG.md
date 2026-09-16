@@ -36,6 +36,29 @@ préambule reste en français : il n'est jamais publié.
 
 ## [Non publié]
 
+### Ajouté
+
+- **La génération prévient quand une hiérarchie jointe ne s'enregistrera
+  pas.** Jusqu'à ORM 2.15, son persister garde dans l'INSERT une colonne que
+  la base calcule, sans lui donner de valeur : aucune entité de la hiérarchie
+  ne s'écrit, racine comprise, et rien ne le signale avant la première
+  écriture. Le rapport le dit quand la cible détectée est antérieure à 2.16.
+  Les entités restent générées et le code produit ne change pas : la seule
+  sortie est ORM 2.16.1, aucune version corrective n'existant sur 2.14 ni
+  2.15.
+
+***
+
+### Added
+
+- **Generation now warns when a joined hierarchy will not persist.** Up to ORM
+  2.15, its persister keeps a database-computed column in the INSERT without
+  giving it a value: no entity of the hierarchy is written, root included, and
+  nothing reports it before the first write. The report says so when the
+  detected target is older than 2.16. Entities are still generated and the
+  produced code is unchanged: the only way out is ORM 2.16.1, as no fix
+  release exists on 2.14 or 2.15.
+
 ## [0.6.0] — 2026-09-15 — Aller-retour
 
 **Un calque PostgreSQL déjà enregistré change à sa prochaine extraction** si la

@@ -101,6 +101,32 @@ final class CibleTest extends TestCase
     }
 
     /**
+     * Le persister d'un héritage joint n'exclut la colonne générée de l'INSERT
+     * qu'à partir d'ORM 2.16 (doctrine/orm#10598, jamais rétroporté). Une cible
+     * forcée n'a pas de mineure : elle ne déclenche rien.
+     */
+    public function testLesColonnesGenereesEnHeritageJointAttendentOrm216(): void
+    {
+        self::assertFalse((new Cible(2, 14, '8.1', 3, 10))->ometLesColonnesGenereesEnHeritageJoint());
+        self::assertFalse((new Cible(2, 15, '8.1', 3, 10))->ometLesColonnesGenereesEnHeritageJoint());
+        self::assertTrue((new Cible(2, 16, '8.1', 3, 10))->ometLesColonnesGenereesEnHeritageJoint());
+        self::assertTrue((new Cible(2, 20, '8.1', 3, 10))->ometLesColonnesGenereesEnHeritageJoint());
+        self::assertTrue((new Cible(3, 7, '8.1', 4, 4))->ometLesColonnesGenereesEnHeritageJoint());
+
+        self::assertTrue(Cible::forcer(2)->ometLesColonnesGenereesEnHeritageJoint());
+    }
+
+    /**
+     * La version nommée par un message vient de la majeure et de la mineure,
+     * pas de la chaîne d'annonce, qui est vide sur une cible forcée.
+     */
+    public function testLaVersionDOrmSeLitSansLAnnonce(): void
+    {
+        self::assertSame('2.14', (new Cible(2, 14, '8.1', 3, 10))->versionOrm());
+        self::assertSame('2', Cible::forcer(2)->versionOrm());
+    }
+
+    /**
      * smallfloat existe depuis DBAL 4.1, le type jsonb depuis 4.3 : lus dans
      * Types.php aux tags 4.0.0 à 4.3.0.
      */

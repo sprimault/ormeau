@@ -1,0 +1,121 @@
+{
+  "version_ri": 1,
+  "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000024",
+  "espace_de_noms": "App\\Entity",
+  "entites": [
+    {
+      "nom": "Document",
+      "table": {
+        "nom": "document",
+        "schema": "public"
+      },
+      "valeur_discriminante": "D",
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "nature",
+          "colonne": "nature",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 1,
+          "longueur_fixe": true,
+          "defaut": "D",
+          "commentaire": "Nature du document",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "quantite",
+          "colonne": "quantite",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "defaut": "1",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "prixUnitaire",
+          "colonne": "prix_unitaire",
+          "type_php": "string",
+          "type_doctrine": "decimal",
+          "nullable": false,
+          "precision": 12,
+          "echelle": 4,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "totalHt",
+          "colonne": "total_ht",
+          "type_php": "string",
+          "type_doctrine": "decimal",
+          "nullable": false,
+          "precision": 14,
+          "echelle": 4,
+          "generee": {
+            "expression": "((quantite)::numeric * prix_unitaire)",
+            "stockee": true
+          },
+          "insertable": false,
+          "modifiable": false,
+          "commentaire": "Montant hors taxes, tenu par la base",
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "Racine de la hiérarchie, et porte une colonne que la base calcule",
+      "origine": "nommage"
+    },
+    {
+      "nom": "Facture",
+      "table": {
+        "nom": "facture",
+        "schema": "public"
+      },
+      "heritage": {
+        "strategie": "jointe",
+        "parent": "Document",
+        "colonne_discriminante": "nature",
+        "origine": "decision"
+      },
+      "valeur_discriminante": "F",
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "assignee"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "echeance",
+          "colonne": "echeance",
+          "type_php": "\\DateTimeImmutable",
+          "type_doctrine": "date_immutable",
+          "nullable": false,
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "Déclarée enfant de document par le fichier de décisions",
+      "origine": "nommage"
+    }
+  ]
+}
