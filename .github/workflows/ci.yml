@@ -108,17 +108,19 @@ jobs:
           python -m pip install --quiet check-jsonschema
           check-jsonschema --check-metaschema schemas/*.json
           check-jsonschema --schemafile schemas/calque-physique.v1.json \
-            tests/reference/*.calque.json tests/reference/inference/*/physique.json
+            tests/reference/*.calque.json tests/reference/inference/*/physique.json \
+            tests/reference/extraction/*/*.calque.json
           check-jsonschema --schemafile schemas/calque-logique.v1.json \
             tests/reference/inference/*/logique.json
 
-  # Le seul endroit où le pilote rencontre un vrai PostgreSQL après la fusion.
-  # Par make containers et pas par `services:` : un service démarre avant le
-  # checkout et ne peut pas monter tests/ddl/, il faudrait une seconde façon
-  # de créer la base, qui divergerait de celle des contributeurs. Ni Node ni
-  # front : la cible ne compile que les paquets étiquetés integration.
+  # Le seul endroit où les pilotes rencontrent un vrai PostgreSQL et un vrai
+  # SQL Server après la fusion. Par make containers et pas par `services:` : un
+  # service démarre avant le checkout et ne peut pas monter tests/ddl/, il
+  # faudrait une seconde façon de créer la base, qui divergerait de celle des
+  # contributeurs. Ni Node ni front : la cible ne compile que les paquets
+  # étiquetés integration.
   integration:
-    name: Go — intégration PostgreSQL
+    name: Go — intégration
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -160,6 +162,36 @@ jobs:
 
       - name: Aller-retour
         run: make aller-retour
+
+  # La même chaîne sous SQL Server, liste d'écarts de ce dialecte. setup-php
+  # installe pdo_sqlsrv, mais pas le pilote ODBC de Microsoft sans lequel
+  # l'extension refuse toute connexion : il vient du dépôt APT de Microsoft.
+  aller-retour-sqlserver:
+    name: Aller-retour — SQL Server, ORM 3
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Installer le pilote ODBC de Microsoft
+        run: tools/ci/msodbcsql.sh
+
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+        with:
+          php-version: '8.4'
+          extensions: pdo_sqlsrv
+          coverage: none
+
+      - name: Installer les dépendances PHP
+        run: composer install --no-interaction --no-progress
+        working-directory: php
+
+      - name: Aller-retour
+        run: make aller-retour-sqlserver
 
   # Job distinct des tests : une CVE publiée en amont n'a rien à voir avec la PR
   # en cours, et son échec ne doit pas se lire comme « ta contribution est
@@ -322,7 +354,8 @@ jobs:
       - name: Vulnérabilités des dépendances
         run: composer audit
 
-  # Les seuls jobs dispensés du lock, avec aller-retour-orm2 plus bas, et la
+  # Les seuls jobs dispensés du lock, avec aller-retour-orm2 et
+  # aller-retour-sqlserver-orm2 plus bas, et la
   # liste est fermée : elle se tient alignée sur la règle de livraison. Chacun
   # fixe Symfony et ORM, résout le reste pour sa version de PHP, et ne lance que
   # des tests — l'analyse et le style ne dépendent pas des versions installées.
@@ -418,3 +451,36 @@ jobs:
 
       - name: Aller-retour
         run: make aller-retour
+
+  # L'aller-retour SQL Server sous la même seconde cible.
+  aller-retour-sqlserver-orm2:
+    name: Aller-retour — SQL Server, ORM 2.14
+    runs-on: ubuntu-latest
+    env:
+      SYMFONY_REQUIRE: '5.4.*'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Installer le pilote ODBC de Microsoft
+        run: tools/ci/msodbcsql.sh
+
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+        with:
+          php-version: '8.1'
+          extensions: pdo_sqlsrv
+          tools: flex
+          coverage: none
+
+      - name: Résoudre ORM 2.14
+        working-directory: php
+        run: |
+          composer require --no-update --no-interaction "doctrine/orm:~2.14.0"
+          composer update --no-interaction --no-progress --with-all-dependencies
+
+      - name: Aller-retour
+        run: make aller-retour-sqlserver
