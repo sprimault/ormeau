@@ -19,7 +19,13 @@ CREATE TABLE t_commercial (
     com_actif  boolean     NOT NULL DEFAULT true,
     -- DEFAULT NULL : le catalogue rend NULL::character varying, que rien ne
     -- distingue d'une expression sinon sa forme.
-    com_email  varchar(120) DEFAULT NULL
+    com_email  varchar(120) DEFAULT NULL,
+    -- Empreinte écrite hors ORM, par un batch ou une procédure : l'entité la
+    -- lit sans jamais la calculer. bytea est le seul type binaire de
+    -- PostgreSQL et ne porte pas de longueur ; le binary(n) de SQL Server s'y
+    -- ramène. Le type PHP dépend de DBAL, qui rend une ressource jusqu'à la 3
+    -- et une chaîne à partir de la 4.
+    com_empreinte bytea
 );
 COMMENT ON TABLE t_commercial IS 'Force de vente';
 -- unicité partielle : recréée sans son prédicat, elle refuserait deux anciens
