@@ -5,8 +5,8 @@
     "version": "17.11",
     "catalogue": "gescom",
     "schema": "gescom",
-    "extrait_le": "2026-09-16T16:47:49Z",
-    "empreinte": "sha256:3a06883ac539f775017ca2406430f30a9c550401091d0a66ef871afbd1d8bf4a"
+    "extrait_le": "2026-09-16T17:11:40Z",
+    "empreinte": "sha256:e3fdb285fc304657955b8240f32db97110437975d965dd513ad235121b668f53"
   },
   "tables": [
     {
@@ -169,6 +169,7 @@
           "position": 8,
           "type_brut": "timestamp with time zone",
           "type_normalise": "horodatage",
+          "fuseau": true,
           "nullable": false,
           "defaut": {
             "genre": "expression",
@@ -180,6 +181,7 @@
           "position": 9,
           "type_brut": "timestamp with time zone",
           "type_normalise": "horodatage",
+          "fuseau": true,
           "nullable": true
         }
       ],
@@ -740,6 +742,7 @@
           "position": 1,
           "type_brut": "timestamp with time zone",
           "type_normalise": "horodatage",
+          "fuseau": true,
           "nullable": false
         },
         {

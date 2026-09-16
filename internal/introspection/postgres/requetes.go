@@ -182,6 +182,8 @@ SELECT c.relname                                            AS table_nom,
             THEN ((a.atttypmod - 4) >> 16) & 65535 END      AS precision,
        CASE WHEN t.typname = 'numeric' AND a.atttypmod > 4
             THEN (a.atttypmod - 4) & 65535 END              AS echelle,
+       CASE WHEN t.typname IN ('timestamp', 'timestamptz', 'time', 'timetz') AND a.atttypmod >= 0
+            THEN a.atttypmod END                            AS precision_fractionnaire,
        NOT a.attnotnull                                     AS nullable,
        a.attidentity::text                                  AS identite,
        pg_get_expr(d.adbin, d.adrelid)                       AS defaut,

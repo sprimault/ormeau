@@ -174,10 +174,22 @@ func texteUnicodeSansLongueur(c *calque.Colonne) bool {
 
 // avecFuseau dit si un horodatage ou une heure porte un fuseau, ce que le type
 // normalisé ne dit pas.
+//
+// Le pilote le porte au calque physique. Un calque extrait avant ce champ ne
+// le porte pas : les formes de PostgreSQL, seules reconnues jusque-là, restent
+// lues, comme pour longueurFixe.
 func avecFuseau(c *calque.Colonne) bool {
 	brut := strings.ToLower(c.TypeBrut)
-	return strings.Contains(brut, "with time zone") || strings.Contains(brut, "timestamptz") || strings.Contains(brut, "timetz")
+	return c.Fuseau ||
+		strings.Contains(brut, "with time zone") || strings.Contains(brut, "timestamptz") || strings.Contains(brut, "timetz")
 }
+
+// Doctrine lit un horodatage avec fuseau au format de sa plateforme, six
+// décimales au plus : un datetimeoffset(7) de SQL Server, sa précision par
+// défaut, échoue à la lecture (essai du 2026-09-16, DBAL 3.10 et 4.4). Le rendu
+// sans fuseau le lirait, mais écrirait sans décalage, et l'instant stocké
+// serait faux sans erreur.
+const decimalesLuesAvecFuseau = 6
 
 // Type PHP de chaque type Doctrine, pour les cas où le type Doctrine est donné
 // et le type PHP à retrouver. Ce n'est pas l'inverse exact de la table

@@ -104,6 +104,17 @@ func longueurFixe(typeSysteme string) bool {
 	return false
 }
 
+// precisionFractionnaire rend les décimales des secondes des types qui les
+// déclarent. sys.columns les range dans scale ; datetime et smalldatetime en
+// ont une aussi, fixée par le type et jamais déclarée.
+func precisionFractionnaire(typeSysteme string, echelle int) *int {
+	switch typeSysteme {
+	case "datetime2", "datetimeoffset", "time":
+		return &echelle
+	}
+	return nil
+}
+
 // precisionEchelle rend précision et échelle d'un décimal, et rien pour les
 // autres types : sys.columns en renseigne aussi pour un int ou un datetime2,
 // mais ce sont des caractéristiques du type, pas des déclarations, et

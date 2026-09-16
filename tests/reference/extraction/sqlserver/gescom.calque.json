@@ -5,8 +5,8 @@
     "version": "16.0.4295.3",
     "catalogue": "gescom",
     "schema": "ventes",
-    "extrait_le": "2026-09-16T16:48:10Z",
-    "empreinte": "sha256:03748a651915317b68c42356c22623ef0a47b27d09d859ca4ca6f1a2b93f1240"
+    "extrait_le": "2026-09-16T17:12:01Z",
+    "empreinte": "sha256:6e79822136e4e49a259acd7e91fc3a68365c85d498843b1d78fdec77505ba175"
   },
   "tables": [
     {
@@ -169,6 +169,8 @@
           "position": 8,
           "type_brut": "datetimeoffset(7)",
           "type_normalise": "horodatage",
+          "fuseau": true,
+          "precision_fractionnaire": 7,
           "nullable": false,
           "defaut": {
             "genre": "expression",
@@ -180,6 +182,8 @@
           "position": 9,
           "type_brut": "datetimeoffset(7)",
           "type_normalise": "horodatage",
+          "fuseau": true,
+          "precision_fractionnaire": 7,
           "nullable": true
         }
       ],
@@ -507,6 +511,7 @@
           "position": 4,
           "type_brut": "time(7)",
           "type_normalise": "heure",
+          "precision_fractionnaire": 7,
           "nullable": true
         },
         {
@@ -732,6 +737,7 @@
           "position": 1,
           "type_brut": "datetime2(7)",
           "type_normalise": "horodatage",
+          "precision_fractionnaire": 7,
           "nullable": false
         },
         {

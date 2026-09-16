@@ -247,6 +247,8 @@ func (p *pilote) lireColonnes(ctx context.Context, schema string, jeu *jeuDeTabl
 		c.TypeNormalise = normaliserType(typeSysteme)
 		c.Longueur = longueur(typeSysteme, maxLength)
 		c.LongueurFixe = longueurFixe(typeSysteme)
+		c.Fuseau = typeSysteme == "datetimeoffset"
+		c.PrecisionFractionnaire = precisionFractionnaire(typeSysteme, echelle)
 		c.Precision, c.Echelle = precisionEchelle(typeSysteme, precision, echelle)
 		// IDENTITY refuse une valeur explicite sans SET IDENTITY_INSERT, option
 		// de session : c'est la nature « toujours » du calque.

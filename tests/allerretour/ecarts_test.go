@@ -108,8 +108,15 @@ var tolerances = []tolerance{
 	{
 		code: "precision_horodatage", categorie: impossible,
 		pourquoi: "DBAL écrit TIMESTAMP(0) : la précision fractionnaire d'origine est perdue",
-		couvre: func(e diff.Ecart, _ contexte) bool {
-			return e.Objet == diff.ObjetColonne && e.Propriete == "type_brut" &&
+		couvre: func(e diff.Ecart, c contexte) bool {
+			if e.Objet != diff.ObjetColonne {
+				return false
+			}
+			if e.Propriete == "precision_fractionnaire" {
+				col := colonneOrigine(c, e)
+				return col != nil && strings.Contains(col.TypeBrut, "time") && e.Apres == "0"
+			}
+			return e.Propriete == "type_brut" &&
 				strings.Contains(e.Avant, "time") && strings.Replace(e.Apres, "(0)", "", 1) == e.Avant
 		},
 	},

@@ -59,9 +59,17 @@ type Colonne struct {
 	// pilote le lit dans son catalogue, pour que l'inférence n'ait pas à
 	// reconnaître le nom du type de chaque dialecte. Absent d'un calque extrait
 	// avant ce champ : inconnu, pas « variable ».
-	LongueurFixe  bool `json:"longueur_fixe,omitempty"`
-	Nullable      bool `json:"nullable"`
-	AutoIncrement bool `json:"auto_increment,omitempty"`
+	LongueurFixe bool `json:"longueur_fixe,omitempty"`
+	// Fuseau dit qu'un horodatage ou une heure porte son décalage :
+	// timestamptz et timetz de PostgreSQL, datetimeoffset de SQL Server. Même
+	// raison que LongueurFixe, même lecture d'un calque qui ne le porte pas.
+	Fuseau bool `json:"fuseau,omitempty"`
+	// PrecisionFractionnaire est le nombre de décimales des secondes d'un
+	// horodatage ou d'une heure. Pas Precision, qui garde le sens d'un
+	// décimal. Absente quand le type n'en déclare pas.
+	PrecisionFractionnaire *int `json:"precision_fractionnaire,omitempty"`
+	Nullable               bool `json:"nullable"`
+	AutoIncrement          bool `json:"auto_increment,omitempty"`
 	// Identite n'a de sens qu'avec AutoIncrement. Vide dans un calque extrait
 	// avant qu'elle existe : la nature est alors inconnue, pas « par défaut ».
 	Identite  NatureIdentite `json:"identite,omitempty"`

@@ -75,6 +75,15 @@
           "description": "La base complète les valeurs jusqu'à la longueur déclarée (character(n), char, nchar, binary). Lu par chaque pilote dans son catalogue. Absent d'un calque extrait avant ce champ : inconnu.",
           "type": "boolean"
         },
+        "fuseau": {
+          "description": "L'horodatage ou l'heure porte son décalage (timestamptz, timetz, datetimeoffset). Lu par chaque pilote dans son catalogue. Absent d'un calque extrait avant ce champ : inconnu.",
+          "type": "boolean"
+        },
+        "precision_fractionnaire": {
+          "description": "Nombre de décimales des secondes d'un horodatage ou d'une heure, tel que la colonne le déclare. Absent quand le type n'en déclare pas, ou d'un calque extrait avant ce champ.",
+          "type": "integer",
+          "minimum": 0
+        },
         "precision": { "type": "integer", "minimum": 0 },
         "echelle": { "type": "integer" },
         "nullable": { "type": "boolean" },

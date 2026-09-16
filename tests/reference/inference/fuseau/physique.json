@@ -1,0 +1,37 @@
+{
+  "version_ri": 1,
+  "source": {
+    "sgbd": "sqlserver",
+    "version": "16.0.4295.3",
+    "catalogue": "gescom",
+    "schema": "ventes",
+    "extrait_le": "2026-01-01T00:00:00Z",
+    "empreinte": "sha256:0000000000000000000000000000000000000000000000000000000000000028"
+  },
+  "tables": [
+    {
+      "nom": "evenement",
+      "schema": "ventes",
+      "commentaire": "Fuseau sous les formes de SQL Server : le fait vient du champ fuseau, pas du nom du type",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "int", "type_normalise": "entier", "nullable": false, "auto_increment": true, "identite": "toujours" },
+        { "nom": "emis_le", "position": 2, "type_brut": "datetimeoffset(7)", "type_normalise": "horodatage", "fuseau": true, "precision_fractionnaire": 7, "nullable": false, "commentaire": "Précision par défaut : Doctrine n'en lit que six" },
+        { "nom": "valide_le", "position": 3, "type_brut": "datetimeoffset(3)", "type_normalise": "horodatage", "fuseau": true, "precision_fractionnaire": 3, "nullable": true },
+        { "nom": "saisi_le", "position": 4, "type_brut": "datetime2(7)", "type_normalise": "horodatage", "precision_fractionnaire": 7, "nullable": true, "commentaire": "Sans fuseau : Doctrine relit sept décimales" }
+      ],
+      "cle_primaire": { "nom": "evenement_pkey", "colonnes": ["id"] }
+    },
+    {
+      "nom": "journal",
+      "schema": "ventes",
+      "commentaire": "Les mêmes cas sous les formes de PostgreSQL",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false, "auto_increment": true, "identite": "toujours" },
+        { "nom": "consigne_le", "position": 2, "type_brut": "timestamp(3) with time zone", "type_normalise": "horodatage", "fuseau": true, "precision_fractionnaire": 3, "nullable": false },
+        { "nom": "heure", "position": 3, "type_brut": "time with time zone", "type_normalise": "heure", "fuseau": true, "nullable": true },
+        { "nom": "ancien", "position": 4, "type_brut": "timestamp with time zone", "type_normalise": "horodatage", "nullable": true, "commentaire": "Calque extrait avant le champ fuseau : la forme de PostgreSQL reste lue" }
+      ],
+      "cle_primaire": { "nom": "journal_pkey", "colonnes": ["id"] }
+    }
+  ]
+}
