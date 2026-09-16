@@ -16,6 +16,13 @@
 export interface Logique {
   version_ri: number /* int */;
   empreinte_physique: string;
+  /**
+   * Sgbd recopie celui du physique. Le rendu d'une même entité dépend de la
+   * plateforme DBAL, et pas seulement des versions d'ORM et de DBAL : une clé
+   * par séquence ne se génère pas de la même façon sous SQL Server et sous
+   * PostgreSQL. Absent d'un calque produit avant ce champ : inconnu.
+   */
+  sgbd?: string;
   espace_de_noms: string;
   entites: Entite[];
   enumerations?: Enumeration[];
@@ -128,6 +135,11 @@ export interface Identifiant {
    */
   sequence_increment?: number /* int64 */;
   sequence_minimum?: number /* int64 */;
+  /**
+   * SequenceDepart est la valeur de départ, que le minimum ne dit pas :
+   * SQL Server part de 1 une séquence dont le minimum est celui du type.
+   */
+  sequence_depart?: number /* int64 */;
 }
 /**
  * StrategieIdentifiant dit qui produit la valeur de la clé.
@@ -705,6 +717,20 @@ export const TypeInconnu: TypeNorm = "inconnu";
 export interface Defaut {
   genre: GenreDefaut;
   valeur: string;
+  /**
+   * Sequence désigne la séquence qu'un défaut de genre sequence tire, lue
+   * dans les dépendances du catalogue plutôt que dans l'expression, dont
+   * l'écriture change d'un dialecte à l'autre. Absente d'un calque extrait
+   * avant ce champ, ou quand le catalogue ne désigne pas une seule séquence.
+   */
+  sequence?: ReferenceSequence;
+}
+/**
+ * ReferenceSequence nomme une séquence du catalogue, sans citation.
+ */
+export interface ReferenceSequence {
+  schema: string;
+  nom: string;
 }
 /**
  * GenreDefaut dit comment lire la valeur d'un défaut.

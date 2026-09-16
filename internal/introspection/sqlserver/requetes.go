@@ -158,13 +158,24 @@ SELECT t.name,
        CASE WHEN c.collation_name COLLATE Latin1_General_BIN2
                  = CONVERT(sysname, DATABASEPROPERTYEX(DB_NAME(), 'Collation')) COLLATE Latin1_General_BIN2
             THEN N'default' ELSE c.collation_name END AS collation,
-       CONVERT(nvarchar(max), ep.value)
+       CONVERT(nvarchar(max), ep.value),
+       seq.schema_nom,
+       seq.nom
 FROM sys.columns c
 JOIN sys.tables t ON t.object_id = c.object_id
 JOIN sys.schemas s ON s.schema_id = t.schema_id
 JOIN sys.types ty ON ty.user_type_id = c.user_type_id
 LEFT JOIN sys.default_constraints dc
        ON dc.parent_object_id = c.object_id AND dc.parent_column_id = c.column_id
+-- La séquence qu'un défaut NEXT VALUE FOR tire, par les dépendances que le
+-- serveur tient à jour ; plusieurs séquences dans un même défaut : aucune.
+OUTER APPLY (
+    SELECT CASE WHEN COUNT(*) = 1 THEN MIN(SCHEMA_NAME(sq.schema_id)) END AS schema_nom,
+           CASE WHEN COUNT(*) = 1 THEN MIN(sq.name) END AS nom
+    FROM sys.sql_expression_dependencies dep
+    JOIN sys.sequences sq ON sq.object_id = dep.referenced_id
+    WHERE dep.referencing_id = dc.object_id
+) seq
 LEFT JOIN sys.computed_columns cc
        ON cc.object_id = c.object_id AND cc.column_id = c.column_id
 LEFT JOIN sys.extended_properties ep

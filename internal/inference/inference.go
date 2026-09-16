@@ -44,6 +44,7 @@ func Inferer(p *calque.Physique, d *Decisions) (*calque.Logique, []calque.Averti
 	logique := &calque.Logique{
 		VersionRI:         calque.VersionCourante,
 		EmpreintePhysique: p.Source.Empreinte,
+		Sgbd:              p.Source.SGBD,
 		EspaceDeNoms:      espaceDeNoms(d),
 		// Vide et non nulle : le schéma exige une liste, et un calque dont
 		// toutes les tables sont écartées s'écrirait sinon "entites": null, que
@@ -529,15 +530,15 @@ func inferrerIdentifiant(t *calque.Table, cible string, parColonne map[string]*c
 		case colonnePhysique.AutoIncrement:
 			identifiant.Strategie = calque.IdentifiantIdentite
 		case colonnePhysique.Defaut != nil && colonnePhysique.Defaut.Genre == calque.DefautSequence:
-			nom, lu := nomDeSequence(colonnePhysique.Defaut.Valeur)
-			if !lu {
+			nom, s, raison := sequenceTiree(colonnePhysique.Defaut, sequences)
+			if raison != "" {
 				// Laisser la stratégie sequence sans nom ferait choisir à
 				// Doctrine une séquence <table>_<colonne>_seq qui n'est
 				// peut-être pas celle-là.
 				avertissements = append(avertissements, calque.Avertissement{
 					Code:       calque.CodeSequenceNonReconnue,
 					Cible:      cible + "." + colonne,
-					Message:    "défaut « " + colonnePhysique.Defaut.Valeur + " » : aucun nom de séquence à lire, l'identifiant est laissé à l'application",
+					Message:    "défaut « " + colonnePhysique.Defaut.Valeur + " » : " + raison + ", l'identifiant est laissé à l'application",
 					Resolution: calque.ResolutionParDefaut,
 					Confiance:  1,
 				})
@@ -546,8 +547,7 @@ func inferrerIdentifiant(t *calque.Table, cible string, parColonne map[string]*c
 			identifiant.Strategie = calque.IdentifiantSequence
 			identifiant.Sequence = nom
 
-			ecrit, _ := nomEcritDeSequence(colonnePhysique.Defaut.Valeur)
-			if s := rattacherSequence(ecrit, sequences); s != nil {
+			if s != nil {
 				if s.Increment != 0 {
 					increment := s.Increment
 					identifiant.SequenceIncrement = &increment
@@ -555,6 +555,10 @@ func inferrerIdentifiant(t *calque.Table, cible string, parColonne map[string]*c
 				if s.Minimum != nil {
 					minimum := *s.Minimum
 					identifiant.SequenceMinimum = &minimum
+				}
+				if s.Depart != nil {
+					depart := *s.Depart
+					identifiant.SequenceDepart = &depart
 				}
 			}
 		}
@@ -566,7 +570,7 @@ func inferrerIdentifiant(t *calque.Table, cible string, parColonne map[string]*c
 		// surprise à la génération.
 		identifiant.Strategie = calque.IdentifiantAssignee
 		identifiant.Sequence = ""
-		identifiant.SequenceIncrement, identifiant.SequenceMinimum = nil, nil
+		identifiant.SequenceIncrement, identifiant.SequenceMinimum, identifiant.SequenceDepart = nil, nil, nil
 		avertissements = append(avertissements, calque.Avertissement{
 			Code:       calque.CodeClePrimaireComposite,
 			Cible:      cible,

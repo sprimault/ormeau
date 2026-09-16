@@ -255,13 +255,14 @@ func (p *pilote) lireColonnes(ctx context.Context, schemas []string, jeu *jeuDeT
 		var tableNom, tableSchema, typeInterne, identite, generee string
 		var estEnumere bool
 		var longueur, precision, echelle, precisionFractionnaire *int
-		var defaut, commentaire, collation, collationSchema *string
+		var defaut, commentaire, collation, collationSchema, sequenceSchema, sequenceNom *string
 
 		c := calque.Colonne{}
 		if err := lignes.Scan(
 			&tableNom, &tableSchema, &c.Nom, &c.Position, &c.TypeBrut, &typeInterne,
 			&estEnumere, &longueur, &precision, &echelle, &precisionFractionnaire, &c.Nullable,
 			&identite, &defaut, &generee, &commentaire, &collation, &collationSchema,
+			&sequenceSchema, &sequenceNom,
 		); err != nil {
 			return fmt.Errorf("lecture d'une colonne: %w", err)
 		}
@@ -303,6 +304,9 @@ func (p *pilote) lireColonnes(ctx context.Context, schemas []string, jeu *jeuDeT
 		}
 		if defaut != nil {
 			c.Defaut = classerDefaut(*defaut)
+			if c.Defaut != nil && c.Defaut.Genre == calque.DefautSequence && sequenceSchema != nil && sequenceNom != nil {
+				c.Defaut.Sequence = &calque.ReferenceSequence{Schema: *sequenceSchema, Nom: *sequenceNom}
+			}
 		}
 		// attgenerated vaut 's' pour une colonne stockée, 'v' pour une colonne
 		// calculée à la lecture, et vide sinon. Comparé à la valeur attendue

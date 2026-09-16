@@ -229,13 +229,13 @@ func (p *pilote) lireColonnes(ctx context.Context, schema string, jeu *jeuDeTabl
 		var table, typeSysteme string
 		var maxLength, precision, echelle int
 		var identite bool
-		var defaut, calcul, collation, commentaire sql.NullString
+		var defaut, calcul, collation, commentaire, sequenceSchema, sequenceNom sql.NullString
 		var persistee sql.NullBool
 
 		c := calque.Colonne{}
 		if err := lignes.Scan(&table, &c.Nom, &c.Position, &typeSysteme,
 			&maxLength, &precision, &echelle, &c.Nullable, &identite, &defaut,
-			&calcul, &persistee, &collation, &commentaire); err != nil {
+			&calcul, &persistee, &collation, &commentaire, &sequenceSchema, &sequenceNom); err != nil {
 			return fmt.Errorf("lecture d'une colonne: %w", err)
 		}
 
@@ -257,6 +257,9 @@ func (p *pilote) lireColonnes(ctx context.Context, schema string, jeu *jeuDeTabl
 		}
 		if defaut.Valid {
 			c.Defaut = classerDefaut(defaut.String)
+			if c.Defaut != nil && c.Defaut.Genre == calque.DefautSequence && sequenceSchema.Valid && sequenceNom.Valid {
+				c.Defaut.Sequence = &calque.ReferenceSequence{Schema: sequenceSchema.String, Nom: sequenceNom.String}
+			}
 		}
 		// Une colonne calculée n'accepte pas de contrainte DEFAULT : le calcul
 		// est tout ce qu'elle porte. is_persisted distingue la valeur stockée

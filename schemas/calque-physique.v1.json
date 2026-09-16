@@ -144,7 +144,17 @@
       "additionalProperties": false,
       "properties": {
         "genre": { "enum": ["litteral", "expression", "sequence"] },
-        "valeur": { "type": "string" }
+        "valeur": { "type": "string" },
+        "sequence": {
+          "description": "Séquence que tire un défaut de genre sequence, lue dans les dépendances du catalogue, nom non cité. Absente quand le catalogue n'en désigne pas une seule, ou d'un calque extrait avant ce champ.",
+          "type": "object",
+          "required": ["schema", "nom"],
+          "additionalProperties": false,
+          "properties": {
+            "schema": { "type": "string" },
+            "nom": { "type": "string" }
+          }
+        }
       }
     },
     "generee": {

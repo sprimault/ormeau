@@ -1,6 +1,7 @@
 {
   "version_ri": 1,
-  "empreinte_physique": "sha256:e3fdb285fc304657955b8240f32db97110437975d965dd513ad235121b668f53",
+  "empreinte_physique": "sha256:de6d35355c6d21f5be85f38127f8bad9ea695828d00d26af785a665a03a8b82c",
+  "sgbd": "postgres",
   "espace_de_noms": "App\\Entity",
   "entites": [
     {
@@ -16,7 +17,8 @@
         "strategie": "sequence",
         "sequence": "gescom.t_avoir_avo_id_seq",
         "sequence_increment": 1,
-        "sequence_minimum": 1
+        "sequence_minimum": 1,
+        "sequence_depart": 1
       },
       "proprietes": [
         {

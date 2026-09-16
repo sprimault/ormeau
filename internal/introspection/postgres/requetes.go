@@ -190,7 +190,9 @@ SELECT c.relname                                            AS table_nom,
        a.attgenerated::text                                 AS generee,
        col_description(c.oid, a.attnum)                     AS commentaire,
        co.collname                                          AS collation,
-       CASE WHEN cn.nspname <> 'pg_catalog' THEN cn.nspname END AS collation_schema
+       CASE WHEN cn.nspname <> 'pg_catalog' THEN cn.nspname END AS collation_schema,
+       seq.schema                                           AS sequence_schema,
+       seq.nom                                              AS sequence_nom
 FROM pg_attribute a
          JOIN pg_class c ON c.oid = a.attrelid
          JOIN pg_namespace n ON n.oid = c.relnamespace
@@ -198,6 +200,19 @@ FROM pg_attribute a
          LEFT JOIN pg_attrdef d ON d.adrelid = c.oid AND d.adnum = a.attnum
          LEFT JOIN pg_collation co ON co.oid = a.attcollation
          LEFT JOIN pg_namespace cn ON cn.oid = co.collnamespace
+         -- La séquence qu'un défaut tire, par la dépendance que PostgreSQL
+         -- enregistre à sa création, serial comme nextval écrit à la main.
+         -- Plusieurs séquences dans un même défaut : aucune n'est désignée.
+         LEFT JOIN LATERAL (
+             SELECT CASE WHEN count(*) = 1 THEN min(sn.nspname) END AS schema,
+                    CASE WHEN count(*) = 1 THEN min(s.relname) END  AS nom
+             FROM pg_depend dep
+                      JOIN pg_class s ON s.oid = dep.refobjid AND s.relkind = 'S'
+                      JOIN pg_namespace sn ON sn.oid = s.relnamespace
+             WHERE dep.classid = 'pg_attrdef'::regclass
+               AND dep.objid = d.oid
+               AND dep.refclassid = 'pg_class'::regclass
+             ) seq ON d.oid IS NOT NULL
 WHERE c.relkind IN ('r', 'p')
   AND a.attnum > 0
   AND NOT a.attisdropped

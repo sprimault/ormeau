@@ -136,7 +136,7 @@ final class GenerateurEntite
         );
 
         $schemas = array_unique(array_map(static fn(Entite $e): string => $e->table->schema, $calque->entites));
-        $rendu = new RenduEntite($cible, $base, $calque->espaceDeNoms, count($schemas) > 1, $enumerations, $classes);
+        $rendu = new RenduEntite($cible, $base, $calque->espaceDeNoms, count($schemas) > 1, $enumerations, $classes, $calque->sgbd);
         $controle = new ControleClasseUtilisateur();
 
         $fichiers = [];
@@ -197,7 +197,8 @@ final class GenerateurEntite
                 ),
                 default => $this->raisonDEcarter($entite, $refus, $cible)
                     ?? $hierarchies->raison($entite)
-                    ?? self::origineDeLEntite($origine, $repertoire . '/Base/' . RenduEntite::nomBase($entite) . '.php', $classes->fichier($entite->nom, $repertoire)),
+                    ?? self::origineDeLEntite($origine, $repertoire . '/Base/' . RenduEntite::nomBase($entite) . '.php', $classes->fichier($entite->nom, $repertoire))
+                    ?? ($rendu->tireParGenerateur($entite) ? $origine(self::cheminGenerateur($repertoire, $entite)) : null),
             };
         }
         $raisons = $this->ecarterLesIdentitesEnChaine($calque->entites, $raisons);
@@ -227,6 +228,12 @@ final class GenerateurEntite
             if ($cible->ormMajeure === 2 && $identifiant !== null && $identifiant->strategie === StrategieIdentifiant::Sequence
                 && $identifiant->sequence !== null && $identifiant->sequenceIncrement !== null && $identifiant->sequenceIncrement !== 1) {
                 $sequences[] = new SequenceNonAlignee($entite->nom, $identifiant->sequence, $identifiant->sequenceIncrement);
+            }
+            // Le générateur avant la classe de base qui le nomme.
+            if ($hierarchies->parent($entite) === null && $rendu->tireParGenerateur($entite)) {
+                $chemin = self::cheminGenerateur($repertoire, $entite);
+                $fichiers[] = new Fichier($chemin, $this->ecrire($chemin, $rendu->generateur($entite), $repertoire));
+                $sequences[] = new SequenceHorsSchema($entite->nom, (string) $identifiant?->sequence);
             }
 
             $base = $repertoire . '/Base/' . RenduEntite::nomBase($entite) . '.php';
@@ -286,6 +293,15 @@ final class GenerateurEntite
         }
 
         return null;
+    }
+
+    /**
+     * Rend le chemin du générateur qui tire la séquence d'une entité, sous
+     * Base/Generateur : il appartient à l'outil comme la classe de base.
+     */
+    private static function cheminGenerateur(string $repertoire, Entite $entite): string
+    {
+        return $repertoire . '/Base/Generateur/' . RenduEntite::nomGenerateur($entite) . '.php';
     }
 
     /**

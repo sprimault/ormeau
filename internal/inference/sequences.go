@@ -4,10 +4,64 @@
 package inference
 
 import (
+	"regexp"
 	"strings"
 
 	"github.com/sprimault/ormeau/internal/calque"
 )
+
+// sequenceTiree rend, pour un défaut de genre sequence, le nom que le calque
+// logique porte et la séquence du physique qu'il désigne, ou la raison pour
+// laquelle aucun nom ne s'écrit.
+//
+// La forme nextval de PostgreSQL garde sa lecture : le nom sort tel que le
+// catalogue l'a cité, et les calques déjà produits ne changent pas. Toute
+// autre forme — NEXT VALUE FOR de SQL Server — se lit dans le champ sequence
+// que le pilote remplit depuis ses dépendances, jamais dans l'expression.
+func sequenceTiree(d *calque.Defaut, sequences []calque.Sequence) (string, *calque.Sequence, string) {
+	if ecrit, ok := nomEcritDeSequence(d.Valeur); ok {
+		nom, ok := nomDeSequence(d.Valeur)
+		if !ok {
+			return "", nil, "aucun nom de séquence à lire"
+		}
+		if d.Sequence != nil {
+			return nom, trouverSequence(*d.Sequence, sequences), ""
+		}
+		return nom, rattacherSequence(ecrit, sequences), ""
+	}
+	if d.Sequence == nil {
+		return "", nil, "aucun nom de séquence à lire"
+	}
+	// Un nom à citer s'écrirait autrement sous chaque plateforme, et aucune
+	// base de référence n'en porte : le signaler vaut mieux qu'une citation
+	// devinée.
+	if !identifiantNu.MatchString(d.Sequence.Schema) || !identifiantNu.MatchString(d.Sequence.Nom) {
+		return "", nil, "nom de séquence à citer, que l'outil n'écrit pas"
+	}
+	// dbo est le schéma par défaut de SQL Server, comme public pour
+	// nomDeSequence. Qualifiée, la séquence fait proposer CREATE SCHEMA dbo et
+	// sa recréation à schema:update (essai du 2026-09-16, ORM 2.14 / DBAL 3.10).
+	nom := d.Sequence.Nom
+	if d.Sequence.Schema != "dbo" {
+		nom = d.Sequence.Schema + "." + nom
+	}
+	return nom, trouverSequence(*d.Sequence, sequences), ""
+}
+
+// identifiantNu reconnaît un nom qui s'écrit sans citation sur toutes les
+// plateformes.
+var identifiantNu = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
+
+// trouverSequence rend la séquence du physique que désigne une référence du
+// catalogue, ou nil.
+func trouverSequence(ref calque.ReferenceSequence, sequences []calque.Sequence) *calque.Sequence {
+	for i := range sequences {
+		if sequences[i].Schema == ref.Schema && sequences[i].Nom == ref.Nom {
+			return &sequences[i]
+		}
+	}
+	return nil
+}
 
 // nomDeSequence rend le nom de séquence que le calque logique porte, lu dans un
 // défaut de genre sequence par nomEcritDeSequence.

@@ -64,7 +64,11 @@ var proprietesColonne = []propriete[calque.Colonne]{
 		if c.Defaut == nil {
 			return ""
 		}
-		return string(c.Defaut.Genre) + " " + c.Defaut.Valeur
+		rendu := string(c.Defaut.Genre) + " " + c.Defaut.Valeur
+		if s := c.Defaut.Sequence; s != nil {
+			rendu += " -> " + strconv.Quote(s.Schema) + "." + strconv.Quote(s.Nom)
+		}
+		return rendu
 	}},
 	{"generee", func(c *calque.Colonne) string {
 		if c.Generee == nil {

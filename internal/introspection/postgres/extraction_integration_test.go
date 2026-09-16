@@ -274,9 +274,12 @@ func TestExtraireLesCasTordus(t *testing.T) {
 		if c.AutoIncrement || c.Identite != "" {
 			t.Errorf("un serial n'est pas une colonne IDENTITY : auto_increment %v, identite %q", c.AutoIncrement, c.Identite)
 		}
-		attendu := calque.Defaut{Genre: calque.DefautSequence, Valeur: "nextval('gescom.t_avoir_avo_id_seq'::regclass)"}
-		if c.Defaut == nil || *c.Defaut != attendu {
-			t.Errorf("defaut %+v, attendu %+v", c.Defaut, attendu)
+		if c.Defaut == nil || c.Defaut.Genre != calque.DefautSequence || c.Defaut.Valeur != "nextval('gescom.t_avoir_avo_id_seq'::regclass)" {
+			t.Fatalf("defaut %+v, attendu nextval('gescom.t_avoir_avo_id_seq'::regclass)", c.Defaut)
+		}
+		// La séquence se lit dans pg_depend, pas dans l'expression.
+		if s := c.Defaut.Sequence; s == nil || *s != (calque.ReferenceSequence{Schema: "gescom", Nom: "t_avoir_avo_id_seq"}) {
+			t.Errorf("sequence du defaut %+v, attendue gescom.t_avoir_avo_id_seq", s)
 		}
 	})
 

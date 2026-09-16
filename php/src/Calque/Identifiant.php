@@ -28,6 +28,9 @@ final class Identifiant
      *                                                ou sépare plusieurs nœuds, et la base ne dit pas lequel
      * @param int|null             $sequenceMinimum   valeur minimale déclarée de la séquence, présente dans le
      *                                                même cas
+     * @param int|null             $sequenceDepart    valeur de départ déclarée de la séquence, présente dans le
+     *                                                même cas quand le calque physique la porte ; SQL Server
+     *                                                part de 1 une séquence dont le minimum est celui du type
      */
     public function __construct(
         public readonly array $proprietes,
@@ -35,6 +38,7 @@ final class Identifiant
         public readonly ?string $sequence = null,
         public readonly ?int $sequenceIncrement = null,
         public readonly ?int $sequenceMinimum = null,
+        public readonly ?int $sequenceDepart = null,
     ) {}
 
     /**
@@ -58,7 +62,8 @@ final class Identifiant
         $sequence = Lecture::chaineOptionnelle($donnees, 'sequence', $chemin);
         $increment = Lecture::entierOptionnel($donnees, 'sequence_increment', $chemin);
         $minimum = Lecture::entierOptionnel($donnees, 'sequence_minimum', $chemin);
+        $depart = Lecture::entierOptionnel($donnees, 'sequence_depart', $chemin);
 
-        return new self($proprietes, $strategie, $sequence, $increment, $minimum);
+        return new self($proprietes, $strategie, $sequence, $increment, $minimum, $depart);
     }
 }

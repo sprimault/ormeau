@@ -67,6 +67,8 @@ final class RenduMembres
      * @param bool                       $avecSchema   écrire le schéma d'une table de jointure
      * @param ClassesUtilisateur|null    $classes      où vivent les classes de l'utilisateur, que les
      *                                                 associations importent ; sans elle, à la racine
+     * @param string|null                $sgbd         SGBD du calque, qui décide de la valeur initiale d'une
+     *                                                 séquence ; inconnu, la règle de PostgreSQL s'applique
      */
     public function __construct(
         private readonly Cible $cible,
@@ -74,6 +76,7 @@ final class RenduMembres
         private readonly array $enumerations,
         private readonly bool $avecSchema = false,
         private readonly ?ClassesUtilisateur $classes = null,
+        private readonly ?string $sgbd = null,
     ) {}
 
     /**
@@ -92,10 +95,13 @@ final class RenduMembres
      * @param list<Propriete>   $proprietes   propriétés à rendre, dans l'ordre du calque
      * @param Identifiant|null  $identifiant  clé de l'entité ; null pour un trait, qui n'en porte pas
      * @param list<Association> $associations associations de l'entité ; aucune pour un trait
+     * @param string|null       $generateur   classe qui tire la séquence de la clé, relative à
+     *                                        l'espace de noms de la classe de base, quand la clé
+     *                                        en exige une ; voir RenduEntite::tireParGenerateur
      *
      * @return array{imports: list<string>, membres: list<string>, accesseurs: list<string>, collections: list<string>}
      */
-    public function rendre(array $proprietes, ?Identifiant $identifiant, array $associations = []): array
+    public function rendre(array $proprietes, ?Identifiant $identifiant, array $associations = [], ?string $generateur = null): array
     {
         $jointures = self::colonnesDeJointure($associations);
         $clesDerivees = array_flip(self::associationsDeCle($proprietes, $identifiant, $associations));
@@ -120,7 +126,7 @@ final class RenduMembres
             [$type, $import] = $this->type($propriete, $identifiant);
             $rendus['p:' . $propriete->nom] = [
                 'imports' => $import === null ? [] : [$import],
-                'membre' => $this->propriete($propriete, $identifiant, $type, $ecritePar),
+                'membre' => $this->propriete($propriete, $identifiant, $type, $ecritePar, $generateur),
                 'accesseurs' => $this->accesseurs($propriete, $identifiant, $type),
             ];
             $ordre[] = 'p:' . $propriete->nom;
@@ -339,8 +345,9 @@ final class RenduMembres
      * @param Identifiant|null $identifiant clé de l'entité
      * @param string           $type        type PHP déclaré
      * @param string|null      $ecritePar   association qui écrit la colonne, quand il y en a une
+     * @param string|null      $generateur  classe qui tire la séquence de la clé, quand il en faut une
      */
-    private function propriete(Propriete $propriete, ?Identifiant $identifiant, string $type, ?string $ecritePar = null): string
+    private function propriete(Propriete $propriete, ?Identifiant $identifiant, string $type, ?string $ecritePar = null, ?string $generateur = null): string
     {
         $indentation = Emetteur::INDENTATION;
         $texte = $propriete->commentaire === null ? [] : Emetteur::commentaire($propriete->commentaire);
@@ -359,24 +366,35 @@ final class RenduMembres
 
         if ($identifiant !== null && in_array($propriete->nom, $identifiant->proprietes, true)) {
             $lignes[] = Emetteur::attribut('ORM\Id', [], $indentation);
-            if ($generee) {
+            if ($generee && $generateur !== null) {
+                // ORM 3 sous SQL Server : ni IDENTITY, qui lit
+                // SCOPE_IDENTITY() et ne voit pas la séquence, ni
+                // #[SequenceGenerator], ignoré sur une classe de base mappée.
+                // Un générateur CUSTOM, lui, s'hérite. Constaté sous ORM 3.7,
+                // contre SQL Server 2022 (essai du 2026-09-16).
+                $lignes[] = Emetteur::attribut('ORM\GeneratedValue', ['strategy' => 'CUSTOM'], $indentation);
+                $lignes[] = Emetteur::attribut('ORM\CustomIdGenerator', ['class' => new Code($generateur . '::class')], $indentation);
+            } elseif ($generee) {
                 // La clé est dans une classe de base mappée. ORM 3 y ignore
                 // #[SequenceGenerator] et prend <table>_<colonne>_seq, mais son
                 // IDENTITY lit LASTVAL(), juste quel que soit le nom de la
                 // séquence. ORM 2 respecte le générateur, et son IDENTITY
-                // interroge currval sur le nom par défaut. Constaté sous
-                // ORM 2.14 et 3.6, contre PostgreSQL 17.
+                // interroge currval sur le nom par défaut — sous SQL Server,
+                // il hydrate 0 sans erreur. Constaté sous ORM 2.14 et 3.6,
+                // contre PostgreSQL 17, et sous 2.14 contre SQL Server 2022.
                 $sequence = $identifiant->strategie === StrategieIdentifiant::Sequence && $this->cible->ormMajeure === 2;
                 $lignes[] = Emetteur::attribut('ORM\GeneratedValue', ['strategy' => $sequence ? 'SEQUENCE' : 'IDENTITY'], $indentation);
                 if ($sequence && $identifiant->sequence !== null) {
-                    // DBAL 3 relit le minimum de la séquence comme sa valeur
-                    // initiale : sans lui, schema:update propose un ALTER.
-                    // Doctrine ne s'en sert que pour créer le schéma, jamais
-                    // pour attribuer un identifiant. allocationSize reste à 1,
-                    // voir SequenceNonAlignee.
+                    // Doctrine ne se sert de la valeur initiale que pour créer
+                    // le schéma, jamais pour attribuer un identifiant, mais
+                    // schema:update propose un ALTER quand elle diffère de ce
+                    // que DBAL 3 relit : le minimum sous PostgreSQL, le départ
+                    // sous SQL Server. allocationSize reste à 1, voir
+                    // SequenceNonAlignee.
+                    $initiale = $this->sgbd === 'sqlserver' ? $identifiant->sequenceDepart : $identifiant->sequenceMinimum;
                     $arguments = ['sequenceName' => $identifiant->sequence];
-                    if ($identifiant->sequenceMinimum !== null && $identifiant->sequenceMinimum !== 1) {
-                        $arguments['initialValue'] = $identifiant->sequenceMinimum;
+                    if ($initiale !== null && $initiale !== 1) {
+                        $arguments['initialValue'] = $initiale;
                     }
                     $lignes[] = Emetteur::attribut('ORM\SequenceGenerator', $arguments, $indentation);
                 }

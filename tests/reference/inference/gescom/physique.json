@@ -5,8 +5,8 @@
     "version": "17.11",
     "catalogue": "gescom",
     "schema": "gescom",
-    "extrait_le": "2026-09-16T17:11:40Z",
-    "empreinte": "sha256:e3fdb285fc304657955b8240f32db97110437975d965dd513ad235121b668f53"
+    "extrait_le": "2026-09-16T17:45:10Z",
+    "empreinte": "sha256:de6d35355c6d21f5be85f38127f8bad9ea695828d00d26af785a665a03a8b82c"
   },
   "tables": [
     {
@@ -21,7 +21,11 @@
           "nullable": false,
           "defaut": {
             "genre": "sequence",
-            "valeur": "nextval('gescom.t_avoir_avo_id_seq'::regclass)"
+            "valeur": "nextval('gescom.t_avoir_avo_id_seq'::regclass)",
+            "sequence": {
+              "schema": "gescom",
+              "nom": "t_avoir_avo_id_seq"
+            }
           }
         },
         {

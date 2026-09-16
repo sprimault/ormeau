@@ -110,6 +110,19 @@ var tolerancesSQLServer = []tolerance{
 				(e.Avant == "datetime" || e.Avant == "smalldatetime") && e.Apres == "datetime2(6)"
 		},
 	},
+	reprise("bornes_de_sequence_par_defaut"),
+	{
+		code: "minimum_de_sequence_par_defaut", categorie: impossible, cibles: []string{"orm2-dbal3"},
+		pourquoi: "DBAL écrit MINVALUE égal à la valeur initiale, ramenée à 1 quand elle ne l'est pas : le minimum d'origine est remplacé",
+		couvre: func(e diff.Ecart, c contexte) bool {
+			return e.Objet == diff.ObjetSequence && e.Propriete == "minimum" && e.Apres == "1" && sequenceDUnIdentifiant(c, e.Schema, e.Nom)
+		},
+	},
+	{
+		code: "sequence_recreee_sans_defaut", categorie: impossible, cibles: []string{"orm2-dbal3"},
+		pourquoi: "Doctrine tire la séquence lui-même et n'écrit pas DEFAULT NEXT VALUE FOR : une insertion hors Doctrine doit fournir la clé",
+		couvre:   defautDeSequenceRetire,
+	},
 	{
 		code: "tinyint_recree_en_smallint", categorie: impossible,
 		pourquoi: "Doctrine n'a pas de type sur un octet : tinyint est recréé en SMALLINT, le plus proche",
@@ -153,6 +166,16 @@ var tolerancesSQLServer = []tolerance{
 		},
 	},
 	{
+		code: "sequence_hors_schema", categorie: voulu, cibles: []string{"orm3-dbal4"},
+		pourquoi: "sous ORM 3, un générateur produit tire la séquence, seule façon d'attribuer la clé : les outils de schéma de Doctrine ne la voient pas, ne la recréent pas, et le rapport de génération le dit",
+		couvre: func(e diff.Ecart, c contexte) bool {
+			if e.Objet == diff.ObjetSequence {
+				return e.Genre == diff.Suppression && sequenceDUnIdentifiant(c, e.Schema, e.Nom)
+			}
+			return defautDeSequenceRetire(e, c)
+		},
+	},
+	{
 		code: "fuseau_precision_ramenee_a_6", categorie: voulu,
 		pourquoi: "un horodatage avec fuseau est rendu en datetimetz, avec l'avertissement fuseau_precision_non_lue au-delà de six décimales : DBAL le recrée en DATETIMEOFFSET(6), là où le rendu sans fuseau écrirait un instant faux",
 		couvre: func(e diff.Ecart, c contexte) bool {
@@ -169,18 +192,6 @@ var tolerancesSQLServer = []tolerance{
 
 	// À COMBLER : chacune part avec le lot qui la corrige.
 	{
-		code: "sequence_next_value_for_non_reconnue", categorie: aCombler, lot: "P7-5c — séquence",
-		pourquoi: "une clé par DEFAULT NEXT VALUE FOR n'est pas reconnue : l'identifiant est laissé à l'application, et la séquence n'est pas recréée",
-		couvre: func(e diff.Ecart, c contexte) bool {
-			if e.Objet == diff.ObjetSequence {
-				return e.Genre == diff.Suppression
-			}
-			col := colonneOrigine(c, e)
-			return col != nil && col.Defaut != nil && col.Defaut.Genre == calque.DefautSequence &&
-				e.Propriete == "defaut" && e.Apres == ""
-		},
-	},
-	{
 		code: "defaut_instant_courant_non_reconnu", categorie: aCombler, lot: "P7-5c — défauts",
 		pourquoi: "getdate() et sysdatetimeoffset() ne sont pas reconnus comme l'instant courant : le défaut n'est pas reporté",
 		couvre: func(e diff.Ecart, _ contexte) bool {
@@ -188,6 +199,27 @@ var tolerancesSQLServer = []tolerance{
 				slices.Contains([]string{"expression (getdate())", "expression (sysdatetimeoffset())"}, e.Avant)
 		},
 	},
+}
+
+// sequenceDUnIdentifiant dit si une clé du calque logique tire cette séquence,
+// sous le nom que l'inférence lui donne : nu dans dbo, qualifié ailleurs.
+func sequenceDUnIdentifiant(c contexte, schema, nom string) bool {
+	ecrit := schema + "." + nom
+	if schema == "dbo" {
+		ecrit = nom
+	}
+	return slices.ContainsFunc(c.logique.Entites, func(en calque.Entite) bool {
+		return en.Identifiant != nil && en.Identifiant.Strategie == calque.IdentifiantSequence && en.Identifiant.Sequence == ecrit
+	})
+}
+
+// defautDeSequenceRetire couvre le DEFAULT NEXT VALUE FOR que Doctrine
+// n'écrit pas sur une clé qu'il attribue lui-même.
+func defautDeSequenceRetire(e diff.Ecart, c contexte) bool {
+	col := colonneOrigine(c, e)
+	return col != nil && col.Defaut != nil && col.Defaut.Genre == calque.DefautSequence && col.Defaut.Sequence != nil &&
+		e.Propriete == "defaut" && e.Apres == "" &&
+		sequenceDUnIdentifiant(c, col.Defaut.Sequence.Schema, col.Defaut.Sequence.Nom)
 }
 
 // nomClePrimaireSQLServer reconnaît le nom qu'SQL Server donne à une clé

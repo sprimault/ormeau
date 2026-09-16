@@ -1,0 +1,67 @@
+{
+  "version_ri": 1,
+  "source": {
+    "sgbd": "sqlserver",
+    "version": "16.0.4295.3",
+    "catalogue": "gescom",
+    "schema": "ventes",
+    "extrait_le": "2026-01-01T00:00:00Z",
+    "empreinte": "sha256:0000000000000000000000000000000000000000000000000000000000000029"
+  },
+  "tables": [
+    {
+      "nom": "avoir",
+      "schema": "ventes",
+      "commentaire": "Clé par DEFAULT NEXT VALUE FOR : la séquence se lit dans le champ sequence du défaut, pas dans l'expression",
+      "colonnes": [
+        {
+          "nom": "id", "position": 1, "type_brut": "int", "type_normalise": "entier", "nullable": false,
+          "defaut": { "genre": "sequence", "valeur": "(NEXT VALUE FOR [ventes].[sq_avoir])", "sequence": { "schema": "ventes", "nom": "sq_avoir" } }
+        },
+        { "nom": "montant", "position": 2, "type_brut": "decimal(12,2)", "type_normalise": "decimal", "precision": 12, "echelle": 2, "nullable": false }
+      ],
+      "cle_primaire": { "nom": "avoir_pkey", "colonnes": ["id"] }
+    },
+    {
+      "nom": "note",
+      "schema": "dbo",
+      "commentaire": "Séquence du schéma par défaut, qui part de 1000 : le départ n'est pas le minimum",
+      "colonnes": [
+        {
+          "nom": "id", "position": 1, "type_brut": "bigint", "type_normalise": "entier", "nullable": false,
+          "defaut": { "genre": "sequence", "valeur": "(NEXT VALUE FOR [dbo].[sq_note])", "sequence": { "schema": "dbo", "nom": "sq_note" } }
+        }
+      ],
+      "cle_primaire": { "nom": "note_pkey", "colonnes": ["id"] }
+    },
+    {
+      "nom": "ancien",
+      "schema": "ventes",
+      "commentaire": "Calque extrait avant le champ sequence : rien ne désigne la séquence, rien n'est inventé",
+      "colonnes": [
+        {
+          "nom": "id", "position": 1, "type_brut": "int", "type_normalise": "entier", "nullable": false,
+          "defaut": { "genre": "sequence", "valeur": "(NEXT VALUE FOR [ventes].[sq_avoir])" }
+        }
+      ],
+      "cle_primaire": { "nom": "ancien_pkey", "colonnes": ["id"] }
+    },
+    {
+      "nom": "cite",
+      "schema": "ventes",
+      "commentaire": "Séquence au nom à citer : non écrite plutôt que citée au hasard",
+      "colonnes": [
+        {
+          "nom": "id", "position": 1, "type_brut": "int", "type_normalise": "entier", "nullable": false,
+          "defaut": { "genre": "sequence", "valeur": "(NEXT VALUE FOR [ventes].[sq cite])", "sequence": { "schema": "ventes", "nom": "sq cite" } }
+        }
+      ],
+      "cle_primaire": { "nom": "cite_pkey", "colonnes": ["id"] }
+    }
+  ],
+  "sequences": [
+    { "nom": "sq_note", "schema": "dbo", "increment": 1, "depart": 1000, "minimum": -9223372036854775808, "maximum": 9223372036854775807 },
+    { "nom": "sq cite", "schema": "ventes", "increment": 1, "depart": 1, "minimum": -2147483648, "maximum": 2147483647 },
+    { "nom": "sq_avoir", "schema": "ventes", "increment": 1, "depart": 1, "minimum": -2147483648, "maximum": 2147483647 }
+  ]
+}
