@@ -769,7 +769,25 @@ export interface Index {
    * reconstructible. Même chose pour un btree en text_pattern_ops.
    */
   operateurs?: string[];
+  /**
+   * Ordres suit la même règle qu'Operateurs : absent quand toutes les
+   * colonnes sont ascendantes, complet sinon. Un index recréé ascendant ne
+   * sert pas les tris que l'original servait.
+   */
+  ordres?: OrdreIndex[];
 }
+/**
+ * OrdreIndex est le sens de tri d'une colonne d'index. Vocabulaire fermé.
+ */
+export type OrdreIndex = string;
+/**
+ * Sens de tri.
+ */
+export const OrdreAscendant: OrdreIndex = "asc";
+/**
+ * Sens de tri.
+ */
+export const OrdreDescendant: OrdreIndex = "desc";
 /**
  * Verification est un CHECK, verbatim parce que sa syntaxe dépend du dialecte.
  * C'est la source d'énumération la plus fiable, avant tout échantillonnage.
@@ -794,6 +812,13 @@ export interface Sequence {
   nom: string;
   schema: string;
   increment?: number /* int64 */;
+  /**
+   * Depart est la première valeur rendue, que le minimum ne dit pas : une
+   * séquence SQL Server AS int part de 1 avec un minimum à -2147483648.
+   * Absent d'un calque extrait avant ce champ, ou d'un pilote qui ne le lit
+   * pas encore : valeur inconnue, pas 1.
+   */
+  depart?: number /* int64 */;
   minimum?: number /* int64 */;
   maximum?: number /* int64 */;
   cyclique?: boolean;
@@ -934,3 +959,8 @@ export const CodeTypeEnumereIntrouvable = "type_enumere_introuvable";
  * ils servent de filtre en CI.
  */
 export const CodeStatistiquesOrphelines = "statistiques_orphelines";
+/**
+ * Codes d'anomalie. Stables entre versions, comme ceux des avertissements :
+ * ils servent de filtre en CI.
+ */
+export const CodeOrdreInconnu = "ordre_inconnu";

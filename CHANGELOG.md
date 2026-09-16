@@ -60,10 +60,19 @@ préambule reste en français : il n'est jamais publié.
 - **SQL Server se connecte et se parcourt depuis l'interface.** Le serveur est
   décrit à la connexion — version, édition, catalogue, schémas —, et l'arbre
   affiche bases, tables et colonnes, avec les commentaires que SQL Server range
-  dans des extended properties. L'extraction n'est pas encore écrite : elle
-  échoue en le disant, plutôt que de rendre un calque partiel qu'on croirait
-  complet. Un serveur à certificat auto-signé demande
+  dans des extended properties. Un serveur à certificat auto-signé demande
   `TrustServerCertificate=true` dans le DSN.
+- **SQL Server s'extrait en un calque physique.** Tables, colonnes, défauts,
+  colonnes calculées stockées ou non, collations, commentaires, clés, unicités,
+  `CHECK`, index filtrés, séquences et vues sont lus dans `sys.*`. Le type brut
+  est celui que le serveur écrit, échelle d'un `datetime2(n)` comprise ; une
+  collation égale à celle de la base sort en `default`. L'inférence et la
+  génération n'ont pas encore été relues pour ce dialecte.
+- **Deux champs optionnels dans le calque physique**, sans changement de
+  `version_ri` : `ordres` sur un index, pour un index descendant qui serait
+  sinon recréé ascendant, et `depart` sur une séquence, que le minimum ne dit
+  pas. Le pilote PostgreSQL ne les produit pas encore : leur absence veut dire
+  « inconnu ».
 
 ***
 
@@ -89,9 +98,20 @@ préambule reste en français : il n'est jamais publié.
 - **SQL Server connects and can be browsed from the interface.** The server is
   described on connection — version, edition, catalog, schemas — and the tree
   shows databases, tables and columns, including the comments SQL Server keeps
-  in extended properties. Extraction is not written yet: it fails saying so,
-  rather than returning a partial layer that would look complete. A server with
-  a self-signed certificate needs `TrustServerCertificate=true` in the DSN.
+  in extended properties. A server with a self-signed certificate needs
+  `TrustServerCertificate=true` in the DSN.
+- **SQL Server extracts into a physical layer.** Tables, columns, defaults,
+  persisted or non-persisted computed columns, collations, comments, keys,
+  unique constraints, `CHECK`s, filtered indexes, sequences and views are read
+  from `sys.*`. The raw type is the one the server writes, including the scale
+  of a `datetime2(n)`; a collation equal to the database's comes out as
+  `default`. Inference and generation have not been reviewed for this dialect
+  yet.
+- **Two optional fields in the physical layer**, with no `version_ri` change:
+  `ordres` on an index, for a descending index that would otherwise be
+  recreated ascending, and `depart` on a sequence, which the minimum does not
+  tell. The PostgreSQL driver does not produce them yet: their absence means
+  "unknown".
 
 ## [0.6.1] — 2026-09-16 — Ce que rien ne signalait
 

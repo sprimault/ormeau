@@ -8,7 +8,6 @@ package sqlserver
 import (
 	"context"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/sprimault/ormeau/internal/introspection"
@@ -193,18 +192,6 @@ func TestColonnesCiteLesNomsPenibles(t *testing.T) {
 		if !contient(noms, attendu) {
 			t.Errorf("colonne %q absente de %v", attendu, noms)
 		}
-	}
-}
-
-// TestExtraireLeDitQuandElleNEstPasEcrite : l'échec doit nommer ce qui manque,
-// pas ressembler à une panne.
-func TestExtraireLeDitQuandElleNEstPasEcrite(t *testing.T) {
-	_, err := ouvrir(t).Extraire(context.Background(), introspection.Portee{})
-	if err == nil {
-		t.Fatal("Extraire a rendu un calque")
-	}
-	if !strings.Contains(err.Error(), "pas encore ecrite") {
-		t.Errorf("erreur peu explicite : %v", err)
 	}
 }
 

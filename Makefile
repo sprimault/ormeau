@@ -1,4 +1,4 @@
-.PHONY: dev test cover maj-attendus maj-calque-gescom aller-retour lint outils vulncheck sec build binaries web-deps web-build web-types web-types-check web-lint web-test php-changelog php-test php-lint image image-tags image-push clean
+.PHONY: dev test cover maj-attendus maj-calque-gescom maj-calque-sqlserver aller-retour lint outils vulncheck sec build binaries web-deps web-build web-types web-types-check web-lint web-test php-changelog php-test php-lint image image-tags image-push clean
 
 # Répertoire de travail local, ignoré par git : sorties de `make build`,
 # profils de couverture, tout ce qui ne se publie pas.
@@ -105,6 +105,12 @@ aller-retour: containers
 maj-calque-gescom: containers
 	go test -count=1 -tags integration ./internal/introspection/postgres/ -run TestExtraireCommeLaReference -maj-attendus
 	@echo "Calque reecrit. Relire 'git diff tests/reference/inference/gescom/', puis make maj-attendus."
+
+# Le calque SQL Server de gescom n'entre dans aucun cas d'inférence : il fige
+# l'extraction seule, en attendant que l'inférence de ce dialecte soit relue.
+maj-calque-sqlserver: containers
+	go test -count=1 -tags integration ./internal/introspection/sqlserver/ -run TestExtraireCommeLaReference -maj-attendus
+	@echo "Calque reecrit. Relire 'git diff tests/reference/extraction/sqlserver/'."
 
 # La vérification des types générés est accrochée à lint, pas à test :
 # `make test` doit rester exécutable sur un clone frais sans outil Go à

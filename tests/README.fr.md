@@ -22,15 +22,23 @@ fichier sert d'entrée à l'inférence. L'image du conteneur est épinglée sur 
 version mineure, puisque la version du serveur figure dans le fichier : en
 changer, c'est régénérer le calque et relire son diff.
 
+`reference/extraction/sqlserver/gescom.calque.json` est l'extraction de
+`ddl/sqlserver.sql` par le pilote SQL Server, comparée de la même façon. Il
+n'est l'entrée d'aucun cas d'inférence : un répertoire de `reference/inference/`
+porte un calque logique attendu et des entités générées, et l'inférence de ce
+dialecte n'a pas encore été relue. L'image est épinglée sur une mise à jour
+cumulative, pour la même raison.
+
 La mise à jour groupée des attendus se fait derrière un drapeau, jamais
-automatiquement : un attendu régénéré sans être relu ne teste plus rien. Trois
+automatiquement : un attendu régénéré sans être relu ne teste plus rien. Quatre
 paquets le déclarent, et chacun se lance à part — un `./...` échouerait sur
 tous les autres :
 
 ```bash
 go test ./internal/inference/ -maj-attendus   # calques logiques attendus, aussi `make maj-attendus`
 go test ./internal/calque/ -maj-attendus      # sérialisation du calque physique
-make maj-calque-gescom                        # extraction de gescom, contre le conteneur
+make maj-calque-gescom                        # extraction PostgreSQL de gescom, contre le conteneur
+make maj-calque-sqlserver                     # extraction SQL Server de gescom, contre le conteneur
 ```
 
 Après `make maj-calque-gescom`, `make maj-attendus` recalcule le calque logique

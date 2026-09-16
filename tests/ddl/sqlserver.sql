@@ -24,10 +24,15 @@ GO
 CREATE SCHEMA ventes;
 GO
 
+-- Toutes les clés sont nommées, sous les noms que PostgreSQL génère pour le même
+-- schéma. Un nom laissé au serveur porte un suffixe tiré à chaque création de la
+-- base (PK__t_avoir__47184C0E7EAC9BA9) : le calque de référence ne se
+-- reproduirait plus d'un conteneur à l'autre.
+
 -- Cas nominal : entité simple, identité, commentaires, contrainte de contrôle
 -- qui doit devenir une énumération.
 CREATE TABLE ventes.t_commercial (
-    com_id     int IDENTITY (1, 1) PRIMARY KEY,
+    com_id     int IDENTITY (1, 1) CONSTRAINT t_commercial_pkey PRIMARY KEY,
     -- collation par colonne : SQL Server en pose une sur chaque colonne texte,
     -- et « explicite » ne veut dire ici que « différente de celle de la base ».
     com_nom    nvarchar(80) COLLATE French_CI_AS NOT NULL,
@@ -56,7 +61,7 @@ CREATE UNIQUE INDEX uq_com_email_actif ON ventes.t_commercial (com_email)
 GO
 
 CREATE TABLE ventes.t_client (
-    cli_id      int IDENTITY (1, 1) PRIMARY KEY,
+    cli_id      int IDENTITY (1, 1) CONSTRAINT t_client_pkey PRIMARY KEY,
     cli_nom     nvarchar(120) NOT NULL,
     cli_siret   nchar(14) NULL,
     cli_statut  nvarchar(20) NOT NULL CONSTRAINT DF_client_statut DEFAULT 'ACTIF',
@@ -86,7 +91,7 @@ CREATE INDEX ix_cli_nom_desc ON ventes.t_client (cli_nom DESC);
 GO
 
 CREATE TABLE ventes.t_tag (
-    tag_id      int IDENTITY (1, 1) PRIMARY KEY,
+    tag_id      int IDENTITY (1, 1) CONSTRAINT t_tag_pkey PRIMARY KEY,
     -- collation binaire : un tri octet par octet, que la collation de la base
     -- ne reproduit pas.
     tag_libelle nvarchar(40) COLLATE Latin1_General_BIN2 NOT NULL
@@ -95,9 +100,10 @@ GO
 
 -- Table de jointure pure : doit produire une association, pas une entité.
 CREATE TABLE ventes.t_client_tag (
-    cli_id int NOT NULL REFERENCES ventes.t_client (cli_id) ON DELETE CASCADE,
-    tag_id int NOT NULL REFERENCES ventes.t_tag (tag_id),
-    PRIMARY KEY (cli_id, tag_id)
+    cli_id int NOT NULL CONSTRAINT t_client_tag_cli_id_fkey
+        REFERENCES ventes.t_client (cli_id) ON DELETE CASCADE,
+    tag_id int NOT NULL CONSTRAINT t_client_tag_tag_id_fkey REFERENCES ventes.t_tag (tag_id),
+    CONSTRAINT t_client_tag_pkey PRIMARY KEY (cli_id, tag_id)
 );
 GO
 EXEC sp_addextendedproperty
@@ -109,10 +115,10 @@ GO
 -- Table de liaison portant une donnée propre : doit rester une entité. La clé
 -- commence par la colonne d'identité dérivée.
 CREATE TABLE ventes.t_client_contact (
-    cli_id int NOT NULL REFERENCES ventes.t_client (cli_id),
+    cli_id int NOT NULL CONSTRAINT t_client_contact_cli_id_fkey REFERENCES ventes.t_client (cli_id),
     ctc_id int NOT NULL,
     [role] nvarchar(30) NOT NULL,
-    PRIMARY KEY (cli_id, ctc_id)
+    CONSTRAINT t_client_contact_pkey PRIMARY KEY (cli_id, ctc_id)
 );
 GO
 EXEC sp_addextendedproperty
@@ -125,8 +131,9 @@ GO
 -- Un-vers-un hors clé primaire : la clé étrangère porte une contrainte
 -- d'unicité, dont SQL Server crée l'index de soutien du même nom.
 CREATE TABLE ventes.t_client_adresse (
-    adr_id  int IDENTITY (1, 1) PRIMARY KEY,
-    cli_id  int NOT NULL REFERENCES ventes.t_client (cli_id) ON DELETE CASCADE,
+    adr_id  int IDENTITY (1, 1) CONSTRAINT t_client_adresse_pkey PRIMARY KEY,
+    cli_id  int NOT NULL CONSTRAINT t_client_adresse_cli_id_fkey
+        REFERENCES ventes.t_client (cli_id) ON DELETE CASCADE,
     adr_rue nvarchar(200) NOT NULL,
     CONSTRAINT uq_adresse_client UNIQUE (cli_id)
 );
@@ -134,16 +141,17 @@ GO
 
 -- Héritage : la clé primaire est aussi une clé étrangère.
 CREATE TABLE ventes.t_client_grand_compte (
-    cli_id      int PRIMARY KEY REFERENCES ventes.t_client (cli_id),
+    cli_id      int CONSTRAINT t_client_grand_compte_pkey PRIMARY KEY
+        CONSTRAINT t_client_grand_compte_cli_id_fkey REFERENCES ventes.t_client (cli_id),
     remise_taux decimal(4, 2) NOT NULL
 );
 GO
 
 -- Auto-référence.
 CREATE TABLE ventes.t_categorie (
-    cat_id      int IDENTITY (1, 1) PRIMARY KEY,
+    cat_id      int IDENTITY (1, 1) CONSTRAINT t_categorie_pkey PRIMARY KEY,
     cat_libelle nvarchar(60) NOT NULL,
-    cat_parent  int NULL REFERENCES ventes.t_categorie (cat_id)
+    cat_parent  int NULL CONSTRAINT t_categorie_cat_parent_fkey REFERENCES ventes.t_categorie (cat_id)
 );
 GO
 
@@ -157,7 +165,7 @@ GO
 -- Clé étrangère implicite : aucune contrainte déclarée, mais toutes les valeurs
 -- existent dans t_client. Détectable seulement avec --echantillonner.
 CREATE TABLE ventes.t_facture (
-    fac_id     int IDENTITY (1, 1) PRIMARY KEY,
+    fac_id     int IDENTITY (1, 1) CONSTRAINT t_facture_pkey PRIMARY KEY,
     fac_cli_id int NOT NULL,
     fac_total  decimal(12, 2) NOT NULL,
     fac_date   date NOT NULL CONSTRAINT DF_facture_date DEFAULT getdate(),
@@ -174,7 +182,7 @@ GO
 CREATE SEQUENCE ventes.sq_avoir AS int START WITH 1 INCREMENT BY 1;
 GO
 CREATE TABLE ventes.t_avoir (
-    avo_id     int PRIMARY KEY CONSTRAINT DF_avoir_id DEFAULT (NEXT VALUE FOR ventes.sq_avoir),
+    avo_id     int CONSTRAINT t_avoir_pkey PRIMARY KEY CONSTRAINT DF_avoir_id DEFAULT (NEXT VALUE FOR ventes.sq_avoir),
     avo_fac_id int NOT NULL
 );
 GO
@@ -182,13 +190,13 @@ GO
 -- Clé en longueur fixe, visée par une clé étrangère du même type. Recréé en
 -- nvarchar, un nchar(n) ne complète plus ses valeurs d'espaces.
 CREATE TABLE ventes.t_pays (
-    pay_code    nchar(2) PRIMARY KEY,
+    pay_code    nchar(2) CONSTRAINT t_pays_pkey PRIMARY KEY,
     pay_libelle nvarchar(60) COLLATE French_CI_AS NOT NULL
 );
 GO
 
 CREATE TABLE ventes.t_commande (
-    cmd_id    int IDENTITY (1, 1) PRIMARY KEY,
+    cmd_id    int IDENTITY (1, 1) CONSTRAINT t_commande_pkey PRIMARY KEY,
     -- Pas de type énuméré nommé sous SQL Server : la forme idiomatique est un
     -- CHECK IN, que l'inférence sait déjà lire pour produire une énumération.
     cmd_canal varchar(10) NOT NULL,
@@ -196,7 +204,7 @@ CREATE TABLE ventes.t_commande (
     -- place dans defaut_expression et tombe en defaut_non_reporte.
     cmd_ref   uniqueidentifier NOT NULL CONSTRAINT DF_commande_ref DEFAULT newid(),
     cmd_heure time NULL,
-    cmd_pay_code nchar(2) NULL REFERENCES ventes.t_pays (pay_code),
+    cmd_pay_code nchar(2) NULL CONSTRAINT t_commande_cmd_pay_code_fkey REFERENCES ventes.t_pays (pay_code),
     -- Pas de type JSON avant SQL Server 2025 : du texte, et une contrainte qui
     -- dit ce qu'il contient.
     cmd_options nvarchar(max) NULL,
@@ -208,7 +216,7 @@ GO
 -- Identifiants réservés et accents, pour éprouver l'échappement. SQL Server les
 -- écrit entre crochets, jamais entre guillemets doubles par défaut.
 CREATE TABLE ventes.[t_référence] (
-    [id]      int IDENTITY (1, 1) PRIMARY KEY,
+    [id]      int IDENTITY (1, 1) CONSTRAINT [t_référence_pkey] PRIMARY KEY,
     [order]   int NULL,
     [select]  nvarchar(10) NULL,
     [Libellé] nvarchar(30) NULL,
@@ -231,8 +239,8 @@ CREATE TABLE ventes.users (
     email         nvarchar(100) NULL,
     login         nvarchar(15) NULL,
     nivhab        smallint NULL,
-    -- Un nom de contrainte laissé au serveur : le calque ne sait pas encore le
-    -- porter, et deux extractions doivent pourtant le retrouver.
+    -- Un nom tel que le serveur l'a généré sur la base d'origine, recopié par
+    -- le script de reprise : le calque ne sait pas encore le porter.
     mem_montant   bit CONSTRAINT DF__users__mem_monta__67A95F59 DEFAULT 0,
     -- Le même cas, nommé à la main : les deux formes cohabitent sur une base
     -- reprise, et rien ne les distingue à la lecture du catalogue.

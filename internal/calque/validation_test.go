@@ -99,6 +99,14 @@ func TestValiderDetecteLesAnomalies(t *testing.T) {
 			p.TableParNom("public", "commande").Index[0].Colonnes = []string{"montant"}
 		}, CodeColonneIntrouvable},
 
+		{"ordres d'index d'autre arité", func(p *Physique) {
+			p.TableParNom("public", "commande").Index[0].Ordres = []OrdreIndex{OrdreAscendant, OrdreDescendant}
+		}, CodeAriteIncoherente},
+
+		{"ordre d'index inventé", func(p *Physique) {
+			p.TableParNom("public", "commande").Index[0].Ordres = []OrdreIndex{"inverse"}
+		}, CodeOrdreInconnu},
+
 		{"clé étrangère sur colonne absente", func(p *Physique) {
 			p.TableParNom("public", "commande").ClesEtrangeres[0].Colonnes = []string{"cli_id"}
 		}, CodeColonneIntrouvable},

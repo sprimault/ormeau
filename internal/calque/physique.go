@@ -190,7 +190,20 @@ type Index struct {
 	// une distance euclidienne sont indistinguables, et le DDL n'est plus
 	// reconstructible. Même chose pour un btree en text_pattern_ops.
 	Operateurs []string `json:"operateurs,omitempty"`
+	// Ordres suit la même règle qu'Operateurs : absent quand toutes les
+	// colonnes sont ascendantes, complet sinon. Un index recréé ascendant ne
+	// sert pas les tris que l'original servait.
+	Ordres []OrdreIndex `json:"ordres,omitempty"`
 }
+
+// OrdreIndex est le sens de tri d'une colonne d'index. Vocabulaire fermé.
+type OrdreIndex string
+
+// Sens de tri.
+const (
+	OrdreAscendant  OrdreIndex = "asc"
+	OrdreDescendant OrdreIndex = "desc"
+)
 
 // Verification est un CHECK, verbatim parce que sa syntaxe dépend du dialecte.
 // C'est la source d'énumération la plus fiable, avant tout échantillonnage.
@@ -212,9 +225,14 @@ type Sequence struct {
 	Nom       string `json:"nom"`
 	Schema    string `json:"schema"`
 	Increment int64  `json:"increment,omitempty"`
-	Minimum   *int64 `json:"minimum,omitempty"`
-	Maximum   *int64 `json:"maximum,omitempty"`
-	Cyclique  bool   `json:"cyclique,omitempty"`
+	// Depart est la première valeur rendue, que le minimum ne dit pas : une
+	// séquence SQL Server AS int part de 1 avec un minimum à -2147483648.
+	// Absent d'un calque extrait avant ce champ, ou d'un pilote qui ne le lit
+	// pas encore : valeur inconnue, pas 1.
+	Depart   *int64 `json:"depart,omitempty"`
+	Minimum  *int64 `json:"minimum,omitempty"`
+	Maximum  *int64 `json:"maximum,omitempty"`
+	Cyclique bool   `json:"cyclique,omitempty"`
 }
 
 // TypeEnumere est un type énuméré natif du SGBD, référencé par Colonne.

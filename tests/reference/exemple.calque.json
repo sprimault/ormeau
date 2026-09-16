@@ -6,7 +6,7 @@
     "catalogue": "gescom",
     "schema": "public",
     "extrait_le": "2026-01-01T00:00:00Z",
-    "empreinte": "sha256:98d383ec9f65439be686d46f0ea8a7f482be800d9bb88ff1d1ca52a4a20b5a56"
+    "empreinte": "sha256:802ff7b9314a2f693e8938b650ed45feb07557b7670612961f92cb5664c700ad"
   },
   "tables": [
     {
@@ -134,7 +134,10 @@
           "colonnes": [
             "total"
           ],
-          "unique": false
+          "unique": false,
+          "ordres": [
+            "desc"
+          ]
         }
       ],
       "verifications": [
@@ -158,7 +161,8 @@
     {
       "nom": "client_id_seq",
       "schema": "public",
-      "increment": 1
+      "increment": 1,
+      "depart": 1000
     }
   ],
   "types_enumeres": [

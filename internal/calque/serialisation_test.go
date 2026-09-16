@@ -15,6 +15,9 @@ import (
 // ptrInt : longueur, précision et échelle sont des pointeurs.
 func ptrInt(v int) *int { return &v }
 
+// ptrInt64 : départ, minimum et maximum d'une séquence aussi.
+func ptrInt64(v int64) *int64 { return &v }
+
 // physiqueDeReference est volontairement dans le désordre, colonnes comprises,
 // et porte des expressions que l'encodeur JSON échapperait par défaut.
 func physiqueDeReference() *Physique {
@@ -53,7 +56,7 @@ func physiqueDeReference() *Physique {
 					{Nom: "ck_client", Expression: "client_id <> 0"},
 				},
 				Index: []Index{
-					{Nom: "idx_total", Colonnes: []string{"total"}, Unique: false},
+					{Nom: "idx_total", Colonnes: []string{"total"}, Unique: false, Ordres: []OrdreIndex{OrdreDescendant}},
 					{Nom: "idx_client", Colonnes: []string{"client_id"}, Unique: false},
 					{
 						Nom: "idx_reference", Colonnes: []string{"reference"}, Unique: false,
@@ -80,7 +83,7 @@ func physiqueDeReference() *Physique {
 			},
 		},
 		Sequences: []Sequence{
-			{Nom: "client_id_seq", Schema: "public", Increment: 1},
+			{Nom: "client_id_seq", Schema: "public", Increment: 1, Depart: ptrInt64(1000)},
 			{Nom: "audit_id_seq", Schema: "archive", Increment: 1},
 		},
 		TypesEnumeres: []TypeEnumere{
