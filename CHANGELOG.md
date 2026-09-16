@@ -36,6 +36,27 @@ préambule reste en français : il n'est jamais publié.
 
 ## [Non publié]
 
+### Ajouté
+
+- **SQL Server se connecte et se parcourt depuis l'interface.** Le serveur est
+  décrit à la connexion — version, édition, catalogue, schémas —, et l'arbre
+  affiche bases, tables et colonnes, avec les commentaires que SQL Server range
+  dans des extended properties. L'extraction n'est pas encore écrite : elle
+  échoue en le disant, plutôt que de rendre un calque partiel qu'on croirait
+  complet. Un serveur à certificat auto-signé demande
+  `TrustServerCertificate=true` dans le DSN.
+
+***
+
+### Added
+
+- **SQL Server connects and can be browsed from the interface.** The server is
+  described on connection — version, edition, catalog, schemas — and the tree
+  shows databases, tables and columns, including the comments SQL Server keeps
+  in extended properties. Extraction is not written yet: it fails saying so,
+  rather than returning a partial layer that would look complete. A server with
+  a self-signed certificate needs `TrustServerCertificate=true` in the DSN.
+
 ## [0.6.1] — 2026-09-16 — Ce que rien ne signalait
 
 ### Corrigé

@@ -350,8 +350,11 @@ fonctionnent : `ormeau extraire` puis `ormeau inferer` produisent les trois
 fichiers, et `bin/console ormeau:generer` écrit les entités, leurs associations,
 leurs énumérations et leurs traits, et l'héritage déclaré dans le fichier de
 décisions, en écartant et en le disant ce que Doctrine ne sait pas représenter.
-La comparaison de la base aux entités existantes (`ormeau:synchroniser`) reste à
-venir. L'état par phase est dans [`ROADMAP.md`](ROADMAP.md).
+SQL Server se connecte et se parcourt — bases, schémas, tables et colonnes —,
+mais son extraction n'est pas encore écrite et le dit plutôt que de rendre un
+calque partiel. La comparaison de la base aux entités existantes
+(`ormeau:synchroniser`) reste à venir. L'état par phase est dans
+[`ROADMAP.md`](ROADMAP.md).
 
 La CI exécute la suite de tests avec le détecteur de courses, `golangci-lint`,
 `gofmt`, `govulncheck`, `gosec` et un contrôle de validité des JSON Schema à

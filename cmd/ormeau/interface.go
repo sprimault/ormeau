@@ -16,6 +16,7 @@ import (
 
 	// Comme pour extraire : importer le pilote est ce qui le rend disponible.
 	_ "github.com/sprimault/ormeau/internal/introspection/postgres"
+	_ "github.com/sprimault/ormeau/internal/introspection/sqlserver"
 )
 
 // interfaceLocale sert l'interface sur la boucle locale jusqu'à interruption.

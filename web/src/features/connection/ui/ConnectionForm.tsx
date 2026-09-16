@@ -16,8 +16,13 @@ import { ProfileBar } from './ProfileBar';
  * Seuls ceux dont le pilote est embarqué y figurent : offrir une option qui
  * échouera à la connexion ferait passer un manque annoncé pour une panne. La
  * liste grandit avec les pilotes.
+ *
+ * SQL Server s'y connecte et se parcourt, mais son extraction n'est pas encore
+ * écrite : elle échoue en le disant. Le critère de cette liste est la
+ * connexion, pas la chaîne complète — un serveur qu'on ne peut pas ouvrir n'a
+ * rien à y faire, un serveur qu'on parcourt avant de pouvoir l'extraire, si.
  */
-const sgbdDisponibles = ['postgres'];
+const sgbdDisponibles = ['postgres', 'sqlserver'];
 
 /**
  * Modes de sslmode, le vocabulaire de libpq. Le serveur refuse toute autre
@@ -29,7 +34,7 @@ const modesSSL = ['disable', 'allow', 'prefer', 'require', 'verify-ca', 'verify-
  * Ports par défaut des SGBD proposés, pour comparer une destination comme le
  * serveur le fait : un port laissé vide vaut celui du SGBD.
  */
-const portsParDefaut: Record<string, number> = { postgres: 5432 };
+const portsParDefaut: Record<string, number> = { postgres: 5432, sqlserver: 1433 };
 
 /** Ce qu'une connexion vise réellement : SGBD, hôte sans casse ni blanc, port effectif. */
 function destination(sgbd: string | undefined, hote: string | undefined, port: number | undefined) {
