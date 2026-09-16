@@ -218,6 +218,7 @@ final class GenerateurEntite
         // qui lui restent, côtés inverses omis déduits.
         $hierarchies = new Hierarchies($generees);
         $sequences = [];
+        $colonnesGenerees = [];
         foreach ($generees as $entite) {
             $identifiant = $entite->identifiant;
             if ($cible->ormMajeure === 2 && $identifiant !== null && $identifiant->strategie === StrategieIdentifiant::Sequence
@@ -229,6 +230,13 @@ final class GenerateurEntite
             $fichiers[] = new Fichier($base, $this->ecrire($base, $rendu->classeBase($entite, $hierarchies), $repertoire));
 
             $racine = $hierarchies->racineHeritage($entite, $calque->espaceDeNoms, $classes, $cible);
+            if ($racine !== null && !$cible->ometLesColonnesGenereesEnHeritageJoint()) {
+                $generee = self::premiereColonneGeneree($entite);
+                if ($generee !== null) {
+                    $colonnesGenerees[] = new ColonneGenereeNonExclue($entite->nom, $generee->nom, $generee->colonne, $cible->versionOrm());
+                }
+            }
+
             $utilisateur = $classes->fichier($entite->nom, $repertoire);
             if (!is_file($utilisateur)) {
                 $this->ecrire($utilisateur, $rendu->classeUtilisateur($entite, $racine), $repertoire);
@@ -255,7 +263,26 @@ final class GenerateurEntite
             ));
         }
 
-        return new Rapport($fichiers, $ecartees, $divergences, $omises, $ecrasements, $sequences);
+        return new Rapport($fichiers, $ecartees, $divergences, $omises, $ecrasements, $sequences, $colonnesGenerees);
+    }
+
+    /**
+     * Rend la première propriété que la base calcule, ou null quand l'entité
+     * n'en porte aucune.
+     *
+     * Une seule suffit à empêcher toute la hiérarchie de s'enregistrer, et
+     * l'avertissement se lit mieux en nommant une colonne qu'en les listant
+     * toutes.
+     */
+    private static function premiereColonneGeneree(Entite $entite): ?Propriete
+    {
+        foreach ($entite->proprietes as $propriete) {
+            if ($propriete->generee !== null) {
+                return $propriete;
+            }
+        }
+
+        return null;
     }
 
     /**

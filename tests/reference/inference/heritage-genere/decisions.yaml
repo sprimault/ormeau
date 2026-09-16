@@ -1,0 +1,14 @@
+# Une hiérarchie jointe dont la racine porte une colonne générée.
+#
+# Le rendu est le même que pour toute hiérarchie déclarée ; ce que ce cas
+# fixe, c'est la combinaison elle-même : Doctrine ORM 2.14 et 2.15 incluent la
+# colonne générée dans l'INSERT du persister joint, et la base la refuse.
+# Corrigé en 2.16. La génération prévient au rapport quand la cible détectée
+# est antérieure, et produit la hiérarchie sans rien retirer.
+
+heritages:
+  public.document:
+    colonne_discriminante: nature
+    valeurs:
+      public.document: D
+      public.facture: F
