@@ -9,6 +9,7 @@ namespace Ormeau\Doctrine\Generation;
 
 use Ormeau\Doctrine\Calque\Entite;
 use Ormeau\Doctrine\Calque\Enumeration;
+use Ormeau\Doctrine\Calque\StrategieIdentifiant;
 use Ormeau\Doctrine\Calque\TraitPartage;
 
 /**
@@ -46,16 +47,81 @@ final class RenduEntite
      * @param array<string, Enumeration> $enumerations énumérations du calque par nom
      * @param ClassesUtilisateur|null    $classes      où vivent les classes de l'utilisateur ; sans elle,
      *                                                 chacune est supposée à la racine
+     * @param string|null                $sgbd         SGBD du calque : une clé par séquence ne se rend pas
+     *                                                 de la même façon sous chaque plateforme DBAL
      */
     public function __construct(
-        Cible $cible,
+        private readonly Cible $cible,
         private readonly string $base,
         private readonly string $espaceDeNoms,
         private readonly bool $avecSchema,
         array $enumerations = [],
         private readonly ?ClassesUtilisateur $classes = null,
+        private readonly ?string $sgbd = null,
     ) {
-        $this->membres = new RenduMembres($cible, $espaceDeNoms, $enumerations, $avecSchema, $classes);
+        $this->membres = new RenduMembres($cible, $espaceDeNoms, $enumerations, $avecSchema, $classes, $sgbd);
+    }
+
+    /**
+     * Dit si la clé d'une entité racine tire sa séquence par un générateur
+     * produit, écrit dans Base/Generateur.
+     *
+     * Sous ORM 3 et SQL Server, rien d'autre n'attribue l'identifiant : IDENTITY
+     * lit SCOPE_IDENTITY(), qui ne voit pas une valeur tirée d'une séquence, et
+     * #[SequenceGenerator] est ignoré sur une classe de base mappée. Sous
+     * PostgreSQL, IDENTITY lit LASTVAL() et reste juste ; un générateur y ferait
+     * au contraire proposer DROP SEQUENCE … CASCADE, qui passe. Constaté sous
+     * ORM 3.7 le 2026-09-16.
+     */
+    public function tireParGenerateur(Entite $entite): bool
+    {
+        $identifiant = $entite->identifiant;
+
+        return $this->cible->ormMajeure >= 3
+            && $this->sgbd === 'sqlserver'
+            && $identifiant !== null
+            && count($identifiant->proprietes) === 1
+            && $identifiant->strategie === StrategieIdentifiant::Sequence
+            && $identifiant->sequence !== null;
+    }
+
+    /**
+     * Rend le nom court du générateur qui tire la séquence d'une entité.
+     */
+    public static function nomGenerateur(Entite $entite): string
+    {
+        return $entite->nom . 'Generateur';
+    }
+
+    /**
+     * Rend le générateur qui tire la séquence de la clé d'une entité.
+     *
+     * Il appartient à l'outil comme la classe de base, et ne dépend que de
+     * Doctrine : rien du bundle n'est chargé à l'exécution. Le nom de la
+     * séquence vient du calque et passe par un littéral échappé.
+     */
+    public function generateur(Entite $entite): string
+    {
+        $sequence = $entite->identifiant->sequence ?? '';
+        $lignes = $this->entete(EnteteOrmeau::outil($this->base), $this->espaceDeNoms . '\\Base\\Generateur', ['Doctrine\ORM\Id\SequenceGenerator']);
+        array_push($lignes, ...Emetteur::docblock(
+            Emetteur::commentaire(sprintf('Tire la séquence %s pour la clé de %s : ORM 3 ignore #[ORM\SequenceGenerator] sur une classe de base mappée.', $sequence, $entite->nom)),
+            [],
+            '',
+        ));
+        $i = Emetteur::INDENTATION;
+        array_push(
+            $lignes,
+            'class ' . self::nomGenerateur($entite) . ' extends SequenceGenerator',
+            '{',
+            $i . 'public function __construct()',
+            $i . '{',
+            $i . $i . 'parent::__construct(' . Emetteur::litteral($sequence) . ', 1);',
+            $i . '}',
+            '}',
+        );
+
+        return implode("\n", $lignes) . "\n";
     }
 
     /**
@@ -161,6 +227,7 @@ final class RenduEntite
             $hierarchies->proprietesDeclarees($entite),
             $parent === null ? $entite->identifiant : null,
             $entite->associations,
+            $parent === null && $this->tireParGenerateur($entite) ? 'Generateur\\' . self::nomGenerateur($entite) : null,
         );
 
         $imports = ['Doctrine\ORM\Mapping as ORM', ...$rendu['imports']];

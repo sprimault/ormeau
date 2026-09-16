@@ -10,6 +10,7 @@ namespace Ormeau\Doctrine\Tests\Generation;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\Deprecations\Deprecation;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Id\SequenceGenerator;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Tools\SchemaTool;
@@ -110,11 +111,15 @@ final class MappingTest extends TestCase
                 self::assertSame($entite->table->nom, $meta->getTableName(), $classe);
                 // Une clé par séquence : ORM 2 lit le nom de la séquence, ORM 3
                 // passe par IDENTITY, le générateur d'une classe de base
-                // mappée n'y étant pas repris.
+                // mappée n'y étant pas repris — sauf sous SQL Server, où un
+                // générateur produit tire la séquence nommée.
                 if ($entite->identifiant?->strategie === StrategieIdentifiant::Sequence) {
                     if ($cible->ormMajeure === 2) {
                         self::assertTrue($meta->isIdGeneratorSequence(), $classe . ' : génération par séquence');
                         self::assertSame($entite->identifiant->sequence, $meta->sequenceGeneratorDefinition['sequenceName'] ?? null, $classe . ' : nom de séquence');
+                    } elseif ($calque->sgbd === 'sqlserver') {
+                        self::assertSame(ClassMetadata::GENERATOR_TYPE_CUSTOM, $meta->generatorType, $classe . ' : génération par générateur produit');
+                        self::assertInstanceOf(SequenceGenerator::class, $meta->idGenerator, $classe . ' : générateur de séquence');
                     } else {
                         self::assertTrue($meta->isIdGeneratorIdentity(), $classe . ' : génération par IDENTITY');
                     }

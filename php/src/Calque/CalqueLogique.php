@@ -32,6 +32,10 @@ final class CalqueLogique
      * @param list<Enumeration>   $enumerations      énumérations PHP que des propriétés désignent
      * @param list<TraitPartage>  $traits            traits que des entités nomment
      * @param list<Avertissement> $avertissements    ce que l'inférence n'a pas résolu
+     * @param string|null         $sgbd              SGBD du calque physique : le rendu d'une clé par séquence
+     *                                               dépend de la plateforme DBAL, pas seulement des versions ;
+     *                                               absent d'un calque produit avant ce champ, où il vaut
+     *                                               inconnu ; après les autres pour ne rien décaler chez un appelant
      */
     public function __construct(
         public readonly int $versionRi,
@@ -41,6 +45,7 @@ final class CalqueLogique
         public readonly array $enumerations = [],
         public readonly array $traits = [],
         public readonly array $avertissements = [],
+        public readonly ?string $sgbd = null,
     ) {}
 
     /**
@@ -64,8 +69,9 @@ final class CalqueLogique
         $enumerations = Lecture::objets($donnees, 'enumerations', '', Enumeration::depuisTableau(...));
         $traits = Lecture::objets($donnees, 'traits', '', TraitPartage::depuisTableau(...));
         $avertissements = Lecture::objets($donnees, 'avertissements', '', Avertissement::depuisTableau(...));
+        $sgbd = Lecture::chaineOptionnelle($donnees, 'sgbd', '');
 
-        return new self($versionRi, $empreintePhysique, $espaceDeNoms, $entites, $enumerations, $traits, $avertissements);
+        return new self($versionRi, $empreintePhysique, $espaceDeNoms, $entites, $enumerations, $traits, $avertissements, $sgbd);
     }
 
     /**

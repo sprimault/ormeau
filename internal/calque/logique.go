@@ -7,13 +7,18 @@ package calque
 // neutre : il parle le vocabulaire de la famille Hibernate. Un ORM qui ne
 // partage pas ce modèle consomme le physique.
 type Logique struct {
-	VersionRI         int             `json:"version_ri"`
-	EmpreintePhysique string          `json:"empreinte_physique"`
-	EspaceDeNoms      string          `json:"espace_de_noms"`
-	Entites           []Entite        `json:"entites"`
-	Enumerations      []Enumeration   `json:"enumerations,omitempty"`
-	Traits            []Trait         `json:"traits,omitempty"`
-	Avertissements    []Avertissement `json:"avertissements,omitempty"`
+	VersionRI         int    `json:"version_ri"`
+	EmpreintePhysique string `json:"empreinte_physique"`
+	// Sgbd recopie celui du physique. Le rendu d'une même entité dépend de la
+	// plateforme DBAL, et pas seulement des versions d'ORM et de DBAL : une clé
+	// par séquence ne se génère pas de la même façon sous SQL Server et sous
+	// PostgreSQL. Absent d'un calque produit avant ce champ : inconnu.
+	Sgbd           string          `json:"sgbd,omitempty"`
+	EspaceDeNoms   string          `json:"espace_de_noms"`
+	Entites        []Entite        `json:"entites"`
+	Enumerations   []Enumeration   `json:"enumerations,omitempty"`
+	Traits         []Trait         `json:"traits,omitempty"`
+	Avertissements []Avertissement `json:"avertissements,omitempty"`
 }
 
 // Origine indique d'où vient une décision. Sans elle, l'outil n'est pas
@@ -97,6 +102,9 @@ type Identifiant struct {
 	// lequel. Pointeurs, parce qu'un minimum vaut souvent 0.
 	SequenceIncrement *int64 `json:"sequence_increment,omitempty"`
 	SequenceMinimum   *int64 `json:"sequence_minimum,omitempty"`
+	// SequenceDepart est la valeur de départ, que le minimum ne dit pas :
+	// SQL Server part de 1 une séquence dont le minimum est celui du type.
+	SequenceDepart *int64 `json:"sequence_depart,omitempty"`
 }
 
 // StrategieIdentifiant dit qui produit la valeur de la clé.

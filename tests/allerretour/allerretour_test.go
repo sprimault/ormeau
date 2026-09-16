@@ -251,7 +251,14 @@ func TestAllerRetour(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	recree := extraire(t, d, recreee.String(), d.schemaRecree)
+	// Le schéma de l'origine aussi : une séquence que le calque logique
+	// qualifie y est recréée, là où les tables non qualifiées vont dans
+	// schemaRecree.
+	schemasRecrees := []string{d.schemaRecree}
+	if d.schemaRecree != d.schema {
+		schemasRecrees = append(schemasRecrees, d.schema)
+	}
+	recree := extraire(t, d, recreee.String(), schemasRecrees...)
 	renommerSchema(recree, d.schemaRecree, d.schema)
 	ecarts := diff.Comparer(origine, recree, diff.Options{})
 
@@ -293,8 +300,8 @@ func renommerSchema(p *calque.Physique, depuis, vers string) {
 	}
 }
 
-// extraire rend le calque d'un schéma d'une base.
-func extraire(t *testing.T, d dialecte, dsn, schema string) *calque.Physique {
+// extraire rend le calque de quelques schémas d'une base.
+func extraire(t *testing.T, d dialecte, dsn string, schemas ...string) *calque.Physique {
 	t.Helper()
 
 	ctx, annuler := context.WithTimeout(context.Background(), 60*time.Second)
@@ -306,7 +313,7 @@ func extraire(t *testing.T, d dialecte, dsn, schema string) *calque.Physique {
 	}
 	defer func() { _ = pilote.Fermer() }()
 
-	physique, err := pilote.Extraire(ctx, introspection.Portee{Schemas: []string{schema}})
+	physique, err := pilote.Extraire(ctx, introspection.Portee{Schemas: schemas})
 	if err != nil {
 		t.Fatalf("extraction de %s : %v", introspection.Masquer(dsn), err)
 	}

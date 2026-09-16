@@ -13,6 +13,10 @@
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$"
     },
+    "sgbd": {
+      "description": "SGBD du calque physique dont découle ce jugement. Le rendu dépend de la plateforme DBAL : une clé par séquence ne se génère pas de la même façon d'un SGBD à l'autre. Absent d'un calque produit avant ce champ : inconnu.",
+      "type": "string"
+    },
     "espace_de_noms": { "type": "string" },
     "entites": { "type": "array", "items": { "$ref": "#/$defs/entite" } },
     "enumerations": { "type": "array", "items": { "$ref": "#/$defs/enumeration" } },
@@ -88,6 +92,10 @@
         "sequence": { "type": "string" },
         "sequence_increment": {
           "description": "Incrément de la séquence, tel que le catalogue le déclare. Présent seulement quand la séquence a été retrouvée dans le calque physique. Un fait, pas un réglage : un incrément supérieur à 1 peut réserver des blocs ou séparer les identifiants de plusieurs nœuds, et la base ne dit pas lequel.",
+          "type": "integer"
+        },
+        "sequence_depart": {
+          "description": "Valeur de départ de la séquence, telle que le catalogue la déclare. Présente seulement quand la séquence a été retrouvée dans le calque physique et que celui-ci porte le départ.",
           "type": "integer"
         },
         "sequence_minimum": {

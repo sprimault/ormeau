@@ -32,8 +32,9 @@ final class Rapport
      *                                              porte le côté propriétaire est écartée
      * @param list<EcrasementRefuse>   $refus       fichiers d'une autre base laissés intacts ; seul cas où la
      *                                              génération demandée n'a pas eu lieu
-     * @param list<SequenceNonAlignee>      $sequences séquences dont migrations:diff proposera de changer
-     *                                                 l'incrément, ce qu'il ne faut pas appliquer
+     * @param list<SequenceNonAlignee|SequenceHorsSchema> $sequences séquences dont migrations:diff proposera
+     *                                                               de changer l'incrément ou de les supprimer,
+     *                                                               ce qu'il ne faut pas appliquer
      * @param list<ColonneGenereeNonExclue> $generees  hiérarchies jointes qu'une version d'ORM antérieure
      *                                                 à 2.16 n'enregistrera pas, à cause d'une colonne
      *                                                 calculée par la base sur la racine

@@ -1,0 +1,142 @@
+{
+  "version_ri": 1,
+  "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000029",
+  "sgbd": "sqlserver",
+  "espace_de_noms": "App\\Entity",
+  "entites": [
+    {
+      "nom": "Avoir",
+      "table": {
+        "nom": "avoir",
+        "schema": "ventes"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "sequence",
+        "sequence": "ventes.sq_avoir",
+        "sequence_increment": 1,
+        "sequence_minimum": -2147483648,
+        "sequence_depart": 1
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "montant",
+          "colonne": "montant",
+          "type_php": "string",
+          "type_doctrine": "decimal",
+          "nullable": false,
+          "precision": 12,
+          "echelle": 2,
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "Clé par DEFAULT NEXT VALUE FOR : la séquence se lit dans le champ sequence du défaut, pas dans l'expression",
+      "origine": "nommage"
+    },
+    {
+      "nom": "Note",
+      "table": {
+        "nom": "note",
+        "schema": "dbo"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "sequence",
+        "sequence": "sq_note",
+        "sequence_increment": 1,
+        "sequence_minimum": -9223372036854775808,
+        "sequence_depart": 1000
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "bigint",
+          "nullable": false,
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "Séquence du schéma par défaut, qui part de 1000 : le départ n'est pas le minimum",
+      "origine": "nommage"
+    },
+    {
+      "nom": "Ancien",
+      "table": {
+        "nom": "ancien",
+        "schema": "ventes"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "assignee"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "Calque extrait avant le champ sequence : rien ne désigne la séquence, rien n'est inventé",
+      "origine": "nommage"
+    },
+    {
+      "nom": "Cite",
+      "table": {
+        "nom": "cite",
+        "schema": "ventes"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "assignee"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "Séquence au nom à citer : non écrite plutôt que citée au hasard",
+      "origine": "nommage"
+    }
+  ],
+  "avertissements": [
+    {
+      "code": "sequence_non_reconnue",
+      "cible": "ventes.ancien.id",
+      "message": "défaut « (NEXT VALUE FOR [ventes].[sq_avoir]) » : aucun nom de séquence à lire, l'identifiant est laissé à l'application",
+      "resolution": "par_defaut",
+      "confiance": 1
+    },
+    {
+      "code": "sequence_non_reconnue",
+      "cible": "ventes.cite.id",
+      "message": "défaut « (NEXT VALUE FOR [ventes].[sq cite]) » : nom de séquence à citer, que l'outil n'écrit pas, l'identifiant est laissé à l'application",
+      "resolution": "par_defaut",
+      "confiance": 1
+    }
+  ]
+}

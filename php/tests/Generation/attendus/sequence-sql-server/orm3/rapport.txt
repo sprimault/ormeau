@@ -1,0 +1,12 @@
+créé Base/Generateur/AvoirGenerateur.php
+créé Base/AvoirBase.php
+créé Avoir.php
+créé Base/Generateur/NoteGenerateur.php
+créé Base/NoteBase.php
+créé Note.php
+créé Base/AncienBase.php
+créé Ancien.php
+créé Base/CiteBase.php
+créé Cite.php
+séquence Avoir : la séquence ventes.sq_avoir est tirée par un générateur que les outils de schéma de Doctrine ne voient pas. schema:update et migrations:diff proposeront « DROP SEQUENCE ventes.sq_avoir » : ne pas l'appliquer, SQL Server le refuse tant que la colonne la référence. Une base créée par schema:create n'aura pas la séquence.
+séquence Note : la séquence sq_note est tirée par un générateur que les outils de schéma de Doctrine ne voient pas. schema:update et migrations:diff proposeront « DROP SEQUENCE sq_note » : ne pas l'appliquer, SQL Server le refuse tant que la colonne la référence. Une base créée par schema:create n'aura pas la séquence.

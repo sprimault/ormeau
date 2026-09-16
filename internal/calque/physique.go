@@ -132,6 +132,17 @@ const (
 type Defaut struct {
 	Genre  GenreDefaut `json:"genre"`
 	Valeur string      `json:"valeur"`
+	// Sequence désigne la séquence qu'un défaut de genre sequence tire, lue
+	// dans les dépendances du catalogue plutôt que dans l'expression, dont
+	// l'écriture change d'un dialecte à l'autre. Absente d'un calque extrait
+	// avant ce champ, ou quand le catalogue ne désigne pas une seule séquence.
+	Sequence *ReferenceSequence `json:"sequence,omitempty"`
+}
+
+// ReferenceSequence nomme une séquence du catalogue, sans citation.
+type ReferenceSequence struct {
+	Schema string `json:"schema"`
+	Nom    string `json:"nom"`
 }
 
 // GenreDefaut dit comment lire la valeur d'un défaut.

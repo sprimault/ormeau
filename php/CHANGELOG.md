@@ -38,6 +38,12 @@ préambule reste en français : il n'est jamais publié.
 
 ### Corrigé
 
+- **Une clé SQL Server tirée d'une séquence est attribuée.** Un `DEFAULT NEXT
+  VALUE FOR` n'était pas reconnu : l'identifiant restait à fournir par
+  l'application. Sous ORM 2, la clé passe par la séquence nommée, avec sa
+  valeur de départ ; sous ORM 3, qui ignore le générateur d'une classe de base
+  mappée, par un générateur produit dans `Base/Generateur/`, que les outils de
+  schéma de Doctrine ne voient pas — le rapport de génération le dit.
 - **Un `datetimeoffset` écrit garde son décalage.** Rendu sans fuseau, il était
   écrit sans décalage : l'instant stocké était faux, sans erreur. Il est rendu
   en `datetimetz_immutable` ; au-delà de six décimales, précision par défaut
@@ -99,11 +105,21 @@ préambule reste en français : il n'est jamais publié.
 - **`fuseau` et `precision_fractionnaire` dans le calque physique**, optionnels
   aussi : le pilote dit si un horodatage porte son décalage, et combien de
   décimales ses secondes déclarent.
+- **La séquence d'un défaut, le départ d'une séquence et le SGBD dans les
+  calques**, optionnels : `defaut.sequence` au calque physique, lu dans les
+  dépendances du catalogue ; `sequence_depart` et `sgbd` au calque logique, le
+  rendu d'une clé par séquence dépendant de la plateforme.
 
 ***
 
 ### Fixed
 
+- **A SQL Server key drawn from a sequence is assigned.** A `DEFAULT NEXT
+  VALUE FOR` was not recognized: the application had to supply the
+  identifier. Under ORM 2, the key goes through the named sequence, with its
+  start value; under ORM 3, which ignores the generator of a mapped
+  superclass, through a generator produced in `Base/Generateur/`, which
+  Doctrine's schema tools do not see — the generation report says so.
 - **A written `datetimeoffset` keeps its offset.** Rendered without a time
   zone, it was written without its offset: the stored instant was wrong, with
   no error. It is rendered as `datetimetz_immutable`; beyond six decimals, SQL
@@ -163,6 +179,10 @@ préambule reste en français : il n'est jamais publié.
 - **`fuseau` and `precision_fractionnaire` in the physical layer**, also
   optional: the driver tells whether a timestamp carries its offset, and how
   many decimals its seconds declare.
+- **A default's sequence, a sequence's start and the DBMS in the layers**,
+  optional: `defaut.sequence` in the physical layer, read from the catalog's
+  dependencies; `sequence_depart` and `sgbd` in the logical layer, since the
+  rendering of a sequence key depends on the platform.
 
 ## [0.6.1] — 2026-09-16 — Ce que rien ne signalait
 

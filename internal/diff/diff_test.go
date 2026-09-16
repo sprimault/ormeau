@@ -400,8 +400,11 @@ func TestChaqueChampEstCompareOuExclu(t *testing.T) {
 		},
 		reflect.TypeFor[calque.Sequence]():    {"nom": "identité", "schema": "identité"},
 		reflect.TypeFor[calque.TypeEnumere](): {"nom": "identité", "schema": "identité"},
-		reflect.TypeFor[calque.Defaut]():      {"genre": "rendu dans defaut", "valeur": "rendu dans defaut"},
-		reflect.TypeFor[calque.Generee]():     {"expression": "rendu dans generee", "stockee": "rendu dans generee"},
+		reflect.TypeFor[calque.Defaut](): {
+			"genre": "rendu dans defaut", "valeur": "rendu dans defaut", "sequence": "rendu dans defaut",
+		},
+		reflect.TypeFor[calque.ReferenceSequence](): {"schema": "rendu dans defaut", "nom": "rendu dans defaut"},
+		reflect.TypeFor[calque.Generee]():           {"expression": "rendu dans generee", "stockee": "rendu dans generee"},
 	}
 
 	compares := map[reflect.Type][]string{
