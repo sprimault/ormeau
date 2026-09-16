@@ -150,6 +150,10 @@ func TestExtraireLesTypes(t *testing.T) {
 	if montant.Precision == nil || *montant.Precision != 12 || montant.Echelle == nil || *montant.Echelle != 2 {
 		t.Errorf("decimal(12,2) : precision %v, echelle %v", montant.Precision, montant.Echelle)
 	}
+	if remise := colonneOuEchouer(t, p, "t_facture", "fac_remise"); remise.Precision == nil || *remise.Precision != 19 ||
+		remise.Echelle == nil || *remise.Echelle != 4 {
+		t.Errorf("money : precision %v, echelle %v, attendu 19, 4", remise.Precision, remise.Echelle)
+	}
 	if entier := colonneOuEchouer(t, p, "users", "nivhab"); entier.Precision != nil || entier.Echelle != nil {
 		t.Error("un smallint ne declare ni precision ni echelle")
 	}

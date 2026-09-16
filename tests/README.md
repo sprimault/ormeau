@@ -52,12 +52,14 @@ the container's blank `allerretour` database, extracted again, then compared wit
 the original.
 
 ```bash
-make aller-retour
+make aller-retour              # PostgreSQL
+make aller-retour-sqlserver    # SQL Server
 ```
 
 The diff is never empty: Doctrine recreates neither views, nor CHECK
 constraints, nor native enumerated types, and names its foreign keys its own
-way. These differences form a closed list, in `allerretour/ecarts_test.go`, each
+way. These differences form a closed list per DBMS, in
+`allerretour/ecarts_test.go` and `allerretour/ecarts_sqlserver_test.go`, each
 with its reason:
 
 - **IMPOSSIBLE**: a limit of Doctrine or DBAL;
@@ -70,11 +72,16 @@ The test fails on a difference the list does not cover, and on an entry that no
 longer covers anything: the list can neither hide a regression nor keep a
 tolerance that became useless.
 
-It needs PHP with the `pdo_pgsql` extension and the dependencies of `php/`
-installed. `ORMEAU_PHP` names the interpreter when it is not `php` — for
-instance a `docker run` command mounting the repository at the same path — and
-the installed ORM version selects the list of differences. The report of the
-last run is written to `.tmp/allerretour/ecarts.txt`.
+It needs PHP with the `pdo_pgsql` extension — `pdo_sqlsrv` and Microsoft's ODBC
+Driver 18 for SQL Server — and the dependencies of `php/` installed.
+`ORMEAU_PHP` names the interpreter when it is not `php` — for instance a
+`docker run` command mounting the repository at the same path — and the
+installed ORM version selects the list of differences. The report of the last
+run is written to `.tmp/allerretour/ecarts.txt`.
+
+Under SQL Server, Doctrine recreates the tables in `dbo`: its platform puts the
+comments of an unqualified table there, whatever the session's default schema.
+The test therefore renames that schema to `ventes` before comparing.
 
 Two targets have their list, both ends of the promised range: ORM 3 with DBAL 4,
 from `composer.lock`, and ORM 2.14 with DBAL 3, which CI resolves without the

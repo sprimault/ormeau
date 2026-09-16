@@ -7,8 +7,6 @@ package postgres
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"net/url"
@@ -20,6 +18,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 
 	"github.com/sprimault/ormeau/internal/introspection"
+	"github.com/sprimault/ormeau/internal/introspection/ddltest"
 )
 
 // Le conteneur est monté par `make containers`, depuis tests/ddl/postgres.sql.
@@ -57,13 +56,6 @@ func TestMain(m *testing.M) {
 // controlerBaseDeTest compare l'empreinte du DDL du dépôt à celle que
 // tests/ddl/20-empreinte.sh a posée en commentaire de la base à sa création.
 func controlerBaseDeTest() error {
-	contenu, err := os.ReadFile(cheminDDL)
-	if err != nil {
-		return fmt.Errorf("lecture du DDL de test: %w", err)
-	}
-	somme := sha256.Sum256(contenu)
-	attendu := "ddl-sha256:" + hex.EncodeToString(somme[:])
-
 	ctx, annuler := context.WithTimeout(context.Background(), 10*time.Second)
 	defer annuler()
 
@@ -81,16 +73,7 @@ WHERE datname = current_database()`).Scan(&commentaire)
 	if err != nil {
 		return fmt.Errorf("lecture de l'empreinte du DDL: %w", err)
 	}
-
-	switch {
-	case commentaire == nil || !strings.HasPrefix(*commentaire, "ddl-sha256:"):
-		return errors.New("la base visee ne vient pas de tests/ddl/, aucune empreinte de DDL " +
-			"en commentaire: verifier ORMEAU_TEST_DSN, ou recreer le conteneur par make containers")
-	case *commentaire != attendu:
-		return fmt.Errorf("la base de test vient d'un autre DDL que tests/ddl/postgres.sql "+
-			"(base %s, fichier %s): make containers la recree", *commentaire, attendu)
-	}
-	return nil
+	return ddltest.Controler(commentaire, cheminDDL)
 }
 
 // ouvrirOuEchouer ouvre une connexion et l'inscrit au nettoyage du test.

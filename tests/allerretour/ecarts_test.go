@@ -49,11 +49,22 @@ type tolerance struct {
 	couvre    func(e diff.Ecart, c contexte) bool
 }
 
-// ciblesConnues sont celles dont les écarts ont été relevés. Une autre cible
-// échoue au lieu de comparer à une liste qui ne la concerne pas.
-var ciblesConnues = []string{"orm2-dbal3", "orm3-dbal4"}
+// ciblesConnues sont, par SGBD, celles dont les écarts ont été relevés. Une
+// autre cible échoue au lieu de comparer à une liste qui ne la concerne pas.
+var ciblesConnues = map[string][]string{
+	"postgres":  {"orm2-dbal3", "orm3-dbal4"},
+	"sqlserver": {"orm2-dbal3", "orm3-dbal4"},
+}
 
-// tolerances est la liste fermée. Une entrée s'ajoute avec l'écart qui la
+// tolerancesParSGBD associe à chaque SGBD sa liste fermée. Une entrée ne
+// passe pas d'une liste à l'autre sans que l'écart ait été constaté des deux
+// côtés : sinon elle ne couvrirait rien chez l'un, et le test le refuserait.
+var tolerancesParSGBD = map[string][]tolerance{
+	"postgres":  tolerances,
+	"sqlserver": tolerancesSQLServer,
+}
+
+// tolerances est la liste fermée de PostgreSQL. Une entrée s'ajoute avec l'écart qui la
 // justifie, et part avec lui. Les raisons renvoient à la matrice de fidélité
 // de l'audit d'avant la phase 6 ; la condition de chaque entrée est aussi
 // étroite que l'écart qu'elle couvre.
@@ -179,34 +190,12 @@ var tolerances = []tolerance{
 	{
 		code: "nom_de_cle_etrangere_genere", categorie: impossible,
 		pourquoi: "Doctrine nomme ses clés étrangères FK_ suivi d'un hachage",
-		couvre: func(e diff.Ecart, _ contexte) bool {
-			return e.Objet == diff.ObjetCleEtrangere && e.Propriete == "nom" && nomGenere.MatchString(e.Apres) &&
-				strings.HasPrefix(e.Apres, "fk_")
-		},
+		couvre:   cleEtrangereNommeeParDoctrine(nomGenere, "fk_"),
 	},
 	{
 		code: "index_de_cle_etrangere_ajoute", categorie: impossible,
 		pourquoi: "DBAL indexe toute clé étrangère qu'aucun index ne couvre déjà",
-		couvre: func(e diff.Ecart, c contexte) bool {
-			if e.Objet != diff.ObjetIndex || e.Genre != diff.Ajout || !strings.HasPrefix(e.Nom, "idx_") || !nomGenere.MatchString(e.Nom) {
-				return false
-			}
-			table := c.recree.TableParNom(e.Schema, e.Table)
-			if table == nil {
-				return false
-			}
-			for _, idx := range table.Index {
-				if idx.Nom != e.Nom {
-					continue
-				}
-				for _, fk := range table.ClesEtrangeres {
-					if slices.Equal(fk.Colonnes, idx.Colonnes) {
-						return true
-					}
-				}
-			}
-			return false
-		},
+		couvre:   indexDeCleEtrangereAjoute(nomGenere, "idx_"),
 	},
 	{
 		code: "unicite_recreee_en_index", categorie: impossible,
@@ -244,23 +233,7 @@ var tolerances = []tolerance{
 	{
 		code: "position_identite_derivee", categorie: impossible, cibles: []string{"orm3-dbal4"},
 		pourquoi: "SchemaTool place une colonne de jointure sans propriété, clé d'une identité dérivée, après les champs",
-		couvre: func(e diff.Ecart, c contexte) bool {
-			if e.Objet != diff.ObjetColonne || e.Propriete != "position" {
-				return false
-			}
-			origine := c.origine.TableParNom(e.Schema, e.Table)
-			recree := c.recree.TableParNom(e.Schema, e.Table)
-			if origine == nil || recree == nil || origine.ClePrimaire == nil || len(recree.Colonnes) == 0 {
-				return false
-			}
-			derniere := recree.Colonnes[len(recree.Colonnes)-1].Nom
-			for _, fk := range origine.ClesEtrangeres {
-				if slices.Contains(fk.Colonnes, derniere) && slices.Contains(origine.ClePrimaire.Colonnes, derniere) {
-					return true
-				}
-			}
-			return false
-		},
+		couvre:   positionIdentiteDerivee,
 	},
 
 	{
@@ -366,6 +339,71 @@ var tolerances = []tolerance{
 // hexadécimal, replié en minuscules par PostgreSQL.
 var nomGenere = regexp.MustCompile(`^[a-z]+_[0-9a-f]{16}$`)
 
+// reprise rend une entrée de la liste PostgreSQL, pour une autre liste où le
+// même écart a la même cause : une seule condition, une seule raison.
+func reprise(code string) tolerance {
+	for _, tol := range tolerances {
+		if tol.code == code {
+			return tol
+		}
+	}
+	panic("tolérance inconnue : " + code)
+}
+
+// cleEtrangereNommeeParDoctrine couvre le nom qu'une clé étrangère reçoit de
+// Doctrine, préfixe et hachage, sous la casse que le SGBD lui laisse.
+func cleEtrangereNommeeParDoctrine(motif *regexp.Regexp, prefixe string) func(diff.Ecart, contexte) bool {
+	return func(e diff.Ecart, _ contexte) bool {
+		return e.Objet == diff.ObjetCleEtrangere && e.Propriete == "nom" && motif.MatchString(e.Apres) &&
+			strings.HasPrefix(e.Apres, prefixe)
+	}
+}
+
+// indexDeCleEtrangereAjoute couvre l'index que DBAL ajoute sous une clé
+// étrangère qu'aucun index ne couvrait.
+func indexDeCleEtrangereAjoute(motif *regexp.Regexp, prefixe string) func(diff.Ecart, contexte) bool {
+	return func(e diff.Ecart, c contexte) bool {
+		if e.Objet != diff.ObjetIndex || e.Genre != diff.Ajout || !strings.HasPrefix(e.Nom, prefixe) || !motif.MatchString(e.Nom) {
+			return false
+		}
+		table := c.recree.TableParNom(e.Schema, e.Table)
+		if table == nil {
+			return false
+		}
+		for _, idx := range table.Index {
+			if idx.Nom != e.Nom {
+				continue
+			}
+			for _, fk := range table.ClesEtrangeres {
+				if slices.Equal(fk.Colonnes, idx.Colonnes) {
+					return true
+				}
+			}
+		}
+		return false
+	}
+}
+
+// positionIdentiteDerivee couvre la colonne de jointure d'une identité
+// dérivée, que SchemaTool place après les champs.
+func positionIdentiteDerivee(e diff.Ecart, c contexte) bool {
+	if e.Objet != diff.ObjetColonne || e.Propriete != "position" {
+		return false
+	}
+	origine := c.origine.TableParNom(e.Schema, e.Table)
+	recree := c.recree.TableParNom(e.Schema, e.Table)
+	if origine == nil || recree == nil || origine.ClePrimaire == nil || len(recree.Colonnes) == 0 {
+		return false
+	}
+	derniere := recree.Colonnes[len(recree.Colonnes)-1].Nom
+	for _, fk := range origine.ClesEtrangeres {
+		if slices.Contains(fk.Colonnes, derniere) && slices.Contains(origine.ClePrimaire.Colonnes, derniere) {
+			return true
+		}
+	}
+	return false
+}
+
 // ordonneeParDBAL3 dit si la table recréée suit exactement l'ordre de DBAL 3 :
 // colonnes de la clé primaire, puis colonnes de clé étrangère, puis les autres
 // dans l'ordre d'origine. Dans les deux premiers groupes, DBAL garde l'ordre
@@ -468,24 +506,25 @@ func colonneOrigine(c contexte, e diff.Ecart) *calque.Colonne {
 	return table.ColonneParNom(e.Nom)
 }
 
-// confronter vérifie la liste fermée dans les deux sens pour la cible, et rend
-// le relevé des écarts avec les entrées qui les couvrent.
-func confronter(t *testing.T, cible string, ecarts []diff.Ecart, c contexte) string {
+// confronter vérifie la liste fermée dans les deux sens pour le SGBD et la
+// cible, et rend le relevé des écarts avec les entrées qui les couvrent.
+func confronter(t *testing.T, sgbd, cible string, ecarts []diff.Ecart, c contexte) string {
 	t.Helper()
 
-	if !slices.Contains(ciblesConnues, cible) {
-		t.Fatalf("cible %s : aucun écart relevé pour elle (connues : %s)", cible, strings.Join(ciblesConnues, ", "))
+	if !slices.Contains(ciblesConnues[sgbd], cible) {
+		t.Fatalf("%s, cible %s : aucun écart relevé pour elle (connues : %s)",
+			sgbd, cible, strings.Join(ciblesConnues[sgbd], ", "))
 	}
 
 	var applicables []tolerance
-	for _, tol := range tolerances {
+	for _, tol := range tolerancesParSGBD[sgbd] {
 		if len(tol.cibles) == 0 || slices.Contains(tol.cibles, cible) {
 			applicables = append(applicables, tol)
 		}
 	}
 
 	var releve strings.Builder
-	fmt.Fprintf(&releve, "cible %s, ORM %s, DBAL %s : %d écarts\n", cible, c.php.ORM, c.php.DBAL, len(ecarts))
+	fmt.Fprintf(&releve, "%s, cible %s, ORM %s, DBAL %s : %d écarts\n", sgbd, cible, c.php.ORM, c.php.DBAL, len(ecarts))
 	utilisees := make([]bool, len(applicables))
 	for _, e := range ecarts {
 		var codes []string
