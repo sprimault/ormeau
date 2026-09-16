@@ -16,13 +16,13 @@ abstract class LigneCommandeBase
     /** Fait partie de l'identifiant : à renseigner avant persist(). */
     #[ORM\Id]
     #[ORM\ManyToOne(targetEntity: Commande::class, inversedBy: 'ligneCommande')]
-    #[ORM\JoinColumn(name: 'commande_id', referencedColumnName: 'id', nullable: false)]
+    #[ORM\JoinColumn(name: 'commande_id', referencedColumnName: 'id')]
     protected Commande $commande;
 
     /** Fait partie de l'identifiant : à renseigner avant persist(). */
     #[ORM\Id]
     #[ORM\ManyToOne(targetEntity: Article::class, inversedBy: 'ligneCommande')]
-    #[ORM\JoinColumn(name: 'article_id', referencedColumnName: 'id', nullable: false)]
+    #[ORM\JoinColumn(name: 'article_id', referencedColumnName: 'id')]
     protected Article $article;
 
     #[ORM\Column(name: 'quantite', type: 'integer')]

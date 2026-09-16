@@ -15,7 +15,7 @@ abstract class PrestataireBase
     /** Fait partie de l'identifiant : à renseigner avant persist(). */
     #[ORM\Id]
     #[ORM\OneToOne(targetEntity: Personne::class, inversedBy: 'prestataire')]
-    #[ORM\JoinColumn(name: 'id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(name: 'id', referencedColumnName: 'id', onDelete: 'CASCADE')]
     protected Personne $personne;
 
     #[ORM\Column(name: 'societe', type: 'string', length: 120)]

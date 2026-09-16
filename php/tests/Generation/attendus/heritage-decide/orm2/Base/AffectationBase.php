@@ -15,12 +15,7 @@ abstract class AffectationBase
     /** Fait partie de l'identifiant : à renseigner avant persist(). */
     #[ORM\Id]
     #[ORM\ManyToOne(targetEntity: Salarie::class, inversedBy: 'affectation')]
-    #[ORM\JoinColumn(
-        name: 'salarie_id',
-        referencedColumnName: 'id',
-        nullable: false,
-        options: ['comment' => 'Salarié affecté'],
-    )]
+    #[ORM\JoinColumn(name: 'salarie_id', referencedColumnName: 'id', options: ['comment' => 'Salarié affecté'])]
     protected Salarie $salarie;
 
     #[ORM\Id]
