@@ -5,8 +5,8 @@
     "version": "17.11",
     "catalogue": "gescom",
     "schema": "gescom",
-    "extrait_le": "2026-09-16T01:02:13Z",
-    "empreinte": "sha256:7bbd677c38b60febc110d5d94b6e2bc25b7fcfa2ebdce934cd5775c41c971bdf"
+    "extrait_le": "2026-09-16T01:44:39Z",
+    "empreinte": "sha256:3dc5afd0200d5d9e17aea6b1d68fdefc54642b3c800f36743020417907b27943"
   },
   "tables": [
     {
@@ -603,6 +603,13 @@
             "valeur": "NULL::character varying"
           },
           "collation": "default"
+        },
+        {
+          "nom": "com_empreinte",
+          "position": 5,
+          "type_brut": "bytea",
+          "type_normalise": "binaire",
+          "nullable": true
         }
       ],
       "cle_primaire": {

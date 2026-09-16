@@ -1,6 +1,6 @@
 {
   "version_ri": 1,
-  "empreinte_physique": "sha256:7bbd677c38b60febc110d5d94b6e2bc25b7fcfa2ebdce934cd5775c41c971bdf",
+  "empreinte_physique": "sha256:3dc5afd0200d5d9e17aea6b1d68fdefc54642b3c800f36743020417907b27943",
   "espace_de_noms": "App\\Entity",
   "entites": [
     {
@@ -631,6 +631,14 @@
           "type_doctrine": "string",
           "nullable": true,
           "longueur": 120,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "comEmpreinte",
+          "colonne": "com_empreinte",
+          "type_php": "?string",
+          "type_doctrine": "blob",
+          "nullable": true,
           "origine": "contrainte"
         }
       ],

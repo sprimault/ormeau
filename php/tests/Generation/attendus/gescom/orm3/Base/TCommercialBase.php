@@ -29,6 +29,9 @@ abstract class TCommercialBase
     #[ORM\Column(name: 'com_email', type: 'string', length: 120, nullable: true)]
     protected ?string $comEmail = null;
 
+    #[ORM\Column(name: 'com_empreinte', type: 'blob', nullable: true)]
+    protected mixed $comEmpreinte = null;
+
     /** @var Collection<int, TClient> */
     #[ORM\OneToMany(targetEntity: TClient::class, mappedBy: 'cliCom')]
     protected Collection $tclient;
@@ -75,6 +78,18 @@ abstract class TCommercialBase
     public function setComEmail(?string $comEmail): static
     {
         $this->comEmail = $comEmail;
+
+        return $this;
+    }
+
+    public function getComEmpreinte(): mixed
+    {
+        return $this->comEmpreinte;
+    }
+
+    public function setComEmpreinte(mixed $comEmpreinte): static
+    {
+        $this->comEmpreinte = $comEmpreinte;
 
         return $this;
     }
