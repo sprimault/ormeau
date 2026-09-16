@@ -323,16 +323,21 @@ nor an issue attachment.
 [`tests/ddl/postgres.sql`](tests/ddl/postgres.sql), which deliberately gathers
 the messy cases. It extracts the layer, generates the entities, lets Doctrine
 recreate the schema in an empty database with `schema:create`, then compares
-the recreated database with the original, object by object. CI runs it on
-every push and pull request, under Doctrine ORM 3 with DBAL 4 and under
-ORM 2.14 with DBAL 3.
+the recreated database with the original, object by object.
+`make aller-retour-sqlserver` does the same from
+[`tests/ddl/sqlserver.sql`](tests/ddl/sqlserver.sql). CI runs both on every push
+and pull request, under Doctrine ORM 3 with DBAL 4 and under ORM 2.14 with
+DBAL 3.
 
 An empty diff is out of reach with Doctrine: a view, a `CHECK` constraint or a
 native enum type is not recreated, whatever the entity says. Each remaining
 difference is therefore listed with its reason — a Doctrine or DBAL limit, or a
 choice of the tool, such as a collation it refuses to write because it cannot
-qualify it — and any other difference fails CI. The authoritative list is
-[`tests/allerretour/ecarts_test.go`](tests/allerretour/ecarts_test.go).
+qualify it — and any other difference fails CI. The authoritative lists are
+[`tests/allerretour/ecarts_test.go`](tests/allerretour/ecarts_test.go) for
+PostgreSQL and
+[`tests/allerretour/ecarts_sqlserver_test.go`](tests/allerretour/ecarts_sqlserver_test.go)
+for SQL Server.
 
 ## Status
 

@@ -331,17 +331,22 @@ pièce jointe d'une issue.
 [`tests/ddl/postgres.sql`](tests/ddl/postgres.sql), qui rassemble
 délibérément les cas tordus. Il en extrait le calque, génère les entités,
 laisse Doctrine recréer le schéma dans une base vierge par `schema:create`,
-puis compare la base recréée à l'originale, objet par objet. La CI le fait
-tourner à chaque push et chaque pull request, sous Doctrine ORM 3 avec DBAL 4
-et sous ORM 2.14 avec DBAL 3.
+puis compare la base recréée à l'originale, objet par objet.
+`make aller-retour-sqlserver` fait de même depuis
+[`tests/ddl/sqlserver.sql`](tests/ddl/sqlserver.sql). La CI fait tourner les
+deux à chaque push et chaque pull request, sous Doctrine ORM 3 avec DBAL 4 et
+sous ORM 2.14 avec DBAL 3.
 
 Un diff vide n'est pas atteignable avec Doctrine : une vue, une contrainte
 `CHECK` ou un type énuméré natif ne se recréent pas, quoi que dise l'entité.
 Chaque écart restant est donc listé avec sa raison — une limite de Doctrine ou
 de DBAL, ou un choix de l'outil, comme une collation qu'il refuse d'écrire
 faute de pouvoir la qualifier — et toute autre différence fait échouer la CI.
-La liste qui fait foi est
-[`tests/allerretour/ecarts_test.go`](tests/allerretour/ecarts_test.go).
+Les listes qui font foi sont
+[`tests/allerretour/ecarts_test.go`](tests/allerretour/ecarts_test.go) pour
+PostgreSQL et
+[`tests/allerretour/ecarts_sqlserver_test.go`](tests/allerretour/ecarts_sqlserver_test.go)
+pour SQL Server.
 
 ## État d'avancement
 

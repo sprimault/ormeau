@@ -83,8 +83,9 @@ Under SQL Server, Doctrine recreates the tables in `dbo`: its platform puts the
 comments of an unqualified table there, whatever the session's default schema.
 The test therefore renames that schema to `ventes` before comparing.
 
-Two targets have their list, both ends of the promised range: ORM 3 with DBAL 4,
-from `composer.lock`, and ORM 2.14 with DBAL 3, which CI resolves without the
-lock (job `aller-retour-orm2`). An entry that only holds for one says so; an
+Two targets have their list, both ends of the promised range, for each DBMS:
+ORM 3 with DBAL 4, from `composer.lock`, and ORM 2.14 with DBAL 3, which CI
+resolves without the lock (jobs `aller-retour-orm2` and
+`aller-retour-sqlserver-orm2`). An entry that only holds for one says so; an
 entry that covers nothing under a target fails, and must be restricted
 explicitly.

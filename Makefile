@@ -95,6 +95,7 @@ test-integration: containers
 # docker run qui monte le dépôt au même chemin, par exemple), et la version
 # d'ORM installée fixe la cible, donc la liste d'écarts. Pas de -race : le
 # harnais ne lance aucune goroutine, et le détecteur ralentit l'extraction.
+aller-retour: CONTENEURS = postgres
 aller-retour: containers
 	go test -count=1 -tags allerretour ./tests/allerretour/
 
@@ -103,6 +104,7 @@ aller-retour: containers
 # le script PHP, qui s'y connecte avec le compte sa du conteneur.
 DSN_ALLERRETOUR_SQLSERVER = sqlserver://sa:Ormeau!2026@127.0.0.1:31433?database=gescom&TrustServerCertificate=true
 
+aller-retour-sqlserver: CONTENEURS = sqlserver
 aller-retour-sqlserver: containers
 	ORMEAU_TEST_DSN='$(DSN_ALLERRETOUR_SQLSERVER)' go test -count=1 -tags allerretour ./tests/allerretour/
 
@@ -110,12 +112,14 @@ aller-retour-sqlserver: containers
 # entrée du cas d'inférence du même nom. Il se régénère contre un conteneur
 # recréé, puis make maj-attendus en tire le calque logique : les deux diffs se
 # relisent avant de commiter.
+maj-calque-gescom: CONTENEURS = postgres
 maj-calque-gescom: containers
 	go test -count=1 -tags integration ./internal/introspection/postgres/ -run TestExtraireCommeLaReference -maj-attendus
 	@echo "Calque reecrit. Relire 'git diff tests/reference/inference/gescom/', puis make maj-attendus."
 
 # Le calque SQL Server de gescom n'entre dans aucun cas d'inférence : il fige
 # l'extraction seule, en attendant que l'inférence de ce dialecte soit relue.
+maj-calque-sqlserver: CONTENEURS = sqlserver
 maj-calque-sqlserver: containers
 	go test -count=1 -tags integration ./internal/introspection/sqlserver/ -run TestExtraireCommeLaReference -maj-attendus
 	@echo "Calque reecrit. Relire 'git diff tests/reference/extraction/sqlserver/'."
@@ -327,8 +331,14 @@ php-lint:
 # un volume vide, et un conteneur resté debout garderait l'ancien schéma. Les
 # tests d'intégration le vérifient de toute façon (empreinte du DDL en
 # commentaire de la base) ; ceci évite d'y tomber par le chemin normal.
+#
+# CONTENEURS restreint aux services nommés, vide pour tous. Chaque aller-retour
+# ne démarre que son SGBD : l'image SQL Server pèse un gigaoctet et demi, qu'un
+# job PostgreSQL téléchargerait pour rien.
+CONTENEURS ?=
+
 containers:
-	docker compose -f tests/docker-compose.yml up -d --wait --force-recreate --renew-anon-volumes
+	docker compose -f tests/docker-compose.yml up -d --wait --force-recreate --renew-anon-volumes $(CONTENEURS)
 
 containers-down:
 	docker compose -f tests/docker-compose.yml down -v
