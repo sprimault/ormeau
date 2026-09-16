@@ -4,3 +4,4 @@ créé Base/CatégoriesDesNomsBase.php
 créé CatégoriesDesNoms.php
 créé Base/LignesDeCommandeBase.php
 créé LignesDeCommande.php
+index CatégoriesDesNoms : unicité IX_Libellé hors défaut laissé de côté, Doctrine n'acceptant qu'un nom en [a-zA-Z0-9_]. Le schéma régénéré perd cette unicité, que la base, elle, garde. Le renommer en base le rétablit ; le garder empêcherait l'entité de produire son schéma.

@@ -9,6 +9,8 @@ namespace App\Entity\Base;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\MappedSuperclass]
+#[ORM\Index(name: 'ix_reference_libelle', columns: ['`Libellé`'])]
+#[ORM\Index(name: 'ix_reference_order', columns: ['`order`'])]
 abstract class TRéférenceBase
 {
     #[ORM\Id]
@@ -21,6 +23,9 @@ abstract class TRéférenceBase
 
     #[ORM\Column(name: '`select`', type: 'string', length: 10, nullable: true)]
     protected ?string $select = null;
+
+    #[ORM\Column(name: '`Libellé`', type: 'string', length: 30, nullable: true)]
+    protected ?string $libellé = null;
 
     public function getId(): ?int
     {
@@ -47,6 +52,18 @@ abstract class TRéférenceBase
     public function setSelect(?string $select): static
     {
         $this->select = $select;
+
+        return $this;
+    }
+
+    public function getLibellé(): ?string
+    {
+        return $this->libellé;
+    }
+
+    public function setLibellé(?string $libellé): static
+    {
+        $this->libellé = $libellé;
 
         return $this;
     }

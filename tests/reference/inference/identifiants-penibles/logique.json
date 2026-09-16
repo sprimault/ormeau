@@ -71,12 +71,19 @@
       ],
       "index": [
         {
-          "nom": "IX_Libelle_hors_defaut",
+          "nom": "IX_Libellé hors défaut",
           "colonnes": [
             "Libellé"
           ],
           "unique": true,
           "predicat": "([Libellé]<>'l''a\\b')"
+        },
+        {
+          "nom": "IX_libelle_simple",
+          "colonnes": [
+            "Libellé"
+          ],
+          "unique": false
         }
       ],
       "commentaire": "Accent et espaces : l'accent suffit à désigner le français",

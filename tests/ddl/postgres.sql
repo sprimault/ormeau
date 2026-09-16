@@ -156,8 +156,15 @@ CREATE TABLE t_commande (
 CREATE TABLE "t_référence" (
     "id"    int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     "order" int,
-    "select" varchar(10)
+    "select" varchar(10),
+    "Libellé" varchar(30)
 );
+
+-- Deux colonnes à citer dans un index, pour deux raisons différentes. DBAL cite
+-- de lui-même un mot réservé, mais pas un nom que seule sa forme oblige à
+-- citer : nu, celui-ci serait replié en minuscules et la colonne introuvable.
+CREATE INDEX ix_reference_order ON "t_référence" ("order");
+CREATE INDEX ix_reference_libelle ON "t_référence" ("Libellé");
 
 CREATE VIEW v_client_actif AS
 SELECT cli_id, cli_nom FROM t_client WHERE cli_statut = 'ACTIF';
