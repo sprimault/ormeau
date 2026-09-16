@@ -448,6 +448,12 @@ export const CodeJointurePure = "table_de_jointure";
  */
 export const CodeSequenceNonReconnue = "sequence_non_reconnue";
 /**
+ * Un texte Unicode illimité de SQL Server, que Doctrine ne recrée qu'en
+ * VARCHAR(MAX) : rendu en chaîne plutôt qu'en text, qui perdrait l'Unicode
+ * en silence.
+ */
+export const CodeTexteUnicodeSansEquivalent = "texte_unicode_sans_equivalent";
+/**
  * Une clé étrangère qui désigne autre chose que la clé primaire de sa
  * cible : Doctrine n'associe que vers l'identifiant, la colonne reste une
  * propriété.

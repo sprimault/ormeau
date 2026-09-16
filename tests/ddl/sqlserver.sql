@@ -208,6 +208,9 @@ CREATE TABLE ventes.t_commande (
     -- Pas de type JSON avant SQL Server 2025 : du texte, et une contrainte qui
     -- dit ce qu'il contient.
     cmd_options nvarchar(max) NULL,
+    -- Texte illimité sans Unicode : Doctrine le recrée à l'identique en text,
+    -- là où nvarchar(max) n'a pas d'équivalent.
+    cmd_notes varchar(max) NULL,
     CONSTRAINT ck_cmd_canal CHECK (cmd_canal IN ('web', 'telephone', 'agence')),
     CONSTRAINT ck_cmd_options CHECK (cmd_options IS NULL OR ISJSON(cmd_options) = 1)
 );

@@ -1,0 +1,4 @@
+créé Base/FicheBase.php
+créé Fiche.php
+créé Base/JournalBase.php
+créé Journal.php

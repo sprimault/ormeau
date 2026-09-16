@@ -1,6 +1,6 @@
 {
   "version_ri": 1,
-  "empreinte_physique": "sha256:73bd32ec745417e42f3eddede07691808648c2c6515687e18d33107955769939",
+  "empreinte_physique": "sha256:42da6e305ebcdb37eb843c94a6b02fe47218e39e73c89d3c48fcc287f9f5811a",
   "espace_de_noms": "App\\Entity",
   "entites": [
     {
@@ -569,6 +569,14 @@
           "colonne": "cmd_options",
           "type_php": "?array",
           "type_doctrine": "jsonb",
+          "nullable": true,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "cmdNotes",
+          "colonne": "cmd_notes",
+          "type_php": "?string",
+          "type_doctrine": "text",
           "nullable": true,
           "origine": "contrainte"
         }

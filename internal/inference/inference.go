@@ -386,6 +386,15 @@ func inferrerPropriete(c *calque.Colonne, cibleTable string, d *Decisions) (calq
 			Resolution: calque.ResolutionParDefaut,
 			Confiance:  0.3,
 		})
+	} else if texteUnicodeSansLongueur(c) {
+		avertissements = append(avertissements, calque.Avertissement{
+			Code:  calque.CodeTexteUnicodeSansEquivalent,
+			Cible: cible,
+			Message: "type " + c.TypeBrut + " sans équivalent Doctrine : rendu en chaîne, que schema:create recrée en NVARCHAR(255) " +
+				"et que migrations:diff proposera de réduire ; en text, il serait recréé en VARCHAR(MAX), sans Unicode",
+			Resolution: calque.ResolutionParDefaut,
+			Confiance:  0.5,
+		})
 	}
 
 	propriete := calque.Propriete{

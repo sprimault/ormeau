@@ -51,6 +51,9 @@ abstract class TCommandeBase
     #[ORM\Column(name: 'cmd_options', type: 'jsonb', nullable: true)]
     protected ?array $cmdOptions = null;
 
+    #[ORM\Column(name: 'cmd_notes', type: 'text', nullable: true)]
+    protected ?string $cmdNotes = null;
+
     #[ORM\ManyToOne(targetEntity: TPays::class, inversedBy: 'tcommande')]
     #[ORM\JoinColumn(name: 'cmd_pay_code', referencedColumnName: 'pay_code')]
     protected ?TPays $cmdPay = null;
@@ -123,6 +126,18 @@ abstract class TCommandeBase
     public function setCmdOptions(?array $cmdOptions): static
     {
         $this->cmdOptions = $cmdOptions;
+
+        return $this;
+    }
+
+    public function getCmdNotes(): ?string
+    {
+        return $this->cmdNotes;
+    }
+
+    public function setCmdNotes(?string $cmdNotes): static
+    {
+        $this->cmdNotes = $cmdNotes;
 
         return $this;
     }

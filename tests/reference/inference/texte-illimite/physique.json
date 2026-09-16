@@ -1,0 +1,37 @@
+{
+  "version_ri": 1,
+  "source": {
+    "sgbd": "sqlserver",
+    "version": "16.0.4295.3",
+    "catalogue": "gescom",
+    "schema": "ventes",
+    "extrait_le": "2026-01-01T00:00:00Z",
+    "empreinte": "sha256:0000000000000000000000000000000000000000000000000000000000000026"
+  },
+  "tables": [
+    {
+      "nom": "fiche",
+      "schema": "ventes",
+      "commentaire": "Textes sans longueur déclarée : text quand Doctrine sait le recréer, chaîne et avertissement quand il le recréerait sans Unicode",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "int", "type_normalise": "entier", "nullable": false, "auto_increment": true, "identite": "toujours" },
+        { "nom": "note", "position": 2, "type_brut": "varchar(max)", "type_normalise": "texte", "nullable": true, "commentaire": "Recréé en VARCHAR(MAX), à l'identique : text" },
+        { "nom": "note_unicode", "position": 3, "type_brut": "nvarchar(max)", "type_normalise": "texte", "nullable": true, "commentaire": "Recréé en VARCHAR(MAX) il perdrait l'Unicode sans erreur : chaîne et avertissement" },
+        { "nom": "ancienne_note", "position": 4, "type_brut": "ntext", "type_normalise": "texte", "nullable": true, "commentaire": "Même cas que nvarchar(max)" },
+        { "nom": "libelle", "position": 5, "type_brut": "nvarchar(80)", "type_normalise": "texte", "longueur": 80, "nullable": false, "commentaire": "Longueur déclarée : chaîne, sans avertissement" }
+      ],
+      "cle_primaire": { "nom": "fiche_pkey", "colonnes": ["id"] }
+    },
+    {
+      "nom": "journal",
+      "schema": "ventes",
+      "commentaire": "Les mêmes cas sous l'écriture de PostgreSQL",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "integer", "type_normalise": "entier", "nullable": false, "auto_increment": true, "identite": "toujours" },
+        { "nom": "message", "position": 2, "type_brut": "text", "type_normalise": "texte", "nullable": true },
+        { "nom": "detail", "position": 3, "type_brut": "character varying", "type_normalise": "texte", "nullable": true, "commentaire": "varchar sans longueur : illimité, donc text" }
+      ],
+      "cle_primaire": { "nom": "journal_pkey", "colonnes": ["id"] }
+    }
+  ]
+}

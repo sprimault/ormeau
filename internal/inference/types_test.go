@@ -45,6 +45,26 @@ func TestTyperColonne(t *testing.T) {
 			"string", "guid", true,
 		},
 		{
+			"texte sans longueur, quel que soit son nom : text",
+			calque.Colonne{TypeBrut: "varchar(max)", TypeNormalise: calque.TypeTexte},
+			"string", "text", true,
+		},
+		{
+			"varchar de PostgreSQL sans longueur : text",
+			calque.Colonne{TypeBrut: "character varying", TypeNormalise: calque.TypeTexte},
+			"string", "text", true,
+		},
+		{
+			"texte Unicode illimité de SQL Server : chaîne, text le recréerait sans Unicode",
+			calque.Colonne{TypeBrut: "nvarchar(max)", TypeNormalise: calque.TypeTexte},
+			"string", "string", true,
+		},
+		{
+			"ntext : même cas",
+			calque.Colonne{TypeBrut: "NTEXT", TypeNormalise: calque.TypeTexte},
+			"string", "string", true,
+		},
+		{
 			"json",
 			calque.Colonne{TypeBrut: "json", TypeNormalise: calque.TypeJSON},
 			"array", "json", true,

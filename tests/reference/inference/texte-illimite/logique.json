@@ -1,0 +1,127 @@
+{
+  "version_ri": 1,
+  "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000026",
+  "espace_de_noms": "App\\Entity",
+  "entites": [
+    {
+      "nom": "Fiche",
+      "table": {
+        "nom": "fiche",
+        "schema": "ventes"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "note",
+          "colonne": "note",
+          "type_php": "?string",
+          "type_doctrine": "text",
+          "nullable": true,
+          "commentaire": "Recréé en VARCHAR(MAX), à l'identique : text",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "noteUnicode",
+          "colonne": "note_unicode",
+          "type_php": "?string",
+          "type_doctrine": "string",
+          "nullable": true,
+          "commentaire": "Recréé en VARCHAR(MAX) il perdrait l'Unicode sans erreur : chaîne et avertissement",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "ancienneNote",
+          "colonne": "ancienne_note",
+          "type_php": "?string",
+          "type_doctrine": "string",
+          "nullable": true,
+          "commentaire": "Même cas que nvarchar(max)",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "libelle",
+          "colonne": "libelle",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 80,
+          "commentaire": "Longueur déclarée : chaîne, sans avertissement",
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "Textes sans longueur déclarée : text quand Doctrine sait le recréer, chaîne et avertissement quand il le recréerait sans Unicode",
+      "origine": "nommage"
+    },
+    {
+      "nom": "Journal",
+      "table": {
+        "nom": "journal",
+        "schema": "ventes"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "message",
+          "colonne": "message",
+          "type_php": "?string",
+          "type_doctrine": "text",
+          "nullable": true,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "detail",
+          "colonne": "detail",
+          "type_php": "?string",
+          "type_doctrine": "text",
+          "nullable": true,
+          "commentaire": "varchar sans longueur : illimité, donc text",
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "Les mêmes cas sous l'écriture de PostgreSQL",
+      "origine": "nommage"
+    }
+  ],
+  "avertissements": [
+    {
+      "code": "texte_unicode_sans_equivalent",
+      "cible": "ventes.fiche.ancienne_note",
+      "message": "type ntext sans équivalent Doctrine : rendu en chaîne, que schema:create recrée en NVARCHAR(255) et que migrations:diff proposera de réduire ; en text, il serait recréé en VARCHAR(MAX), sans Unicode",
+      "resolution": "par_defaut",
+      "confiance": 0.5
+    },
+    {
+      "code": "texte_unicode_sans_equivalent",
+      "cible": "ventes.fiche.note_unicode",
+      "message": "type nvarchar(max) sans équivalent Doctrine : rendu en chaîne, que schema:create recrée en NVARCHAR(255) et que migrations:diff proposera de réduire ; en text, il serait recréé en VARCHAR(MAX), sans Unicode",
+      "resolution": "par_defaut",
+      "confiance": 0.5
+    }
+  ]
+}

@@ -108,9 +108,18 @@ func affiner(corr correspondance, c *calque.Colonne) correspondance {
 			return correspondance{"int", "smallint"}
 		}
 	case calque.TypeTexte:
-		// text n'a pas de longueur : le distinguer de varchar évite un
-		// VARCHAR(255) arbitraire à la régénération du schéma.
-		if c.Longueur == nil && (strings.Contains(brut, "text") || strings.Contains(brut, "clob")) {
+		// Sans longueur déclarée, un texte est illimité, quel que soit le nom
+		// de son type : text, varchar de PostgreSQL, varchar(max) de SQL
+		// Server. Rendu en chaîne, il deviendrait un VARCHAR(255) que
+		// migrations:diff proposerait d'appliquer à la base d'origine.
+		//
+		// Sauf un texte Unicode de SQL Server : DBAL écrit text en
+		// VARCHAR(MAX), et migrations:diff proposerait d'y convertir la colonne
+		// — conversion qui réussit en remplaçant par « ? » tout caractère hors
+		// de la page de code (essai du 2026-09-16). La chaîne reste, avec
+		// texte_unicode_sans_equivalent : sa troncature échoue au moins
+		// bruyamment.
+		if c.Longueur == nil && !texteUnicodeSansLongueur(c) {
 			return correspondance{"string", "text"}
 		}
 	case calque.TypeFlottant:
@@ -136,6 +145,14 @@ func affiner(corr correspondance, c *calque.Colonne) correspondance {
 func longueurFixe(c *calque.Colonne) bool {
 	return c.TypeNormalise == calque.TypeTexte && !estTableau(c) &&
 		strings.HasPrefix(strings.ToLower(c.TypeBrut), "character(")
+}
+
+// texteUnicodeSansLongueur dit si la colonne est un texte Unicode illimité de
+// SQL Server, que Doctrine ne sait pas recréer sans perte. Le calque ne porte
+// pas le caractère Unicode d'un texte : c'est type_brut qui le dit.
+func texteUnicodeSansLongueur(c *calque.Colonne) bool {
+	brut := strings.ToLower(strings.TrimSpace(c.TypeBrut))
+	return c.TypeNormalise == calque.TypeTexte && c.Longueur == nil && (brut == "nvarchar(max)" || brut == "ntext")
 }
 
 // avecFuseau dit si un horodatage ou une heure porte un fuseau, ce que le type

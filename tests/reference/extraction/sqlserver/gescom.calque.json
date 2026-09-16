@@ -5,8 +5,8 @@
     "version": "16.0.4295.3",
     "catalogue": "gescom",
     "schema": "ventes",
-    "extrait_le": "2026-09-16T15:24:49Z",
-    "empreinte": "sha256:1a5a36693d87dc39398c74fa909f868221316088e5f0f20c6eb68fc20dd30f54"
+    "extrait_le": "2026-09-16T16:18:25Z",
+    "empreinte": "sha256:597815e82eac63e6cbd62f3fd785627951e6c324f9329f006a3a131a2f6ea1e3"
   },
   "tables": [
     {
@@ -521,6 +521,14 @@
           "nom": "cmd_options",
           "position": 6,
           "type_brut": "nvarchar(max)",
+          "type_normalise": "texte",
+          "nullable": true,
+          "collation": "default"
+        },
+        {
+          "nom": "cmd_notes",
+          "position": 7,
+          "type_brut": "varchar(max)",
           "type_normalise": "texte",
           "nullable": true,
           "collation": "default"

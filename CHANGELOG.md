@@ -38,6 +38,14 @@ préambule reste en français : il n'est jamais publié.
 
 ### Corrigé
 
+- **Un texte sans longueur déclarée est rendu en `text`.** Seuls les types
+  nommés `text` l'étaient : un `varchar(max)` de SQL Server ou un `varchar`
+  sans longueur de PostgreSQL devenaient une chaîne, recréée en
+  `VARCHAR(255)`, que `migrations:diff` proposait d'appliquer à la base.
+  `nvarchar(max)` et `ntext` restent en chaîne, avec l'avertissement
+  `texte_unicode_sans_equivalent` : Doctrine les recréerait en `VARCHAR(MAX)`,
+  et la conversion remplacerait sans erreur tout caractère hors de la page de
+  code.
 - **Une connexion SQL Server par composants atteignait `master` au lieu de la
   base demandée.** Le chemin d'une URL y désigne l'instance nommée, jamais la
   base : celle-ci passe désormais en paramètre, et l'instance a son propre
@@ -78,6 +86,13 @@ préambule reste en français : il n'est jamais publié.
 
 ### Fixed
 
+- **A text column with no declared length is rendered as `text`.** Only types
+  named `text` were: a SQL Server `varchar(max)` or a PostgreSQL `varchar`
+  without length became a string, recreated as `VARCHAR(255)`, which
+  `migrations:diff` offered to apply to the database. `nvarchar(max)` and
+  `ntext` stay strings, with the `texte_unicode_sans_equivalent` warning:
+  Doctrine would recreate them as `VARCHAR(MAX)`, and the conversion would
+  silently replace any character outside the code page.
 - **A component-based SQL Server connection reached `master` instead of the
   requested database.** There, the path of a URL names the instance, never the
   database: the latter now goes in a parameter, and the instance has its own
