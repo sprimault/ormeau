@@ -36,6 +36,14 @@ préambule reste en français : il n'est jamais publié.
 
 ## [Non publié]
 
+### Corrigé
+
+- **`nullable` n'est plus écrit sur la colonne de jointure d'un
+  identifiant.** Doctrine l'y ignore — la clé primaire rend la colonne
+  obligatoire —, et l'écrire est déprécié depuis ORM 3.6, erreur annoncée en
+  4.0. Une entité à identifiant dérivé ou à clé partagée change donc dans
+  `Base/` à la régénération ; le schéma, lui, ne bouge pas.
+
 ### Ajouté
 
 - **La génération prévient quand une hiérarchie jointe ne s'enregistrera
@@ -48,6 +56,14 @@ préambule reste en français : il n'est jamais publié.
   2.15.
 
 ***
+
+### Fixed
+
+- **`nullable` is no longer written on the join column of an identifier.**
+  Doctrine ignores it there — the primary key already makes the column
+  required — and writing it has been deprecated since ORM 3.6, announced as an
+  error in 4.0. An entity with a derived identifier or a shared key therefore
+  changes in `Base/` on regeneration; the schema itself does not move.
 
 ### Added
 

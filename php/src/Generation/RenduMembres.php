@@ -489,7 +489,7 @@ final class RenduMembres
             }
         } elseif ($association->proprietaire) {
             foreach ($association->jointure as $jointure) {
-                $arguments = self::argumentsJointure($jointure, true);
+                $arguments = self::argumentsJointure($jointure, !$dansLaCle);
                 $retiree = $dansLaCle ? ($retirees[$jointure->colonne] ?? null) : null;
                 if ($retiree !== null) {
                     $options = $this->optionsDeColonne($retiree);
@@ -509,20 +509,28 @@ final class RenduMembres
     /**
      * Rend les arguments d'une colonne de jointure.
      *
-     * nullable n'est écrit que lorsqu'il vaut false, sur la table de l'entité :
-     * Doctrine suppose une jointure facultative, et dans une table de jointure
-     * la clé primaire la rend de toute façon obligatoire.
+     * nullable n'est écrit que lorsqu'il vaut false, et seulement là où il a un
+     * sens. Dans une table de jointure, la clé primaire rend la colonne
+     * obligatoire de toute façon. Sur une association qui fait partie de
+     * l'identifiant, Doctrine l'ignore — la clé primaire s'en charge — et
+     * l'écrire est déprécié depuis ORM 3.6, erreur annoncée en 4.0
+     * (doctrine/orm#12126). C'est la présence de l'attribut qui déclenche la
+     * dépréciation, pas sa valeur. Le DDL est identique avec ou sans, sous
+     * ORM 2 comme sous ORM 3 (essai du 2026-09-16, qu'aucun test ne rejoue) :
+     * il n'est donc écrit sous aucune cible, sans règle par version.
+     *
+     * @param bool $avecNullable faux là où Doctrine ignore nullable : table de jointure, clé
      *
      * @return array<string, mixed>
      */
-    private static function argumentsJointure(ColonneJointure $jointure, bool $surLEntite): array
+    private static function argumentsJointure(ColonneJointure $jointure, bool $avecNullable): array
     {
         $action = $jointure->aLaSuppression;
 
         return [
             'name' => IdentifiantsSql::colonne($jointure->colonne),
             'referencedColumnName' => IdentifiantsSql::colonne($jointure->colonneReferencee),
-            'nullable' => $surLEntite && !$jointure->nullable ? false : null,
+            'nullable' => $avecNullable && !$jointure->nullable ? false : null,
             'onDelete' => $action === null || $action === ActionSuppression::Aucune ? null : self::ON_DELETE[$action->value],
         ];
     }

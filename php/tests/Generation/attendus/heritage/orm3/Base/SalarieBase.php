@@ -15,7 +15,7 @@ abstract class SalarieBase
     /** Fait partie de l'identifiant : à renseigner avant persist(). */
     #[ORM\Id]
     #[ORM\OneToOne(targetEntity: Personne::class, inversedBy: 'salarie')]
-    #[ORM\JoinColumn(name: 'id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(name: 'id', referencedColumnName: 'id', onDelete: 'CASCADE')]
     protected Personne $personne;
 
     #[ORM\Column(name: 'matricule', type: 'string', length: 20)]

@@ -15,7 +15,7 @@ abstract class ProduitTagBase
     /** Fait partie de l'identifiant : à renseigner avant persist(). */
     #[ORM\Id]
     #[ORM\ManyToOne(targetEntity: Produit::class, inversedBy: 'produitTag')]
-    #[ORM\JoinColumn(name: 'produit_id', referencedColumnName: 'id', nullable: false)]
+    #[ORM\JoinColumn(name: 'produit_id', referencedColumnName: 'id')]
     protected Produit $produit;
 
     #[ORM\Id]

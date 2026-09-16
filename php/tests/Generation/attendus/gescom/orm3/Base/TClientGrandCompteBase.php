@@ -15,7 +15,7 @@ abstract class TClientGrandCompteBase
     /** Fait partie de l'identifiant : à renseigner avant persist(). */
     #[ORM\Id]
     #[ORM\OneToOne(targetEntity: TClient::class, inversedBy: 'tclientGrandCompte')]
-    #[ORM\JoinColumn(name: 'cli_id', referencedColumnName: 'cli_id', nullable: false)]
+    #[ORM\JoinColumn(name: 'cli_id', referencedColumnName: 'cli_id')]
     protected TClient $cli;
 
     #[ORM\Column(name: 'remise_taux', type: 'decimal', precision: 4, scale: 2)]

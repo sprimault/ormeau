@@ -15,12 +15,7 @@ abstract class TClientContactBase
     /** Fait partie de l'identifiant : à renseigner avant persist(). */
     #[ORM\Id]
     #[ORM\ManyToOne(targetEntity: TClient::class, inversedBy: 'tclientContact')]
-    #[ORM\JoinColumn(
-        name: 'cli_id',
-        referencedColumnName: 'cli_id',
-        nullable: false,
-        options: ['comment' => 'Client du contact'],
-    )]
+    #[ORM\JoinColumn(name: 'cli_id', referencedColumnName: 'cli_id', options: ['comment' => 'Client du contact'])]
     protected TClient $cli;
 
     #[ORM\Id]

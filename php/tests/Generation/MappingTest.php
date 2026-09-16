@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Ormeau\Doctrine\Tests\Generation;
 
 use Doctrine\DBAL\DriverManager;
+use Doctrine\Deprecations\Deprecation;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\ORMSetup;
@@ -61,7 +62,18 @@ final class MappingTest extends TestCase
             });
 
             $gestionnaire = self::gestionnaire($sortie);
-            $metadonnees = $gestionnaire->getMetadataFactory()->getAllMetadata();
+            [$metadonnees, $depreciations] = self::chargerEnEcoutant($gestionnaire);
+
+            // Ne sont retenues que les dépréciations qui nomment une classe
+            // produite : celles de l'environnement — fabrique de gestionnaire
+            // de schéma, getEventManager, IDENTITY sous PostgreSQL — ne citent
+            // jamais l'espace de noms du calque, ce qui évite une liste
+            // d'exclusions à tenir à jour. C'est un filet, pas une preuve : une
+            // dépréciation qui ne nommerait aucune classe passerait au travers.
+            self::assertSame([], array_values(array_filter(
+                $depreciations,
+                static fn(string $m): bool => str_contains($m, $calque->espaceDeNoms . '\\'),
+            )), 'le rendu déclenche une dépréciation de Doctrine');
 
             // Un cas dont toutes les tables sont écartées ne produit aucune
             // entité. La condition se lit sur le calque et le rapport, jamais
@@ -353,6 +365,36 @@ final class MappingTest extends TestCase
      * La plateforme PostgreSQL ne s'en passe pas : SchemaTool y lit
      * current_schema() pour écrire le DDL, donc une vraie base.
      */
+    /**
+     * Charge toutes les métadonnées en écoutant les dépréciations émises.
+     *
+     * doctrine/deprecations n'émet rien tant qu'on ne l'active pas, et ne
+     * signale chaque dépréciation qu'une fois : sans le processus par cas de ce
+     * test, la première entité concernée masquerait toutes les suivantes.
+     *
+     * @return array{list<ClassMetadata<object>>, list<string>}
+     */
+    private static function chargerEnEcoutant(EntityManager $gestionnaire): array
+    {
+        Deprecation::enableWithTriggerError();
+
+        /** @var list<string> $depreciations */
+        $depreciations = [];
+        set_error_handler(static function (int $niveau, string $message) use (&$depreciations): bool {
+            $depreciations[] = $message;
+
+            return true;
+        }, E_USER_DEPRECATED);
+
+        try {
+            $metadonnees = $gestionnaire->getMetadataFactory()->getAllMetadata();
+        } finally {
+            restore_error_handler();
+        }
+
+        return [$metadonnees, $depreciations];
+    }
+
     private static function gestionnaire(string $repertoire): EntityManager
     {
         $configuration = ORMSetup::createAttributeMetadataConfiguration([$repertoire], true);
