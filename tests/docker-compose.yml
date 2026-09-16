@@ -18,3 +18,24 @@ services:
       interval: 2s
       timeout: 3s
       retries: 30
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Ormeau!2026"
+      MSSQL_PID: Developer
+    ports:
+      - "31433:1433"
+    volumes:
+      - ./ddl/sqlserver.sql:/ddl/sqlserver.sql:ro
+    healthcheck:
+      # L'image n'a pas de répertoire d'initialisation : le DDL se charge par
+      # sqlcmd une fois le serveur prêt, et c'est l'existence de la base qui dit
+      # que c'est fait. -C accepte le certificat auto-signé du conteneur, -b
+      # fait échouer sur la première erreur du script.
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -d gescom -Q 'SELECT 1' || (/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -b -i /ddl/sqlserver.sql && exit 1)"]
+      interval: 5s
+      timeout: 30s
+      retries: 40
+      start_period: 20s
