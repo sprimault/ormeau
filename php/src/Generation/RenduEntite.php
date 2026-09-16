@@ -189,9 +189,7 @@ final class RenduEntite
         $lignes[] = Emetteur::attribut('ORM\MappedSuperclass', [], '');
         foreach ($entite->index as $index) {
             // Le prédicat part verbatim dans options: where, que DBAL recopie
-            // derrière WHERE sans le lire (essai du 2026-09-15, ORM 2.14 /
-            // DBAL 3.10 et ORM 3.7 / DBAL 4.4 : recréé et relu à l'identique,
-            // rien de proposé face à la base d'origine). Il vient du catalogue
+            // derrière WHERE sans le lire. Il vient du catalogue
             // et passe par un littéral échappé, jamais par du code. Côté SQL,
             // aucun filtre : il finit tel quel dans le DDL de Doctrine, et un
             // calque logique reçu d'ailleurs se relit comme une migration.

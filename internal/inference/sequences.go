@@ -18,10 +18,9 @@ import (
 // comparaison littérale au nom public et non au schéma courant
 // (PostgreSQLSchemaManager::_getPortableSequenceDefinition) : qualifiée, elle
 // fait proposer à schema:update et migrations:diff un CREATE SEQUENCE d'une
-// séquence qui existe. Relevé le 2026-09-14 sous ORM 2.14.3 et DBAL 3.10.6. La
-// règle ne sert que la cible ORM 2 : ORM 3 rend la clé en IDENTITY et DBAL 4
-// résout un nom nu contre le schéma courant. Quand le plancher passera à ORM 3,
-// elle pourra partir sans refaire l'essai. "public" entre guillemets reste :
+// séquence qui existe. La règle ne sert que la cible ORM 2 : ORM 3 rend la clé
+// en IDENTITY et DBAL 4 résout un nom nu contre le schéma courant. Quand le
+// plancher passera à ORM 3, elle pourra partir. "public" entre guillemets reste :
 // PostgreSQL ne rend pas cette forme, et "Public" est un autre schéma.
 func nomDeSequence(expression string) (string, bool) {
 	nom, ok := nomEcritDeSequence(expression)

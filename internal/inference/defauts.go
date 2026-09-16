@@ -14,8 +14,8 @@ import (
 // now() n'est pas une valeur qu'un générateur sache écrire. Ce qui se reporte
 // est son sens, et seulement quand il est certain.
 //
-// Les formes sont celles que rend pg_get_expr sous PostgreSQL 17, relevées le
-// 2026-09-15 : CURRENT_TIMESTAMP garde sa casse, now() ses parenthèses.
+// Les formes sont celles que rend pg_get_expr sous PostgreSQL 17 :
+// CURRENT_TIMESTAMP garde sa casse, now() ses parenthèses.
 
 // instantsDeTransaction rendent l'instant de début de la transaction, avec
 // fuseau.

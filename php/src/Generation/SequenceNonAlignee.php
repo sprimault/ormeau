@@ -16,8 +16,7 @@ namespace Ormeau\Doctrine\Generation;
  * utilisent peut-être. Aligner allocationSize le ferait taire, mais un
  * incrément supérieur à 1 a deux sens que la base ne distingue pas : des blocs
  * réservés par un ORM, où l'alignement est juste, ou des identifiants décalés
- * entre plusieurs nœuds, où il produit des collisions (essai du 2026-09-14,
- * ORM 2.14.3 et DBAL 3.10.6, deux nœuds en INCREMENT BY 10). allocationSize à
+ * entre plusieurs nœuds, où il produit des collisions. allocationSize à
  * 1 lit chaque identifiant par nextval, ce qui est juste dans les deux cas ; le
  * rapport dit pourquoi l'ALTER proposé ne doit pas s'appliquer.
  *

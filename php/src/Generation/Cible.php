@@ -17,11 +17,9 @@ use InvalidArgumentException;
  * La sortie du générateur dépend du calque logique et de cette cible, et chaque
  * règle se raisonne par le paquet qui en décide. ORM décide de la stratégie
  * d'une séquence ou des paramètres qu'un attribut accepte ; DBAL décide de ce
- * qu'une colonne hydrate — un bigint est une chaîne sous DBAL 2 et 3, un entier
- * sous DBAL 4. Les deux ne vont pas de pair : ORM 3 accepte DBAL 3.8. Une cible
- * réduite à la majeure d'ORM rendait bigint en entier sous ORM 3 et DBAL 3, et
- * l'unité de travail voyait la colonne modifiée à chaque flush (essai du
- * 2026-09-15, ORM 3.7.1 et DBAL 3.10.6).
+ * qu'une colonne hydrate. Les deux ne vont pas de pair : ORM 3 accepte DBAL
+ * 3.8, et une cible réduite à la majeure d'ORM produisait là des types PHP
+ * faux. Ce que l'hydratation impose est dans TypesPhp.
  *
  * La commande la détecte dans l'application, ou la déduit d'une majeure d'ORM
  * forcée ; un appelant de la bibliothèque la fournit. Elle est toujours
@@ -180,11 +178,9 @@ final class Cible
      * Dit si le persister d'un héritage joint laisse hors de l'INSERT une
      * colonne que la base calcule.
      *
-     * ORM l'y incluait jusqu'à la 2.15 comprise, sans lui donner de valeur : la
-     * base refuse alors d'écrire une ligne de la hiérarchie, racine comprise
-     * (essai du 2026-09-16, ORM 2.14.3 et 2.15.5 contre PostgreSQL 17). Corrigé
-     * en 2.16.0 par doctrine/orm#10598, sans rétroportage sur 2.14 ni 2.15.
-     * Hors héritage joint, la colonne était déjà exclue.
+     * ORM l'y incluait jusqu'à la 2.15 comprise, sans lui donner de valeur, et
+     * la base refuse alors la ligne : le défaut et sa portée sont dans
+     * ColonneGenereeNonExclue, que ce prédicat commande.
      *
      * Vrai quand la mineure est inconnue : une cible forcée ne désigne aucune
      * version précise, et avertir sur une supposition vaudrait moins que se
@@ -217,7 +213,7 @@ final class Cible
     /**
      * Dit si DBAL connaît le type jsonb, introduit en 4.3, qui y déprécie
      * l'option de colonne jsonb. Avant, seule l'option le décrit, et le type
-     * est inconnu (essai du 2026-09-15, DBAL 4.2.5).
+     * est inconnu.
      */
     public function connaitJsonb(): bool
     {
