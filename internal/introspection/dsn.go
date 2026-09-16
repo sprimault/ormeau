@@ -131,6 +131,38 @@ type Connexion struct {
 	// certificat, et repli en clair. Un mode demandé dans une chaîne se perdait
 	// à la recomposition, profil compris : il est porté pour ne plus l'être.
 	SSLMode string
+	// Chiffrement est le pendant de SSLMode pour SQL Server, qui ne connaît pas
+	// le vocabulaire de libpq. Nommé par l'effet plutôt que par le paramètre :
+	// « encrypt » et « TrustServerCertificate » se règlent ensemble, et deux
+	// cases à cocher laisseraient composer des couples qui ne veulent rien dire.
+	//
+	// Une base reprise tourne souvent sur un serveur sans TLS, où le
+	// chiffrement doit être désactivé pour que la connexion aboutisse.
+	Chiffrement string
+	// Instance est l'instance nommée de SQL Server, la forme « SERVEUR\COMPTA »
+	// des installations d'entreprise. Elle occupe le chemin de l'URL, place que
+	// la base ne peut donc pas prendre.
+	Instance string
+}
+
+// chiffrements est le vocabulaire proposé pour SQL Server, fermé et nommé par
+// l'effet obtenu.
+var chiffrements = []string{"desactive", "confiance", "verifie"}
+
+// parametresDeChiffrement traduit chaque effet dans le vocabulaire du pilote.
+//
+// « disable » plutôt que « false » : go-mssqldb accepte les deux, mais false
+// négocie encore le chiffrement si le serveur l'exige, quand disable le refuse
+// franchement — c'est ce qu'attend celui dont le serveur n'a pas de certificat.
+var parametresDeChiffrement = map[string]map[string]string{
+	"desactive": {"encrypt": "disable"},
+	"confiance": {"encrypt": "true", "TrustServerCertificate": "true"},
+	"verifie":   {"encrypt": "true", "TrustServerCertificate": "false"},
+}
+
+// ChiffrementValide dit si une valeur appartient au vocabulaire de Chiffrement.
+func ChiffrementValide(mode string) bool {
+	return slices.Contains(chiffrements, mode)
 }
 
 // modesSSL est le vocabulaire de sslmode, celui de libpq et de pgx. Fermé : une
@@ -216,8 +248,17 @@ func (c Connexion) DSN() (string, error) {
 	if _, connu := prefixes[sgbd]; !connu {
 		return "", fmt.Errorf("sgbd inconnu: %q", c.SGBD)
 	}
-	if c.Hote == "" {
+	// L'hôte est le seul champ que l'URL reçoit tel quel : le mot de passe et la
+	// base sont encodés, lui non. Un blanc autour — ce que laisse un
+	// copier-coller — rendait l'URL illisible, et le message parlait de l'URL
+	// quand le défaut était dans un champ du formulaire. Les blancs se retirent
+	// donc, et le reste se refuse en nommant le champ fautif.
+	hote := strings.TrimSpace(c.Hote)
+	if hote == "" {
 		return "", errors.New("--hote est requis avec les drapeaux de connexion")
+	}
+	if strings.ContainsAny(hote, " /?#@\\") {
+		return "", fmt.Errorf("hote invalide: %q", hote)
 	}
 
 	port := c.Port
@@ -227,8 +268,22 @@ func (c Connexion) DSN() (string, error) {
 
 	u := url.URL{
 		Scheme: sgbd,
-		Host:   fmt.Sprintf("%s:%d", c.Hote, port),
-		Path:   "/" + c.Base,
+		Host:   fmt.Sprintf("%s:%d", hote, port),
+	}
+	// Sous SQL Server, le chemin d'une URL désigne l'instance nommée, jamais la
+	// base : « /gescom » ouvrait une session sur master sans rien dire, et
+	// l'arbre montrait une autre base que celle demandée. La base y passe donc
+	// en paramètre.
+	parametres := url.Values{}
+	if sgbd == "sqlserver" {
+		if c.Instance != "" {
+			u.Path = "/" + c.Instance
+		}
+		if c.Base != "" {
+			parametres.Set("database", c.Base)
+		}
+	} else {
+		u.Path = "/" + c.Base
 	}
 	if c.Utilisateur != "" {
 		if c.MotDePasse != "" {
@@ -244,8 +299,20 @@ func (c Connexion) DSN() (string, error) {
 		if sgbd != "postgres" {
 			return "", fmt.Errorf("sslmode ne vaut que pour postgres, pas pour %s", sgbd)
 		}
-		u.RawQuery = url.Values{"sslmode": {c.SSLMode}}.Encode()
+		parametres.Set("sslmode", c.SSLMode)
 	}
+	if c.Chiffrement != "" {
+		if !ChiffrementValide(c.Chiffrement) {
+			return "", fmt.Errorf("chiffrement inconnu: %q", c.Chiffrement)
+		}
+		if sgbd != "sqlserver" {
+			return "", fmt.Errorf("le chiffrement ne se regle ainsi que pour sqlserver, pas pour %s", sgbd)
+		}
+		for cle, valeur := range parametresDeChiffrement[c.Chiffrement] {
+			parametres.Set(cle, valeur)
+		}
+	}
+	u.RawQuery = parametres.Encode()
 	return u.String(), nil
 }
 
@@ -370,6 +437,12 @@ func BaseDuDSN(dsn string) string {
 	if err != nil {
 		return ""
 	}
+	// Sous SQL Server, le chemin porte l'instance nommée et la base vit en
+	// paramètre : lire le chemin y rendait une base vide, et le calque n'avait
+	// plus de quoi nommer son fichier.
+	if strings.EqualFold(u.Scheme, "sqlserver") {
+		return u.Query().Get("database")
+	}
 	return strings.TrimPrefix(u.Path, "/")
 }
 
@@ -395,6 +468,15 @@ func AvecBase(dsn, base string) string {
 	u, err := lireURL(dsn)
 	if err != nil {
 		return dsn
+	}
+	// Sous SQL Server, le chemin porte l'instance nommée : y écrire la base
+	// laissait la session sur celle d'origine, et l'arbre montrait master alors
+	// qu'une autre base venait d'être choisie.
+	if strings.EqualFold(u.Scheme, "sqlserver") {
+		parametres := u.Query()
+		parametres.Set("database", base)
+		u.RawQuery = parametres.Encode()
+		return u.String()
 	}
 	u.Path = "/" + base
 	return u.String()

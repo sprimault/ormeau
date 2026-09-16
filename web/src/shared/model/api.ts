@@ -48,6 +48,16 @@ export interface RequeteConnexion {
    * défaut, prefer.
    */
   sslmode?: string;
+  /**
+   * Chiffrement est le pendant pour SQL Server, nommé par l'effet :
+   * desactive, confiance ou verifie. Un serveur sans TLS — courant sur une
+   * base reprise — exige desactive pour que la connexion aboutisse.
+   */
+  chiffrement?: string;
+  /**
+   * Instance est l'instance nommée de SQL Server, la forme SERVEUR\COMPTA.
+   */
+  instance?: string;
 }
 /**
  * ReponseConnexion décrit le serveur atteint. Le DSN n'y figure sous aucune

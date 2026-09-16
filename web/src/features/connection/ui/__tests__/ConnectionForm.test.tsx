@@ -82,6 +82,47 @@ describe('ConnectionForm', () => {
     });
   });
 
+  // sslmode vient de libpq et n'existe pas sous SQL Server, qui règle encrypt
+  // et TrustServerCertificate ensemble. Proposer l'un pour l'autre ferait
+  // refuser la connexion sans dire pourquoi.
+  it('propose le chiffrement de SQL Server, pas sslmode', async () => {
+    const onConnecter = vi.fn();
+    await monter({ onConnecter });
+
+    expect(screen.getByLabelText('Chiffrement (sslmode)')).toBeInTheDocument();
+
+    await userEvent.selectOptions(screen.getByLabelText('SGBD'), 'sqlserver');
+
+    expect(screen.queryByLabelText('Chiffrement (sslmode)')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Chiffrement')).toBeInTheDocument();
+    expect(screen.getByLabelText('Instance nommée')).toBeInTheDocument();
+  });
+
+  // « Désactivé » est souvent le seul choix qui aboutit sur une base reprise,
+  // dont le serveur n'a jamais eu de certificat.
+  it('poste le chiffrement choisi et l’instance nommée', async () => {
+    const onConnecter = vi.fn();
+    await monter({ onConnecter });
+
+    await userEvent.selectOptions(screen.getByLabelText('SGBD'), 'sqlserver');
+    await userEvent.clear(screen.getByLabelText('Hôte'));
+    await userEvent.type(screen.getByLabelText('Hôte'), 'bdd');
+    await userEvent.type(screen.getByLabelText('Utilisateur'), 'sa');
+    await userEvent.type(screen.getByLabelText('Base'), 'gescom');
+    await userEvent.type(screen.getByLabelText('Instance nommée'), 'COMPTA');
+    await userEvent.selectOptions(screen.getByLabelText('Chiffrement'), 'desactive');
+    await userEvent.click(screen.getByRole('button', { name: 'Se connecter' }));
+
+    expect(onConnecter).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sgbd: 'sqlserver',
+        base: 'gescom',
+        instance: 'COMPTA',
+        chiffrement: 'desactive',
+      }),
+    );
+  });
+
   it('poste la chaîne de connexion dans l’autre mode', async () => {
     const onConnecter = vi.fn();
     await monter({ onConnecter });

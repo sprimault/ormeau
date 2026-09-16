@@ -38,6 +38,7 @@ ORDER BY name`
 SELECT DISTINCT s.name
 FROM sys.tables t
 JOIN sys.schemas s ON s.schema_id = t.schema_id
+WHERE t.is_ms_shipped = 0
 ORDER BY s.name`
 
 	// requeteInventaire alimente l'arbre de sélection. Une seule requête, aucune
@@ -48,6 +49,11 @@ ORDER BY s.name`
 	// Le commentaire est une extended property nommée MS_Description : SQL
 	// Server n'a pas de COMMENT ON, et c'est la convention que suivent SSMS et
 	// les outils de modélisation.
+	//
+	// is_ms_shipped écarte ce que Microsoft installe lui-même : master porte
+	// MSreplication_options et les spt_fallback_*, qui sont des tables
+	// ordinaires du catalogue et rempliraient l'arbre de lignes qu'on ne mappe
+	// jamais.
 	requeteInventaire = `
 SELECT s.name AS [schema],
        t.name AS nom,
@@ -68,6 +74,7 @@ FROM sys.tables t
 JOIN sys.schemas s ON s.schema_id = t.schema_id
 LEFT JOIN sys.extended_properties ep
        ON ep.major_id = t.object_id AND ep.minor_id = 0 AND ep.class = 1 AND ep.name = 'MS_Description'
+WHERE t.is_ms_shipped = 0
 ORDER BY s.name, t.name`
 
 	// requeteColonnes décrit une table au dépliement, sans l'introspecter

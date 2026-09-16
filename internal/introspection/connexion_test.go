@@ -203,7 +203,7 @@ func TestDSNDeduitLeSGBDDuPort(t *testing.T) {
 		attendu string
 	}{
 		{5432, "postgres://u@hote:5432/base"},
-		{1433, "sqlserver://u@hote:1433/base"},
+		{1433, "sqlserver://u@hote:1433?database=base"},
 		{3306, "mysql://u@hote:3306/base"},
 	}
 
@@ -228,7 +228,7 @@ func TestDSNPrefereLeSGBDDeclare(t *testing.T) {
 	if err != nil {
 		t.Fatalf("DSN: %v", err)
 	}
-	if attendu := "sqlserver://u@hote:5432/base"; obtenu != attendu {
+	if attendu := "sqlserver://u@hote:5432?database=base"; obtenu != attendu {
 		t.Errorf("obtenu %q, attendu %q", obtenu, attendu)
 	}
 }
@@ -414,5 +414,182 @@ func TestAvecBaseConserveLeReste(t *testing.T) {
 		if !strings.Contains(obtenu, attendu) {
 			t.Errorf("%q absent de %q", attendu, Masquer(obtenu))
 		}
+	}
+}
+
+// Sous SQL Server, le chemin d'une URL désigne l'instance nommée : une base
+// posée là ouvrait une session sur master sans qu'aucune erreur ne le dise.
+func TestDSNMetLaBaseEnParametreSousSQLServer(t *testing.T) {
+	t.Parallel()
+
+	obtenu, err := Connexion{SGBD: "sqlserver", Hote: "hote", Utilisateur: "u", Base: "gescom"}.DSN()
+	if err != nil {
+		t.Fatalf("DSN: %v", err)
+	}
+	if attendu := "sqlserver://u@hote:1433?database=gescom"; obtenu != attendu {
+		t.Errorf("obtenu %q, attendu %q", obtenu, attendu)
+	}
+}
+
+// L'instance nommée, elle, occupe bien le chemin : c'est la forme
+// « SERVEUR\COMPTA » des installations d'entreprise.
+func TestDSNPorteLInstanceNommee(t *testing.T) {
+	t.Parallel()
+
+	obtenu, err := Connexion{SGBD: "sqlserver", Hote: "hote", Utilisateur: "u", Base: "gescom", Instance: "COMPTA"}.DSN()
+	if err != nil {
+		t.Fatalf("DSN: %v", err)
+	}
+	if attendu := "sqlserver://u@hote:1433/COMPTA?database=gescom"; obtenu != attendu {
+		t.Errorf("obtenu %q, attendu %q", obtenu, attendu)
+	}
+}
+
+// Le chiffrement se règle par son effet, et chaque effet se traduit dans le
+// vocabulaire du pilote.
+func TestDSNTraduitLeChiffrement(t *testing.T) {
+	t.Parallel()
+
+	cas := []struct{ chiffrement, attendu string }{
+		{"desactive", "sqlserver://u@hote:1433?database=gescom&encrypt=disable"},
+		{"confiance", "sqlserver://u@hote:1433?TrustServerCertificate=true&database=gescom&encrypt=true"},
+		{"verifie", "sqlserver://u@hote:1433?TrustServerCertificate=false&database=gescom&encrypt=true"},
+	}
+
+	for _, c := range cas {
+		obtenu, err := Connexion{SGBD: "sqlserver", Hote: "hote", Utilisateur: "u", Base: "gescom", Chiffrement: c.chiffrement}.DSN()
+		if err != nil {
+			t.Errorf("%s : %v", c.chiffrement, err)
+			continue
+		}
+		if obtenu != c.attendu {
+			t.Errorf("%s donne %q, attendu %q", c.chiffrement, obtenu, c.attendu)
+		}
+	}
+}
+
+// Chacun des deux réglages reste dans son dialecte : les mélanger produirait un
+// DSN que le pilote ignorerait en silence.
+func TestDSNRefuseUnReglageHorsDeSonDialecte(t *testing.T) {
+	t.Parallel()
+
+	if _, err := (Connexion{SGBD: "postgres", Hote: "hote", Utilisateur: "u", Chiffrement: "desactive"}).DSN(); err == nil {
+		t.Error("le chiffrement de SQL Server a été accepté pour postgres")
+	}
+	if _, err := (Connexion{SGBD: "sqlserver", Hote: "hote", Utilisateur: "u", SSLMode: "disable"}).DSN(); err == nil {
+		t.Error("sslmode a été accepté pour sqlserver")
+	}
+	if _, err := (Connexion{SGBD: "sqlserver", Hote: "hote", Utilisateur: "u", Chiffrement: "peut-etre"}).DSN(); err == nil {
+		t.Error("un chiffrement hors vocabulaire a été accepté")
+	}
+}
+
+// L'hôte est le seul champ que l'URL reçoit tel quel. Un blanc autour, ce que
+// laisse un copier-coller, rendait l'URL illisible — et le message parlait de
+// l'URL quand le défaut était dans un champ du formulaire.
+func TestDSNNettoieLHote(t *testing.T) {
+	t.Parallel()
+
+	for _, hote := range []string{"  bdd", "bdd  ", " bdd "} {
+		obtenu, err := Connexion{SGBD: "postgres", Hote: hote, Utilisateur: "u", Base: "b"}.DSN()
+		if err != nil {
+			t.Errorf("hote %q : %v", hote, err)
+			continue
+		}
+		if attendu := "postgres://u@bdd:5432/b"; obtenu != attendu {
+			t.Errorf("hote %q donne %q, attendu %q", hote, obtenu, attendu)
+		}
+	}
+}
+
+// Ce qu'un nettoyage ne peut pas rattraper se refuse en nommant le champ, et
+// non en parlant d'une URL que l'utilisateur n'a pas écrite.
+func TestDSNRefuseUnHoteInvalide(t *testing.T) {
+	t.Parallel()
+
+	for _, hote := range []string{"evo steff", "bdd/x", "bdd@autre", `SERVEUR\COMPTA`} {
+		_, err := Connexion{SGBD: "postgres", Hote: hote, Utilisateur: "u"}.DSN()
+		if err == nil {
+			t.Errorf("hote %q accepté", hote)
+			continue
+		}
+		if !strings.Contains(err.Error(), "hote invalide") {
+			t.Errorf("hote %q : message %q, attendu qu'il nomme le champ", hote, err)
+		}
+	}
+}
+
+// Changer de base sous SQL Server ne doit pas toucher au chemin, qui porte
+// l'instance : la session restait sur celle d'origine, et l'arbre montrait
+// master alors qu'une autre base venait d'être choisie.
+func TestAvecBaseSousSQLServer(t *testing.T) {
+	t.Parallel()
+
+	cas := []struct{ nom, dsn, attendu string }{
+		{
+			"sans base au depart",
+			"sqlserver://sa@hote:1433",
+			"sqlserver://sa@hote:1433?database=gescom",
+		},
+		{
+			"base deja posee",
+			"sqlserver://sa@hote:1433?database=master",
+			"sqlserver://sa@hote:1433?database=gescom",
+		},
+		{
+			"instance gardee",
+			"sqlserver://sa@hote:1433/COMPTA?database=master",
+			"sqlserver://sa@hote:1433/COMPTA?database=gescom",
+		},
+		{
+			"autres parametres gardes",
+			"sqlserver://sa@hote:1433?database=master&encrypt=disable",
+			"sqlserver://sa@hote:1433?database=gescom&encrypt=disable",
+		},
+	}
+
+	for _, c := range cas {
+		if obtenu := AvecBase(c.dsn, "gescom"); obtenu != c.attendu {
+			t.Errorf("%s : %q, attendu %q", c.nom, obtenu, c.attendu)
+		}
+	}
+}
+
+// La base d'un DSN SQL Server vit en paramètre, le chemin portant l'instance :
+// lue au mauvais endroit, elle revenait vide et le calque n'avait plus de quoi
+// nommer son fichier.
+func TestBaseDuDSNSousSQLServer(t *testing.T) {
+	t.Parallel()
+
+	cas := map[string]string{
+		"sqlserver://sa@h:1433?database=gescom":               "gescom",
+		"sqlserver://sa@h:1433/COMPTA?database=gescom":        "gescom",
+		"sqlserver://sa@h:1433?encrypt=disable&database=paie": "paie",
+		"sqlserver://sa@h:1433":                               "",
+		"sqlserver://sa@h:1433/COMPTA":                        "",
+	}
+
+	for dsn, attendu := range cas {
+		if obtenu := BaseDuDSN(dsn); obtenu != attendu {
+			t.Errorf("BaseDuDSN(%q) = %q, attendu %q", dsn, obtenu, attendu)
+		}
+	}
+}
+
+// Les trois fonctions doivent s'accorder : ce qu'AvecBase pose, BaseDuDSN le
+// relit, et ce que DSN compose se relit aussi. Un désaccord entre elles est ce
+// qui a fait extraire sous un nom de fichier vide.
+func TestBasePoseeEtRelueSAccordent(t *testing.T) {
+	t.Parallel()
+
+	compose, err := Connexion{SGBD: "sqlserver", Hote: "h", Utilisateur: "sa", Base: "gescom"}.DSN()
+	if err != nil {
+		t.Fatalf("DSN: %v", err)
+	}
+	if base := BaseDuDSN(compose); base != "gescom" {
+		t.Errorf("composé puis relu : %q", base)
+	}
+	if base := BaseDuDSN(AvecBase(compose, "paie")); base != "paie" {
+		t.Errorf("changé puis relu : %q", base)
 	}
 }

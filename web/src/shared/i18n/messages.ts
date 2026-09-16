@@ -77,6 +77,15 @@ const fr = {
   'connection.sslmode.default': 'Défaut du pilote',
   'connection.help.sslmode':
     'Le défaut, prefer, chiffre sans vérifier le certificat et se replie en clair si le serveur refuse. verify-full vérifie le certificat et le nom du serveur : c’est le mode à choisir quand le serveur le permet. Le choix est gardé dans le profil.',
+  'connection.instance': 'Instance nommée',
+  'connection.instance.hint': 'Laisser vide sauf pour une instance comme SERVEUR\\COMPTA',
+  'connection.encryption': 'Chiffrement',
+  'connection.encryption.default': 'Défaut du pilote',
+  'connection.encryption.desactive': 'Désactivé',
+  'connection.encryption.confiance': 'Chiffré, certificat non vérifié',
+  'connection.encryption.verifie': 'Chiffré, certificat vérifié',
+  'connection.help.encryption':
+    'SQL Server ne connaît pas sslmode. « Désactivé » est souvent le seul choix qui aboutit sur une base reprise, dont le serveur n’a jamais eu de certificat. « Certificat non vérifié » convient à un certificat auto-signé. Le choix est gardé dans le profil.',
   'connection.dsn': 'DSN',
   'connection.dsn.hint':
     'Un DATABASE_URL de Symfony convient : les paramètres inutiles sont retirés.',
@@ -407,6 +416,15 @@ const en: Record<MessageKey, string> = {
   'connection.sslmode.default': 'Driver default',
   'connection.help.sslmode':
     'The default, prefer, encrypts without checking the certificate and falls back to plain text if the server refuses. verify-full checks the certificate and the server name: pick it whenever the server allows. The choice is kept in the profile.',
+  'connection.instance': 'Named instance',
+  'connection.instance.hint': 'Leave empty unless the server uses an instance such as SERVER\\ACCOUNTING',
+  'connection.encryption': 'Encryption',
+  'connection.encryption.default': 'Driver default',
+  'connection.encryption.desactive': 'Disabled',
+  'connection.encryption.confiance': 'Encrypted, certificate not checked',
+  'connection.encryption.verifie': 'Encrypted, certificate checked',
+  'connection.help.encryption':
+    'SQL Server does not know sslmode. "Disabled" is often the only choice that works on an inherited database, whose server never had a certificate. "Certificate not checked" suits a self-signed one. The choice is kept in the profile.',
   'connection.dsn': 'DSN',
   'connection.dsn.hint': 'A Symfony DATABASE_URL works: unusable parameters are stripped.',
   'connection.submit': 'Connect',
