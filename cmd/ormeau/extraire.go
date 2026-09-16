@@ -19,6 +19,7 @@ import (
 	// Chaque pilote s'enregistre par son init : l'importer ici est ce qui le
 	// rend disponible, sans que le code commun ait à le connaître.
 	_ "github.com/sprimault/ormeau/internal/introspection/postgres"
+	_ "github.com/sprimault/ormeau/internal/introspection/sqlserver"
 )
 
 // delaiExtraction plafonne l'opération entière. Généreux : quatre cents tables

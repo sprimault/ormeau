@@ -340,9 +340,11 @@ PostgreSQL extraction, inference and Doctrine entity generation work:
 `ormeau extraire` then `ormeau inferer` produce the three files, and
 `bin/console ormeau:generer` writes the entities, their associations,
 enumerations and traits, and the inheritance declared in the decisions file,
-skipping what Doctrine cannot represent and saying so. Comparing the database
-with existing entities (`ormeau:synchroniser`) is still to come. The state per
-phase is in [`ROADMAP.md`](ROADMAP.md).
+skipping what Doctrine cannot represent and saying so. SQL Server connects and
+can be browsed — databases, schemas, tables and columns — but its extraction is
+not written yet and says so rather than returning a partial layer. Comparing
+the database with existing entities (`ormeau:synchroniser`) is still to come.
+The state per phase is in [`ROADMAP.md`](ROADMAP.md).
 
 CI runs the test suite with the race detector, `golangci-lint`, `gofmt`,
 `govulncheck`, `gosec` and a JSON Schema validity check on every push and pull
