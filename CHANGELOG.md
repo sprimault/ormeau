@@ -38,6 +38,12 @@ préambule reste en français : il n'est jamais publié.
 
 ### Corrigé
 
+- **Une chaîne ou un binaire de longueur fixe le reste.** Seul le
+  `character(n)` de PostgreSQL était reconnu : un `nchar(n)` ou un `binary(n)`
+  de SQL Server était recréé en longueur variable, sans les espaces ou octets
+  nuls qui complètent ses valeurs. Un binaire de longueur déclarée est rendu en
+  `binary` plutôt qu'en `blob`, et `tinyint` en `smallint` plutôt qu'en
+  `integer` : `migrations:diff` proposait sinon d'élargir la colonne.
 - **Un texte sans longueur déclarée est rendu en `text`.** Seuls les types
   nommés `text` l'étaient : un `varchar(max)` de SQL Server ou un `varchar`
   sans longueur de PostgreSQL devenaient une chaîne, recréée en
@@ -81,11 +87,21 @@ préambule reste en français : il n'est jamais publié.
   sinon recréé ascendant, et `depart` sur une séquence, que le minimum ne dit
   pas. Les deux pilotes les produisent ; absents d'un calque extrait
   auparavant, ils veulent dire « inconnu ».
+- **`longueur_fixe` dans le calque physique**, champ optionnel lui aussi : le
+  pilote dit si une chaîne ou un binaire est de longueur fixe, que le nom du
+  type ne dit pas d'un SGBD à l'autre. Un calque extrait auparavant garde la
+  lecture de `character(n)`.
 
 ***
 
 ### Fixed
 
+- **A fixed-length string or binary stays fixed.** Only PostgreSQL's
+  `character(n)` was recognized: a SQL Server `nchar(n)` or `binary(n)` was
+  recreated with a variable length, without the spaces or zero bytes padding
+  its values. A binary with a declared length is rendered as `binary` rather
+  than `blob`, and `tinyint` as `smallint` rather than `integer`:
+  `migrations:diff` otherwise offered to widen the column.
 - **A text column with no declared length is rendered as `text`.** Only types
   named `text` were: a SQL Server `varchar(max)` or a PostgreSQL `varchar`
   without length became a string, recreated as `VARCHAR(255)`, which
@@ -127,6 +143,10 @@ préambule reste en français : il n'est jamais publié.
   recreated ascending, and `depart` on a sequence, which the minimum does not
   tell. Both drivers produce them; missing from a layer extracted earlier,
   they mean "unknown".
+- **`longueur_fixe` in the physical layer**, also optional: the driver tells
+  whether a string or binary has a fixed length, which the type name does not
+  tell consistently across DBMSs. A layer extracted earlier keeps the
+  `character(n)` reading.
 
 ## [0.6.1] — 2026-09-16 — Ce que rien ne signalait
 

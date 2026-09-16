@@ -40,6 +40,12 @@ abstract class TFactureBase
     #[ORM\Column(name: 'fac_taux', type: 'smallfloat', nullable: true)]
     protected ?float $facTaux = null;
 
+    #[ORM\Column(name: 'fac_jeton', type: 'blob', nullable: true)]
+    protected mixed $facJeton = null;
+
+    #[ORM\Column(name: 'fac_niveau', type: 'smallint', nullable: true)]
+    protected ?int $facNiveau = null;
+
     public function getFacId(): ?int
     {
         return $this->facId;
@@ -101,6 +107,30 @@ abstract class TFactureBase
     public function setFacTaux(?float $facTaux): static
     {
         $this->facTaux = $facTaux;
+
+        return $this;
+    }
+
+    public function getFacJeton(): mixed
+    {
+        return $this->facJeton;
+    }
+
+    public function setFacJeton(mixed $facJeton): static
+    {
+        $this->facJeton = $facJeton;
+
+        return $this;
+    }
+
+    public function getFacNiveau(): ?int
+    {
+        return $this->facNiveau;
+    }
+
+    public function setFacNiveau(?int $facNiveau): static
+    {
+        $this->facNiveau = $facNiveau;
 
         return $this;
     }

@@ -119,7 +119,7 @@
           "type": "string"
         },
         "longueur_fixe": {
-          "description": "Chaîne de longueur fixe : la base complète ses valeurs d'espaces jusqu'à la longueur. Un fait de colonne, absent pour une longueur variable, et retiré quand une décision force un autre type.",
+          "description": "Chaîne ou binaire de longueur fixe : la base complète ses valeurs jusqu'à la longueur (d'espaces pour une chaîne, d'octets nuls pour un binaire). Un fait de colonne, absent pour une longueur variable, et retiré quand une décision force un autre type.",
           "type": "boolean"
         },
         "enumeration": { "type": "string" },

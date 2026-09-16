@@ -40,7 +40,7 @@ CREATE TABLE ventes.t_commercial (
     com_email  nvarchar(120) NULL,
     -- Empreinte écrite hors ORM : l'entité la lit sans jamais la calculer.
     -- binary(n) est de longueur fixe, là où le bytea de PostgreSQL n'a pas de
-    -- longueur — c'est le seul moyen d'obtenir type_doctrine: binary.
+    -- longueur : type_doctrine binary, avec l'option fixed.
     com_empreinte binary(64) NULL
 );
 GO
@@ -173,7 +173,12 @@ CREATE TABLE ventes.t_facture (
     -- simple précision : real existe aussi ici, et se recrée en float.
     fac_taux   real NULL,
     -- money : propre à SQL Server, sans équivalent Doctrine direct.
-    fac_remise money NULL
+    fac_remise money NULL,
+    -- binaire de longueur déclarée mais variable : recréé en varbinary(16),
+    -- quand binary(n) garde sa longueur fixe.
+    fac_jeton  varbinary(16) NULL,
+    -- tinyint : aucun type Doctrine, smallint est le plus proche.
+    fac_niveau tinyint NULL
 );
 GO
 

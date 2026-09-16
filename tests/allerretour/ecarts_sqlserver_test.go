@@ -104,6 +104,13 @@ var tolerancesSQLServer = []tolerance{
 		},
 	},
 	{
+		code: "tinyint_recree_en_smallint", categorie: impossible,
+		pourquoi: "Doctrine n'a pas de type sur un octet : tinyint est recréé en SMALLINT, le plus proche",
+		couvre: func(e diff.Ecart, _ contexte) bool {
+			return e.Objet == diff.ObjetColonne && e.Propriete == "type_brut" && e.Avant == "tinyint" && e.Apres == "smallint"
+		},
+	},
+	{
 		code: "precision_heure", categorie: impossible,
 		pourquoi: "DBAL écrit TIME(0) : la précision fractionnaire d'origine est perdue",
 		couvre: func(e diff.Ecart, _ contexte) bool {
@@ -133,15 +140,6 @@ var tolerancesSQLServer = []tolerance{
 	},
 
 	// À COMBLER : chacune part avec le lot qui la corrige.
-	{
-		code: "longueur_fixe_non_reconnue", categorie: aCombler, lot: "P7-5c — longueur fixe",
-		pourquoi: "nchar(n) et binary(n) sont recréés en longueur variable : l'inférence ne reconnaît la longueur fixe que sous l'écriture de PostgreSQL",
-		couvre: func(e diff.Ecart, c contexte) bool {
-			col := colonneOrigine(c, e)
-			return col != nil && (e.Propriete == "type_brut" || e.Propriete == "longueur") &&
-				(strings.HasPrefix(col.TypeBrut, "nchar(") || strings.HasPrefix(col.TypeBrut, "binary("))
-		},
-	},
 	{
 		code: "fuseau_non_reconnu", categorie: aCombler, lot: "P7-5c — fuseau",
 		pourquoi: "datetimeoffset est recréé sans fuseau : l'inférence ne reconnaît le fuseau que sous l'écriture de PostgreSQL",

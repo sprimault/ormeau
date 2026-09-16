@@ -5,8 +5,8 @@
     "version": "17.11",
     "catalogue": "gescom",
     "schema": "gescom",
-    "extrait_le": "2026-09-16T16:18:03Z",
-    "empreinte": "sha256:42da6e305ebcdb37eb843c94a6b02fe47218e39e73c89d3c48fcc287f9f5811a"
+    "extrait_le": "2026-09-16T16:47:49Z",
+    "empreinte": "sha256:3a06883ac539f775017ca2406430f30a9c550401091d0a66ef871afbd1d8bf4a"
   },
   "tables": [
     {
@@ -117,6 +117,7 @@
           "type_brut": "character(14)",
           "type_normalise": "texte",
           "longueur": 14,
+          "longueur_fixe": true,
           "nullable": true,
           "collation": "default",
           "commentaire": "Nul tant que la fiche n'est pas validée"
@@ -536,6 +537,7 @@
           "type_brut": "character(2)",
           "type_normalise": "texte",
           "longueur": 2,
+          "longueur_fixe": true,
           "nullable": true,
           "collation": "default"
         },
@@ -706,6 +708,20 @@
           "type_brut": "real",
           "type_normalise": "flottant",
           "nullable": true
+        },
+        {
+          "nom": "fac_jeton",
+          "position": 7,
+          "type_brut": "bytea",
+          "type_normalise": "binaire",
+          "nullable": true
+        },
+        {
+          "nom": "fac_niveau",
+          "position": 8,
+          "type_brut": "smallint",
+          "type_normalise": "entier",
+          "nullable": true
         }
       ],
       "cle_primaire": {
@@ -746,6 +762,7 @@
           "type_brut": "character(2)",
           "type_normalise": "texte",
           "longueur": 2,
+          "longueur_fixe": true,
           "nullable": false,
           "collation": "default"
         },

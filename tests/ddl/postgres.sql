@@ -127,7 +127,10 @@ CREATE TABLE t_facture (
     fac_saisie date DEFAULT now(),
     -- simple précision : recréé en double precision faute d'un type Doctrine
     -- sous DBAL 3
-    fac_taux   real
+    fac_taux   real,
+    -- pendants de varbinary(16) et tinyint sous SQL Server
+    fac_jeton  bytea,
+    fac_niveau smallint
 );
 
 -- Clé serial : la forme historique, un défaut nextval(...) sur une séquence

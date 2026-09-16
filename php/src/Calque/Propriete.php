@@ -42,7 +42,7 @@ final class Propriete
      * @param Origine|null $origine      d'où vient le type retenu
      * @param ExpressionDefaut|null $defautExpression sens d'un défaut calculé reconnu, exclusif de $defaut ;
      *                                                après les autres pour ne rien décaler chez un appelant
-     * @param bool                  $longueurFixe     chaîne de longueur fixe, que la base complète d'espaces :
+     * @param bool                  $longueurFixe     chaîne ou binaire de longueur fixe, que la base complète :
      *                                                recréée en longueur variable, la colonne se compare
      *                                                autrement ; après les autres, pour la même raison
      * @param Generee|null          $generee          calcul d'une colonne générée, à relire après chaque

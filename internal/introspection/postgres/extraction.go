@@ -281,6 +281,9 @@ func (p *pilote) lireColonnes(ctx context.Context, schemas []string, jeu *jeuDeT
 
 		c.TypeNormalise = normaliserType(typeInterne, estEnumere)
 		c.Longueur, c.Precision, c.Echelle = longueur, precision, echelle
+		// bpchar sans longueur déclarée n'est pas complété d'espaces : seul
+		// character(n) est fixe. "char", sur un octet, n'a pas de longueur.
+		c.LongueurFixe = typeInterne == "bpchar" && longueur != nil
 		if estEnumere {
 			c.TypeEnumere = typeInterne
 		}
