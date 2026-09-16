@@ -36,6 +36,8 @@ préambule reste en français : il n'est jamais publié.
 
 ## [Non publié]
 
+## [0.6.1] — 2026-09-16 — Ce que rien ne signalait
+
 ### Corrigé
 
 - **Les colonnes d'un index sont citées comme elles le sont ailleurs.**
