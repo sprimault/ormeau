@@ -18,7 +18,6 @@ import (
 
 	_ "github.com/microsoft/go-mssqldb"
 
-	"github.com/sprimault/ormeau/internal/calque"
 	"github.com/sprimault/ormeau/internal/introspection"
 )
 
@@ -208,13 +207,6 @@ func (p *pilote) Colonnes(ctx context.Context, schema, table string) ([]introspe
 		colonnes = append(colonnes, c)
 	}
 	return colonnes, lignes.Err()
-}
-
-// Extraire n'est pas encore écrite : ce lot livre la connexion et l'inventaire,
-// de quoi parcourir un serveur depuis l'interface. Elle échoue franchement
-// plutôt que de rendre un calque partiel, qu'on croirait complet.
-func (p *pilote) Extraire(context.Context, introspection.Portee) (*calque.Physique, error) {
-	return nil, fmt.Errorf("extraction SQL Server pas encore ecrite : seuls l'inventaire et la description du serveur le sont")
 }
 
 // ensemble rend les schémas demandés sous forme d'ensemble, ou nil quand
