@@ -53,13 +53,14 @@ vierge `allerretour` du conteneur, extraite à nouveau, puis comparée à
 l'originale.
 
 ```bash
-make aller-retour
+make aller-retour              # PostgreSQL
+make aller-retour-sqlserver    # SQL Server
 ```
 
 Le diff n'est jamais vide : Doctrine ne recrée ni vues, ni contraintes CHECK, ni
 types énumérés natifs, et nomme ses clés étrangères à sa façon. Ces écarts
-forment une liste fermée, dans `allerretour/ecarts_test.go`, chacun avec sa
-raison :
+forment une liste fermée par SGBD, dans `allerretour/ecarts_test.go` et
+`allerretour/ecarts_sqlserver_test.go`, chacun avec sa raison :
 
 - **IMPOSSIBLE** : une limite de Doctrine ou de DBAL ;
 - **VOULU** : une décision de l'outil, tolérée seulement quand le calque logique
@@ -70,11 +71,16 @@ Le test échoue sur un écart que la liste ne couvre pas, et sur une entrée qui
 couvre plus rien : la liste ne peut ni masquer une régression, ni garder une
 tolérance devenue inutile.
 
-Il exige PHP avec l'extension `pdo_pgsql` et les dépendances de `php/`
-installées. `ORMEAU_PHP` désigne l'interpréteur quand ce n'est pas `php` — par
-exemple une commande `docker run` qui monte le dépôt au même chemin —, et la
-version d'ORM installée choisit la liste d'écarts. Le relevé du dernier passage
-est écrit dans `.tmp/allerretour/ecarts.txt`.
+Il exige PHP avec l'extension `pdo_pgsql` — `pdo_sqlsrv` et le pilote ODBC 18
+de Microsoft pour SQL Server — et les dépendances de `php/` installées.
+`ORMEAU_PHP` désigne l'interpréteur quand ce n'est pas `php` — par exemple une
+commande `docker run` qui monte le dépôt au même chemin —, et la version d'ORM
+installée choisit la liste d'écarts. Le relevé du dernier passage est écrit dans
+`.tmp/allerretour/ecarts.txt`.
+
+Sous SQL Server, Doctrine recrée les tables dans `dbo` : sa plateforme y pose
+les commentaires d'une table non qualifiée, quel que soit le schéma par défaut
+de la session. Le test renomme donc ce schéma en `ventes` avant de comparer.
 
 Deux cibles ont leur liste, les deux bouts de la plage promise : ORM 3 avec
 DBAL 4, depuis `composer.lock`, et ORM 2.14 avec DBAL 3, que la CI résout sans

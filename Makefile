@@ -1,4 +1,4 @@
-.PHONY: dev test cover maj-attendus maj-calque-gescom maj-calque-sqlserver aller-retour lint outils vulncheck sec build binaries web-deps web-build web-types web-types-check web-lint web-test php-changelog php-test php-lint image image-tags image-push clean
+.PHONY: dev test cover maj-attendus maj-calque-gescom maj-calque-sqlserver aller-retour aller-retour-sqlserver lint outils vulncheck sec build binaries web-deps web-build web-types web-types-check web-lint web-test php-changelog php-test php-lint image image-tags image-push clean
 
 # Répertoire de travail local, ignoré par git : sorties de `make build`,
 # profils de couverture, tout ce qui ne se publie pas.
@@ -97,6 +97,14 @@ test-integration: containers
 # harnais ne lance aucune goroutine, et le détecteur ralentit l'extraction.
 aller-retour: containers
 	go test -count=1 -tags allerretour ./tests/allerretour/
+
+# La même chaîne sous SQL Server. Il exige PHP avec pdo_sqlsrv et le pilote
+# ODBC 18 de Microsoft ; la base allerretour est recréée à chaque passage par
+# le script PHP, qui s'y connecte avec le compte sa du conteneur.
+DSN_ALLERRETOUR_SQLSERVER = sqlserver://sa:Ormeau!2026@127.0.0.1:31433?database=gescom&TrustServerCertificate=true
+
+aller-retour-sqlserver: containers
+	ORMEAU_TEST_DSN='$(DSN_ALLERRETOUR_SQLSERVER)' go test -count=1 -tags allerretour ./tests/allerretour/
 
 # Le calque de gescom est l'extraction réelle de tests/ddl/, versionnée comme
 # entrée du cas d'inférence du même nom. Il se régénère contre un conteneur

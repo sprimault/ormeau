@@ -79,6 +79,9 @@ func TestPrecisionEchelle(t *testing.T) {
 	if _, e := precisionEchelle("numeric", 10, 0); e == nil || *e != 0 {
 		t.Errorf("numeric(10,0) : echelle %v", e)
 	}
+	if p, e := precisionEchelle("money", 19, 4); p == nil || e == nil || *p != 19 || *e != 4 {
+		t.Errorf("money : %v, %v, attendu 19, 4", p, e)
+	}
 	if p, e := precisionEchelle("datetime2", 27, 7); p != nil || e != nil {
 		t.Errorf("datetime2 : %v, %v, attendues absentes", p, e)
 	}

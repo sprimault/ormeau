@@ -31,12 +31,11 @@ services:
       - "31433:1433"
     volumes:
       - ./ddl/sqlserver.sql:/ddl/sqlserver.sql:ro
+      - ./ddl/sqlserver-init.sh:/ddl/sqlserver-init.sh:ro
     healthcheck:
-      # L'image n'a pas de répertoire d'initialisation : le DDL se charge par
-      # sqlcmd une fois le serveur prêt, et c'est l'existence de la base qui dit
-      # que c'est fait. -C accepte le certificat auto-signé du conteneur, -b
-      # fait échouer sur la première erreur du script.
-      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -d gescom -Q 'SELECT 1' || (/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -b -i /ddl/sqlserver.sql && exit 1)"]
+      # L'image n'a pas de répertoire d'initialisation : le contrôle de santé
+      # charge le DDL et pose son empreinte, voir sqlserver-init.sh.
+      test: ["CMD-SHELL", "sh /ddl/sqlserver-init.sh"]
       interval: 5s
       timeout: 30s
       retries: 40

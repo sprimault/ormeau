@@ -98,11 +98,16 @@ func longueur(typeSysteme string, maxLength int) *int {
 // autres types : sys.columns en renseigne aussi pour un int ou un datetime2,
 // mais ce sont des caractéristiques du type, pas des déclarations, et
 // PostgreSQL ne les porte pas davantage.
+//
+// money et smallmoney en font partie : normalisés en décimal, ce sont un
+// decimal(19,4) et un decimal(10,4) à virgule fixe, et le catalogue le dit.
+// Sans leur précision, DBAL 4 refuse de recréer la colonne.
 func precisionEchelle(typeSysteme string, precision, echelle int) (*int, *int) {
-	if typeSysteme != "decimal" && typeSysteme != "numeric" {
-		return nil, nil
+	switch typeSysteme {
+	case "decimal", "numeric", "money", "smallmoney":
+		return &precision, &echelle
 	}
-	return &precision, &echelle
+	return nil, nil
 }
 
 // classerDefaut range la définition d'une contrainte DEFAULT dans le

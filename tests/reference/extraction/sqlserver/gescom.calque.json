@@ -5,8 +5,8 @@
     "version": "16.0.4295.3",
     "catalogue": "gescom",
     "schema": "ventes",
-    "extrait_le": "2026-09-16T09:40:48Z",
-    "empreinte": "sha256:5ecd95f9c7f7ae150e1f380d97607f30f84191bc5350d4300fb6da95a59aabca"
+    "extrait_le": "2026-09-16T15:24:49Z",
+    "empreinte": "sha256:1a5a36693d87dc39398c74fa909f868221316088e5f0f20c6eb68fc20dd30f54"
   },
   "tables": [
     {
@@ -685,6 +685,8 @@
           "position": 7,
           "type_brut": "money",
           "type_normalise": "decimal",
+          "precision": 19,
+          "echelle": 4,
           "nullable": true
         }
       ],

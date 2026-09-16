@@ -119,8 +119,9 @@ dans le calque de référence de `gescom`, et monter de version se fait par
 
 `make aller-retour` vérifie la chaîne entière contre ce même conteneur : base
 extraite, entités générées, schéma recréé par Doctrine, comparaison à une liste
-fermée d'écarts. Il exige en plus PHP avec `pdo_pgsql` et `composer install`
-dans `php/` ; `ORMEAU_PHP` désigne l'interpréteur quand PHP tourne ailleurs que
+fermée d'écarts ; `make aller-retour-sqlserver` fait de même sous SQL Server.
+Ils exigent en plus PHP avec `pdo_pgsql` — `pdo_sqlsrv` et le pilote ODBC 18 de
+Microsoft pour SQL Server — et `composer install` dans `php/` ; `ORMEAU_PHP` désigne l'interpréteur quand PHP tourne ailleurs que
 sur la machine (voir `tests/README.fr.md`). Un changement qui fait apparaître ou
 disparaître un écart met à jour la liste dans la même pull request.
 

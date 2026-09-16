@@ -7,10 +7,14 @@
 // inférée, générée en entités Doctrine, recréée par Doctrine dans une base
 // vierge, extraite à nouveau, puis comparée à l'originale.
 //
-// Le diff n'est jamais vide sur PostgreSQL : ce que Doctrine ne sait pas
-// recréer et ce que l'outil écarte volontairement forment une liste fermée,
-// dans ecarts_test.go. Le test échoue sur un écart que la liste ne couvre pas,
-// et sur une entrée de la liste qui ne couvre plus rien.
+// Le diff n'est jamais vide : ce que Doctrine ne sait pas recréer et ce que
+// l'outil écarte volontairement forment une liste fermée par SGBD, dans
+// ecarts_test.go et ecarts_sqlserver_test.go. Le test échoue sur un écart que
+// la liste ne couvre pas, et sur une entrée de la liste qui ne couvre plus
+// rien.
+//
+// Le préfixe du DSN de test choisit le SGBD : postgres:// par défaut,
+// sqlserver:// par make aller-retour-sqlserver.
 //
 // Rien ici n'est importable : le paquet ne contient que des tests.
 package allerretour
@@ -18,8 +22,7 @@ package allerretour
 import (
 	"bytes"
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -38,25 +41,68 @@ import (
 	"github.com/sprimault/ormeau/internal/diff"
 	"github.com/sprimault/ormeau/internal/inference"
 	"github.com/sprimault/ormeau/internal/introspection"
+	"github.com/sprimault/ormeau/internal/introspection/ddltest"
 	_ "github.com/sprimault/ormeau/internal/introspection/postgres"
+	_ "github.com/sprimault/ormeau/internal/introspection/sqlserver"
 )
 
-// dsnParDefaut vise le conteneur de make containers, comme les tests
-// d'intégration du pilote.
+// dsnParDefaut vise le conteneur PostgreSQL de make containers, comme les
+// tests d'intégration du pilote.
 const dsnParDefaut = "postgres://postgres:ormeau@127.0.0.1:35432/gescom"
 
 // Chemins relatifs au paquet, qui est le répertoire courant d'un test Go.
 const (
-	cheminDDL     = "../ddl/postgres.sql"
 	cheminRecreer = "../../php/tests/AllerRetour/recreer.php"
 	cheminTravail = "../../.tmp/allerretour"
 	baseRecreee   = "allerretour"
-	schemaDeTest  = "gescom"
 	nomDuLogique  = "gescom.logique.json"
 	nomDesEcarts  = "ecarts.txt"
 	nomParametres = "parametres.json"
 	nomDesEntites = "entites"
 )
+
+// dialecte porte ce qui change d'un SGBD à l'autre dans la chaîne. Le reste —
+// inférence, génération, comparaison — est le même, et c'est ce que le test
+// vérifie.
+type dialecte struct {
+	sgbd   string // nom du pilote, passé à recreer.php
+	ddl    string // DDL dont la base d'origine doit venir
+	schema string // schéma du DDL, seul extrait
+	// schemaRecree est celui où Doctrine recrée les tables. Sous SQL Server,
+	// dbo : DBAL y pose les commentaires d'une table non qualifiée, quel que
+	// soit le schéma par défaut de la session.
+	schemaRecree string
+	port         int // port par défaut, quand le DSN n'en nomme pas
+	// lireEmpreinte rend l'empreinte du DDL posée dans la base, nil si elle
+	// n'en porte pas.
+	lireEmpreinte func(ctx context.Context, dsn string) (*string, error)
+	// recreee rend le DSN de la base recréée, sur le même serveur.
+	recreee func(origine url.URL) url.URL
+}
+
+// dialectes est indexé par le préfixe du DSN.
+var dialectes = map[string]dialecte{
+	"postgres": {
+		sgbd: "postgres", ddl: "../ddl/postgres.sql", schema: "gescom", schemaRecree: "gescom", port: 5432,
+		lireEmpreinte: empreintePostgres,
+		recreee: func(u url.URL) url.URL {
+			u.Path = "/" + baseRecreee
+			return u
+		},
+	},
+	"sqlserver": {
+		sgbd: "sqlserver", ddl: "../ddl/sqlserver.sql", schema: "ventes", schemaRecree: "dbo", port: 1433,
+		lireEmpreinte: empreinteSQLServer,
+		// La base d'un DSN SQL Server est un paramètre : le chemin y désigne
+		// l'instance nommée.
+		recreee: func(u url.URL) url.URL {
+			q := u.Query()
+			q.Set("database", baseRecreee)
+			u.RawQuery = q.Encode()
+			return u
+		},
+	},
+}
 
 // dsnDeTest rend le DSN de la base d'origine, qu'ORMEAU_TEST_DSN remplace.
 func dsnDeTest() string {
@@ -64,6 +110,24 @@ func dsnDeTest() string {
 		return dsn
 	}
 	return dsnParDefaut
+}
+
+// dialecteDe lit le SGBD dans le préfixe du DSN de test, qui doit nommer un
+// utilisateur : recreer.php se connecte avec les mêmes identifiants.
+func dialecteDe(dsn string) (dialecte, *url.URL, error) {
+	adresse, err := url.Parse(dsn)
+	if err != nil || adresse.User == nil {
+		return dialecte{}, nil, errors.New("l'aller-retour exige un DSN de test en URL qui nomme un utilisateur")
+	}
+	schema := adresse.Scheme
+	if schema == "postgresql" {
+		schema = "postgres"
+	}
+	d, connu := dialectes[schema]
+	if !connu {
+		return dialecte{}, nil, fmt.Errorf("aller-retour : SGBD %q non pris en charge", adresse.Scheme)
+	}
+	return d, adresse, nil
 }
 
 // TestMain refuse de lancer l'aller-retour contre une base qui ne vient pas du
@@ -77,26 +141,30 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-// controlerBaseDeTest compare l'empreinte du DDL du dépôt à celle que
-// tests/ddl/20-empreinte.sh a posée en commentaire de la base.
-//
-// Deuxième occurrence du contrôle de internal/introspection/postgres
-// (postgres_integration_test.go), où il lit la base par le pilote : un fichier
-// de test ne s'importe pas. À la troisième, l'extraire.
+// controlerBaseDeTest compare l'empreinte posée dans la base d'origine à celle
+// du DDL du dépôt.
 func controlerBaseDeTest() error {
-	contenu, err := os.ReadFile(cheminDDL)
+	d, _, err := dialecteDe(dsnDeTest())
 	if err != nil {
-		return fmt.Errorf("lecture du DDL de test: %w", err)
+		return err
 	}
-	somme := sha256.Sum256(contenu)
-	attendu := "ddl-sha256:" + hex.EncodeToString(somme[:])
 
 	ctx, annuler := context.WithTimeout(context.Background(), 10*time.Second)
 	defer annuler()
 
-	conn, err := pgx.Connect(ctx, dsnDeTest())
+	empreinte, err := d.lireEmpreinte(ctx, dsnDeTest())
 	if err != nil {
-		return fmt.Errorf("connexion a la base de test (make containers ?): %w", err)
+		return err
+	}
+	return ddltest.Controler(empreinte, d.ddl)
+}
+
+// empreintePostgres lit le commentaire de base que tests/ddl/20-empreinte.sh
+// a posé.
+func empreintePostgres(ctx context.Context, dsn string) (*string, error) {
+	conn, err := pgx.Connect(ctx, dsn)
+	if err != nil {
+		return nil, fmt.Errorf("connexion a la base de test (make containers ?): %w", err)
 	}
 	defer func() { _ = conn.Close(ctx) }()
 
@@ -106,18 +174,32 @@ SELECT shobj_description(oid, 'pg_database')
 FROM pg_database
 WHERE datname = current_database()`).Scan(&commentaire)
 	if err != nil {
-		return fmt.Errorf("lecture de l'empreinte du DDL: %w", err)
+		return nil, fmt.Errorf("lecture de l'empreinte du DDL: %w", err)
 	}
+	return commentaire, nil
+}
 
-	switch {
-	case commentaire == nil || !strings.HasPrefix(*commentaire, "ddl-sha256:"):
-		return errors.New("la base visee ne vient pas de tests/ddl/, aucune empreinte de DDL " +
-			"en commentaire: verifier ORMEAU_TEST_DSN, ou recreer le conteneur par make containers")
-	case *commentaire != attendu:
-		return fmt.Errorf("la base de test vient d'un autre DDL que tests/ddl/postgres.sql "+
-			"(base %s, fichier %s): make containers la recree", *commentaire, attendu)
+// empreinteSQLServer lit la propriété étendue de base que
+// tests/ddl/sqlserver-init.sh a posée.
+func empreinteSQLServer(ctx context.Context, dsn string) (*string, error) {
+	db, err := sql.Open("sqlserver", dsn)
+	if err != nil {
+		return nil, fmt.Errorf("dsn de test illisible (%s)", introspection.Masquer(dsn))
 	}
-	return nil
+	defer func() { _ = db.Close() }()
+
+	var valeur string
+	err = db.QueryRowContext(ctx, `
+SELECT CONVERT(nvarchar(200), value)
+FROM sys.extended_properties
+WHERE class = 0 AND name = N'ormeau_ddl'`).Scan(&valeur)
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+		return nil, nil
+	case err != nil:
+		return nil, fmt.Errorf("lecture de l'empreinte du DDL (make containers ?): %w", err)
+	}
+	return &valeur, nil
 }
 
 // sortiePHP est ce que recreer.php écrit sur sa sortie standard.
@@ -144,14 +226,13 @@ func TestAllerRetour(t *testing.T) {
 	}
 
 	dsnOrigine := dsnDeTest()
-	adresse, err := url.Parse(dsnOrigine)
-	if err != nil || adresse.User == nil || (adresse.Scheme != "postgres" && adresse.Scheme != "postgresql") {
-		t.Fatal("l'aller-retour exige un DSN de test en URL postgres:// qui nomme un utilisateur")
+	d, adresse, err := dialecteDe(dsnOrigine)
+	if err != nil {
+		t.Fatal(err)
 	}
-	recreee := *adresse
-	recreee.Path = "/" + baseRecreee
+	recreee := d.recreee(*adresse)
 
-	origine := extraire(t, dsnOrigine)
+	origine := extraire(t, d, dsnOrigine, d.schema)
 	empreinte, err := origine.CalculerEmpreinte()
 	if err != nil {
 		t.Fatalf("empreinte : %v", err)
@@ -164,36 +245,68 @@ func TestAllerRetour(t *testing.T) {
 		t.Fatalf("écriture du calque logique : %v", err)
 	}
 
-	sortie := recreer(t, travail, cheminLogique, adresse)
+	sortie := recreer(t, d, travail, cheminLogique, adresse)
 	cible, err := cibleDe(sortie)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	recree := extraire(t, recreee.String())
+	recree := extraire(t, d, recreee.String(), d.schemaRecree)
+	renommerSchema(recree, d.schemaRecree, d.schema)
 	ecarts := diff.Comparer(origine, recree, diff.Options{})
 
 	c := contexte{origine: origine, recree: recree, logique: logique, php: sortie}
-	couverture := confronter(t, cible, ecarts, c)
+	couverture := confronter(t, d.sgbd, cible, ecarts, c)
 	if err := os.WriteFile(filepath.Join(travail, nomDesEcarts), []byte(couverture), 0o600); err != nil {
 		t.Errorf("écriture de %s : %v", nomDesEcarts, err)
 	}
 }
 
-// extraire rend le calque du schéma de test d'une base.
-func extraire(t *testing.T, dsn string) *calque.Physique {
+// renommerSchema rend au calque recréé le schéma de l'origine, pour que la
+// comparaison ne voie pas chaque objet comme retiré puis ajouté. Toutes les
+// références d'un schéma à l'autre le suivent : tables, cibles des clés
+// étrangères, séquences, vues.
+func renommerSchema(p *calque.Physique, depuis, vers string) {
+	if depuis == vers {
+		return
+	}
+	renommer := func(s *string) {
+		if *s == depuis {
+			*s = vers
+		}
+	}
+	renommer(&p.Source.Schema)
+	for i := range p.Tables {
+		renommer(&p.Tables[i].Schema)
+		for j := range p.Tables[i].ClesEtrangeres {
+			renommer(&p.Tables[i].ClesEtrangeres[j].SchemaCible)
+		}
+	}
+	for i := range p.Sequences {
+		renommer(&p.Sequences[i].Schema)
+	}
+	for i := range p.TypesEnumeres {
+		renommer(&p.TypesEnumeres[i].Schema)
+	}
+	for i := range p.Vues {
+		renommer(&p.Vues[i].Schema)
+	}
+}
+
+// extraire rend le calque d'un schéma d'une base.
+func extraire(t *testing.T, d dialecte, dsn, schema string) *calque.Physique {
 	t.Helper()
 
 	ctx, annuler := context.WithTimeout(context.Background(), 60*time.Second)
 	defer annuler()
 
-	pilote, err := introspection.Ouvrir(ctx, "postgres", dsn)
+	pilote, err := introspection.Ouvrir(ctx, d.sgbd, dsn)
 	if err != nil {
 		t.Fatalf("connexion à %s : %v", introspection.Masquer(dsn), err)
 	}
 	defer func() { _ = pilote.Fermer() }()
 
-	physique, err := pilote.Extraire(ctx, introspection.Portee{Schemas: []string{schemaDeTest}})
+	physique, err := pilote.Extraire(ctx, introspection.Portee{Schemas: []string{schema}})
 	if err != nil {
 		t.Fatalf("extraction de %s : %v", introspection.Masquer(dsn), err)
 	}
@@ -207,7 +320,7 @@ func extraire(t *testing.T, dsn string) *calque.Physique {
 // machine où PHP tourne en conteneur, la commande docker run qui monte le
 // dépôt au même chemin. Les paramètres passent par un fichier plutôt que par
 // la ligne de commande, où le mot de passe serait visible.
-func recreer(t *testing.T, travail, cheminLogique string, adresse *url.URL) sortiePHP {
+func recreer(t *testing.T, d dialecte, travail, cheminLogique string, adresse *url.URL) sortiePHP {
 	t.Helper()
 
 	script, err := filepath.Abs(cheminRecreer)
@@ -216,16 +329,17 @@ func recreer(t *testing.T, travail, cheminLogique string, adresse *url.URL) sort
 	}
 	port, err := strconv.Atoi(adresse.Port())
 	if err != nil {
-		port = 5432
+		port = d.port
 	}
 	motDePasse, _ := adresse.User.Password()
 
 	// Des paramètres pour un script, pas un calque : JSON direct.
 	parametres, err := json.Marshal(map[string]any{
+		"sgbd":         d.sgbd,
 		"logique":      cheminLogique,
 		"entites":      filepath.Join(travail, nomDesEntites),
 		"base":         baseRecreee,
-		"schema":       schemaDeTest,
+		"schema":       d.schema,
 		"hote":         adresse.Hostname(),
 		"port":         port,
 		"utilisateur":  adresse.User.Username(),
