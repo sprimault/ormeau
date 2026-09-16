@@ -51,9 +51,15 @@ type Colonne struct {
 	TypeNormalise TypeNorm `json:"type_normalise"`
 	// Pointeurs : decimal(10,0) et int doivent rester distinguables, un zéro
 	// implicite les confondrait.
-	Longueur      *int `json:"longueur,omitempty"`
-	Precision     *int `json:"precision,omitempty"`
-	Echelle       *int `json:"echelle,omitempty"`
+	Longueur  *int `json:"longueur,omitempty"`
+	Precision *int `json:"precision,omitempty"`
+	Echelle   *int `json:"echelle,omitempty"`
+	// LongueurFixe dit que la base complète ses valeurs jusqu'à la longueur :
+	// character(n) de PostgreSQL, char, nchar et binary de SQL Server. Chaque
+	// pilote le lit dans son catalogue, pour que l'inférence n'ait pas à
+	// reconnaître le nom du type de chaque dialecte. Absent d'un calque extrait
+	// avant ce champ : inconnu, pas « variable ».
+	LongueurFixe  bool `json:"longueur_fixe,omitempty"`
 	Nullable      bool `json:"nullable"`
 	AutoIncrement bool `json:"auto_increment,omitempty"`
 	// Identite n'a de sens qu'avec AutoIncrement. Vide dans un calque extrait

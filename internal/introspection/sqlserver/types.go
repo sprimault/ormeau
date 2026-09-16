@@ -94,6 +94,16 @@ func longueur(typeSysteme string, maxLength int) *int {
 	return nil
 }
 
+// longueurFixe dit si le type système complète ses valeurs jusqu'à la longueur
+// déclarée : char et nchar d'espaces, binary d'octets nuls.
+func longueurFixe(typeSysteme string) bool {
+	switch typeSysteme {
+	case "char", "nchar", "binary":
+		return true
+	}
+	return false
+}
+
 // precisionEchelle rend précision et échelle d'un décimal, et rien pour les
 // autres types : sys.columns en renseigne aussi pour un int ou un datetime2,
 // mais ce sont des caractéristiques du type, pas des déclarations, et

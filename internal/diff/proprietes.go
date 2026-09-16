@@ -52,6 +52,7 @@ var proprietesColonne = []propriete[calque.Colonne]{
 	{"type_brut", func(c *calque.Colonne) string { return c.TypeBrut }},
 	{"type_normalise", func(c *calque.Colonne) string { return string(c.TypeNormalise) }},
 	{"longueur", func(c *calque.Colonne) string { return entier(c.Longueur) }},
+	{"longueur_fixe", func(c *calque.Colonne) string { return strconv.FormatBool(c.LongueurFixe) }},
 	{"precision", func(c *calque.Colonne) string { return entier(c.Precision) }},
 	{"echelle", func(c *calque.Colonne) string { return entier(c.Echelle) }},
 	{"nullable", func(c *calque.Colonne) string { return strconv.FormatBool(c.Nullable) }},

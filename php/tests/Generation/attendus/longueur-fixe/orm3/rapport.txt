@@ -1,0 +1,4 @@
+créé Base/PieceBase.php
+créé Piece.php
+créé Base/PaysBase.php
+créé Pays.php

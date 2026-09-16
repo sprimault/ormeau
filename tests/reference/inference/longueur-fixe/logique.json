@@ -1,0 +1,157 @@
+{
+  "version_ri": 1,
+  "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000027",
+  "espace_de_noms": "App\\Entity",
+  "entites": [
+    {
+      "nom": "Piece",
+      "table": {
+        "nom": "piece",
+        "schema": "ventes"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "code",
+          "colonne": "code",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 2,
+          "longueur_fixe": true,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "codeAscii",
+          "colonne": "code_ascii",
+          "type_php": "?string",
+          "type_doctrine": "string",
+          "nullable": true,
+          "longueur": 3,
+          "longueur_fixe": true,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "libelle",
+          "colonne": "libelle",
+          "type_php": "?string",
+          "type_doctrine": "string",
+          "nullable": true,
+          "longueur": 40,
+          "commentaire": "Longueur variable : pas de longueur fixe",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "empreinte",
+          "colonne": "empreinte",
+          "type_php": "?string",
+          "type_doctrine": "binary",
+          "nullable": true,
+          "longueur": 16,
+          "longueur_fixe": true,
+          "commentaire": "Binaire fixe : binary, longueur 16, fixe",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "jeton",
+          "colonne": "jeton",
+          "type_php": "?string",
+          "type_doctrine": "binary",
+          "nullable": true,
+          "longueur": 16,
+          "commentaire": "Binaire de longueur déclarée : binary, longueur 16, variable",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "document",
+          "colonne": "document",
+          "type_php": "?string",
+          "type_doctrine": "blob",
+          "nullable": true,
+          "commentaire": "Binaire sans longueur : blob",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "niveau",
+          "colonne": "niveau",
+          "type_php": "?int",
+          "type_doctrine": "smallint",
+          "nullable": true,
+          "commentaire": "Sans type Doctrine : smallint, le plus proche",
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "Longueur fixe et binaires sous les formes de SQL Server : le fait vient du champ longueur_fixe, pas du nom du type",
+      "origine": "nommage"
+    },
+    {
+      "nom": "Pays",
+      "table": {
+        "nom": "pays",
+        "schema": "ventes"
+      },
+      "identifiant": {
+        "proprietes": [
+          "code"
+        ],
+        "strategie": "assignee"
+      },
+      "proprietes": [
+        {
+          "nom": "code",
+          "colonne": "code",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 2,
+          "longueur_fixe": true,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "ancienCode",
+          "colonne": "ancien_code",
+          "type_php": "?string",
+          "type_doctrine": "string",
+          "nullable": true,
+          "longueur": 3,
+          "longueur_fixe": true,
+          "commentaire": "Calque extrait avant le champ longueur_fixe : la forme character(n) reste lue",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "nom",
+          "colonne": "nom",
+          "type_php": "string",
+          "type_doctrine": "string",
+          "nullable": false,
+          "longueur": 40,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "drapeau",
+          "colonne": "drapeau",
+          "type_php": "?string",
+          "type_doctrine": "blob",
+          "nullable": true,
+          "commentaire": "Sans longueur : blob",
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "Les mêmes cas sous les formes de PostgreSQL",
+      "origine": "nommage"
+    }
+  ]
+}

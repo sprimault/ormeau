@@ -5,8 +5,8 @@
     "version": "16.0.4295.3",
     "catalogue": "gescom",
     "schema": "ventes",
-    "extrait_le": "2026-09-16T16:18:25Z",
-    "empreinte": "sha256:597815e82eac63e6cbd62f3fd785627951e6c324f9329f006a3a131a2f6ea1e3"
+    "extrait_le": "2026-09-16T16:48:10Z",
+    "empreinte": "sha256:03748a651915317b68c42356c22623ef0a47b27d09d859ca4ca6f1a2b93f1240"
   },
   "tables": [
     {
@@ -117,6 +117,7 @@
           "type_brut": "nchar(14)",
           "type_normalise": "texte",
           "longueur": 14,
+          "longueur_fixe": true,
           "nullable": true,
           "collation": "default",
           "commentaire": "Nul tant que la fiche n'est pas validée"
@@ -514,6 +515,7 @@
           "type_brut": "nchar(2)",
           "type_normalise": "texte",
           "longueur": 2,
+          "longueur_fixe": true,
           "nullable": true,
           "collation": "default"
         },
@@ -613,6 +615,7 @@
           "type_brut": "binary(64)",
           "type_normalise": "binaire",
           "longueur": 64,
+          "longueur_fixe": true,
           "nullable": true
         }
       ],
@@ -696,6 +699,21 @@
           "precision": 19,
           "echelle": 4,
           "nullable": true
+        },
+        {
+          "nom": "fac_jeton",
+          "position": 8,
+          "type_brut": "varbinary(16)",
+          "type_normalise": "binaire",
+          "longueur": 16,
+          "nullable": true
+        },
+        {
+          "nom": "fac_niveau",
+          "position": 9,
+          "type_brut": "tinyint",
+          "type_normalise": "entier",
+          "nullable": true
         }
       ],
       "cle_primaire": {
@@ -736,6 +754,7 @@
           "type_brut": "nchar(2)",
           "type_normalise": "texte",
           "longueur": 2,
+          "longueur_fixe": true,
           "nullable": false,
           "collation": "default"
         },
@@ -966,6 +985,7 @@
           "type_brut": "binary(64)",
           "type_normalise": "binaire",
           "longueur": 64,
+          "longueur_fixe": true,
           "nullable": true
         },
         {

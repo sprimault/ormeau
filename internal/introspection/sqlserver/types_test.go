@@ -68,6 +68,21 @@ func TestLongueur(t *testing.T) {
 	}
 }
 
+// TestLongueurFixe : les formes var… et (max) sont variables.
+func TestLongueurFixe(t *testing.T) {
+	t.Parallel()
+
+	cas := map[string]bool{
+		"char": true, "nchar": true, "binary": true,
+		"varchar": false, "nvarchar": false, "varbinary": false, "ntext": false, "int": false,
+	}
+	for typeSysteme, attendu := range cas {
+		if obtenu := longueurFixe(typeSysteme); obtenu != attendu {
+			t.Errorf("%s : longueur fixe %v, attendue %v", typeSysteme, obtenu, attendu)
+		}
+	}
+}
+
 // TestPrecisionEchelle : seul un décimal les déclare.
 func TestPrecisionEchelle(t *testing.T) {
 	t.Parallel()

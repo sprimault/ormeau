@@ -71,6 +71,10 @@
         },
         "type_normalise": { "$ref": "#/$defs/typeNormalise" },
         "longueur": { "type": "integer", "minimum": 0 },
+        "longueur_fixe": {
+          "description": "La base complète les valeurs jusqu'à la longueur déclarée (character(n), char, nchar, binary). Lu par chaque pilote dans son catalogue. Absent d'un calque extrait avant ce champ : inconnu.",
+          "type": "boolean"
+        },
         "precision": { "type": "integer", "minimum": 0 },
         "echelle": { "type": "integer" },
         "nullable": { "type": "boolean" },

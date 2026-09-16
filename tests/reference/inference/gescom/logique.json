@@ -1,6 +1,6 @@
 {
   "version_ri": 1,
-  "empreinte_physique": "sha256:42da6e305ebcdb37eb843c94a6b02fe47218e39e73c89d3c48fcc287f9f5811a",
+  "empreinte_physique": "sha256:3a06883ac539f775017ca2406430f30a9c550401091d0a66ef871afbd1d8bf4a",
   "espace_de_noms": "App\\Entity",
   "entites": [
     {
@@ -742,6 +742,22 @@
           "colonne": "fac_taux",
           "type_php": "?float",
           "type_doctrine": "smallfloat",
+          "nullable": true,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "facJeton",
+          "colonne": "fac_jeton",
+          "type_php": "?string",
+          "type_doctrine": "blob",
+          "nullable": true,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "facNiveau",
+          "colonne": "fac_niveau",
+          "type_php": "?int",
+          "type_doctrine": "smallint",
           "nullable": true,
           "origine": "contrainte"
         }

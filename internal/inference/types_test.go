@@ -228,7 +228,8 @@ func TestForcerAccordeLeTypePHP(t *testing.T) {
 	}
 }
 
-// La longueur fixe se lit dans type_brut, et tombe avec un type forcé : la
+// La longueur fixe d'un calque sans le champ se lit dans type_brut, et tombe
+// avec un type forcé : la
 // longueur est retirée elle aussi, et un booléen décidé sur un char(1) valant
 // O ou N n'a plus rien d'une chaîne complétée d'espaces.
 func TestLongueurFixe(t *testing.T) {

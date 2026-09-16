@@ -1,0 +1,41 @@
+{
+  "version_ri": 1,
+  "source": {
+    "sgbd": "sqlserver",
+    "version": "16.0.4295.3",
+    "catalogue": "gescom",
+    "schema": "ventes",
+    "extrait_le": "2026-01-01T00:00:00Z",
+    "empreinte": "sha256:0000000000000000000000000000000000000000000000000000000000000027"
+  },
+  "tables": [
+    {
+      "nom": "piece",
+      "schema": "ventes",
+      "commentaire": "Longueur fixe et binaires sous les formes de SQL Server : le fait vient du champ longueur_fixe, pas du nom du type",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "int", "type_normalise": "entier", "nullable": false, "auto_increment": true, "identite": "toujours" },
+        { "nom": "code", "position": 2, "type_brut": "nchar(2)", "type_normalise": "texte", "longueur": 2, "longueur_fixe": true, "nullable": false },
+        { "nom": "code_ascii", "position": 3, "type_brut": "char(3)", "type_normalise": "texte", "longueur": 3, "longueur_fixe": true, "nullable": true },
+        { "nom": "libelle", "position": 4, "type_brut": "nvarchar(40)", "type_normalise": "texte", "longueur": 40, "nullable": true, "commentaire": "Longueur variable : pas de longueur fixe" },
+        { "nom": "empreinte", "position": 5, "type_brut": "binary(16)", "type_normalise": "binaire", "longueur": 16, "longueur_fixe": true, "nullable": true, "commentaire": "Binaire fixe : binary, longueur 16, fixe" },
+        { "nom": "jeton", "position": 6, "type_brut": "varbinary(16)", "type_normalise": "binaire", "longueur": 16, "nullable": true, "commentaire": "Binaire de longueur déclarée : binary, longueur 16, variable" },
+        { "nom": "document", "position": 7, "type_brut": "varbinary(max)", "type_normalise": "binaire", "nullable": true, "commentaire": "Binaire sans longueur : blob" },
+        { "nom": "niveau", "position": 8, "type_brut": "tinyint", "type_normalise": "entier", "nullable": true, "commentaire": "Sans type Doctrine : smallint, le plus proche" }
+      ],
+      "cle_primaire": { "nom": "piece_pkey", "colonnes": ["id"] }
+    },
+    {
+      "nom": "pays",
+      "schema": "ventes",
+      "commentaire": "Les mêmes cas sous les formes de PostgreSQL",
+      "colonnes": [
+        { "nom": "code", "position": 1, "type_brut": "character(2)", "type_normalise": "texte", "longueur": 2, "longueur_fixe": true, "nullable": false },
+        { "nom": "ancien_code", "position": 2, "type_brut": "character(3)", "type_normalise": "texte", "longueur": 3, "nullable": true, "commentaire": "Calque extrait avant le champ longueur_fixe : la forme character(n) reste lue" },
+        { "nom": "nom", "position": 3, "type_brut": "character varying(40)", "type_normalise": "texte", "longueur": 40, "nullable": false },
+        { "nom": "drapeau", "position": 4, "type_brut": "bytea", "type_normalise": "binaire", "nullable": true, "commentaire": "Sans longueur : blob" }
+      ],
+      "cle_primaire": { "nom": "pays_pkey", "colonnes": ["code"] }
+    }
+  ]
+}

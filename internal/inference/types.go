@@ -104,8 +104,18 @@ func affiner(corr correspondance, c *calque.Colonne) correspondance {
 		if strings.Contains(brut, "bigint") || strings.Contains(brut, "int8") {
 			return correspondance{"int", "bigint"}
 		}
-		if strings.Contains(brut, "smallint") || strings.Contains(brut, "int2") {
+		// tinyint, de SQL Server comme de MySQL, n'a pas de type Doctrine :
+		// smallint est le plus proche. En integer, migrations:diff proposerait
+		// d'élargir la colonne.
+		if strings.Contains(brut, "smallint") || strings.Contains(brut, "int2") || strings.Contains(brut, "tinyint") {
 			return correspondance{"int", "smallint"}
+		}
+	case calque.TypeBinaire:
+		// Un binaire de longueur déclarée — binary(n), varbinary(n) — se
+		// recrée à sa longueur, fixe ou non. Sans longueur (bytea,
+		// varbinary(max), image), il reste un blob.
+		if c.Longueur != nil {
+			return correspondance{corr.php, "binary"}
 		}
 	case calque.TypeTexte:
 		// Sans longueur déclarée, un texte est illimité, quel que soit le nom
@@ -139,12 +149,19 @@ func affiner(corr correspondance, c *calque.Colonne) correspondance {
 	return corr
 }
 
-// longueurFixe dit si une colonne texte est de longueur fixe, ce que le type
-// normalisé ne dit pas : format_type rend character(n), et character varying(n)
-// pour la longueur variable.
+// longueurFixe dit si une chaîne ou un binaire est de longueur fixe, ce que le
+// type normalisé ne dit pas.
+//
+// Le pilote le lit dans son catalogue et le porte au calque physique. Un calque
+// extrait avant ce champ ne le porte pas : la forme character(n) de
+// PostgreSQL, seule reconnue jusque-là, reste lue, pour qu'une régénération
+// depuis un ancien calque ne change rien.
 func longueurFixe(c *calque.Colonne) bool {
-	return c.TypeNormalise == calque.TypeTexte && !estTableau(c) &&
-		strings.HasPrefix(strings.ToLower(c.TypeBrut), "character(")
+	if (c.TypeNormalise != calque.TypeTexte && c.TypeNormalise != calque.TypeBinaire) || estTableau(c) {
+		return false
+	}
+	return c.LongueurFixe ||
+		(c.TypeNormalise == calque.TypeTexte && strings.HasPrefix(strings.ToLower(c.TypeBrut), "character("))
 }
 
 // texteUnicodeSansLongueur dit si la colonne est un texte Unicode illimité de
