@@ -235,6 +235,13 @@ var tolerances = []tolerance{
 		},
 	},
 	{
+		code: "ordres_d_index", categorie: impossible,
+		pourquoi: "Doctrine ne porte pas le sens de tri d'une colonne d'index : un index descendant est recréé ascendant",
+		couvre: func(e diff.Ecart, _ contexte) bool {
+			return e.Objet == diff.ObjetIndex && e.Propriete == "ordres" && e.Apres == ""
+		},
+	},
+	{
 		code: "position_identite_derivee", categorie: impossible, cibles: []string{"orm3-dbal4"},
 		pourquoi: "SchemaTool place une colonne de jointure sans propriété, clé d'une identité dérivée, après les champs",
 		couvre: func(e diff.Ecart, c contexte) bool {

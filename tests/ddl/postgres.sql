@@ -56,6 +56,8 @@ CREATE INDEX ix_cli_actifs ON t_client (cli_com_id) WHERE cli_statut = 'ACTIF';
 -- classe d'opérateurs explicite : sans elle, le DDL n'est pas reconstructible,
 -- et deux index de comportements différents deviennent indistinguables.
 CREATE INDEX ix_cli_nom_prefixe ON t_client (cli_nom text_pattern_ops);
+-- index descendant : recréé ascendant, il ne sert plus les mêmes tris.
+CREATE INDEX ix_cli_nom_desc ON t_client (cli_nom DESC);
 
 -- Identité BY DEFAULT, à côté des ALWAYS : une valeur explicite y est acceptée,
 -- et le calque doit les distinguer.

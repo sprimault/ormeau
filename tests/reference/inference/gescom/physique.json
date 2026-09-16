@@ -5,8 +5,8 @@
     "version": "17.11",
     "catalogue": "gescom",
     "schema": "gescom",
-    "extrait_le": "2026-09-16T01:44:39Z",
-    "empreinte": "sha256:3dc5afd0200d5d9e17aea6b1d68fdefc54642b3c800f36743020417907b27943"
+    "extrait_le": "2026-09-16T09:54:19Z",
+    "empreinte": "sha256:73bd32ec745417e42f3eddede07691808648c2c6515687e18d33107955769939"
   },
   "tables": [
     {
@@ -227,6 +227,17 @@
           ],
           "unique": false,
           "methode": "btree"
+        },
+        {
+          "nom": "ix_cli_nom_desc",
+          "colonnes": [
+            "cli_nom"
+          ],
+          "unique": false,
+          "methode": "btree",
+          "ordres": [
+            "desc"
+          ]
         },
         {
           "nom": "ix_cli_nom_prefixe",
@@ -847,6 +858,7 @@
       "nom": "t_avoir_avo_id_seq",
       "schema": "gescom",
       "increment": 1,
+      "depart": 1,
       "minimum": 1,
       "maximum": 2147483647
     },
@@ -854,6 +866,7 @@
       "nom": "t_categorie_cat_id_seq",
       "schema": "gescom",
       "increment": 1,
+      "depart": 1,
       "minimum": 1,
       "maximum": 2147483647
     },
@@ -861,6 +874,7 @@
       "nom": "t_client_adresse_adr_id_seq",
       "schema": "gescom",
       "increment": 1,
+      "depart": 1,
       "minimum": 1,
       "maximum": 2147483647
     },
@@ -868,6 +882,7 @@
       "nom": "t_client_cli_id_seq",
       "schema": "gescom",
       "increment": 1,
+      "depart": 1,
       "minimum": 1,
       "maximum": 2147483647
     },
@@ -875,6 +890,7 @@
       "nom": "t_commande_cmd_id_seq",
       "schema": "gescom",
       "increment": 1,
+      "depart": 1,
       "minimum": 1,
       "maximum": 2147483647
     },
@@ -882,6 +898,7 @@
       "nom": "t_commercial_com_id_seq",
       "schema": "gescom",
       "increment": 1,
+      "depart": 1,
       "minimum": 1,
       "maximum": 2147483647
     },
@@ -889,6 +906,7 @@
       "nom": "t_facture_fac_id_seq",
       "schema": "gescom",
       "increment": 1,
+      "depart": 1,
       "minimum": 1,
       "maximum": 2147483647
     },
@@ -896,6 +914,7 @@
       "nom": "t_référence_id_seq",
       "schema": "gescom",
       "increment": 1,
+      "depart": 1,
       "minimum": 1,
       "maximum": 2147483647
     },
@@ -903,6 +922,7 @@
       "nom": "t_tag_tag_id_seq",
       "schema": "gescom",
       "increment": 1,
+      "depart": 1,
       "minimum": 1,
       "maximum": 2147483647
     }

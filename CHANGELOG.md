@@ -71,8 +71,8 @@ préambule reste en français : il n'est jamais publié.
 - **Deux champs optionnels dans le calque physique**, sans changement de
   `version_ri` : `ordres` sur un index, pour un index descendant qui serait
   sinon recréé ascendant, et `depart` sur une séquence, que le minimum ne dit
-  pas. Le pilote PostgreSQL ne les produit pas encore : leur absence veut dire
-  « inconnu ».
+  pas. Les deux pilotes les produisent ; absents d'un calque extrait
+  auparavant, ils veulent dire « inconnu ».
 
 ***
 
@@ -110,8 +110,8 @@ préambule reste en français : il n'est jamais publié.
 - **Two optional fields in the physical layer**, with no `version_ri` change:
   `ordres` on an index, for a descending index that would otherwise be
   recreated ascending, and `depart` on a sequence, which the minimum does not
-  tell. The PostgreSQL driver does not produce them yet: their absence means
-  "unknown".
+  tell. Both drivers produce them; missing from a layer extracted earlier,
+  they mean "unknown".
 
 ## [0.6.1] — 2026-09-16 — Ce que rien ne signalait
 

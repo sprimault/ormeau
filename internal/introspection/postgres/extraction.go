@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/sprimault/ormeau/internal/calque"
 	"github.com/sprimault/ormeau/internal/introspection"
@@ -442,7 +443,7 @@ type cleIndex struct {
 // d'expression est écarté : il n'a aucune colonne exploitable, et le garder
 // produirait une contrainte vide que la validation refuserait.
 func (p *pilote) lireIndex(ctx context.Context, schemas []string, jeu *jeuDeTables) error {
-	colonnes, operateurs, err := p.lireColonnesIndex(ctx, schemas)
+	colonnes, operateurs, ordres, err := p.lireColonnesIndex(ctx, schemas)
 	if err != nil {
 		return err
 	}
@@ -481,6 +482,7 @@ func (p *pilote) lireIndex(ctx context.Context, schemas []string, jeu *jeuDeTabl
 			idx.Predicat = *predicat
 		}
 		idx.Operateurs = operateurs[cle]
+		idx.Ordres = ordres[cle]
 		// Un index d'expression n'a aucune colonne exploitable. Le garder sans
 		// colonne produirait une contrainte vide, que la validation refuserait.
 		if len(idx.Colonnes) == 0 {
@@ -492,33 +494,36 @@ func (p *pilote) lireIndex(ctx context.Context, schemas []string, jeu *jeuDeTabl
 }
 
 // lireColonnesIndex rend les colonnes de chaque index et, séparément, leurs
-// classes d'opérateurs.
+// classes d'opérateurs et leurs sens de tri.
 //
 // Les classes ne sont rendues que si l'index en porte au moins une explicite ;
 // elles le sont alors toutes, y compris les implicites, pour rester appariées
-// aux colonnes rang par rang.
-func (p *pilote) lireColonnesIndex(ctx context.Context, schemas []string) (map[cleIndex][]string, map[cleIndex][]string, error) {
+// aux colonnes rang par rang. Les sens de tri suivent la même règle, sur la
+// présence d'une colonne descendante.
+func (p *pilote) lireColonnesIndex(ctx context.Context, schemas []string) (colonnes, classes map[cleIndex][]string, ordres map[cleIndex][]calque.OrdreIndex, err error) {
 	ctx, annuler := context.WithTimeout(ctx, delaiRequete)
 	defer annuler()
 
 	lignes, err := p.conn.Query(ctx, requeteColonnesIndex, schemas)
 	if err != nil {
-		return nil, nil, fmt.Errorf("lecture des colonnes d'index: %w", err)
+		return nil, nil, nil, fmt.Errorf("lecture des colonnes d'index: %w", err)
 	}
 	defer lignes.Close()
 
-	colonnes := map[cleIndex][]string{}
-	classes := map[cleIndex][]string{}
+	colonnes = map[cleIndex][]string{}
+	classes = map[cleIndex][]string{}
+	ordres = map[cleIndex][]calque.OrdreIndex{}
 	explicite := map[cleIndex]bool{}
 
 	for lignes.Next() {
 		var schema, table, index string
 		var colonne, classe *string
 		var parDefaut *bool
+		var descendant bool
 		var ordinalite int64
 
-		if err := lignes.Scan(&schema, &table, &index, &colonne, &classe, &parDefaut, &ordinalite); err != nil {
-			return nil, nil, fmt.Errorf("lecture d'une colonne d'index: %w", err)
+		if err := lignes.Scan(&schema, &table, &index, &colonne, &classe, &parDefaut, &descendant, &ordinalite); err != nil {
+			return nil, nil, nil, fmt.Errorf("lecture d'une colonne d'index: %w", err)
 		}
 		if colonne == nil {
 			continue
@@ -526,6 +531,11 @@ func (p *pilote) lireColonnesIndex(ctx context.Context, schemas []string) (map[c
 
 		cle := cleIndex{schema, table, index}
 		colonnes[cle] = append(colonnes[cle], *colonne)
+		sens := calque.OrdreAscendant
+		if descendant {
+			sens = calque.OrdreDescendant
+		}
+		ordres[cle] = append(ordres[cle], sens)
 
 		nom := ""
 		if classe != nil {
@@ -537,7 +547,7 @@ func (p *pilote) lireColonnesIndex(ctx context.Context, schemas []string) (map[c
 		}
 	}
 	if err := lignes.Err(); err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	for cle := range classes {
@@ -545,7 +555,12 @@ func (p *pilote) lireColonnesIndex(ctx context.Context, schemas []string) (map[c
 			delete(classes, cle)
 		}
 	}
-	return colonnes, classes, nil
+	for cle, sens := range ordres {
+		if !slices.Contains(sens, calque.OrdreDescendant) {
+			delete(ordres, cle)
+		}
+	}
+	return colonnes, classes, ordres, nil
 }
 
 // lireSequences collecte les séquences du schéma, y compris celles qu'un SERIAL
@@ -564,12 +579,12 @@ func (p *pilote) lireSequences(ctx context.Context, schemas []string) ([]calque.
 	var sequences []calque.Sequence
 	for lignes.Next() {
 		var s calque.Sequence
-		var minimum, maximum int64
+		var depart, minimum, maximum int64
 
-		if err := lignes.Scan(&s.Schema, &s.Nom, &s.Increment, &minimum, &maximum, &s.Cyclique); err != nil {
+		if err := lignes.Scan(&s.Schema, &s.Nom, &s.Increment, &depart, &minimum, &maximum, &s.Cyclique); err != nil {
 			return nil, fmt.Errorf("lecture d'une sequence: %w", err)
 		}
-		s.Minimum, s.Maximum = &minimum, &maximum
+		s.Depart, s.Minimum, s.Maximum = &depart, &minimum, &maximum
 		sequences = append(sequences, s)
 	}
 	return sequences, lignes.Err()

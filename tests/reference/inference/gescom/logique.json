@@ -1,6 +1,6 @@
 {
   "version_ri": 1,
-  "empreinte_physique": "sha256:3dc5afd0200d5d9e17aea6b1d68fdefc54642b3c800f36743020417907b27943",
+  "empreinte_physique": "sha256:73bd32ec745417e42f3eddede07691808648c2c6515687e18d33107955769939",
   "espace_de_noms": "App\\Entity",
   "entites": [
     {
@@ -290,6 +290,13 @@
         },
         {
           "nom": "ix_cli_nom",
+          "colonnes": [
+            "cli_nom"
+          ],
+          "unique": false
+        },
+        {
+          "nom": "ix_cli_nom_desc",
           "colonnes": [
             "cli_nom"
           ],
