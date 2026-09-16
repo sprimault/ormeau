@@ -54,6 +54,12 @@ type RequeteConnexion struct {
 	// SSLMode est le sslmode de PostgreSQL. Vide, le pilote applique son
 	// défaut, prefer.
 	SSLMode string `json:"sslmode,omitempty"`
+	// Chiffrement est le pendant pour SQL Server, nommé par l'effet :
+	// desactive, confiance ou verifie. Un serveur sans TLS — courant sur une
+	// base reprise — exige desactive pour que la connexion aboutisse.
+	Chiffrement string `json:"chiffrement,omitempty"`
+	// Instance est l'instance nommée de SQL Server, la forme SERVEUR\COMPTA.
+	Instance string `json:"instance,omitempty"`
 }
 
 // ReponseConnexion décrit le serveur atteint. Le DSN n'y figure sous aucune
@@ -776,6 +782,8 @@ func (r RequeteConnexion) composer() (string, error) {
 		MotDePasse:  r.MotDePasse,
 		Base:        r.Base,
 		SSLMode:     r.SSLMode,
+		Chiffrement: r.Chiffrement,
+		Instance:    r.Instance,
 	}.DSN()
 }
 

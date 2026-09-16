@@ -3,7 +3,7 @@
 
 import { useState, type FormEvent } from 'react';
 
-import { useT } from '@/shared/i18n';
+import { useT, type MessageKey } from '@/shared/i18n';
 import { Button, ErrorBanner, Field, HelpTip } from '@/shared/ui';
 import type { Profil, RequeteConnexion } from '@/shared/model';
 
@@ -29,6 +29,16 @@ const sgbdDisponibles = ['postgres', 'sqlserver'];
  * valeur ; le choix vide laisse au pilote son défaut, prefer.
  */
 const modesSSL = ['disable', 'allow', 'prefer', 'require', 'verify-ca', 'verify-full'];
+
+/**
+ * Chiffrement de SQL Server, qui ne connaît pas le vocabulaire de libpq.
+ *
+ * Nommé par l'effet et non par le paramètre : `encrypt` et
+ * `TrustServerCertificate` se règlent ensemble, et les exposer séparément
+ * laisserait composer des couples qui ne veulent rien dire. Une base reprise
+ * tourne souvent sur un serveur sans TLS, où seul « désactivé » aboutit.
+ */
+const chiffrements = ['desactive', 'confiance', 'verifie'];
 
 /**
  * Ports par défaut des SGBD proposés, pour comparer une destination comme le
@@ -75,12 +85,18 @@ export function ConnectionForm({ enCours, erreur, onConnecter }: ProprietesFormu
   const [motDePasse, setMotDePasse] = useState('');
   const [base, setBase] = useState('');
   const [sslmode, setSslmode] = useState('');
+  const [chiffrement, setChiffrement] = useState('');
+  const [instance, setInstance] = useState('');
   const [dsn, setDsn] = useState('');
   const [profilChoisi, setProfilChoisi] = useState('');
   const [motDePasseDuProfil, setMotDePasseDuProfil] = useState(false);
   const [nomProfil, setNomProfil] = useState('');
   const [avecMotDePasse, setAvecMotDePasse] = useState(false);
   const { profils, avertissement, enregistrer, retirer, erreur: erreurProfil } = useProfils();
+
+  // Le SGBD visé décide des réglages proposés. Vide, c'est le port qui tranche,
+  // comme côté serveur : personne ne choisit « sqlserver » avant de taper 1433.
+  const estSQLServer = sgbd === 'sqlserver' || (sgbd === '' && port === '1433');
 
   // Le bouton de mise à jour ne paraît que lorsqu'il a quelque chose à faire.
   const profilRetenu = profils.find(({ profil }) => profil.nom === profilChoisi)?.profil;
@@ -189,6 +205,8 @@ export function ConnectionForm({ enCours, erreur, onConnecter }: ProprietesFormu
             mot_de_passe: motDePasse,
             base,
             sslmode: sslmode || undefined,
+            chiffrement: chiffrement || undefined,
+            instance: instance || undefined,
           },
     );
 
@@ -323,25 +341,61 @@ export function ConnectionForm({ enCours, erreur, onConnecter }: ProprietesFormu
             aide={t('connection.database.hint')}
             onChange={(evenement) => setBase(evenement.target.value)}
           />
-          <label className="flex flex-col gap-1">
-            <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-600 dark:text-slate-400">
-              {t('connection.sslmode')}
-              <HelpTip texte={t('connection.help.sslmode')} />
-            </span>
-            <select
-              value={sslmode}
-              aria-label={t('connection.sslmode')}
-              onChange={(evenement) => setSslmode(evenement.target.value)}
-              className="rounded border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-900"
-            >
-              <option value="">{t('connection.sslmode.default')}</option>
-              {modesSSL.map((valeur) => (
-                <option key={valeur} value={valeur}>
-                  {valeur}
-                </option>
-              ))}
-            </select>
-          </label>
+          {/*
+            Le chiffrement se règle dans le vocabulaire du SGBD visé : sslmode
+            vient de libpq et n'existe que sous PostgreSQL, quand SQL Server
+            règle encrypt et TrustServerCertificate ensemble. Proposer l'un pour
+            l'autre ferait refuser la connexion sans dire pourquoi.
+          */}
+          {estSQLServer ? (
+            <>
+              <Field
+                label={t('connection.instance')}
+                value={instance}
+                aide={t('connection.instance.hint')}
+                onChange={(evenement) => setInstance(evenement.target.value)}
+              />
+              <label className="flex flex-col gap-1">
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-600 dark:text-slate-400">
+                  {t('connection.encryption')}
+                  <HelpTip texte={t('connection.help.encryption')} />
+                </span>
+                <select
+                  value={chiffrement}
+                  aria-label={t('connection.encryption')}
+                  onChange={(evenement) => setChiffrement(evenement.target.value)}
+                  className="rounded border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-900"
+                >
+                  <option value="">{t('connection.encryption.default')}</option>
+                  {chiffrements.map((valeur) => (
+                    <option key={valeur} value={valeur}>
+                      {t(`connection.encryption.${valeur}` as MessageKey)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </>
+          ) : (
+            <label className="flex flex-col gap-1">
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-600 dark:text-slate-400">
+                {t('connection.sslmode')}
+                <HelpTip texte={t('connection.help.sslmode')} />
+              </span>
+              <select
+                value={sslmode}
+                aria-label={t('connection.sslmode')}
+                onChange={(evenement) => setSslmode(evenement.target.value)}
+                className="rounded border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-900"
+              >
+                <option value="">{t('connection.sslmode.default')}</option>
+                {modesSSL.map((valeur) => (
+                  <option key={valeur} value={valeur}>
+                    {valeur}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
         </div>
       ) : (
         <Field

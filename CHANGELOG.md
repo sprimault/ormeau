@@ -36,8 +36,27 @@ préambule reste en français : il n'est jamais publié.
 
 ## [Non publié]
 
+### Corrigé
+
+- **Une connexion SQL Server par composants atteignait `master` au lieu de la
+  base demandée.** Le chemin d'une URL y désigne l'instance nommée, jamais la
+  base : celle-ci passe désormais en paramètre, et l'instance a son propre
+  champ. Aucune erreur ne le signalait — l'arbre montrait simplement une autre
+  base.
+- **Un espace autour de l'hôte ne fait plus échouer la connexion.** Seul champ
+  que l'URL recevait tel quel, il la rendait illisible dès qu'un copier-coller
+  y laissait un blanc, et le message parlait d'une URL que personne n'avait
+  écrite. Les blancs sont retirés ; ce qu'un nettoyage ne rattrape pas est
+  refusé en nommant le champ.
+
 ### Ajouté
 
+- **Le chiffrement se règle dans le vocabulaire du SGBD visé.** `sslmode` vient
+  de libpq et n'existe pas sous SQL Server, qui règle `encrypt` et
+  `TrustServerCertificate` ensemble ; le formulaire propose désormais l'un ou
+  l'autre selon le serveur, nommés par leur effet. Un serveur sans TLS — le cas
+  courant d'une base reprise — se joint en choisissant « désactivé », ce
+  qu'aucun réglage ne permettait.
 - **SQL Server se connecte et se parcourt depuis l'interface.** Le serveur est
   décrit à la connexion — version, édition, catalogue, schémas —, et l'arbre
   affiche bases, tables et colonnes, avec les commentaires que SQL Server range
@@ -48,8 +67,25 @@ préambule reste en français : il n'est jamais publié.
 
 ***
 
+### Fixed
+
+- **A component-based SQL Server connection reached `master` instead of the
+  requested database.** There, the path of a URL names the instance, never the
+  database: the latter now goes in a parameter, and the instance has its own
+  field. Nothing reported it — the tree simply showed another database.
+- **A space around the host no longer breaks the connection.** The only field
+  the URL received verbatim, it made the string unreadable as soon as a paste
+  left a blank around it, and the message spoke of a URL nobody had written.
+  Blanks are trimmed; what trimming cannot fix is refused by naming the field.
+
 ### Added
 
+- **Encryption is set in the vocabulary of the target DBMS.** `sslmode` comes
+  from libpq and does not exist under SQL Server, which sets `encrypt` and
+  `TrustServerCertificate` together; the form now offers one or the other
+  depending on the server, named after their effect. A server without TLS — the
+  common case of an inherited database — is reached by choosing "disabled",
+  which no setting allowed.
 - **SQL Server connects and can be browsed from the interface.** The server is
   described on connection — version, edition, catalog, schemas — and the tree
   shows databases, tables and columns, including the comments SQL Server keeps
