@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { messages } from '@/shared/i18n';
 import * as api from '../api';
 import * as calque from '../calque';
+import * as index from '..';
 
 /**
  * Rend les constantes chaîne d'un module généré dont le nom commence par le
@@ -49,6 +50,23 @@ describe('libellés des codes du calque (warning., anomaly.)', () => {
     for (const [nom, code] of codes) {
       const familles = ['warning', 'anomaly'].filter((famille) => dictionnaire[`${famille}.${code}`]);
       expect(familles, `${langue} : ${nom} (« ${code} ») attend warning.${code} ou anomaly.${code}, trouvé ${familles.length}`).toHaveLength(1);
+    }
+  });
+});
+
+/**
+ * L'index de shared/model est écrit à la main : un code d'avertissement généré
+ * qu'il ne réexporterait pas manquerait aux features, qui ne lisent que lui —
+ * au rangement des avertissements par lieu, notamment.
+ */
+describe('réexportation des codes d’avertissement', () => {
+  it('réexporte chaque code libellé sous warning.', () => {
+    const fr: Record<string, string> = messages.fr;
+    const exportes = new Set(Object.keys(index));
+    for (const [nom, code] of constantes(calque, 'Code')) {
+      if (fr[`warning.${code}`]) {
+        expect(exportes.has(nom), `${nom} n'est pas réexporté par shared/model`).toBe(true);
+      }
     }
   });
 });

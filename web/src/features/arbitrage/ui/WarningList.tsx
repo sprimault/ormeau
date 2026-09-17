@@ -6,12 +6,13 @@ import { useId, useState } from 'react';
 import { estCle, useT } from '@/shared/i18n';
 import {
   CodeCasEnumerationOpaque,
+  CodeTexteUnicodeJSONPropose,
   CodeTypeNonReconnu,
   type Avertissement,
   type EnumerationInferee,
 } from '@/shared/model';
 import { Button, HelpTip, TextInput } from '@/shared/ui';
-import { estATraiter } from '../model/avertissements';
+import { estATraiter, lieu } from '../model/avertissements';
 
 /** Propriétés de la liste. */
 interface ProprietesAvertissements {
@@ -33,10 +34,11 @@ interface ProprietesAvertissements {
  * l'inférence, suit tel quel. Un code sans traduction s'affiche brut : il se
  * voit, il ne disparaît pas.
  *
- * Deux avertissements se traitent sur place, champ prérempli : un type non
- * reconnu se force, les cas d'une énumération se nomment. L'inférence signale
- * chaque cas opaque à part ; le formulaire, lui, vient une fois par colonne,
- * sous le dernier de ses avertissements.
+ * Trois avertissements se traitent sur place : un type non reconnu se force,
+ * champ prérempli ; les cas d'une énumération se nomment ; un texte Unicode
+ * déclaré JSON se force en json d'un clic. L'inférence signale chaque cas
+ * opaque à part ; le formulaire, lui, vient une fois par colonne, sous le
+ * dernier de ses avertissements. Les autres disent en tête où ils se traitent.
  */
 export function WarningList({
   qualifiee,
@@ -78,9 +80,12 @@ export function WarningList({
               ? enumerations.find((e) => e.colonnes.includes(avertissement.cible))
               : undefined;
 
+          const ou = lieu(avertissement);
+
           return (
             <li key={`${avertissement.code}|${avertissement.cible}|${rang}`} className="flex flex-col gap-1">
               <p className={estATraiter(avertissement) ? 'text-amber-700 dark:text-amber-500' : 'text-slate-500'}>
+                {ou === 'ecran' ? null : <span className="font-semibold">{t(`arbitrage.lieu.${ou}` as const)} </span>}
                 <span className="font-medium">{estCle(libelle) ? t(libelle) : avertissement.code}</span>
                 {colonne ? (
                   <>
@@ -98,6 +103,13 @@ export function WarningList({
                   idTypes={idTypes}
                   onForcer={(type) => onForcer(avertissement.cible, type)}
                 />
+              ) : null}
+              {avertissement.code === CodeTexteUnicodeJSONPropose && colonne && typesRetenus[colonne] !== 'json' ? (
+                <div>
+                  <Button variante="discret" taille="petite" onClick={() => onForcer(avertissement.cible, 'json')}>
+                    {t('arbitrage.forceJson')}
+                  </Button>
+                </div>
               ) : null}
               {enumeration ? (
                 <NommerCas enumeration={enumeration} onNommer={(cas) => onNommerCas(enumeration, cas)} />

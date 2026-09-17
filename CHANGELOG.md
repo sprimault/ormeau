@@ -128,6 +128,15 @@ préambule reste en français : il n'est jamais publié.
   dépendances du catalogue ; `sequence_depart` et `sgbd` au calque logique, le
   rendu d'une clé par séquence dépendant de la plateforme.
 
+### Modifié
+
+- **L'arbitrage dit où se traite chaque avertissement.** Il comptait « à
+  traiter » ce qu'aucune action de l'écran ne règle. Le compteur ne compte plus
+  que ce qui se décide sur place, et les autres avertissements disent en tête
+  s'ils se font dans la sélection, le fichier de décisions, la base ou le code
+  de l'application. Un texte Unicode déclaré JSON se force en `json` d'un clic,
+  sous le nouveau code `texte_unicode_json_propose`.
+
 ***
 
 ### Fixed
@@ -219,6 +228,15 @@ préambule reste en français : il n'est jamais publié.
   optional: `defaut.sequence` in the physical layer, read from the catalog's
   dependencies; `sequence_depart` and `sgbd` in the logical layer, since the
   rendering of a sequence key depends on the platform.
+
+### Changed
+
+- **Arbitration says where each warning is dealt with.** It counted as "to
+  handle" what no action on the screen settles. The counter now only counts
+  what is decided there, and the other warnings state first whether they are
+  done in the table selection, the decisions file, the database or the
+  application code. Unicode text declared JSON is forced to `json` in one
+  click, under the new code `texte_unicode_json_propose`.
 
 ## [0.6.1] — 2026-09-16 — Ce que rien ne signalait
 

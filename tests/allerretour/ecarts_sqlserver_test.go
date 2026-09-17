@@ -187,7 +187,7 @@ var tolerancesSQLServer = []tolerance{
 			}
 			cible := e.Schema + "." + e.Table + "." + e.Nom
 			return slices.ContainsFunc(c.logique.Avertissements, func(a calque.Avertissement) bool {
-				return a.Code == calque.CodeTexteUnicodeSansEquivalent && a.Cible == cible
+				return (a.Code == calque.CodeTexteUnicodeSansEquivalent || a.Code == calque.CodeTexteUnicodeJSONPropose) && a.Cible == cible
 			}) && ((e.Propriete == "type_brut" && e.Apres == "nvarchar(255)") ||
 				(e.Propriete == "longueur" && e.Avant == "" && e.Apres == "255"))
 		},

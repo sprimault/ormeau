@@ -473,6 +473,12 @@ export const CodeSequenceNonReconnue = "sequence_non_reconnue";
  */
 export const CodeTexteUnicodeSansEquivalent = "texte_unicode_sans_equivalent";
 /**
+ * Le même texte, qu'une vérification déclare JSON : forcer json le lit en
+ * tableau, au prix de l'Unicode dans une base recréée. Code distinct parce
+ * qu'une décision le règle, là où l'autre n'a pas de sortie.
+ */
+export const CodeTexteUnicodeJSONPropose = "texte_unicode_json_propose";
+/**
  * Un texte Unicode illimité rendu en json par décision : Doctrine le
  * recrée en VARCHAR(MAX), juste pour ce qu'il écrit, pas pour ce qu'une
  * autre application y écrit en clair.

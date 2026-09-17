@@ -119,9 +119,9 @@
   ],
   "avertissements": [
     {
-      "code": "texte_unicode_sans_equivalent",
+      "code": "texte_unicode_json_propose",
       "cible": "dbo.document.unicode",
-      "message": "type nvarchar(max) sans équivalent Doctrine : rendu en chaîne, que schema:create recrée en NVARCHAR(255) et que migrations:diff proposera de réduire ; en text, il serait recréé en VARCHAR(MAX), sans Unicode ; sa vérification le déclare JSON, et le fichier de décisions propose de le forcer en json, avec ce que cela coûte",
+      "message": "type nvarchar(max) sans équivalent Doctrine : rendu en chaîne, que schema:create recrée en NVARCHAR(255) et que migrations:diff proposera de réduire ; en text, il serait recréé en VARCHAR(MAX), sans Unicode ; sa vérification le déclare JSON : forcé en json, il se lit en tableau, mais Doctrine le recrée en VARCHAR(MAX)",
       "resolution": "par_defaut",
       "confiance": 0.5
     },

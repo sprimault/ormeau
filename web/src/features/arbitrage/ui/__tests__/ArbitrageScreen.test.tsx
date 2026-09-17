@@ -11,7 +11,9 @@ import {
   CodeCalqueModifie,
   CodeCasEnumerationOpaque,
   CodeColonneIgnoree,
+  CodeDefautNonReporte,
   CodeTableSansClePrimaire,
+  CodeTexteUnicodeJSONPropose,
   CodeTraitDeduit,
   CodeTypeNonReconnu,
   type Decisions,
@@ -223,12 +225,57 @@ describe('ArbitrageScreen', () => {
     expect(screen.queryByText(/plusieurs_vers_un/)).not.toBeInTheDocument();
   });
 
-  it('compte dans la liste les avertissements à traiter, sans les informations', async () => {
+  it('ne compte dans la liste que ce qui se règle dans l’écran', async () => {
     vi.mocked(inferer).mockResolvedValue(inference());
     render(<ArbitrageScreen base="gescom" versionCalque="" />);
 
     expect(await screen.findByRole('button', { name: /Clients.*1 à traiter/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /TLog.*1 à traiter/ })).toBeInTheDocument();
+    // Une table sans clé primaire se règle à la sélection ou en base.
+    expect(screen.getByRole('button', { name: /TLog/ })).not.toHaveTextContent('à traiter');
+  });
+
+  it('dit en tête où se traite ce qui ne se règle pas ici, sans le compter', async () => {
+    const base = inference();
+    vi.mocked(inferer).mockResolvedValue(
+      inference({
+        avertissements: [
+          ...base.avertissements,
+          {
+            code: CodeDefautNonReporte,
+            cible: 'public.clients.encours',
+            message: 'défaut calcul() non reconnu, non reporté',
+            resolution: 'ignoree',
+            confiance: 1,
+          },
+        ],
+      }),
+    );
+    render(<ArbitrageScreen base="gescom" versionCalque="" />);
+
+    expect(await screen.findByText('À faire dans le code de l’application :')).toBeInTheDocument();
+    expect(screen.getByText(/défaut calcul\(\) non reconnu/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Clients.*1 à traiter/ })).toBeInTheDocument();
+  });
+
+  it('force en json d’un clic un texte Unicode déclaré JSON', async () => {
+    vi.mocked(inferer).mockResolvedValue(
+      inference({
+        avertissements: [
+          {
+            code: CodeTexteUnicodeJSONPropose,
+            cible: 'public.clients.position',
+            message: 'type nvarchar(max) sans équivalent Doctrine ; sa vérification le déclare JSON',
+            resolution: 'par_defaut',
+            confiance: 0.5,
+          },
+        ],
+      }),
+    );
+    render(<ArbitrageScreen base="gescom" versionCalque="" />);
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Forcer en json' }));
+
+    expect(brouillon.courant.types_forces).toEqual({ 'public.clients.position': 'json' });
   });
 
   it('montre les avertissements au-dessus de l’entité, et confirme d’un clic le type retenu', async () => {
