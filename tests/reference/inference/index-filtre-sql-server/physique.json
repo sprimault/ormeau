@@ -1,0 +1,30 @@
+{
+  "version_ri": 2,
+  "source": {
+    "sgbd": "sqlserver",
+    "version": "16.0.4295.3",
+    "catalogue": "gescom",
+    "extrait_le": "2026-01-01T00:00:00Z",
+    "empreinte": "sha256:0000000000000000000000000000000000000000000000000000000000000032"
+  },
+  "tables": [
+    {
+      "nom": "commercial",
+      "schema": "ventes",
+      "commentaire": "Index filtrés sous SQL Server : DBAL n'écrit pas le filtre, rendu sans lui et signalé au rapport",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "int", "type_normalise": "entier", "nullable": false, "auto_increment": true, "identite": "toujours" },
+        { "nom": "email", "position": 2, "type_brut": "nvarchar(100)", "type_normalise": "texte", "longueur": 100, "nullable": true },
+        { "nom": "nom", "position": 3, "type_brut": "nvarchar(50)", "type_normalise": "texte", "longueur": 50, "nullable": true },
+        { "nom": "actif", "position": 4, "type_brut": "bit", "type_normalise": "booleen", "nullable": false },
+        { "nom": "matricule", "position": 5, "type_brut": "nvarchar(20)", "type_normalise": "texte", "longueur": 20, "nullable": true }
+      ],
+      "cle_primaire": { "nom": "commercial_pkey", "colonnes": ["id"] },
+      "index": [
+        { "nom": "ix_commercial_actifs", "colonnes": ["nom"], "unique": false, "predicat": "([actif]=(1))", "methode": "nonclustered" },
+        { "nom": "ix_commercial_matricule", "colonnes": ["matricule"], "unique": false, "methode": "nonclustered" },
+        { "nom": "uq_commercial_email_actif", "colonnes": ["email"], "unique": true, "predicat": "([actif]=(1))", "methode": "nonclustered" }
+      ]
+    }
+  ]
+}

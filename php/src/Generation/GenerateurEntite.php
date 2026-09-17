@@ -240,6 +240,11 @@ final class GenerateurEntite
 
             $base = $repertoire . '/Base/' . RenduEntite::nomBase($entite) . '.php';
             $fichiers[] = new Fichier($base, $this->ecrire($base, $rendu->classeBase($entite, $hierarchies), $repertoire));
+            foreach ($entite->index as $index) {
+                if ($index->predicat !== null && !$rendu->ecritLeFiltre($index)) {
+                    $indexOmis[] = new IndexFiltreNonReproduit($entite->nom, $index->nom, $index->colonnes, $index->predicat, $index->unique);
+                }
+            }
             self::signalerDefautsReproposes($entite->nom, $entite->proprietes, $calque->sgbd, $cible, $defauts);
 
             $racine = $hierarchies->racineHeritage($entite, $calque->espaceDeNoms, $classes, $cible);

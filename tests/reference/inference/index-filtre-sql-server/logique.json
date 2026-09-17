@@ -1,0 +1,88 @@
+{
+  "version_ri": 2,
+  "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000032",
+  "sgbd": "sqlserver",
+  "espace_de_noms": "App\\Entity",
+  "entites": [
+    {
+      "nom": "Commercial",
+      "table": {
+        "nom": "commercial",
+        "schema": "ventes"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "email",
+          "colonne": "email",
+          "type_doctrine": "string",
+          "nullable": true,
+          "longueur": 100,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "nom",
+          "colonne": "nom",
+          "type_doctrine": "string",
+          "nullable": true,
+          "longueur": 50,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "actif",
+          "colonne": "actif",
+          "type_doctrine": "boolean",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "matricule",
+          "colonne": "matricule",
+          "type_doctrine": "string",
+          "nullable": true,
+          "longueur": 20,
+          "origine": "contrainte"
+        }
+      ],
+      "index": [
+        {
+          "nom": "ix_commercial_actifs",
+          "colonnes": [
+            "nom"
+          ],
+          "unique": false,
+          "predicat": "([actif]=(1))"
+        },
+        {
+          "nom": "ix_commercial_matricule",
+          "colonnes": [
+            "matricule"
+          ],
+          "unique": false
+        },
+        {
+          "nom": "uq_commercial_email_actif",
+          "colonnes": [
+            "email"
+          ],
+          "unique": true,
+          "predicat": "([actif]=(1))"
+        }
+      ],
+      "commentaire": "Index filtrés sous SQL Server : DBAL n'écrit pas le filtre, rendu sans lui et signalé au rapport",
+      "origine": "nommage"
+    }
+  ]
+}

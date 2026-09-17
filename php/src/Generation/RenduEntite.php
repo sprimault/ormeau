@@ -9,6 +9,7 @@ namespace Ormeau\Doctrine\Generation;
 
 use Ormeau\Doctrine\Calque\Entite;
 use Ormeau\Doctrine\Calque\Enumeration;
+use Ormeau\Doctrine\Calque\IndexEntite;
 use Ormeau\Doctrine\Calque\StrategieIdentifiant;
 use Ormeau\Doctrine\Calque\TraitPartage;
 
@@ -79,6 +80,19 @@ final class RenduEntite
             && count($identifiant->proprietes) === 1
             && $identifiant->strategie === StrategieIdentifiant::Sequence
             && $identifiant->sequence !== null;
+    }
+
+    /**
+     * Dit si le filtre d'un index s'écrit dans options: where.
+     *
+     * Pas sous SQL Server : DBAL ne l'y écrit pas, et le déclarer fait
+     * proposer à chaque diff de schéma la suppression de l'index de la base
+     * suivie de sa recréation sans filtre (IndexFiltreNonReproduit). Sous
+     * PostgreSQL, DBAL écrit l'index partiel.
+     */
+    public function ecritLeFiltre(IndexEntite $index): bool
+    {
+        return $index->predicat !== null && $this->sgbd !== 'sqlserver';
     }
 
     /**
@@ -261,6 +275,7 @@ final class RenduEntite
             // et passe par un littéral échappé, jamais par du code. Côté SQL,
             // aucun filtre : il finit tel quel dans le DDL de Doctrine, et un
             // calque logique reçu d'ailleurs se relit comme une migration.
+            $predicat = $this->ecritLeFiltre($index) ? $index->predicat : null;
             $lignes[] = Emetteur::attribut(
                 $index->unique ? 'ORM\UniqueConstraint' : 'ORM\Index',
                 [
@@ -270,7 +285,7 @@ final class RenduEntite
                     // identifiant nu y serait replié en minuscules par la base,
                     // qui refuserait alors la colonne.
                     'columns' => array_map(IdentifiantsSql::colonne(...), $index->colonnes),
-                    'options' => $index->predicat === null ? null : ['where' => $index->predicat],
+                    'options' => $predicat === null ? null : ['where' => $predicat],
                 ],
                 '',
             );
