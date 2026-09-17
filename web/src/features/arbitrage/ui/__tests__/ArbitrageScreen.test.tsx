@@ -223,13 +223,17 @@ describe('ArbitrageScreen', () => {
     expect(screen.queryByText(/plusieurs_vers_un/)).not.toBeInTheDocument();
   });
 
-  it('ne compte dans la liste que ce qui se règle dans l’écran', async () => {
+  it('compte à part ce qui se règle dans l’écran et ce qui se traite ailleurs', async () => {
     vi.mocked(inferer).mockResolvedValue(inference());
     render(<ArbitrageScreen base="gescom" versionCalque="" />);
 
-    expect(await screen.findByRole('button', { name: /Clients.*1 à traiter/ })).toBeInTheDocument();
-    // Une table sans clé primaire se règle à la sélection ou en base.
-    expect(screen.getByRole('button', { name: /TLog/ })).not.toHaveTextContent('à traiter');
+    // Un type à forcer ici, un trait qui n'informe que.
+    expect(await screen.findByRole('button', { name: /Clients.*1 à traiter.*1 avertissement\(s\)/ })).toBeInTheDocument();
+    // Une table sans clé primaire se règle à la sélection ou en base : rien à
+    // traiter ici, mais l'avertissement se voit dans la liste.
+    const tlog = screen.getByRole('button', { name: /TLog/ });
+    expect(tlog).not.toHaveTextContent('à traiter');
+    expect(tlog).toHaveTextContent('1 avertissement(s)');
   });
 
   it('dit en tête où se traite ce qui ne se règle pas ici, sans le compter', async () => {
@@ -252,7 +256,7 @@ describe('ArbitrageScreen', () => {
 
     expect(await screen.findByText('À faire dans le code de l’application :')).toBeInTheDocument();
     expect(screen.getByText(/défaut calcul\(\) non reconnu/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Clients.*1 à traiter/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Clients.*1 à traiter.*2 avertissement\(s\)/ })).toBeInTheDocument();
   });
 
   it('force en json d’un clic un texte Unicode déclaré JSON', async () => {

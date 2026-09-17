@@ -10,7 +10,14 @@ export interface LigneEntite {
   qualifiee: string;
   table: ReferenceTable;
   nom: string;
+  /** Avertissements qui se règlent dans l'écran. */
   aTraiter: number;
+  /**
+   * Avertissements qui se traitent ailleurs, ou n'informent que. Comptés à
+   * part : les additionner aux premiers ferait croire à une action possible
+   * ici.
+   */
+  autres: number;
 }
 
 /** Rend une ligne par entité, dans l'ordre de l'inférence. */
@@ -20,11 +27,14 @@ export function lignesEntites(
 ): LigneEntite[] {
   return entites.map((entite) => {
     const qualifiee = qualifier(entite.table.schema, entite.table.nom);
+    const avertissements = parTable.get(qualifiee) ?? [];
+    const aTraiter = avertissements.filter(estATraiter).length;
     return {
       qualifiee,
       table: entite.table,
       nom: entite.nom,
-      aTraiter: (parTable.get(qualifiee) ?? []).filter(estATraiter).length,
+      aTraiter,
+      autres: avertissements.length - aTraiter,
     };
   });
 }

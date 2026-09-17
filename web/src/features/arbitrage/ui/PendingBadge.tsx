@@ -3,15 +3,31 @@
 
 import { useT } from '@/shared/i18n';
 
-/** Nombre d'avertissements à traiter, rien quand il n'y en a pas. */
-export function PendingBadge({ n }: { n: number }) {
+/**
+ * Les avertissements d'une entité dans la liste : en orange ce qui se règle
+ * dans l'écran, en gris ce qui ne s'y règle pas. Rien quand il n'y a ni l'un
+ * ni l'autre.
+ *
+ * Deux badges et non un seul total : « 1 à traiter » sur une entité où rien ne
+ * se règle ici envoyait chercher une action qui n'existe pas.
+ */
+export function PendingBadge({ aTraiter, autres }: { aTraiter: number; autres: number }) {
   const t = useT();
-  if (n === 0) {
+  if (aTraiter === 0 && autres === 0) {
     return null;
   }
   return (
-    <span className="shrink-0 rounded bg-amber-100 px-1.5 text-xs text-amber-800 dark:bg-amber-900 dark:text-amber-200">
-      {t('arbitrage.pending', { n })}
+    <span className="flex shrink-0 flex-col items-end gap-0.5">
+      {aTraiter > 0 ? (
+        <span className="rounded bg-amber-100 px-1.5 text-xs text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+          {t('arbitrage.pending', { n: aTraiter })}
+        </span>
+      ) : null}
+      {autres > 0 ? (
+        <span className="rounded bg-slate-100 px-1.5 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+          {t('arbitrage.warningsCount', { n: autres })}
+        </span>
+      ) : null}
     </span>
   );
 }
