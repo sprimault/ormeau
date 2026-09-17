@@ -158,6 +158,7 @@ final class GenerateurEntite
         // écrit, et les entités qui s'en servent sont écartées plus bas avec
         // cette raison.
         $refus = [];
+        $defauts = [];
         foreach ($enumerations as $nom => $enumeration) {
             $refus['enum:' . $nom] = $this->refusEnumeration($enumeration) ?? $origine($repertoire . '/Enum/' . $nom . '.php');
             if ($refus['enum:' . $nom] === null) {
@@ -173,6 +174,7 @@ final class GenerateurEntite
             if ($refus['trait:' . $nom] === null) {
                 $chemin = $repertoire . '/Trait/' . $nom . '.php';
                 $fichiers[] = new Fichier($chemin, $this->ecrire($chemin, $rendu->traitPartage($trait), $repertoire));
+                self::signalerDefautsReproposes((string) $nom, $trait->proprietes, $calque->sgbd, $cible, $defauts);
             }
         }
 
@@ -238,6 +240,7 @@ final class GenerateurEntite
 
             $base = $repertoire . '/Base/' . RenduEntite::nomBase($entite) . '.php';
             $fichiers[] = new Fichier($base, $this->ecrire($base, $rendu->classeBase($entite, $hierarchies), $repertoire));
+            self::signalerDefautsReproposes($entite->nom, $entite->proprietes, $calque->sgbd, $cible, $defauts);
 
             $racine = $hierarchies->racineHeritage($entite, $calque->espaceDeNoms, $classes, $cible);
             if ($racine !== null && !$cible->ometLesColonnesGenereesEnHeritageJoint()) {
@@ -273,7 +276,30 @@ final class GenerateurEntite
             ));
         }
 
-        return new Rapport($fichiers, $ecartees, $divergences, $omises, $ecrasements, $sequences, $colonnesGenerees, $indexOmis);
+        return new Rapport($fichiers, $ecartees, $divergences, $omises, $ecrasements, $sequences, $colonnesGenerees, $indexOmis, $defauts);
+    }
+
+    /**
+     * Relève les défauts de date ou d'heure du jour que DBAL ne sait écrire,
+     * sous SQL Server avant 4.4, que sous une forme qu'il relit autrement.
+     *
+     * @param string                $classe     entité ou trait qui porte les propriétés
+     * @param list<Propriete>       $proprietes propriétés écrites dans sa classe de base ou son trait
+     * @param string|null           $sgbd       SGBD du calque
+     * @param Cible                 $cible      cible de la génération
+     * @param list<DefautRepropose> $defauts    défauts relevés, complété ici
+     */
+    private static function signalerDefautsReproposes(string $classe, array $proprietes, ?string $sgbd, Cible $cible, array &$defauts): void
+    {
+        if ($sgbd !== 'sqlserver' || $cible->defautParExpression()) {
+            return;
+        }
+        foreach ($proprietes as $propriete) {
+            $defaut = $propriete->defautExpression === null ? null : RenduMembres::defautConvertiSqlServer($propriete->defautExpression);
+            if ($defaut !== null && $propriete->defaut === null) {
+                $defauts[] = new DefautRepropose($classe, $propriete->nom, $propriete->colonne, $defaut);
+            }
+        }
     }
 
     /**

@@ -145,12 +145,28 @@ var tolerancesSQLServer = []tolerance{
 				strings.HasPrefix(e.Avant, "time(") && e.Apres == "time(0)"
 		},
 	},
+	{
+		code: "jour_courant_ecrit_par_convert", categorie: impossible, cibles: []string{"orm2-dbal3"},
+		pourquoi: "avant 4.4, DBAL n'écrit la date ou l'heure du jour qu'en CONVERT(date, GETDATE()) : même valeur, texte différent, et le générateur le signale (DefautRepropose)",
+		couvre: func(e diff.Ecart, c contexte) bool {
+			return jourCourant(e, c) && e.Avant == "expression (getdate())" &&
+				(e.Apres == "expression (CONVERT([date],getdate()))" || e.Apres == "expression (CONVERT([time],getdate()))")
+		},
+	},
 
 	// VOULU : décisions de l'outil, tolérées seulement quand elles sont prises.
 	reprise("table_ecartee_par_le_generateur"),
 	reprise("defaut_calcule_non_reconnu"),
 	reprise("colonne_generee_non_recreee"),
 	reprise("commentaire_de_type_immutable"),
+	{
+		code: "jour_courant_ecrit_en_instant", categorie: voulu, cibles: []string{"orm3-dbal4"},
+		pourquoi: "sous DBAL 4.4, la date ou l'heure du jour s'écrit CurrentTimestamp, que la base convertit et que DBAL relit à l'identique ; CurrentDate s'écrirait en CONVERT, relu autrement à chaque diff",
+		couvre: func(e diff.Ecart, c contexte) bool {
+			return jourCourant(e, c) && e.Apres == "expression (getdate())" &&
+				(e.Avant == "expression (CONVERT([date],getdate()))" || e.Avant == "expression (CONVERT([time],getdate()))")
+		},
+	},
 	{
 		code: "texte_unicode_recree_en_255", categorie: voulu,
 		pourquoi: "un texte Unicode illimité reste en chaîne, avec l'avertissement texte_unicode_sans_equivalent : Doctrine le recrée en NVARCHAR(255), là où text le recréerait en VARCHAR(MAX) et perdrait l'Unicode sans erreur",
@@ -189,16 +205,16 @@ var tolerancesSQLServer = []tolerance{
 				(e.Propriete == "precision_fractionnaire" && e.Apres == "6"))
 		},
 	},
+}
 
-	// À COMBLER : chacune part avec le lot qui la corrige.
-	{
-		code: "defaut_instant_courant_non_reconnu", categorie: aCombler, lot: "P7-5c — défauts",
-		pourquoi: "getdate() et sysdatetimeoffset() ne sont pas reconnus comme l'instant courant : le défaut n'est pas reporté",
-		couvre: func(e diff.Ecart, _ contexte) bool {
-			return e.Objet == diff.ObjetColonne && e.Propriete == "defaut" && e.Apres == "" &&
-				slices.Contains([]string{"expression (getdate())", "expression (sysdatetimeoffset())"}, e.Avant)
-		},
-	},
+// jourCourant dit si l'écart porte sur le défaut d'une colonne que le calque
+// logique déclare à la date ou à l'heure du jour.
+func jourCourant(e diff.Ecart, c contexte) bool {
+	if e.Objet != diff.ObjetColonne || e.Propriete != "defaut" {
+		return false
+	}
+	p := proprieteLogique(c, e.Schema, e.Table, e.Nom)
+	return p != nil && (p.DefautExpression == calque.DefautDateCourante || p.DefautExpression == calque.DefautHeureCourante)
 }
 
 // sequenceDUnIdentifiant dit si une clé du calque logique tire cette séquence,

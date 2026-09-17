@@ -1,0 +1,185 @@
+{
+  "version_ri": 1,
+  "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000030",
+  "sgbd": "sqlserver",
+  "espace_de_noms": "App\\Entity",
+  "entites": [
+    {
+      "nom": "Evenement",
+      "table": {
+        "nom": "evenement",
+        "schema": "dbo"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "horodate",
+          "colonne": "horodate",
+          "type_php": "\\DateTimeImmutable",
+          "type_doctrine": "datetime_immutable",
+          "nullable": false,
+          "defaut_expression": "horodatage_courant",
+          "commentaire": "CURRENT_TIMESTAMP s'écrit ainsi au catalogue",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "horodatePrecis",
+          "colonne": "horodate_precis",
+          "type_php": "?\\DateTimeImmutable",
+          "type_doctrine": "datetime_immutable",
+          "nullable": true,
+          "defaut_expression": "horodatage_courant",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "horodateFuseau",
+          "colonne": "horodate_fuseau",
+          "type_php": "?\\DateTimeImmutable",
+          "type_doctrine": "datetimetz_immutable",
+          "nullable": true,
+          "commentaire": "Instant exact, mais aucune expression Doctrine ne l'écrit : non reconnu",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "horodateLocalFuseau",
+          "colonne": "horodate_local_fuseau",
+          "type_php": "?\\DateTimeImmutable",
+          "type_doctrine": "datetimetz_immutable",
+          "nullable": true,
+          "commentaire": "Heure locale étiquetée +00:00 : non reconnu",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "horodateSysteme",
+          "colonne": "horodate_systeme",
+          "type_php": "?\\DateTimeImmutable",
+          "type_doctrine": "datetime_immutable",
+          "nullable": true,
+          "commentaire": "Précision plus fine que getdate() : non reconnu",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "horodateUtc",
+          "colonne": "horodate_utc",
+          "type_php": "?\\DateTimeImmutable",
+          "type_doctrine": "datetime_immutable",
+          "nullable": true,
+          "commentaire": "Heure UTC, pas l'heure locale : non reconnu",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "jour",
+          "colonne": "jour",
+          "type_php": "\\DateTimeImmutable",
+          "type_doctrine": "date_immutable",
+          "nullable": false,
+          "defaut_expression": "date_courante",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "jourConverti",
+          "colonne": "jour_converti",
+          "type_php": "?\\DateTimeImmutable",
+          "type_doctrine": "date_immutable",
+          "nullable": true,
+          "defaut_expression": "date_courante",
+          "commentaire": "Forme qu'écrit Doctrine sous DBAL 3",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "heure",
+          "colonne": "heure",
+          "type_php": "?\\DateTimeImmutable",
+          "type_doctrine": "time_immutable",
+          "nullable": true,
+          "defaut_expression": "heure_courante",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "heureConvertie",
+          "colonne": "heure_convertie",
+          "type_php": "?\\DateTimeImmutable",
+          "type_doctrine": "time_immutable",
+          "nullable": true,
+          "defaut_expression": "heure_courante",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "formePostgres",
+          "colonne": "forme_postgres",
+          "type_php": "?\\DateTimeImmutable",
+          "type_doctrine": "datetime_immutable",
+          "nullable": true,
+          "commentaire": "Forme d'un autre dialecte : non reconnue sous SQL Server",
+          "origine": "contrainte"
+        }
+      ],
+      "commentaire": "Défauts calculés, sous les formes que rend sys.default_constraints : l'instant est celui de l'instruction, à l'heure locale du serveur",
+      "origine": "nommage"
+    }
+  ],
+  "avertissements": [
+    {
+      "code": "defaut_non_reporte",
+      "cible": "dbo.evenement.forme_postgres",
+      "message": "défaut now() non reconnu, non reporté : la valeur est à fournir par l'application",
+      "resolution": "ignoree",
+      "confiance": 1
+    },
+    {
+      "code": "defaut_non_reporte",
+      "cible": "dbo.evenement.horodate_fuseau",
+      "message": "défaut (sysdatetimeoffset()) non reconnu, non reporté : la valeur est à fournir par l'application",
+      "resolution": "ignoree",
+      "confiance": 1
+    },
+    {
+      "code": "fuseau_precision_non_lue",
+      "cible": "dbo.evenement.horodate_fuseau",
+      "message": "type datetimeoffset(7) : Doctrine ne lit que six décimales, et la lecture échoue ; migrations:diff proposera de réduire la colonne à six, au prix des suivantes, sans quoi il faut un type personnalisé",
+      "resolution": "par_defaut",
+      "confiance": 1
+    },
+    {
+      "code": "defaut_non_reporte",
+      "cible": "dbo.evenement.horodate_local_fuseau",
+      "message": "défaut (getdate()) non reconnu, non reporté : la valeur est à fournir par l'application",
+      "resolution": "ignoree",
+      "confiance": 1
+    },
+    {
+      "code": "fuseau_precision_non_lue",
+      "cible": "dbo.evenement.horodate_local_fuseau",
+      "message": "type datetimeoffset(7) : Doctrine ne lit que six décimales, et la lecture échoue ; migrations:diff proposera de réduire la colonne à six, au prix des suivantes, sans quoi il faut un type personnalisé",
+      "resolution": "par_defaut",
+      "confiance": 1
+    },
+    {
+      "code": "defaut_non_reporte",
+      "cible": "dbo.evenement.horodate_systeme",
+      "message": "défaut (sysdatetime()) non reconnu, non reporté : la valeur est à fournir par l'application",
+      "resolution": "ignoree",
+      "confiance": 1
+    },
+    {
+      "code": "defaut_non_reporte",
+      "cible": "dbo.evenement.horodate_utc",
+      "message": "défaut (getutcdate()) non reconnu, non reporté : la valeur est à fournir par l'application",
+      "resolution": "ignoree",
+      "confiance": 1
+    }
+  ]
+}

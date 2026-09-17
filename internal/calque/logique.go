@@ -175,8 +175,10 @@ type Propriete struct {
 // l'inférence a reconnu. Toute valeur ajoutée incrémente VersionRI.
 type ExpressionDefaut string
 
-// Défauts calculés reconnus. L'instant est celui de la transaction, pas de
-// l'horloge : clock_timestamp() n'en fait pas partie.
+// Défauts calculés reconnus. L'instant est celui que la base donne à
+// CURRENT_TIMESTAMP, la seule expression que Doctrine écrive : le début de la
+// transaction sous PostgreSQL, l'instruction sous SQL Server. Une horloge plus
+// précise, clock_timestamp() ou sysdatetime(), n'en fait pas partie.
 const (
 	DefautHorodatageCourant ExpressionDefaut = "horodatage_courant"
 	DefautDateCourante      ExpressionDefaut = "date_courante"

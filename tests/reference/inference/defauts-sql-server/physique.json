@@ -1,0 +1,33 @@
+{
+  "version_ri": 1,
+  "source": {
+    "sgbd": "sqlserver",
+    "version": "16.0.4295.3",
+    "catalogue": "gescom",
+    "schema": "dbo",
+    "extrait_le": "2026-01-01T00:00:00Z",
+    "empreinte": "sha256:0000000000000000000000000000000000000000000000000000000000000030"
+  },
+  "tables": [
+    {
+      "nom": "evenement",
+      "schema": "dbo",
+      "commentaire": "Défauts calculés, sous les formes que rend sys.default_constraints : l'instant est celui de l'instruction, à l'heure locale du serveur",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "int", "type_normalise": "entier", "nullable": false, "auto_increment": true, "identite": "toujours" },
+        { "nom": "horodate", "position": 2, "type_brut": "datetime", "type_normalise": "horodatage", "nullable": false, "defaut": { "genre": "expression", "valeur": "(getdate())" }, "commentaire": "CURRENT_TIMESTAMP s'écrit ainsi au catalogue" },
+        { "nom": "horodate_precis", "position": 3, "type_brut": "datetime2(7)", "type_normalise": "horodatage", "precision_fractionnaire": 7, "nullable": true, "defaut": { "genre": "expression", "valeur": "(getdate())" } },
+        { "nom": "horodate_fuseau", "position": 4, "type_brut": "datetimeoffset(7)", "type_normalise": "horodatage", "fuseau": true, "precision_fractionnaire": 7, "nullable": true, "defaut": { "genre": "expression", "valeur": "(sysdatetimeoffset())" }, "commentaire": "Instant exact, mais aucune expression Doctrine ne l'écrit : non reconnu" },
+        { "nom": "horodate_local_fuseau", "position": 5, "type_brut": "datetimeoffset(7)", "type_normalise": "horodatage", "fuseau": true, "precision_fractionnaire": 7, "nullable": true, "defaut": { "genre": "expression", "valeur": "(getdate())" }, "commentaire": "Heure locale étiquetée +00:00 : non reconnu" },
+        { "nom": "horodate_systeme", "position": 6, "type_brut": "datetime2(7)", "type_normalise": "horodatage", "precision_fractionnaire": 7, "nullable": true, "defaut": { "genre": "expression", "valeur": "(sysdatetime())" }, "commentaire": "Précision plus fine que getdate() : non reconnu" },
+        { "nom": "horodate_utc", "position": 7, "type_brut": "datetime", "type_normalise": "horodatage", "nullable": true, "defaut": { "genre": "expression", "valeur": "(getutcdate())" }, "commentaire": "Heure UTC, pas l'heure locale : non reconnu" },
+        { "nom": "jour", "position": 8, "type_brut": "date", "type_normalise": "date", "nullable": false, "defaut": { "genre": "expression", "valeur": "(getdate())" } },
+        { "nom": "jour_converti", "position": 9, "type_brut": "date", "type_normalise": "date", "nullable": true, "defaut": { "genre": "expression", "valeur": "(CONVERT([date],getdate()))" }, "commentaire": "Forme qu'écrit Doctrine sous DBAL 3" },
+        { "nom": "heure", "position": 10, "type_brut": "time(7)", "type_normalise": "heure", "precision_fractionnaire": 7, "nullable": true, "defaut": { "genre": "expression", "valeur": "(getdate())" } },
+        { "nom": "heure_convertie", "position": 11, "type_brut": "time(7)", "type_normalise": "heure", "precision_fractionnaire": 7, "nullable": true, "defaut": { "genre": "expression", "valeur": "(CONVERT([time],getdate()))" } },
+        { "nom": "forme_postgres", "position": 12, "type_brut": "datetime", "type_normalise": "horodatage", "nullable": true, "defaut": { "genre": "expression", "valeur": "now()" }, "commentaire": "Forme d'un autre dialecte : non reconnue sous SQL Server" }
+      ],
+      "cle_primaire": { "nom": "evenement_pkey", "colonnes": ["id"] }
+    }
+  ]
+}

@@ -12,8 +12,10 @@ namespace Ormeau\Doctrine\Calque;
  * now() et CURRENT_TIMESTAMP disent la même chose, et c'est le sens qui se
  * traduit dans la plateforme de la cible.
  *
- * L'instant est celui de la transaction. Un défaut calculé dont le sens n'est
- * pas certain n'arrive pas jusqu'ici : il est signalé dans les avertissements.
+ * L'instant est celui que la base donne à CURRENT_TIMESTAMP : le début de la
+ * transaction sous PostgreSQL, l'instruction sous SQL Server. Un défaut
+ * calculé dont le sens n'est pas certain n'arrive pas jusqu'ici : il est
+ * signalé dans les avertissements.
  */
 enum ExpressionDefaut: string
 {

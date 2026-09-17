@@ -57,6 +57,10 @@ type schemaLogique struct {
 	// sequences sont celles du physique, où une clé retrouve la séquence que
 	// son défaut nomme.
 	sequences []calque.Sequence
+
+	// sgbd est celui du physique : un défaut calculé ne se lit que dans la
+	// forme de son dialecte.
+	sgbd string
 }
 
 // jointurePure décrit une table qui n'existe que pour relier deux autres.
@@ -79,6 +83,7 @@ func analyser(p *calque.Physique, d *Decisions, prefixes []string) *schemaLogiqu
 		tables:       map[string]*calque.Table{},
 		heritages:    map[string]heritageRetenu{},
 		sequences:    p.Sequences,
+		sgbd:         p.Source.SGBD,
 	}
 
 	ignorees := ensemble(d.TablesIgnorees)

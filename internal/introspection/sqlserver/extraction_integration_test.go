@@ -183,6 +183,9 @@ func TestExtraireIdentitesEtDefauts(t *testing.T) {
 		{"users", "mem_montant", calque.DefautLitteral, "0"},
 		{"users", "Salt", calque.DefautExpression, "(newid())"},
 		{"t_client", "created_at", calque.DefautExpression, "(sysdatetimeoffset())"},
+		// Le catalogue réécrit CONVERT(date, getdate()) : l'inférence reconnaît
+		// cette forme-ci, pas celle du DDL.
+		{"t_facture", "fac_saisie", calque.DefautExpression, "(CONVERT([date],getdate()))"},
 	}
 	for _, c := range cas {
 		d := colonneOuEchouer(t, p, c.table, c.colonne).Defaut

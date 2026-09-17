@@ -38,6 +38,14 @@ préambule reste en français : il n'est jamais publié.
 
 ### Corrigé
 
+- **Un défaut `getdate()` de SQL Server est reporté.** Il n'était pas reconnu :
+  la date, l'heure ou l'instant était à fournir par l'application. Sur une date
+  ou une heure, Doctrine écrit l'instant courant sous DBAL 4.4 ; avant, il ne
+  sait l'écrire qu'en `CONVERT(date, GETDATE())`, que `migrations:diff`
+  propose de recréer à chaque passage sans rien changer — le rapport de
+  génération le dit. `getdate()` sur un `datetimeoffset`, qui stocke l'heure
+  locale avec un décalage nul, et `sysdatetimeoffset()`, que Doctrine n'écrit
+  pas, restent signalés par `defaut_non_reporte`.
 - **Une clé SQL Server tirée d'une séquence est attribuée.** Un `DEFAULT NEXT
   VALUE FOR` n'était pas reconnu : l'identifiant restait à fournir par
   l'application. Sous ORM 2, la clé passe par la séquence nommée, avec sa
@@ -114,6 +122,14 @@ préambule reste en français : il n'est jamais publié.
 
 ### Fixed
 
+- **A SQL Server `getdate()` default is carried over.** It was not recognized:
+  the application had to supply the date, time or instant. On a date or time
+  column, Doctrine writes the current timestamp under DBAL 4.4; before that, it
+  can only write `CONVERT(date, GETDATE())`, which `migrations:diff` offers to
+  recreate on every run without changing anything — the generation report says
+  so. `getdate()` on a `datetimeoffset`, which stores local time with a zero
+  offset, and `sysdatetimeoffset()`, which Doctrine does not write, are still
+  reported by `defaut_non_reporte`.
 - **A SQL Server key drawn from a sequence is assigned.** A `DEFAULT NEXT
   VALUE FOR` was not recognized: the application had to supply the
   identifier. Under ORM 2, the key goes through the named sequence, with its

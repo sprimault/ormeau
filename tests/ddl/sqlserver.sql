@@ -168,8 +168,10 @@ CREATE TABLE ventes.t_facture (
     fac_id     int IDENTITY (1, 1) CONSTRAINT t_facture_pkey PRIMARY KEY,
     fac_cli_id int NOT NULL,
     fac_total  decimal(12, 2) NOT NULL,
+    -- défauts calculés : getdate() sur une date vaut la date du jour, et
+    -- CONVERT(date, getdate()) est la forme qu'écrit Doctrine sous DBAL 3.
     fac_date   date NOT NULL CONSTRAINT DF_facture_date DEFAULT getdate(),
-    fac_saisie date NULL,
+    fac_saisie date NULL CONSTRAINT DF_facture_saisie DEFAULT CONVERT(date, getdate()),
     -- simple précision : real existe aussi ici, et se recrée en float.
     fac_taux   real NULL,
     -- money : propre à SQL Server, sans équivalent Doctrine direct.
@@ -208,7 +210,7 @@ CREATE TABLE ventes.t_commande (
     -- uniqueidentifier avec son défaut calculé : newid() n'a aujourd'hui aucune
     -- place dans defaut_expression et tombe en defaut_non_reporte.
     cmd_ref   uniqueidentifier NOT NULL CONSTRAINT DF_commande_ref DEFAULT newid(),
-    cmd_heure time NULL,
+    cmd_heure time NULL CONSTRAINT DF_commande_heure DEFAULT getdate(),
     cmd_pay_code nchar(2) NULL CONSTRAINT t_commande_cmd_pay_code_fkey REFERENCES ventes.t_pays (pay_code),
     -- Pas de type JSON avant SQL Server 2025 : du texte, et une contrainte qui
     -- dit ce qu'il contient.

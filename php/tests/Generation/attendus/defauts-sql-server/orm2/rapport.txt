@@ -1,0 +1,6 @@
+créé Base/EvenementBase.php
+créé Evenement.php
+défaut Evenement::jour : schema:update et migrations:diff proposeront à chaque passage de supprimer puis recréer le défaut CONVERT(date, GETDATE()) de la colonne jour. L'appliquer ne change rien : DBAL relit ce défaut sous une autre forme que celle qu'il écrit. Il n'est plus proposé à partir de DBAL 4.4.
+défaut Evenement::jourConverti : schema:update et migrations:diff proposeront à chaque passage de supprimer puis recréer le défaut CONVERT(date, GETDATE()) de la colonne jour_converti. L'appliquer ne change rien : DBAL relit ce défaut sous une autre forme que celle qu'il écrit. Il n'est plus proposé à partir de DBAL 4.4.
+défaut Evenement::heure : schema:update et migrations:diff proposeront à chaque passage de supprimer puis recréer le défaut CONVERT(time, GETDATE()) de la colonne heure. L'appliquer ne change rien : DBAL relit ce défaut sous une autre forme que celle qu'il écrit. Il n'est plus proposé à partir de DBAL 4.4.
+défaut Evenement::heureConvertie : schema:update et migrations:diff proposeront à chaque passage de supprimer puis recréer le défaut CONVERT(time, GETDATE()) de la colonne heure_convertie. L'appliquer ne change rien : DBAL relit ce défaut sous une autre forme que celle qu'il écrit. Il n'est plus proposé à partir de DBAL 4.4.
