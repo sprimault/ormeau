@@ -12,7 +12,7 @@ générateur.
 | 4 — Interface | terminée |
 | 5 — Génération Doctrine | terminée |
 | 6 — Aller-retour | terminée |
-| 7 — Introspection SQL Server | en cours |
+| 7 — Introspection SQL Server | terminée |
 | 8 à 11 | non commencées |
 | 12 — Publication | faite |
 

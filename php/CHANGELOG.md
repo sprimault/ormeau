@@ -36,6 +36,8 @@ préambule reste en français : il n'est jamais publié.
 
 ## [Non publié]
 
+## [0.7.0] — 2026-09-17 — Introspection SQL Server
+
 **`version_ri` passe à 2.** Un calque physique déjà enregistré se lit
 toujours. Un calque logique en version 1 est refusé par le paquet PHP : il se
 recalcule hors ligne par `ormeau inferer <base>.calque.json --decisions
