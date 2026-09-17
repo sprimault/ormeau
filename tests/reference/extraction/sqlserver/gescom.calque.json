@@ -4,8 +4,8 @@
     "sgbd": "sqlserver",
     "version": "16.0.4295.3",
     "catalogue": "gescom",
-    "extrait_le": "2026-09-17T13:44:37Z",
-    "empreinte": "sha256:80f73fd885bc4ea930fd4eff6cd57fb5d4f29391f8b3539820aab82a9a73baa4"
+    "extrait_le": "2026-09-17T14:52:35Z",
+    "empreinte": "sha256:592651590029dd8f23b9d64a67f1c467c6617f47c4f82593e1bcc30c2895c2fa"
   },
   "tables": [
     {
@@ -21,6 +21,7 @@
           "defaut": {
             "genre": "sequence",
             "valeur": "(NEXT VALUE FOR [ventes].[sq_avoir])",
+            "nom": "DF_avoir_id",
             "sequence": {
               "schema": "ventes",
               "nom": "sq_avoir"
@@ -134,7 +135,8 @@
           "nullable": false,
           "defaut": {
             "genre": "litteral",
-            "valeur": "ACTIF"
+            "valeur": "ACTIF",
+            "nom": "DF_client_statut"
           },
           "collation": "default"
         },
@@ -177,7 +179,8 @@
           "nullable": false,
           "defaut": {
             "genre": "expression",
-            "valeur": "(sysdatetimeoffset())"
+            "valeur": "(sysdatetimeoffset())",
+            "nom": "DF_client_creation"
           }
         },
         {
@@ -488,7 +491,8 @@
           "nullable": false,
           "defaut": {
             "genre": "expression",
-            "valeur": "(newid())"
+            "valeur": "(newid())",
+            "nom": "DF_commande_ref"
           }
         },
         {
@@ -500,7 +504,8 @@
           "nullable": true,
           "defaut": {
             "genre": "expression",
-            "valeur": "(getdate())"
+            "valeur": "(getdate())",
+            "nom": "DF_commande_heure"
           }
         },
         {
@@ -603,7 +608,8 @@
           "nullable": false,
           "defaut": {
             "genre": "litteral",
-            "valeur": "1"
+            "valeur": "1",
+            "nom": "DF_commercial_actif"
           }
         },
         {
@@ -680,7 +686,8 @@
           "nullable": false,
           "defaut": {
             "genre": "expression",
-            "valeur": "(getdate())"
+            "valeur": "(getdate())",
+            "nom": "DF_facture_date"
           }
         },
         {
@@ -691,7 +698,8 @@
           "nullable": true,
           "defaut": {
             "genre": "expression",
-            "valeur": "(CONVERT([date],getdate()))"
+            "valeur": "(CONVERT([date],getdate()))",
+            "nom": "DF_facture_saisie"
           }
         },
         {
@@ -951,7 +959,8 @@
           "nullable": true,
           "defaut": {
             "genre": "litteral",
-            "valeur": "0"
+            "valeur": "0",
+            "nom": "DF__users__mem_monta__67A95F59"
           }
         },
         {
@@ -962,7 +971,8 @@
           "nullable": false,
           "defaut": {
             "genre": "litteral",
-            "valeur": "0"
+            "valeur": "0",
+            "nom": "DF_users_Change_mdp"
           }
         },
         {
@@ -987,7 +997,8 @@
           "nullable": true,
           "defaut": {
             "genre": "expression",
-            "valeur": "(newid())"
+            "valeur": "(newid())",
+            "nom": "DF_users_Salt"
           }
         },
         {
@@ -1018,7 +1029,8 @@
           "nullable": false,
           "defaut": {
             "genre": "expression",
-            "valeur": "(getdate())"
+            "valeur": "(getdate())",
+            "nom": "DF_users_DT_creation"
           }
         },
         {

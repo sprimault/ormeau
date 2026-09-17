@@ -160,7 +160,8 @@ SELECT t.name,
             THEN N'default' ELSE c.collation_name END AS collation,
        CONVERT(nvarchar(max), ep.value),
        seq.schema_nom,
-       seq.nom
+       seq.nom,
+       dc.name
 FROM sys.columns c
 JOIN sys.tables t ON t.object_id = c.object_id
 JOIN sys.schemas s ON s.schema_id = t.schema_id

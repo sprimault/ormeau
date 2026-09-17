@@ -738,6 +738,13 @@ export interface Defaut {
   genre: GenreDefaut;
   valeur: string;
   /**
+   * Nom est celui de la contrainte qui porte le défaut, là où le SGBD en
+   * fait une (SQL Server) : sans lui, un DDL reconstruit renomme chaque
+   * défaut. Absent quand le SGBD ne les nomme pas, ou d'un calque extrait
+   * avant ce champ.
+   */
+  nom?: string;
+  /**
    * Sequence désigne la séquence qu'un défaut de genre sequence tire, lue
    * dans les dépendances du catalogue plutôt que dans l'expression, dont
    * l'écriture change d'un dialecte à l'autre. Absente d'un calque extrait

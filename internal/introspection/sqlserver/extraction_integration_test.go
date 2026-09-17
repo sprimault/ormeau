@@ -159,8 +159,9 @@ func TestExtraireLesTypes(t *testing.T) {
 	}
 }
 
-// TestExtraireIdentitesEtDefauts : IDENTITY refuse une valeur explicite, et
-// les trois genres de défaut se distinguent.
+// TestExtraireIdentitesEtDefauts : IDENTITY refuse une valeur explicite, les
+// trois genres de défaut se distinguent, et chaque défaut garde le nom de sa
+// contrainte, choisi ou de la forme que le serveur attribue.
 func TestExtraireIdentitesEtDefauts(t *testing.T) {
 	p := extraireOuEchouer(t, introspection.Portee{Schemas: []string{"ventes"}})
 
@@ -176,21 +177,21 @@ func TestExtraireIdentitesEtDefauts(t *testing.T) {
 	cas := []struct {
 		table, colonne string
 		genre          calque.GenreDefaut
-		valeur         string
+		valeur, nom    string
 	}{
-		{"t_avoir", "avo_id", calque.DefautSequence, "(NEXT VALUE FOR [ventes].[sq_avoir])"},
-		{"t_client", "cli_statut", calque.DefautLitteral, "ACTIF"},
-		{"users", "mem_montant", calque.DefautLitteral, "0"},
-		{"users", "Salt", calque.DefautExpression, "(newid())"},
-		{"t_client", "created_at", calque.DefautExpression, "(sysdatetimeoffset())"},
+		{"t_avoir", "avo_id", calque.DefautSequence, "(NEXT VALUE FOR [ventes].[sq_avoir])", "DF_avoir_id"},
+		{"t_client", "cli_statut", calque.DefautLitteral, "ACTIF", "DF_client_statut"},
+		{"users", "mem_montant", calque.DefautLitteral, "0", "DF__users__mem_monta__67A95F59"},
+		{"users", "Salt", calque.DefautExpression, "(newid())", "DF_users_Salt"},
+		{"t_client", "created_at", calque.DefautExpression, "(sysdatetimeoffset())", "DF_client_creation"},
 		// Le catalogue réécrit CONVERT(date, getdate()) : l'inférence reconnaît
 		// cette forme-ci, pas celle du DDL.
-		{"t_facture", "fac_saisie", calque.DefautExpression, "(CONVERT([date],getdate()))"},
+		{"t_facture", "fac_saisie", calque.DefautExpression, "(CONVERT([date],getdate()))", "DF_facture_saisie"},
 	}
 	for _, c := range cas {
 		d := colonneOuEchouer(t, p, c.table, c.colonne).Defaut
-		if d == nil || d.Genre != c.genre || d.Valeur != c.valeur {
-			t.Errorf("%s.%s : defaut %+v, attendu %s %q", c.table, c.colonne, d, c.genre, c.valeur)
+		if d == nil || d.Genre != c.genre || d.Valeur != c.valeur || d.Nom != c.nom {
+			t.Errorf("%s.%s : defaut %+v, attendu %s %q nommé %s", c.table, c.colonne, d, c.genre, c.valeur, c.nom)
 		}
 	}
 	if d := colonneOuEchouer(t, p, "users", "nom").Defaut; d != nil {
