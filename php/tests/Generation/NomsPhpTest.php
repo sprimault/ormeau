@@ -74,12 +74,6 @@ final class NomsPhpTest extends TestCase
         foreach (['\\App\\Entity', 'App\\Entity\\', 'App\\\\Entity', 'App\\Namespace'] as $espace) {
             self::assertNotNull(NomsPhp::raisonEspaceDeNoms($espace), $espace);
         }
-        foreach (['int', '?string', '\\DateTimeImmutable', '?\\App\\Enum\\Statut'] as $type) {
-            self::assertNull(NomsPhp::raisonType($type), $type);
-        }
-        foreach (['int|string', 'int; exit', '\\', ''] as $type) {
-            self::assertNotNull(NomsPhp::raisonType($type), $type);
-        }
     }
 
     /**

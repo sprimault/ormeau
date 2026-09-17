@@ -1,5 +1,5 @@
 {
-  "version_ri": 1,
+  "version_ri": 2,
   "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000028",
   "sgbd": "sqlserver",
   "espace_de_noms": "App\\Entity",
@@ -20,7 +20,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -28,7 +27,6 @@
         {
           "nom": "emisLe",
           "colonne": "emis_le",
-          "type_php": "\\DateTimeImmutable",
           "type_doctrine": "datetimetz_immutable",
           "nullable": false,
           "commentaire": "Précision par défaut : Doctrine n'en lit que six",
@@ -37,7 +35,6 @@
         {
           "nom": "valideLe",
           "colonne": "valide_le",
-          "type_php": "?\\DateTimeImmutable",
           "type_doctrine": "datetimetz_immutable",
           "nullable": true,
           "origine": "contrainte"
@@ -45,7 +42,6 @@
         {
           "nom": "saisiLe",
           "colonne": "saisi_le",
-          "type_php": "?\\DateTimeImmutable",
           "type_doctrine": "datetime_immutable",
           "nullable": true,
           "commentaire": "Sans fuseau : Doctrine relit sept décimales",
@@ -71,7 +67,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -79,7 +74,6 @@
         {
           "nom": "consigneLe",
           "colonne": "consigne_le",
-          "type_php": "\\DateTimeImmutable",
           "type_doctrine": "datetimetz_immutable",
           "nullable": false,
           "origine": "contrainte"
@@ -87,7 +81,6 @@
         {
           "nom": "heure",
           "colonne": "heure",
-          "type_php": "?\\DateTimeImmutable",
           "type_doctrine": "time_immutable",
           "nullable": true,
           "origine": "contrainte"
@@ -95,7 +88,6 @@
         {
           "nom": "ancien",
           "colonne": "ancien",
-          "type_php": "?\\DateTimeImmutable",
           "type_doctrine": "datetimetz_immutable",
           "nullable": true,
           "commentaire": "Calque extrait avant le champ fuseau : la forme de PostgreSQL reste lue",

@@ -49,7 +49,7 @@ use ReflectionProperty;
 final class SchemaTest extends TestCase
 {
     /** Le contrat publié, à la racine du dépôt. */
-    private const SCHEMA = __DIR__ . '/../../../schemas/calque-logique.v1.json';
+    private const SCHEMA = __DIR__ . '/../../../schemas/calque-logique.v2.json';
 
     /**
      * Chaque champ d'un objet du schéma a sa propriété, et réciproquement.

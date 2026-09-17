@@ -30,7 +30,7 @@ final class TypesPhpTest extends TestCase
     #[DataProvider('typesQuiDependentDeLaCible')]
     public function testLeTypeSuitDbal(string $typeDoctrine, string $avantDbal4, string $dbal4): void
     {
-        $propriete = self::propriete($typeDoctrine, 'int');
+        $propriete = self::propriete($typeDoctrine);
 
         self::assertSame($avantDbal4, TypesPhp::declaration($propriete, Cible::forcer(2)));
         self::assertSame($avantDbal4, TypesPhp::declaration($propriete, Cible::forcer(2, '2.13')));
@@ -55,28 +55,28 @@ final class TypesPhpTest extends TestCase
      */
     public function testLaNullabiliteSaufPourMixed(): void
     {
-        self::assertSame('?string', TypesPhp::declaration(self::propriete('text', 'string', true), Cible::forcer(3)));
-        self::assertSame('mixed', TypesPhp::declaration(self::propriete('blob', 'string', true), Cible::forcer(3)));
+        self::assertSame('?string', TypesPhp::declaration(self::propriete('text', true), Cible::forcer(3)));
+        self::assertSame('mixed', TypesPhp::declaration(self::propriete('blob', true), Cible::forcer(3)));
     }
 
     /**
-     * Hors table, le type_php du calque est repris : c'est le seul cas où il
-     * porte une information, celle d'un type personnalisé forcé par décision.
-     * Son « ? » est retiré, la nullabilité le redit.
+     * Hors table — un type personnalisé forcé par décision —, mixed, sans
+     * « ? » : rien ne dit ce que le type hydrate.
      */
-    public function testUnTypeInconnuReprendLeTypePhpDuCalque(): void
+    public function testUnTypeInconnuSeDeclareMixed(): void
     {
-        $propriete = self::propriete('geometrie_maison', '?\App\Geo\Point', true);
+        $propriete = self::propriete('geometrie_maison', true);
 
         self::assertFalse(TypesPhp::connu('geometrie_maison'));
-        self::assertSame('?\App\Geo\Point', TypesPhp::declaration($propriete, Cible::forcer(2)));
+        self::assertSame('mixed', TypesPhp::declaration($propriete, Cible::forcer(2)));
     }
 
     /**
      * Tout type Doctrine qu'écrit l'inférence dans un calque de référence est
      * connu du générateur. C'est la parité entre la table Go et celle-ci : un
-     * type ajouté côté Go sans son entrée ici retomberait sur le type_php du
-     * calque, que la cible peut rendre faux.
+     * type ajouté côté Go sans son entrée ici serait déclaré mixed. Un type
+     * forcé par décision en est exclu : un type personnalisé n'a pas à être
+     * connu, c'est le cas même de mixed.
      */
     public function testConnaitChaqueTypeDesCalquesDeReference(): void
     {
@@ -86,10 +86,13 @@ final class TypesPhpTest extends TestCase
 
         $inconnus = [];
         foreach ($fichiers as $fichier) {
-            preg_match_all('/"type_doctrine": "([^"]+)"/', (string) file_get_contents($fichier), $trouves);
-            foreach ($trouves[1] as $type) {
-                if (!TypesPhp::connu($type)) {
-                    $inconnus[$type] = basename(dirname($fichier));
+            $calque = json_decode((string) file_get_contents($fichier), true, 64, JSON_THROW_ON_ERROR);
+            self::assertIsArray($calque);
+            foreach ([...$calque['entites'] ?? [], ...$calque['traits'] ?? []] as $porteur) {
+                foreach ($porteur['proprietes'] ?? [] as $propriete) {
+                    if (($propriete['origine'] ?? null) !== 'decision' && !TypesPhp::connu($propriete['type_doctrine'])) {
+                        $inconnus[$propriete['type_doctrine']] = basename(dirname($fichier));
+                    }
                 }
             }
         }
@@ -100,8 +103,8 @@ final class TypesPhpTest extends TestCase
     /**
      * Fabrique une propriété réduite à ce que le typage regarde.
      */
-    private static function propriete(string $typeDoctrine, string $typePhp, bool $nullable = false): Propriete
+    private static function propriete(string $typeDoctrine, bool $nullable = false): Propriete
     {
-        return new Propriete('valeur', 'valeur', $typePhp, $typeDoctrine, $nullable);
+        return new Propriete('valeur', 'valeur', $typeDoctrine, $nullable);
     }
 }

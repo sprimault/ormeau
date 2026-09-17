@@ -166,7 +166,7 @@ final class RegenerationTest extends TestCase
     public function testUneEnumerationDUneAutreBaseSeRefuse(): void
     {
         $calque = static fn(): CalqueLogique => CalqueLogique::depuisTableau([
-            'version_ri' => 1,
+            'version_ri' => 2,
             'empreinte_physique' => 'sha256:' . str_repeat('a', 64),
             'espace_de_noms' => 'App\\Entity',
             'entites' => [[
@@ -174,8 +174,8 @@ final class RegenerationTest extends TestCase
                 'table' => ['nom' => 'commande', 'schema' => 'public'],
                 'identifiant' => ['proprietes' => ['id'], 'strategie' => 'identite'],
                 'proprietes' => [
-                    ['nom' => 'id', 'colonne' => 'id', 'type_php' => 'int', 'type_doctrine' => 'integer', 'nullable' => false],
-                    ['nom' => 'etat', 'colonne' => 'etat', 'type_php' => 'string', 'type_doctrine' => 'string', 'nullable' => false, 'enumeration' => 'Etat'],
+                    ['nom' => 'id', 'colonne' => 'id', 'type_doctrine' => 'integer', 'nullable' => false],
+                    ['nom' => 'etat', 'colonne' => 'etat', 'type_doctrine' => 'string', 'nullable' => false, 'enumeration' => 'Etat'],
                 ],
             ]],
             'enumerations' => [['nom' => 'Etat', 'type_support' => 'string', 'cas' => [['nom' => 'Ouvert', 'valeur' => 'O']], 'origine' => 'verification']],
@@ -562,10 +562,10 @@ final class RegenerationTest extends TestCase
      */
     private static function ventes(): CalqueLogique
     {
-        $id = ['nom' => 'id', 'colonne' => 'id', 'type_php' => 'int', 'type_doctrine' => 'integer', 'nullable' => false];
+        $id = ['nom' => 'id', 'colonne' => 'id', 'type_doctrine' => 'integer', 'nullable' => false];
 
         return CalqueLogique::depuisTableau([
-            'version_ri' => 1,
+            'version_ri' => 2,
             'empreinte_physique' => 'sha256:' . str_repeat('a', 64),
             'espace_de_noms' => 'App\\Entity',
             'entites' => [
@@ -579,7 +579,7 @@ final class RegenerationTest extends TestCase
                     'nom' => 'Commande',
                     'table' => ['nom' => 'commande', 'schema' => 'public'],
                     'identifiant' => ['proprietes' => ['id'], 'strategie' => 'identite'],
-                    'proprietes' => [$id, ['nom' => 'clientId', 'colonne' => 'client_id', 'type_php' => 'int', 'type_doctrine' => 'integer', 'nullable' => false]],
+                    'proprietes' => [$id, ['nom' => 'clientId', 'colonne' => 'client_id', 'type_doctrine' => 'integer', 'nullable' => false]],
                     'associations' => [[
                         'nom' => 'client', 'genre' => 'plusieurs_vers_un', 'cible' => 'Client', 'proprietaire' => true, 'origine' => 'contrainte',
                         'jointure' => [['colonne' => 'client_id', 'colonne_referencee' => 'id', 'nullable' => false]],
@@ -595,10 +595,10 @@ final class RegenerationTest extends TestCase
      */
     private static function schemas(string $schemaAvoir = 'Compta'): CalqueLogique
     {
-        $id = ['nom' => 'id', 'colonne' => 'id', 'type_php' => 'int', 'type_doctrine' => 'integer', 'nullable' => false];
+        $id = ['nom' => 'id', 'colonne' => 'id', 'type_doctrine' => 'integer', 'nullable' => false];
 
         return CalqueLogique::depuisTableau([
-            'version_ri' => 1,
+            'version_ri' => 2,
             'empreinte_physique' => 'sha256:' . str_repeat('a', 64),
             'espace_de_noms' => 'App\\Entity',
             'entites' => [
@@ -627,12 +627,12 @@ final class RegenerationTest extends TestCase
      */
     private static function hierarchie(array $filles): CalqueLogique
     {
-        $id = ['nom' => 'id', 'colonne' => 'id', 'type_php' => 'int', 'type_doctrine' => 'integer', 'nullable' => false];
+        $id = ['nom' => 'id', 'colonne' => 'id', 'type_doctrine' => 'integer', 'nullable' => false];
         $entites = [[
             'nom' => 'Personne',
             'table' => ['nom' => 'personne', 'schema' => 'public'],
             'identifiant' => ['proprietes' => ['id'], 'strategie' => 'identite'],
-            'proprietes' => [$id, ['nom' => 'nature', 'colonne' => 'nature', 'type_php' => 'string', 'type_doctrine' => 'string', 'nullable' => false, 'longueur' => 1]],
+            'proprietes' => [$id, ['nom' => 'nature', 'colonne' => 'nature', 'type_doctrine' => 'string', 'nullable' => false, 'longueur' => 1]],
         ]];
         if ($filles !== []) {
             $entites[0]['valeur_discriminante'] = 'P';
@@ -649,7 +649,7 @@ final class RegenerationTest extends TestCase
         }
 
         return CalqueLogique::depuisTableau([
-            'version_ri' => 1,
+            'version_ri' => 2,
             'empreinte_physique' => 'sha256:' . str_repeat('a', 64),
             'espace_de_noms' => 'App\\Entity',
             'entites' => $entites,
@@ -662,13 +662,13 @@ final class RegenerationTest extends TestCase
      */
     private static function calque(string $table, bool $avecEmail = false, ?string $commentaire = null): CalqueLogique
     {
-        $proprietes = [['nom' => 'id', 'colonne' => 'id', 'type_php' => 'int', 'type_doctrine' => 'integer', 'nullable' => false]];
+        $proprietes = [['nom' => 'id', 'colonne' => 'id', 'type_doctrine' => 'integer', 'nullable' => false]];
         if ($avecEmail) {
-            $proprietes[] = ['nom' => 'email', 'colonne' => 'email', 'type_php' => '?string', 'type_doctrine' => 'string', 'nullable' => true];
+            $proprietes[] = ['nom' => 'email', 'colonne' => 'email', 'type_doctrine' => 'string', 'nullable' => true];
         }
 
         return CalqueLogique::depuisTableau([
-            'version_ri' => 1,
+            'version_ri' => 2,
             'empreinte_physique' => 'sha256:' . str_repeat('a', 64),
             'espace_de_noms' => 'App\\Entity',
             'entites' => [array_filter([

@@ -17,7 +17,7 @@ enum TypeSupport: string
     case Chaine = 'string';
 
     /**
-     * Énumération adossée à des entiers. Aucune version 1 ne la produit, la
+     * Énumération adossée à des entiers. Aucune version ne la produit encore, la
      * détection ne reconnaissant que des littéraux chaîne : lue et rendue en
      * attendant l'échantillonnage.
      */

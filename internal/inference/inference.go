@@ -256,12 +256,11 @@ func inferrerEntite(t *calque.Table, d *Decisions, prefixes []string, schema *sc
 		propriete, avs := inferrerPropriete(&t.Colonnes[i], cible, d, schema)
 		avertissements = append(avertissements, avs...)
 
-		// Le type PHP d'une propriété énumérée est l'enum lui-même, pas la
-		// chaîne qu'elle stocke. Le type Doctrine reste string : c'est ce que
-		// la colonne contient, et Doctrine hydrate l'un vers l'autre.
+		// Une propriété énumérée se lit en enum, pas en la chaîne qu'elle
+		// stocke. Le type Doctrine reste string : c'est ce que la colonne
+		// contient, et Doctrine hydrate l'un vers l'autre.
 		if e, enumeree := schema.enumerations[cible+"."+t.Colonnes[i].Nom]; enumeree {
 			propriete.Enumeration = e.nom
-			propriete.TypePHP = typeNullable(e.nom, t.Colonnes[i].Nullable)
 		}
 		entite.Proprietes = append(entite.Proprietes, propriete)
 	}
@@ -446,7 +445,6 @@ func inferrerPropriete(c *calque.Colonne, cibleTable string, d *Decisions, schem
 	propriete := calque.Propriete{
 		Nom:          camelCase(c.Nom),
 		Colonne:      c.Nom,
-		TypePHP:      typeNullable(corr.php, c.Nullable),
 		TypeDoctrine: corr.doctrine,
 		Nullable:     c.Nullable,
 		Longueur:     c.Longueur,

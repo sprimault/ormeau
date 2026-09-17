@@ -1,5 +1,5 @@
 {
-  "version_ri": 1,
+  "version_ri": 2,
   "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000005",
   "sgbd": "mariadb",
   "espace_de_noms": "App\\Entity",
@@ -21,7 +21,6 @@
         {
           "nom": "codePays",
           "colonne": "code_pays",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 2,
@@ -30,7 +29,6 @@
         {
           "nom": "codeInterne",
           "colonne": "code_interne",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 20,
@@ -39,7 +37,6 @@
         {
           "nom": "libelle",
           "colonne": "libelle",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 120,
@@ -49,7 +46,6 @@
         {
           "nom": "heureLivraison",
           "colonne": "heure_livraison",
-          "type_php": "?\\DateTimeImmutable",
           "type_doctrine": "time_immutable",
           "nullable": true,
           "origine": "contrainte"

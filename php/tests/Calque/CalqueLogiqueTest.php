@@ -162,7 +162,7 @@ final class CalqueLogiqueTest extends TestCase
 
         $this->expectException(CalqueInvalide::class);
         $this->expectExceptionMessage(
-            'Champ entites[0].identifiant.strategie : « uuid » hors du vocabulaire (identite, sequence, aucune, assignee)',
+            'Champ entites[0].identifiant.strategie : « uuid » hors du vocabulaire (identite, sequence, assignee)',
         );
 
         CalqueLogique::depuisTableau($donnees);
@@ -247,7 +247,7 @@ final class CalqueLogiqueTest extends TestCase
     private static function calque(): array
     {
         return [
-            'version_ri' => 1,
+            'version_ri' => 2,
             'empreinte_physique' => 'sha256:' . str_repeat('c', 64),
             'espace_de_noms' => 'App\\Entity',
             'entites' => [[
@@ -255,8 +255,8 @@ final class CalqueLogiqueTest extends TestCase
                 'table' => ['nom' => 'clients', 'schema' => 'public'],
                 'identifiant' => ['proprietes' => ['id'], 'strategie' => 'identite'],
                 'proprietes' => [
-                    ['nom' => 'id', 'colonne' => 'id', 'type_php' => 'int', 'type_doctrine' => 'integer', 'nullable' => false],
-                    ['nom' => 'nom', 'colonne' => 'nom', 'type_php' => 'string', 'type_doctrine' => 'string', 'nullable' => false, 'longueur' => 80],
+                    ['nom' => 'id', 'colonne' => 'id', 'type_doctrine' => 'integer', 'nullable' => false],
+                    ['nom' => 'nom', 'colonne' => 'nom', 'type_doctrine' => 'string', 'nullable' => false, 'longueur' => 80],
                 ],
             ]],
             'avertissements' => [self::avertissement('table_sans_cle_primaire', 1)],

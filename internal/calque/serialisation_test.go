@@ -490,6 +490,31 @@ func TestLirePhysiqueAccepteLaVersionCourante(t *testing.T) {
 	}
 }
 
+// Un physique de la version 1 se lit toujours : l'extraire à nouveau
+// demanderait de retourner sur la base d'un client.
+func TestLirePhysiqueAccepteLaVersionUn(t *testing.T) {
+	t.Parallel()
+
+	p := physiqueDeReference()
+	p.VersionRI = 1
+	chemin := filepath.Join(t.TempDir(), "ancien.calque.json")
+	donnees, err := Serialiser(p)
+	if err != nil {
+		t.Fatalf("sérialisation : %v", err)
+	}
+	if err := os.WriteFile(chemin, donnees, 0o600); err != nil {
+		t.Fatalf("écriture : %v", err)
+	}
+
+	relu, err := LirePhysique(chemin)
+	if err != nil {
+		t.Fatalf("un physique en version 1 a été refusé : %v", err)
+	}
+	if relu.VersionRI != 1 {
+		t.Errorf("version relue %d, attendue 1", relu.VersionRI)
+	}
+}
+
 // Jamais un calque vide sur erreur : la suite le prendrait pour une base sans
 // table.
 func TestLirePhysiqueEchoueProprement(t *testing.T) {
@@ -580,10 +605,12 @@ func TestLireLogiqueRefuseUnDocumentIncomplet(t *testing.T) {
 	}{
 		{"document vide", `{}`, "version_ri"},
 		{"version zéro", `{"version_ri": 0, ` + empreinte + `, "espace_de_noms": "App", "entites": []}`, "version_ri"},
-		{"version plus récente", `{"version_ri": 2, ` + empreinte + `, "espace_de_noms": "App", "entites": []}`, "version"},
-		{"entités absentes", `{"version_ri": 1, ` + empreinte + `, "espace_de_noms": "App"}`, "entites"},
-		{"entités nulles", `{"version_ri": 1, ` + empreinte + `, "espace_de_noms": "App", "entites": null}`, "entites"},
-		{"calque physique", `{"version_ri": 1, "source": {}, "tables": []}`, "empreinte_physique"},
+		{"version plus récente", `{"version_ri": 3, ` + empreinte + `, "espace_de_noms": "App", "entites": []}`, "version"},
+		// Une inférence d'une version antérieure, sans ses corrections.
+		{"version antérieure", `{"version_ri": 1, ` + empreinte + `, "espace_de_noms": "App", "entites": []}`, "recalculer"},
+		{"entités absentes", `{"version_ri": 2, ` + empreinte + `, "espace_de_noms": "App"}`, "entites"},
+		{"entités nulles", `{"version_ri": 2, ` + empreinte + `, "espace_de_noms": "App", "entites": null}`, "entites"},
+		{"calque physique", `{"version_ri": 2, "source": {}, "tables": []}`, "empreinte_physique"},
 	}
 
 	for _, c := range cas {
@@ -606,7 +633,7 @@ func TestLireLogiqueRefuseUnDocumentIncomplet(t *testing.T) {
 func TestLireLogiqueAccepteUnCalqueSansEntite(t *testing.T) {
 	t.Parallel()
 
-	contenu := `{"version_ri": 1, "empreinte_physique": "sha256:` + strings.Repeat("0", 64) + `", "espace_de_noms": "App", "entites": []}`
+	contenu := `{"version_ri": 2, "empreinte_physique": "sha256:` + strings.Repeat("0", 64) + `", "espace_de_noms": "App", "entites": []}`
 	l, err := LireLogique(fichierDeTest(t, contenu))
 	if err != nil {
 		t.Fatalf("lecture : %v", err)

@@ -1,5 +1,5 @@
 {
-  "version_ri": 1,
+  "version_ri": 2,
   "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000026",
   "sgbd": "sqlserver",
   "espace_de_noms": "App\\Entity",
@@ -20,7 +20,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -28,7 +27,6 @@
         {
           "nom": "note",
           "colonne": "note",
-          "type_php": "?string",
           "type_doctrine": "text",
           "nullable": true,
           "commentaire": "Recréé en VARCHAR(MAX), à l'identique : text",
@@ -37,7 +35,6 @@
         {
           "nom": "noteUnicode",
           "colonne": "note_unicode",
-          "type_php": "?string",
           "type_doctrine": "string",
           "nullable": true,
           "commentaire": "Recréé en VARCHAR(MAX) il perdrait l'Unicode sans erreur : chaîne et avertissement",
@@ -46,7 +43,6 @@
         {
           "nom": "ancienneNote",
           "colonne": "ancienne_note",
-          "type_php": "?string",
           "type_doctrine": "string",
           "nullable": true,
           "commentaire": "Même cas que nvarchar(max)",
@@ -55,7 +51,6 @@
         {
           "nom": "libelle",
           "colonne": "libelle",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 80,
@@ -82,7 +77,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -90,7 +84,6 @@
         {
           "nom": "message",
           "colonne": "message",
-          "type_php": "?string",
           "type_doctrine": "text",
           "nullable": true,
           "origine": "contrainte"
@@ -98,7 +91,6 @@
         {
           "nom": "detail",
           "colonne": "detail",
-          "type_php": "?string",
           "type_doctrine": "text",
           "nullable": true,
           "commentaire": "varchar sans longueur : illimité, donc text",

@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Ormeau\Doctrine\Tests\Generation;
 
 use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Types\StringType;
+use Doctrine\DBAL\Types\Type;
 use Doctrine\Deprecations\Deprecation;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Id\SequenceGenerator;
@@ -61,6 +63,17 @@ final class MappingTest extends TestCase
                     require $sortie . '/' . str_replace('\\', '/', substr($classe, strlen($prefixe))) . '.php';
                 }
             });
+
+            // Un type forcé par décision que DBAL ne connaît pas est un type du
+            // projet, que le projet enregistre : le test en fait autant, sur le
+            // type le plus neutre, puisque seul le mapping est éprouvé ici.
+            foreach ([...$calque->entites, ...$calque->traits] as $porteur) {
+                foreach ($porteur->proprietes as $propriete) {
+                    if (!Type::hasType($propriete->typeDoctrine)) {
+                        Type::addType($propriete->typeDoctrine, StringType::class);
+                    }
+                }
+            }
 
             $gestionnaire = self::gestionnaire($sortie);
             [$metadonnees, $depreciations] = self::chargerEnEcoutant($gestionnaire);

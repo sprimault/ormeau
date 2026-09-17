@@ -134,7 +134,7 @@ final class GenererCommandeTest extends TestCase
         try {
             $calque = $entree . '/balises.logique.json';
             file_put_contents($calque, json_encode([
-                'version_ri' => 1,
+                'version_ri' => 2,
                 'empreinte_physique' => 'sha256:' . str_repeat('b', 64),
                 'espace_de_noms' => 'App\\Entity',
                 'entites' => [[

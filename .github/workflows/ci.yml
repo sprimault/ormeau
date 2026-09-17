@@ -107,10 +107,10 @@ jobs:
         run: |
           python -m pip install --quiet check-jsonschema
           check-jsonschema --check-metaschema schemas/*.json
-          check-jsonschema --schemafile schemas/calque-physique.v1.json \
+          check-jsonschema --schemafile schemas/calque-physique.v2.json \
             tests/reference/*.calque.json tests/reference/inference/*/physique.json \
             tests/reference/extraction/*/*.calque.json
-          check-jsonschema --schemafile schemas/calque-logique.v1.json \
+          check-jsonschema --schemafile schemas/calque-logique.v2.json \
             tests/reference/inference/*/logique.json
 
   # Le seul endroit où les pilotes rencontrent un vrai PostgreSQL et un vrai

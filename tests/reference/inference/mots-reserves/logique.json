@@ -1,5 +1,5 @@
 {
-  "version_ri": 1,
+  "version_ri": 2,
   "empreinte_physique": "sha256:000000000000000000000000000000000000000000000000000000000000001b",
   "sgbd": "postgres",
   "espace_de_noms": "App\\Entity",
@@ -20,7 +20,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -28,7 +27,6 @@
         {
           "nom": "userId",
           "colonne": "user_id",
-          "type_php": "?int",
           "type_doctrine": "integer",
           "nullable": true,
           "origine": "contrainte"
@@ -70,7 +68,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -78,7 +75,6 @@
         {
           "nom": "order",
           "colonne": "order",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -86,7 +82,6 @@
         {
           "nom": "left",
           "colonne": "left",
-          "type_php": "?string",
           "type_doctrine": "text",
           "nullable": true,
           "origine": "contrainte"
@@ -94,7 +89,6 @@
         {
           "nom": "between",
           "colonne": "between",
-          "type_php": "?int",
           "type_doctrine": "integer",
           "nullable": true,
           "origine": "contrainte"

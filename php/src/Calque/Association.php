@@ -33,10 +33,6 @@ final class Association
      * @param list<ColonneJointure> $jointure           colonnes portantes, côté propriétaire d'un lien
      *                                                  sans table de jointure
      * @param TableJointure|null    $tableJointure      table d'association d'un plusieurs-vers-plusieurs
-     * @param bool                  $orphelinsSupprimes orphanRemoval ; produit par aucune version
-     *                                                  d'Ormeau et retiré à la prochaine version du
-     *                                                  format : la génération écarte l'entité qui le
-     *                                                  porte
      */
     public function __construct(
         public readonly string $nom,
@@ -48,7 +44,6 @@ final class Association
         public readonly ?string $mappeePar = null,
         public readonly array $jointure = [],
         public readonly ?TableJointure $tableJointure = null,
-        public readonly bool $orphelinsSupprimes = false,
     ) {}
 
     /**
@@ -70,7 +65,6 @@ final class Association
         $mappeePar = Lecture::chaineOptionnelle($donnees, 'mappee_par', $chemin);
         $jointure = Lecture::objets($donnees, 'jointure', $chemin, ColonneJointure::depuisTableau(...));
         $tableJointure = Lecture::objet($donnees, 'table_jointure', $chemin, TableJointure::depuisTableau(...));
-        $orphelinsSupprimes = Lecture::booleen($donnees, 'orphelins_supprimes', $chemin, defaut: false);
 
         return new self(
             $nom,
@@ -82,7 +76,6 @@ final class Association
             $mappeePar,
             $jointure,
             $tableJointure,
-            $orphelinsSupprimes,
         );
     }
 }

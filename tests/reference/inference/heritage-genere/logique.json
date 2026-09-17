@@ -1,5 +1,5 @@
 {
-  "version_ri": 1,
+  "version_ri": 2,
   "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000024",
   "sgbd": "postgres",
   "espace_de_noms": "App\\Entity",
@@ -21,7 +21,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -29,7 +28,6 @@
         {
           "nom": "nature",
           "colonne": "nature",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 1,
@@ -41,7 +39,6 @@
         {
           "nom": "quantite",
           "colonne": "quantite",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "defaut": "1",
@@ -50,7 +47,6 @@
         {
           "nom": "prixUnitaire",
           "colonne": "prix_unitaire",
-          "type_php": "string",
           "type_doctrine": "decimal",
           "nullable": false,
           "precision": 12,
@@ -60,7 +56,6 @@
         {
           "nom": "totalHt",
           "colonne": "total_ht",
-          "type_php": "string",
           "type_doctrine": "decimal",
           "nullable": false,
           "precision": 14,
@@ -101,7 +96,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -109,7 +103,6 @@
         {
           "nom": "echeance",
           "colonne": "echeance",
-          "type_php": "\\DateTimeImmutable",
           "type_doctrine": "date_immutable",
           "nullable": false,
           "origine": "contrainte"

@@ -1,6 +1,6 @@
 {
-  "version_ri": 1,
-  "empreinte_physique": "sha256:e6634c9400230cfd68a0b18fb3bf66bc31249b31398f698059abe30f961f458d",
+  "version_ri": 2,
+  "empreinte_physique": "sha256:0c8ef3b1f7528c8f7eab03e557eb7a9edca6045f1ee4699ba41302ba138070de",
   "sgbd": "postgres",
   "espace_de_noms": "App\\Entity",
   "entites": [
@@ -24,7 +24,6 @@
         {
           "nom": "avoId",
           "colonne": "avo_id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -32,7 +31,6 @@
         {
           "nom": "avoFacId",
           "colonne": "avo_fac_id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -56,7 +54,6 @@
         {
           "nom": "catId",
           "colonne": "cat_id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -64,7 +61,6 @@
         {
           "nom": "catLibelle",
           "colonne": "cat_libelle",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 60,
@@ -73,7 +69,6 @@
         {
           "nom": "catParent",
           "colonne": "cat_parent",
-          "type_php": "?int",
           "type_doctrine": "integer",
           "nullable": true,
           "origine": "contrainte"
@@ -122,7 +117,6 @@
         {
           "nom": "cliId",
           "colonne": "cli_id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -130,7 +124,6 @@
         {
           "nom": "cliNom",
           "colonne": "cli_nom",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 120,
@@ -139,7 +132,6 @@
         {
           "nom": "cliSiret",
           "colonne": "cli_siret",
-          "type_php": "?string",
           "type_doctrine": "string",
           "nullable": true,
           "longueur": 14,
@@ -151,7 +143,6 @@
         {
           "nom": "cliStatut",
           "colonne": "cli_statut",
-          "type_php": "TClientCliStatut",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 20,
@@ -162,7 +153,6 @@
         {
           "nom": "cliComId",
           "colonne": "cli_com_id",
-          "type_php": "?int",
           "type_doctrine": "integer",
           "nullable": true,
           "origine": "contrainte"
@@ -170,7 +160,6 @@
         {
           "nom": "cliCaTtc",
           "colonne": "cli_ca_ttc",
-          "type_php": "?string",
           "type_doctrine": "decimal",
           "nullable": true,
           "precision": 12,
@@ -180,7 +169,6 @@
         {
           "nom": "cliCaHt",
           "colonne": "cli_ca_ht",
-          "type_php": "?string",
           "type_doctrine": "decimal",
           "nullable": true,
           "precision": 12,
@@ -196,7 +184,6 @@
         {
           "nom": "createdAt",
           "colonne": "created_at",
-          "type_php": "\\DateTimeImmutable",
           "type_doctrine": "datetimetz_immutable",
           "nullable": false,
           "defaut_expression": "horodatage_courant",
@@ -205,7 +192,6 @@
         {
           "nom": "updatedAt",
           "colonne": "updated_at",
-          "type_php": "?\\DateTimeImmutable",
           "type_doctrine": "datetimetz_immutable",
           "nullable": true,
           "origine": "contrainte"
@@ -337,7 +323,6 @@
         {
           "nom": "adrId",
           "colonne": "adr_id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -345,7 +330,6 @@
         {
           "nom": "cliId",
           "colonne": "cli_id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "unique": true,
@@ -354,7 +338,6 @@
         {
           "nom": "adrRue",
           "colonne": "adr_rue",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 200,
@@ -407,7 +390,6 @@
         {
           "nom": "cliId",
           "colonne": "cli_id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "commentaire": "Client du contact",
@@ -416,7 +398,6 @@
         {
           "nom": "ctcId",
           "colonne": "ctc_id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -424,7 +405,6 @@
         {
           "nom": "role",
           "colonne": "role",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 30,
@@ -466,7 +446,6 @@
         {
           "nom": "cliId",
           "colonne": "cli_id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -474,7 +453,6 @@
         {
           "nom": "remiseTaux",
           "colonne": "remise_taux",
-          "type_php": "string",
           "type_doctrine": "decimal",
           "nullable": false,
           "precision": 4,
@@ -517,7 +495,6 @@
         {
           "nom": "cmdId",
           "colonne": "cmd_id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -525,7 +502,6 @@
         {
           "nom": "cmdCanal",
           "colonne": "cmd_canal",
-          "type_php": "Canal",
           "type_doctrine": "string",
           "nullable": false,
           "enumeration": "Canal",
@@ -534,7 +510,6 @@
         {
           "nom": "cmdEtiquettes",
           "colonne": "cmd_etiquettes",
-          "type_php": "?string",
           "type_doctrine": "string",
           "nullable": true,
           "origine": "contrainte"
@@ -542,7 +517,6 @@
         {
           "nom": "cmdRef",
           "colonne": "cmd_ref",
-          "type_php": "string",
           "type_doctrine": "guid",
           "nullable": false,
           "origine": "contrainte"
@@ -550,7 +524,6 @@
         {
           "nom": "cmdHeure",
           "colonne": "cmd_heure",
-          "type_php": "?\\DateTimeImmutable",
           "type_doctrine": "time_immutable",
           "nullable": true,
           "defaut_expression": "heure_courante",
@@ -559,7 +532,6 @@
         {
           "nom": "cmdPayCode",
           "colonne": "cmd_pay_code",
-          "type_php": "?string",
           "type_doctrine": "string",
           "nullable": true,
           "longueur": 2,
@@ -569,7 +541,6 @@
         {
           "nom": "cmdOptions",
           "colonne": "cmd_options",
-          "type_php": "?array",
           "type_doctrine": "jsonb",
           "nullable": true,
           "origine": "contrainte"
@@ -577,7 +548,6 @@
         {
           "nom": "cmdNotes",
           "colonne": "cmd_notes",
-          "type_php": "?string",
           "type_doctrine": "text",
           "nullable": true,
           "origine": "contrainte"
@@ -585,7 +555,6 @@
         {
           "nom": "cmdTrace",
           "colonne": "cmd_trace",
-          "type_php": "?array",
           "type_doctrine": "json",
           "nullable": true,
           "origine": "contrainte"
@@ -626,7 +595,6 @@
         {
           "nom": "comId",
           "colonne": "com_id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -634,7 +602,6 @@
         {
           "nom": "comNom",
           "colonne": "com_nom",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 80,
@@ -643,7 +610,6 @@
         {
           "nom": "comActif",
           "colonne": "com_actif",
-          "type_php": "bool",
           "type_doctrine": "boolean",
           "nullable": false,
           "defaut": "true",
@@ -652,7 +618,6 @@
         {
           "nom": "comEmail",
           "colonne": "com_email",
-          "type_php": "?string",
           "type_doctrine": "string",
           "nullable": true,
           "longueur": 120,
@@ -661,7 +626,6 @@
         {
           "nom": "comEmpreinte",
           "colonne": "com_empreinte",
-          "type_php": "?string",
           "type_doctrine": "blob",
           "nullable": true,
           "origine": "contrainte"
@@ -706,7 +670,6 @@
         {
           "nom": "facId",
           "colonne": "fac_id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -714,7 +677,6 @@
         {
           "nom": "facCliId",
           "colonne": "fac_cli_id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -722,7 +684,6 @@
         {
           "nom": "facTotal",
           "colonne": "fac_total",
-          "type_php": "string",
           "type_doctrine": "decimal",
           "nullable": false,
           "precision": 12,
@@ -732,7 +693,6 @@
         {
           "nom": "facDate",
           "colonne": "fac_date",
-          "type_php": "\\DateTimeImmutable",
           "type_doctrine": "date_immutable",
           "nullable": false,
           "defaut_expression": "date_courante",
@@ -741,7 +701,6 @@
         {
           "nom": "facSaisie",
           "colonne": "fac_saisie",
-          "type_php": "?\\DateTimeImmutable",
           "type_doctrine": "date_immutable",
           "nullable": true,
           "defaut_expression": "date_courante",
@@ -750,7 +709,6 @@
         {
           "nom": "facTaux",
           "colonne": "fac_taux",
-          "type_php": "?float",
           "type_doctrine": "smallfloat",
           "nullable": true,
           "origine": "contrainte"
@@ -758,7 +716,6 @@
         {
           "nom": "facJeton",
           "colonne": "fac_jeton",
-          "type_php": "?string",
           "type_doctrine": "blob",
           "nullable": true,
           "origine": "contrainte"
@@ -766,7 +723,6 @@
         {
           "nom": "facNiveau",
           "colonne": "fac_niveau",
-          "type_php": "?int",
           "type_doctrine": "smallint",
           "nullable": true,
           "origine": "contrainte"
@@ -784,7 +740,6 @@
         {
           "nom": "horodatage",
           "colonne": "horodatage",
-          "type_php": "\\DateTimeImmutable",
           "type_doctrine": "datetimetz_immutable",
           "nullable": false,
           "origine": "contrainte"
@@ -792,7 +747,6 @@
         {
           "nom": "message",
           "colonne": "message",
-          "type_php": "?string",
           "type_doctrine": "text",
           "nullable": true,
           "origine": "contrainte"
@@ -816,7 +770,6 @@
         {
           "nom": "payCode",
           "colonne": "pay_code",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 2,
@@ -826,7 +779,6 @@
         {
           "nom": "payLibelle",
           "colonne": "pay_libelle",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 60,
@@ -862,7 +814,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -870,7 +821,6 @@
         {
           "nom": "order",
           "colonne": "order",
-          "type_php": "?int",
           "type_doctrine": "integer",
           "nullable": true,
           "origine": "contrainte"
@@ -878,7 +828,6 @@
         {
           "nom": "select",
           "colonne": "select",
-          "type_php": "?string",
           "type_doctrine": "string",
           "nullable": true,
           "longueur": 10,
@@ -887,7 +836,6 @@
         {
           "nom": "libellé",
           "colonne": "Libellé",
-          "type_php": "?string",
           "type_doctrine": "string",
           "nullable": true,
           "longueur": 30,
@@ -928,7 +876,6 @@
         {
           "nom": "tagId",
           "colonne": "tag_id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -936,7 +883,6 @@
         {
           "nom": "tagLibelle",
           "colonne": "tag_libelle",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 40,

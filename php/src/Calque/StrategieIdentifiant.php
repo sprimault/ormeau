@@ -18,13 +18,6 @@ enum StrategieIdentifiant: string
     /** Séquence nommée, lue avant l'insertion. */
     case Sequence = 'sequence';
 
-    /**
-     * Produite par aucune version d'Ormeau : une table sans clé primaire n'a
-     * pas d'identifiant du tout. Déclarée en version 1 du format, retirée à la
-     * suivante ; la génération écarte d'ici là l'entité qui la porte.
-     */
-    case Aucune = 'aucune';
-
     /** Valeur fournie par l'application. */
     case Assignee = 'assignee';
 }

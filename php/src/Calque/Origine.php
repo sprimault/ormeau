@@ -20,7 +20,7 @@ enum Origine: string
     case Verification = 'verification';
 
     /**
-     * Un échantillon de valeurs distinctes. Aucune version 1 ne la produit :
+     * Un échantillon de valeurs distinctes. Aucune version ne la produit encore :
      * elle attend l'échantillonnage.
      */
     case Cardinalite = 'cardinalite';
