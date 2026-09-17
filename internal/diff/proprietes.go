@@ -127,6 +127,13 @@ var proprietesIndex = []propriete[calque.Index]{
 		}
 		return liste(ordres)
 	}},
+	{"nulls", func(i *calque.Index) string {
+		nulls := make([]string, len(i.Nulls))
+		for rang, n := range i.Nulls {
+			nulls[rang] = string(n)
+		}
+		return liste(nulls)
+	}},
 }
 
 // proprietesVerification : l'expression fait l'identité.

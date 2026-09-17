@@ -168,6 +168,10 @@ dans `Base/`, au lieu du type PHP de la colonne d'origine, qui levait une
 - **Le nom de la contrainte d'un défaut dans le calque physique**, optionnel :
   `defaut.nom`, lu par le pilote SQL Server, où un défaut est une contrainte
   nommée. PostgreSQL ne nomme pas ses défauts.
+- **La place des `NULL` d'une colonne d'index dans le calque physique**,
+  optionnelle : `nulls`, lue par le pilote PostgreSQL pour un index
+  `NULLS FIRST` ou `NULLS LAST` qui quitte le défaut de son sens de tri. SQL
+  Server ne sait pas la déclarer.
 
 ### Modifié
 
@@ -311,6 +315,10 @@ soon as the type returned an object.
 - **The name of a default's constraint in the physical layer**, optional:
   `defaut.nom`, read by the SQL Server driver, where a default is a named
   constraint. PostgreSQL does not name its defaults.
+- **Where an index column places its `NULL`s in the physical layer**,
+  optional: `nulls`, read by the PostgreSQL driver for a `NULLS FIRST` or
+  `NULLS LAST` index that departs from the default of its sort order. SQL
+  Server cannot declare it.
 
 ### Changed
 

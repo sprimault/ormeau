@@ -4,8 +4,8 @@
     "sgbd": "postgres",
     "version": "17.11",
     "catalogue": "gescom",
-    "extrait_le": "2026-09-17T13:44:15Z",
-    "empreinte": "sha256:28a8006b3537b3c722e4483e75b35db492414966b7b01f4d4e100f7248e5a740"
+    "extrait_le": "2026-09-17T15:16:57Z",
+    "empreinte": "sha256:3001a16dc57ede46d20dcc44682eb58785ed72e7bf8cc138647e0e16848142a1"
   },
   "tables": [
     {
@@ -254,6 +254,17 @@
           "methode": "btree",
           "operateurs": [
             "text_pattern_ops"
+          ]
+        },
+        {
+          "nom": "ix_cli_siret_nulls",
+          "colonnes": [
+            "cli_siret"
+          ],
+          "unique": false,
+          "methode": "btree",
+          "nulls": [
+            "premiers"
           ]
         }
       ],

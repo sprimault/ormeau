@@ -860,6 +860,14 @@ export interface Index {
    * sert pas les tris que l'original servait.
    */
   ordres?: OrdreIndex[];
+  /**
+   * Nulls dit où chaque colonne range ses NULL, dans le même ordre. Absent
+   * quand toutes suivent la règle du SGBD pour leur sens de tri — sous
+   * PostgreSQL, en fin en ascendant et en tête en descendant —, complet
+   * sinon. Absent d'un calque extrait par un pilote qui ne le lit pas :
+   * position inconnue.
+   */
+  nulls?: PositionNulls[];
 }
 /**
  * OrdreIndex est le sens de tri d'une colonne d'index. Vocabulaire fermé.
@@ -873,6 +881,19 @@ export const OrdreAscendant: OrdreIndex = "asc";
  * Sens de tri.
  */
 export const OrdreDescendant: OrdreIndex = "desc";
+/**
+ * PositionNulls est la place des NULL dans une colonne d'index. Vocabulaire
+ * fermé.
+ */
+export type PositionNulls = string;
+/**
+ * Places des NULL.
+ */
+export const NullsPremiers: PositionNulls = "premiers";
+/**
+ * Places des NULL.
+ */
+export const NullsDerniers: PositionNulls = "derniers";
 /**
  * Verification est un CHECK, verbatim parce que sa syntaxe dépend du dialecte.
  * C'est la source d'énumération la plus fiable, avant tout échantillonnage.

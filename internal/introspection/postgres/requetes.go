@@ -105,7 +105,7 @@ ORDER BY n.nspname, c.relname
 // trivial, et c'est ce que fait pg_get_indexdef lui-même.
 //
 // indoption porte un jeu de bits par colonne, apparié de la même façon : le
-// premier dit DESC. Le second, NULLS FIRST, n'a pas de place dans le calque.
+// premier dit DESC, le second NULLS FIRST.
 const requeteColonnesIndex = `
 SELECT n.nspname     AS schema,
        c.relname     AS table_nom,
@@ -114,6 +114,7 @@ SELECT n.nspname     AS schema,
        o.opcname     AS classe_operateurs,
        o.opcdefault  AS classe_par_defaut,
        (ix.indoption[k.ordinalite - 1] & 1) = 1 AS descendant,
+       (ix.indoption[k.ordinalite - 1] & 2) = 2 AS nulls_premiers,
        k.ordinalite
 FROM pg_index ix
          JOIN pg_class c ON c.oid = ix.indrelid
