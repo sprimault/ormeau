@@ -39,7 +39,7 @@ func Inferer(p *calque.Physique, d *Decisions) (*calque.Logique, []calque.Averti
 	if d == nil {
 		d = &Decisions{}
 	}
-	d, avertissements := sansNomsInvalides(d, p.Source.Schema)
+	d, avertissements := sansNomsInvalides(d)
 
 	logique := &calque.Logique{
 		VersionRI:         calque.VersionCourante,
@@ -58,11 +58,13 @@ func Inferer(p *calque.Physique, d *Decisions) (*calque.Logique, []calque.Averti
 	// Le préfixe se cherche sur l'ensemble des tables, y compris celles qu'une
 	// décision écarte : elles suivent la même convention de nommage, et les
 	// retirer du calcul ferait dépendre le préfixe trouvé de ce qu'on génère.
+	// Il vaut pour toutes les tables, quel que soit leur schéma : la cible est
+	// la clé qui le règle.
 	prefixes, detecte := prefixesRetenus(p.Tables, d)
 	if detecte != "" {
 		avertissements = append(avertissements, calque.Avertissement{
 			Code:  calque.CodePrefixeDetecte,
-			Cible: p.Source.Schema,
+			Cible: "prefixes_a_retirer",
 			Message: "préfixe " + detecte + " commun aux " + strconv.Itoa(len(p.Tables)) +
 				" tables, conservé ; prefixes_a_retirer le retirerait des noms de classes",
 			Resolution: calque.ResolutionAucune,

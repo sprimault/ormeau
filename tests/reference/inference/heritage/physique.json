@@ -4,7 +4,6 @@
     "sgbd": "postgres",
     "version": "16.2",
     "catalogue": "rh",
-    "schema": "public",
     "extrait_le": "2026-01-01T00:00:00Z",
     "empreinte": "sha256:000000000000000000000000000000000000000000000000000000000000000a"
   },

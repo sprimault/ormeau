@@ -78,7 +78,7 @@ func TestExtraireProduitUnCalqueValide(t *testing.T) {
 	if a := p.Valider(); len(a) != 0 {
 		t.Errorf("calque invalide : %+v", a)
 	}
-	if p.Source.SGBD != "sqlserver" || p.Source.Catalogue != "gescom" || p.Source.Schema != "ventes" {
+	if p.Source.SGBD != "sqlserver" || p.Source.Catalogue != "gescom" {
 		t.Errorf("source : %+v", p.Source)
 	}
 	if p.Source.Version == "" {
@@ -258,9 +258,6 @@ func TestExtrairePorteeSansSchema(t *testing.T) {
 
 	if p.TableParNom("ventes", "t_client") == nil {
 		t.Error("ventes.t_client absente d'une extraction sans schema demande")
-	}
-	if p.Source.Schema != "ventes" {
-		t.Errorf("schema de la source : %q", p.Source.Schema)
 	}
 }
 

@@ -47,7 +47,7 @@ func (p *pilote) Extraire(ctx context.Context, portee introspection.Portee) (*ca
 
 	err := introspection.Derouler(ctx,
 		introspection.Passe{Etape: introspection.EtapeSource, Lire: func(ctx context.Context) (err error) {
-			physique.Source, err = p.lireSource(ctx, schemas[0])
+			physique.Source, err = p.lireSource(ctx)
 			return err
 		}},
 		introspection.Passe{Etape: introspection.EtapeTables, Lire: func(ctx context.Context) error {
@@ -168,11 +168,11 @@ func (j *jeuDeTables) retenues(portee introspection.Portee) []calque.Table {
 // lireSource renseigne l'en-tête du calque. La version seule, sans l'édition
 // que Decrire affiche : l'édition dit ce que le serveur permet, pas ce que la
 // base contient, et elle n'a pas à entrer dans l'empreinte.
-func (p *pilote) lireSource(ctx context.Context, schema string) (calque.Source, error) {
+func (p *pilote) lireSource(ctx context.Context) (calque.Source, error) {
 	ctx, annuler := context.WithTimeout(ctx, delaiRequete)
 	defer annuler()
 
-	s := calque.Source{SGBD: "sqlserver", Schema: schema}
+	s := calque.Source{SGBD: "sqlserver"}
 	var edition string
 	if err := p.db.QueryRowContext(ctx, requeteServeur).Scan(&s.Version, &edition, &s.Catalogue); err != nil {
 		return s, fmt.Errorf("lecture de la source: %w", err)

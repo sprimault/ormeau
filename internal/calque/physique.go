@@ -16,11 +16,14 @@ type Physique struct {
 }
 
 // Source identifie la base d'origine. Jamais le DSN : un calque se versionne.
+//
+// Pas de schéma : chaque objet porte le sien. La version 1 en nommait un seul,
+// le premier de la portée, faux dès qu'une extraction en couvrait plusieurs ;
+// le décodage d'un calque v1 l'ignore.
 type Source struct {
 	SGBD      string `json:"sgbd"`
 	Version   string `json:"version"`
 	Catalogue string `json:"catalogue"`
-	Schema    string `json:"schema"`
 	// ExtraitLe et Empreinte sont exclus du calcul de l'empreinte : sans ça,
 	// deux extractions identiques produiraient des empreintes différentes.
 	ExtraitLe string `json:"extrait_le"`

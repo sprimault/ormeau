@@ -27,7 +27,6 @@ func physiqueDeReference() *Physique {
 			SGBD:      "postgres",
 			Version:   "16.2",
 			Catalogue: "gescom",
-			Schema:    "public",
 			ExtraitLe: "2026-08-22T10:00:00Z",
 		},
 		Tables: []Table{
@@ -491,7 +490,8 @@ func TestLirePhysiqueAccepteLaVersionCourante(t *testing.T) {
 }
 
 // Un physique de la version 1 se lit toujours : l'extraire à nouveau
-// demanderait de retourner sur la base d'un client.
+// demanderait de retourner sur la base d'un client. Il porte source.schema,
+// que la version 2 a retiré.
 func TestLirePhysiqueAccepteLaVersionUn(t *testing.T) {
 	t.Parallel()
 
@@ -502,6 +502,11 @@ func TestLirePhysiqueAccepteLaVersionUn(t *testing.T) {
 	if err != nil {
 		t.Fatalf("sérialisation : %v", err)
 	}
+	const catalogue = `"catalogue": "gescom",`
+	if !strings.Contains(string(donnees), catalogue) {
+		t.Fatalf("%s absent de la sérialisation", catalogue)
+	}
+	donnees = []byte(strings.Replace(string(donnees), catalogue, catalogue+`"schema": "public",`, 1))
 	if err := os.WriteFile(chemin, donnees, 0o600); err != nil {
 		t.Fatalf("écriture : %v", err)
 	}
@@ -567,7 +572,7 @@ func fichierDeTest(t *testing.T, contenu string) string {
 func TestLirePhysiqueRefuseUnDocumentIncomplet(t *testing.T) {
 	t.Parallel()
 
-	const source = `"source": {"sgbd": "postgres", "version": "17", "catalogue": "c", "schema": "public", "extrait_le": "", "empreinte": ""}`
+	const source = `"source": {"sgbd": "postgres", "version": "17", "catalogue": "c", "extrait_le": "", "empreinte": ""}`
 	cas := []struct {
 		nom, contenu, champ string
 	}{
@@ -649,7 +654,7 @@ func TestChampsOptionnelsAbsentsDeLaSortie(t *testing.T) {
 
 	minimal := &Physique{
 		VersionRI: VersionCourante,
-		Source:    Source{SGBD: "postgres", Version: "16.2", Catalogue: "c", Schema: "public"},
+		Source:    Source{SGBD: "postgres", Version: "16.2", Catalogue: "c"},
 		Tables: []Table{{
 			Nom:      "t",
 			Schema:   "public",

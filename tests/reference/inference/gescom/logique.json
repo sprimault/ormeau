@@ -1,6 +1,6 @@
 {
   "version_ri": 2,
-  "empreinte_physique": "sha256:93007e1745b7310a39bba876b4ec3be85a64d22150aca2b5c84c4ed112177ca4",
+  "empreinte_physique": "sha256:28a8006b3537b3c722e4483e75b35db492414966b7b01f4d4e100f7248e5a740",
   "sgbd": "postgres",
   "espace_de_noms": "App\\Entity",
   "entites": [
@@ -946,13 +946,6 @@
   ],
   "avertissements": [
     {
-      "code": "prefixe_detecte",
-      "cible": "gescom",
-      "message": "préfixe t_ commun aux 14 tables, conservé ; prefixes_a_retirer le retirerait des noms de classes",
-      "resolution": "aucune",
-      "confiance": 0.8
-    },
-    {
       "code": "cle_primaire_composite",
       "cible": "gescom.t_client_contact",
       "message": "clé primaire sur cliId, ctcId",
@@ -1000,6 +993,13 @@
       "message": "aucune clé primaire : Doctrine refusera cette entité en l'état",
       "resolution": "aucune",
       "confiance": 1
+    },
+    {
+      "code": "prefixe_detecte",
+      "cible": "prefixes_a_retirer",
+      "message": "préfixe t_ commun aux 14 tables, conservé ; prefixes_a_retirer le retirerait des noms de classes",
+      "resolution": "aucune",
+      "confiance": 0.8
     }
   ]
 }

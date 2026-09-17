@@ -104,7 +104,7 @@ func cite(nom string) string {
 // Les décisions reçues ne sont pas modifiées : le fichier prérempli les
 // réécrit telles quelles, et l'utilisateur retrouve sa ligne à côté de
 // l'avertissement.
-func sansNomsInvalides(d *Decisions, schema string) (*Decisions, []calque.Avertissement) {
+func sansNomsInvalides(d *Decisions) (*Decisions, []calque.Avertissement) {
 	copie := *d
 	var avertissements []calque.Avertissement
 	refuser := func(cible, message string) {
@@ -119,7 +119,7 @@ func sansNomsInvalides(d *Decisions, schema string) (*Decisions, []calque.Averti
 
 	if raison := raisonEspaceDeNoms(d.EspaceDeNoms); d.EspaceDeNoms != "" && raison != "" {
 		copie.EspaceDeNoms = ""
-		refuser(schema, "espace_de_noms refusé : "+raison+" ; "+espaceDeNoms(&copie)+" conservé")
+		refuser("espace_de_noms", "espace_de_noms refusé : "+raison+" ; "+espaceDeNoms(&copie)+" conservé")
 	}
 
 	for _, table := range slices.Sorted(maps.Keys(d.Renommages)) {

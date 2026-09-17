@@ -44,7 +44,10 @@ calque logique perd `type_php`, la stratégie d'identifiant `aucune` et
 `orphelins_supprimes`, que rien ne produisait ; un générateur tiers déduit le
 type PHP de `type_doctrine`. Le calque physique ne reporte plus l'index qui
 soutient une contrainte d'unicité, que la contrainte dit déjà : il est retiré à
-la lecture d'un calque en version 1.
+la lecture d'un calque en version 1. Il perd aussi `source.schema`, qui ne
+nommait que le premier schéma extrait : chaque objet porte le sien.
+`prefixe_detecte` et un `espace_de_noms` refusé visent désormais la clé de
+décision qui les règle.
 
 **Un type Doctrine forcé que le générateur ne connaît pas se déclare `mixed`**
 dans `Base/`, au lieu du type PHP de la colonne d'origine, qui levait une
@@ -168,7 +171,9 @@ with `ormeau inferer <base>.calque.json --decisions <base>.decisions.yaml
 nothing produced; a third-party generator derives the PHP type from
 `type_doctrine`. The physical layer no longer reports the index backing a
 unique constraint, which the constraint already states: it is removed when a
-version 1 layer is read.
+version 1 layer is read. It also loses `source.schema`, which named only the
+first schema extracted: each object carries its own. `prefixe_detecte` and an
+invalid `espace_de_noms` now target the decision key that settles them.
 
 **A forced Doctrine type the generator does not know is declared `mixed`** in
 `Base/`, instead of the source column's PHP type, which raised a `TypeError` as

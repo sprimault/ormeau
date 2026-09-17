@@ -61,7 +61,7 @@ func (p *piloteExtracteur) Extraire(ctx context.Context, _ introspection.Portee)
 func physiqueDeTest() *calque.Physique {
 	return &calque.Physique{
 		VersionRI: calque.VersionCourante,
-		Source:    calque.Source{SGBD: "postgres", Version: "17.2", Catalogue: "gescom", Schema: "public"},
+		Source:    calque.Source{SGBD: "postgres", Version: "17.2", Catalogue: "gescom"},
 		Tables: []calque.Table{{
 			Nom:    "client",
 			Schema: "public",

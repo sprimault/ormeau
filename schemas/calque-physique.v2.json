@@ -22,13 +22,13 @@
   "$defs": {
     "source": {
       "type": "object",
-      "required": ["sgbd", "version", "catalogue", "schema", "extrait_le", "empreinte"],
+      "description": "Pas de schéma : chaque table, vue, séquence et type énuméré porte le sien. La version 1 en nommait un seul, faux dès qu'une extraction en couvrait plusieurs.",
+      "required": ["sgbd", "version", "catalogue", "extrait_le", "empreinte"],
       "additionalProperties": false,
       "properties": {
         "sgbd": { "enum": ["postgres", "mysql", "mariadb", "sqlserver", "sqlite", "oracle"] },
         "version": { "type": "string" },
         "catalogue": { "type": "string" },
-        "schema": { "type": "string" },
         "extrait_le": {
           "description": "Isolé ici et exclu de l'empreinte, pour que deux extractions identiques produisent la même empreinte.",
           "type": "string",
