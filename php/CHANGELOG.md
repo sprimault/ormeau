@@ -150,7 +150,8 @@ dans `Base/`, au lieu du type PHP de la colonne d'origine, qui levait une
 
 - **L'arbitrage dit où se traite chaque avertissement.** Il comptait « à
   traiter » ce qu'aucune action de l'écran ne règle. Le compteur ne compte plus
-  que ce qui se décide sur place, et les autres avertissements disent en tête
+  que ce qui se décide sur place, un badge gris compte le reste dans la liste
+  des entités, et les autres avertissements disent en tête
   s'ils se font dans la sélection, le fichier de décisions, la base ou le code
   de l'application. Un texte Unicode déclaré JSON se force en `json` d'un clic,
   sous le nouveau code `texte_unicode_json_propose`.
@@ -269,7 +270,8 @@ soon as the type returned an object.
 
 - **Arbitration says where each warning is dealt with.** It counted as "to
   handle" what no action on the screen settles. The counter now only counts
-  what is decided there, and the other warnings state first whether they are
+  what is decided there, a grey badge counts the rest in the entity list, and
+  the other warnings state first whether they are
   done in the table selection, the decisions file, the database or the
   application code. Unicode text declared JSON is forced to `json` in one
   click, under the new code `texte_unicode_json_propose`.

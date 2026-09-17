@@ -70,7 +70,7 @@ export function EntityList({ lignes, active, onActiver }: ProprietesListe) {
                     <span className="block truncate font-mono font-medium">{ligne.nom}</span>
                     <span className="block truncate font-mono text-slate-500">{ligne.qualifiee}</span>
                   </span>
-                  <PendingBadge n={ligne.aTraiter} />
+                  <PendingBadge aTraiter={ligne.aTraiter} autres={ligne.autres} />
                 </button>
               </li>
             );

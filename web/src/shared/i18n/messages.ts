@@ -261,6 +261,7 @@ const fr = {
   'arbitrage.entities.filter': 'Filtrer les entités',
   'arbitrage.entities.none': 'Aucune entité à générer dans ce calque.',
   'arbitrage.pending': '{n} à traiter',
+  'arbitrage.warningsCount': '{n} avertissement(s)',
 
   'arbitrage.className': 'Nom de classe',
   'arbitrage.proposal': 'Proposé : {nom} (confiance {pct} %)',
@@ -289,7 +290,7 @@ const fr = {
 
   'help.label': 'Aide',
   'arbitrage.help.entities':
-    'Une entité par table extraite : la classe PHP que la génération produira. Le nombre en orange compte les avertissements qui se règlent dans cet écran.',
+    'Une entité par table extraite : la classe PHP que la génération produira. En orange, les avertissements qui se règlent dans cet écran ; en gris, ceux qui se traitent ailleurs ou n’informent que.',
   'arbitrage.help.className':
     'Nom de la classe PHP générée pour cette table. Laissé vide, c’est le nom affiché en gris qui s’applique. Le nom saisi est enregistré dans le fichier de décisions et rejoué à chaque génération.',
   'arbitrage.help.warnings':
@@ -602,6 +603,7 @@ const en: Record<MessageKey, string> = {
   'arbitrage.entities.filter': 'Filter entities',
   'arbitrage.entities.none': 'No entity to generate in this layer.',
   'arbitrage.pending': '{n} to handle',
+  'arbitrage.warningsCount': '{n} warning(s)',
 
   'arbitrage.className': 'Class name',
   'arbitrage.proposal': 'Proposed: {nom} (confidence {pct}%)',
@@ -630,7 +632,7 @@ const en: Record<MessageKey, string> = {
 
   'help.label': 'Help',
   'arbitrage.help.entities':
-    'One entity per extracted table: the PHP class generation will produce. The orange number counts the warnings settled on this screen.',
+    'One entity per extracted table: the PHP class generation will produce. In orange, the warnings settled on this screen; in grey, those dealt with elsewhere or only informative.',
   'arbitrage.help.className':
     'Name of the PHP class generated for this table. Left empty, the name shown in grey applies. A typed name is saved in the decisions file and replayed at each generation.',
   'arbitrage.help.warnings':
