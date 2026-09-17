@@ -68,7 +68,8 @@ final class RenduMembres
      * @param ClassesUtilisateur|null    $classes      où vivent les classes de l'utilisateur, que les
      *                                                 associations importent ; sans elle, à la racine
      * @param string|null                $sgbd         SGBD du calque, qui décide de la valeur initiale d'une
-     *                                                 séquence ; inconnu, la règle de PostgreSQL s'applique
+     *                                                 séquence et de la forme d'un défaut calculé ; inconnu,
+     *                                                 la règle de PostgreSQL s'applique
      */
     public function __construct(
         private readonly Cible $cible,
@@ -755,6 +756,16 @@ final class RenduMembres
      * même DDL. Aucune ne reproduit un now() d'origine, que migrations:diff
      * propose de réécrire en CURRENT_TIMESTAMP : même sens, texte différent.
      *
+     * Sous SQL Server, la date et l'heure du jour prennent l'instant courant :
+     * la base le convertit dans le type de la colonne, et DBAL relit getdate()
+     * en CurrentTimestamp quel que soit ce type. CurrentDate s'y écrit
+     * CONVERT(date, GETDATE()), relu en chaîne, et migrations:diff
+     * proposerait de le recréer à chaque passage. Avant DBAL 4.4, la chaîne
+     * 'CURRENT_TIMESTAMP' n'est reconnue que sur un horodatage : sur une date,
+     * DBAL l'écrirait en littéral, que toute insertion refuse. Seul CONVERT
+     * s'écrit, avec ce diff perpétuel, que le rapport signale
+     * (DefautRepropose).
+     *
      * La propriété n'est pas initialisée : la valeur n'est connue que de la
      * base, à l'insertion.
      */
@@ -762,6 +773,11 @@ final class RenduMembres
     {
         if ($propriete->defautExpression === null) {
             return null;
+        }
+        if ($this->sgbd === 'sqlserver') {
+            return $this->cible->defautParExpression()
+                ? new Code('new \Doctrine\DBAL\Schema\DefaultExpression\CurrentTimestamp()')
+                : self::defautConvertiSqlServer($propriete->defautExpression) ?? 'CURRENT_TIMESTAMP';
         }
         if (!$this->cible->defautParExpression()) {
             return match ($propriete->defautExpression) {
@@ -778,6 +794,23 @@ final class RenduMembres
         };
 
         return new Code('new \Doctrine\DBAL\Schema\DefaultExpression\\' . $classe . '()');
+    }
+
+    /**
+     * Rend la forme que la plateforme SQL Server de DBAL avant 4.4 reconnaît
+     * pour la date ou l'heure du jour, null pour l'instant courant, qui
+     * s'écrit CURRENT_TIMESTAMP.
+     *
+     * C'est la chaîne exacte de getCurrentDateSQL et getCurrentTimeSQL : DBAL
+     * ne l'écrit en expression que si elle lui est identique.
+     */
+    public static function defautConvertiSqlServer(ExpressionDefaut $expression): ?string
+    {
+        return match ($expression) {
+            ExpressionDefaut::HorodatageCourant => null,
+            ExpressionDefaut::DateCourante => 'CONVERT(date, GETDATE())',
+            ExpressionDefaut::HeureCourante => 'CONVERT(time, GETDATE())',
+        };
     }
 
     /**

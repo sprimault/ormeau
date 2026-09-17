@@ -253,7 +253,7 @@ func inferrerEntite(t *calque.Table, d *Decisions, prefixes []string, schema *sc
 			continue
 		}
 
-		propriete, avs := inferrerPropriete(&t.Colonnes[i], cible, d)
+		propriete, avs := inferrerPropriete(&t.Colonnes[i], cible, d, schema.sgbd)
 		avertissements = append(avertissements, avs...)
 
 		// Le type PHP d'une propriété énumérée est l'enum lui-même, pas la
@@ -357,8 +357,9 @@ func nomEntite(t *calque.Table, d *Decisions, prefixes []string) (string, calque
 }
 
 // inferrerPropriete traduit une colonne. Le type Doctrine apparaît ici, et pas
-// dans le physique : il suppose la destination.
-func inferrerPropriete(c *calque.Colonne, cibleTable string, d *Decisions) (calque.Propriete, []calque.Avertissement) {
+// dans le physique : il suppose la destination. Le SGBD décide de la lecture
+// d'un défaut calculé, écrit dans la langue de son catalogue.
+func inferrerPropriete(c *calque.Colonne, cibleTable string, d *Decisions, sgbd string) (calque.Propriete, []calque.Avertissement) {
 	cible := cibleTable + "." + c.Nom
 	var avertissements []calque.Avertissement
 
@@ -456,7 +457,7 @@ func inferrerPropriete(c *calque.Colonne, cibleTable string, d *Decisions) (calq
 		propriete.Defaut = &valeur
 	}
 	if c.Defaut != nil && c.Defaut.Genre == calque.DefautExpression && !estDefautNul(c.Defaut.Valeur) {
-		if sens, reconnu := sensDuDefaut(c); reconnu {
+		if sens, reconnu := sensDuDefaut(sgbd, c); reconnu {
 			propriete.DefautExpression = sens
 		} else {
 			avertissements = append(avertissements, calque.Avertissement{

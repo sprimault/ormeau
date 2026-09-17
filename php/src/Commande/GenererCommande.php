@@ -154,6 +154,9 @@ final class GenererCommande extends Command
         foreach ($rapport->index as $index) {
             $sortie->writeln('<comment>index    ' . OutputFormatter::escape($index->message()) . '</comment>');
         }
+        foreach ($rapport->defauts as $defaut) {
+            $sortie->writeln('<comment>défaut   ' . OutputFormatter::escape($defaut->message()) . '</comment>');
+        }
 
         if ($calque->avertissements !== []) {
             $sortie->writeln(sprintf('%d avertissement(s) dans le calque :', count($calque->avertissements)));

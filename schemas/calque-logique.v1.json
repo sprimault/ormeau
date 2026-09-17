@@ -136,7 +136,7 @@
           "type": "string"
         },
         "defaut_expression": {
-          "description": "Sens d'un défaut calculé reconnu, jamais son texte : now() et CURRENT_TIMESTAMP disent la même chose. L'instant est celui de la transaction. Exclusif de defaut ; un défaut calculé non reconnu n'est pas reporté et produit l'avertissement defaut_non_reporte.",
+          "description": "Sens d'un défaut calculé reconnu, jamais son texte : now() et CURRENT_TIMESTAMP disent la même chose. L'instant est celui que la base donne à CURRENT_TIMESTAMP : le début de la transaction sous PostgreSQL, l'instruction sous SQL Server. Exclusif de defaut ; un défaut calculé non reconnu n'est pas reporté et produit l'avertissement defaut_non_reporte.",
           "enum": ["horodatage_courant", "date_courante", "heure_courante"]
         },
         "generee": {

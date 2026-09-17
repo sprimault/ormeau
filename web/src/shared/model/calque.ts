@@ -235,18 +235,24 @@ export interface Propriete {
  */
 export type ExpressionDefaut = string;
 /**
- * Défauts calculés reconnus. L'instant est celui de la transaction, pas de
- * l'horloge : clock_timestamp() n'en fait pas partie.
+ * Défauts calculés reconnus. L'instant est celui que la base donne à
+ * CURRENT_TIMESTAMP, la seule expression que Doctrine écrive : le début de la
+ * transaction sous PostgreSQL, l'instruction sous SQL Server. Une horloge plus
+ * précise, clock_timestamp() ou sysdatetime(), n'en fait pas partie.
  */
 export const DefautHorodatageCourant: ExpressionDefaut = "horodatage_courant";
 /**
- * Défauts calculés reconnus. L'instant est celui de la transaction, pas de
- * l'horloge : clock_timestamp() n'en fait pas partie.
+ * Défauts calculés reconnus. L'instant est celui que la base donne à
+ * CURRENT_TIMESTAMP, la seule expression que Doctrine écrive : le début de la
+ * transaction sous PostgreSQL, l'instruction sous SQL Server. Une horloge plus
+ * précise, clock_timestamp() ou sysdatetime(), n'en fait pas partie.
  */
 export const DefautDateCourante: ExpressionDefaut = "date_courante";
 /**
- * Défauts calculés reconnus. L'instant est celui de la transaction, pas de
- * l'horloge : clock_timestamp() n'en fait pas partie.
+ * Défauts calculés reconnus. L'instant est celui que la base donne à
+ * CURRENT_TIMESTAMP, la seule expression que Doctrine écrive : le début de la
+ * transaction sous PostgreSQL, l'instruction sous SQL Server. Une horloge plus
+ * précise, clock_timestamp() ou sysdatetime(), n'en fait pas partie.
  */
 export const DefautHeureCourante: ExpressionDefaut = "heure_courante";
 /**

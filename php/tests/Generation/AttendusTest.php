@@ -125,6 +125,9 @@ final class AttendusTest extends TestCase
         foreach ($rapport->index as $index) {
             $lignes[] = 'index ' . $index->message();
         }
+        foreach ($rapport->defauts as $defaut) {
+            $lignes[] = 'défaut ' . $defaut->message();
+        }
 
         return implode("\n", $lignes) . "\n";
     }

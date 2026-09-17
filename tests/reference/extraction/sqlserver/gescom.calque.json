@@ -5,8 +5,8 @@
     "version": "16.0.4295.3",
     "catalogue": "gescom",
     "schema": "ventes",
-    "extrait_le": "2026-09-16T17:45:33Z",
-    "empreinte": "sha256:1aff23117c0642663ad417b593bbe87dfccdcafdfa3928e333bc7cfca1e63785"
+    "extrait_le": "2026-09-17T00:29:29Z",
+    "empreinte": "sha256:e650eb6ded85d3db5d1054790da57d69a611bce2a0389cff186f1eec6e53cfbf"
   },
   "tables": [
     {
@@ -516,7 +516,11 @@
           "type_brut": "time(7)",
           "type_normalise": "heure",
           "precision_fractionnaire": 7,
-          "nullable": true
+          "nullable": true,
+          "defaut": {
+            "genre": "expression",
+            "valeur": "(getdate())"
+          }
         },
         {
           "nom": "cmd_pay_code",
@@ -691,7 +695,11 @@
           "position": 5,
           "type_brut": "date",
           "type_normalise": "date",
-          "nullable": true
+          "nullable": true,
+          "defaut": {
+            "genre": "expression",
+            "valeur": "(CONVERT([date],getdate()))"
+          }
         },
         {
           "nom": "fac_taux",
