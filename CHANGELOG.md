@@ -148,7 +148,7 @@ dans `Base/`, au lieu du type PHP de la colonne d'origine, qui levait une
   `CHECK`, index filtrés, séquences et vues sont lus dans `sys.*`. Le type brut
   est celui que le serveur écrit, échelle d'un `datetime2(n)` comprise ; une
   collation égale à celle de la base sort en `default`. L'inférence et la
-  génération n'ont pas encore été relues pour ce dialecte.
+  génération en tirent des entités, que l'aller-retour recrée sous ORM 2 et 3.
 - **Deux champs optionnels dans le calque physique**, sans changement de
   `version_ri` : `ordres` sur un index, pour un index descendant qui serait
   sinon recréé ascendant, et `depart` sur une séquence, que le minimum ne dit
@@ -294,8 +294,8 @@ soon as the type returned an object.
   unique constraints, `CHECK`s, filtered indexes, sequences and views are read
   from `sys.*`. The raw type is the one the server writes, including the scale
   of a `datetime2(n)`; a collation equal to the database's comes out as
-  `default`. Inference and generation have not been reviewed for this dialect
-  yet.
+  `default`. Inference and generation turn it into entities, which the round
+  trip recreates under ORM 2 and 3.
 - **Two optional fields in the physical layer**, with no `version_ri` change:
   `ordres` on an index, for a descending index that would otherwise be
   recreated ascending, and `depart` on a sequence, which the minimum does not

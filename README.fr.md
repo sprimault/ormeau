@@ -350,14 +350,13 @@ pour SQL Server.
 
 ## État d'avancement
 
-L'extraction PostgreSQL, l'inférence et la génération d'entités Doctrine
-fonctionnent : `ormeau extraire` puis `ormeau inferer` produisent les trois
-fichiers, et `bin/console ormeau:generer` écrit les entités, leurs associations,
-leurs énumérations et leurs traits, et l'héritage déclaré dans le fichier de
-décisions, en écartant et en le disant ce que Doctrine ne sait pas représenter.
-SQL Server se connecte, se parcourt et s'extrait en un calque physique complet ;
-l'inférence et la génération à partir de ce calque n'ont pas encore été relues
-pour ce dialecte. La comparaison de la base aux entités existantes
+L'extraction PostgreSQL et SQL Server, l'inférence et la génération d'entités
+Doctrine fonctionnent : `ormeau extraire` puis `ormeau inferer` produisent les
+trois fichiers, et `bin/console ormeau:generer` écrit les entités, leurs
+associations, leurs énumérations et leurs traits, et l'héritage déclaré dans le
+fichier de décisions, en écartant et en le disant ce que Doctrine ne sait pas
+représenter. L'aller-retour le vérifie sur les deux SGBD, sous ORM 2 et 3. La
+comparaison de la base aux entités existantes
 (`ormeau:synchroniser`) reste à venir. L'état par phase est dans
 [`ROADMAP.md`](ROADMAP.md).
 

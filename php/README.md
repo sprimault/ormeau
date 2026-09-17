@@ -21,7 +21,7 @@ literal translation would leave integer columns.
 The bundle does not read the database. It reads a logical layer produced by the
 `ormeau` binary, a single file to download from the
 [releases](https://github.com/sprimault/ormeau/releases/latest), with nothing
-else to install. PostgreSQL for now:
+else to install. PostgreSQL or SQL Server, for instance:
 
 ```console
 $ ormeau extraire --dsn "postgres://app:secret@srv:5432/gescom" --sortie gescom.calque.json
