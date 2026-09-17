@@ -21,7 +21,7 @@ traduction littérale laisserait des colonnes entières.
 Le bundle ne lit pas la base. Il lit un calque logique produit par le binaire
 `ormeau`, un seul fichier à télécharger depuis les
 [versions](https://github.com/sprimault/ormeau/releases/latest), sans rien
-d'autre à installer. PostgreSQL pour l'instant :
+d'autre à installer. PostgreSQL ou SQL Server, par exemple :
 
 ```console
 $ ormeau extraire --dsn "postgres://app:secret@srv:5432/gescom" --sortie gescom.calque.json

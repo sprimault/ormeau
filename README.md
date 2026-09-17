@@ -341,13 +341,12 @@ for SQL Server.
 
 ## Status
 
-PostgreSQL extraction, inference and Doctrine entity generation work:
-`ormeau extraire` then `ormeau inferer` produce the three files, and
+PostgreSQL and SQL Server extraction, inference and Doctrine entity generation
+work: `ormeau extraire` then `ormeau inferer` produce the three files, and
 `bin/console ormeau:generer` writes the entities, their associations,
 enumerations and traits, and the inheritance declared in the decisions file,
-skipping what Doctrine cannot represent and saying so. SQL Server connects, can
-be browsed and extracts into a complete physical layer; inference and generation
-from that layer have not been reviewed for this dialect yet. Comparing
+skipping what Doctrine cannot represent and saying so. The round trip checks it
+on both DBMSs, under ORM 2 and 3. Comparing
 the database with existing entities (`ormeau:synchroniser`) is still to come.
 The state per phase is in [`ROADMAP.md`](ROADMAP.md).
 
