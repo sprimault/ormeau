@@ -162,7 +162,9 @@ CREATE TABLE t_commande (
     -- jsonb n'est pas json : clés dédoublonnées et réordonnées à l'écriture
     cmd_options jsonb,
     -- texte illimité : pendant du varchar(max) de SQL Server
-    cmd_notes text
+    cmd_notes text,
+    -- JSON natif : pendant du varchar(max) validé par ISJSON de SQL Server
+    cmd_trace json
 );
 
 -- Identifiants réservés et accents, pour éprouver l'échappement.

@@ -38,6 +38,11 @@ préambule reste en français : il n'est jamais publié.
 
 ### Corrigé
 
+- **Un texte Unicode forcé en `json` est signalé.** Doctrine le recrée en
+  `VARCHAR(MAX)`, et la décision passait sans avertissement :
+  `json_sans_unicode` dit que la conversion proposée par `migrations:diff` ne
+  doit pas s'appliquer, et qu'une base recréée perd l'Unicode écrit hors
+  Doctrine.
 - **Un défaut `getdate()` de SQL Server est reporté.** Il n'était pas reconnu :
   la date, l'heure ou l'instant était à fournir par l'application. Sur une date
   ou une heure, Doctrine écrit l'instant courant sous DBAL 4.4 ; avant, il ne
@@ -84,6 +89,11 @@ préambule reste en français : il n'est jamais publié.
 
 ### Ajouté
 
+- **Un texte SQL Server que sa vérification déclare JSON se lit en tableau.**
+  Un `varchar(max)` validé par `ISJSON` est rendu en `json`. Un
+  `nvarchar(max)` reste en chaîne, Doctrine le recréant en `VARCHAR(MAX)` : le
+  fichier de décisions propose de le forcer en `json`, pour qui sait que
+  Doctrine est seul à écrire la colonne.
 - **Le chiffrement se règle dans le vocabulaire du SGBD visé.** `sslmode` vient
   de libpq et n'existe pas sous SQL Server, qui règle `encrypt` et
   `TrustServerCertificate` ensemble ; le formulaire propose désormais l'un ou
@@ -122,6 +132,11 @@ préambule reste en français : il n'est jamais publié.
 
 ### Fixed
 
+- **Unicode text forced to `json` is flagged.** Doctrine recreates it as
+  `VARCHAR(MAX)`, and the decision went through without a warning:
+  `json_sans_unicode` says the conversion `migrations:diff` offers must not be
+  applied, and that a recreated database loses Unicode written outside
+  Doctrine.
 - **A SQL Server `getdate()` default is carried over.** It was not recognized:
   the application had to supply the date, time or instant. On a date or time
   column, Doctrine writes the current timestamp under DBAL 4.4; before that, it
@@ -165,6 +180,11 @@ préambule reste en français : il n'est jamais publié.
 
 ### Added
 
+- **SQL Server text declared JSON by its check constraint is read as an
+  array.** A `varchar(max)` validated by `ISJSON` is rendered as `json`. An
+  `nvarchar(max)` stays a string, since Doctrine recreates it as
+  `VARCHAR(MAX)`: the decisions file offers to force it to `json`, for those
+  who know Doctrine is the only writer of the column.
 - **Encryption is set in the vocabulary of the target DBMS.** `sslmode` comes
   from libpq and does not exist under SQL Server, which sets `encrypt` and
   `TrustServerCertificate` together; the form now offers one or the other

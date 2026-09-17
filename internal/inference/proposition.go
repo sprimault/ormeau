@@ -150,7 +150,7 @@ func EcrireDecisions(p *calque.Physique, d *Decisions, base string) []byte {
 	sectionRenommages(&b, Proposer(p, d), d)
 	sectionTablesIgnorees(&b, d)
 	sectionColonnesIgnorees(&b, d)
-	sectionTypesForces(&b, d)
+	sectionTypesForces(&b, p, d)
 	sectionRelationsForcees(&b, d)
 	sectionHeritages(&b, p, d)
 	sectionEnumerations(&b, d)
@@ -364,8 +364,11 @@ func sectionColonnesIgnorees(b *strings.Builder, d *Decisions) {
 	b.WriteString("#\n#colonnes_ignorees: {}\n\n")
 }
 
-// sectionTypesForces écrit les types Doctrine imposés.
-func sectionTypesForces(b *strings.Builder, d *Decisions) {
+// sectionTypesForces écrit les types Doctrine imposés, et propose json pour un
+// texte Unicode que sa vérification déclare JSON : l'inférence le garde en
+// chaîne, parce que la perte que json expose dépend de qui écrit la colonne,
+// ce que la base ne dit pas.
+func sectionTypesForces(b *strings.Builder, p *calque.Physique, d *Decisions) {
 	b.WriteString("# ── Types imposés ───────────────────────────────────────────────────\n")
 	b.WriteString("#\n")
 	b.WriteString("# Le cas classique d'une base reprise : un char(1) valant O/N, que le\n")
@@ -377,6 +380,20 @@ func sectionTypesForces(b *strings.Builder, d *Decisions) {
 	b.WriteString("# écartés — ils décrivaient le type d'avant.\n")
 	b.WriteString("#\n")
 	b.WriteString("#   types_forces:\n#     dbo.T_CLIENTS.CLI_ACTIF: boolean\n#     public.client.donnees: json\n")
+
+	if proposes := jsonsUnicodeAProposer(p, d); len(proposes) > 0 {
+		b.WriteString("#\n")
+		b.WriteString("# Propositions pour cette base : textes Unicode que leur vérification\n")
+		b.WriteString("# déclare JSON. En json, la propriété est un tableau, mais Doctrine recrée\n")
+		b.WriteString("# la colonne en VARCHAR(MAX) : ce qu'il écrit reste juste, échappé en\n")
+		b.WriteString("# \\uXXXX, et une base recréée perd l'Unicode qu'une autre application y\n")
+		b.WriteString("# écrit en clair. migrations:diff proposera de convertir la colonne : ne\n")
+		b.WriteString("# pas l'appliquer. À décommenter si Doctrine est seul à écrire la colonne.\n")
+		b.WriteString("#\n")
+		for _, cible := range proposes {
+			b.WriteString("#     " + scalaire(cible, false) + ": json\n")
+		}
+	}
 
 	if len(d.TypesForces) > 0 {
 		b.WriteString("\ntypes_forces:\n")

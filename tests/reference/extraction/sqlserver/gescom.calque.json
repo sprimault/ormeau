@@ -5,8 +5,8 @@
     "version": "16.0.4295.3",
     "catalogue": "gescom",
     "schema": "ventes",
-    "extrait_le": "2026-09-17T00:29:29Z",
-    "empreinte": "sha256:e650eb6ded85d3db5d1054790da57d69a611bce2a0389cff186f1eec6e53cfbf"
+    "extrait_le": "2026-09-17T01:09:47Z",
+    "empreinte": "sha256:c95ca01b411dd3b5e740159dafae3c1b77398cdeb85666eb8d167ff789f9a63e"
   },
   "tables": [
     {
@@ -547,6 +547,14 @@
           "type_normalise": "texte",
           "nullable": true,
           "collation": "default"
+        },
+        {
+          "nom": "cmd_trace",
+          "position": 8,
+          "type_brut": "varchar(max)",
+          "type_normalise": "texte",
+          "nullable": true,
+          "collation": "default"
         }
       ],
       "cle_primaire": {
@@ -576,6 +584,10 @@
         {
           "nom": "ck_cmd_options",
           "expression": "([cmd_options] IS NULL OR isjson([cmd_options])=(1))"
+        },
+        {
+          "nom": "ck_cmd_trace",
+          "expression": "(isjson([cmd_trace])=(1))"
         }
       ]
     },

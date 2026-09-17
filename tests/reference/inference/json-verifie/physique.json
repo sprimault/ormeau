@@ -1,0 +1,43 @@
+{
+  "version_ri": 1,
+  "source": {
+    "sgbd": "sqlserver",
+    "version": "16.0.4295.3",
+    "catalogue": "gescom",
+    "schema": "dbo",
+    "extrait_le": "2026-01-01T00:00:00Z",
+    "empreinte": "sha256:0000000000000000000000000000000000000000000000000000000000000031"
+  },
+  "tables": [
+    {
+      "nom": "document",
+      "schema": "dbo",
+      "commentaire": "Textes qu'une vérification déclare JSON, sous les formes que rend sys.check_constraints : seul un objet ou un tableau garanti devient un tableau PHP",
+      "colonnes": [
+        { "nom": "id", "position": 1, "type_brut": "int", "type_normalise": "entier", "nullable": false, "auto_increment": true, "identite": "toujours" },
+        { "nom": "contenu", "position": 2, "type_brut": "varchar(max)", "type_normalise": "texte", "nullable": true },
+        { "nom": "objet", "position": 3, "type_brut": "varchar(max)", "type_normalise": "texte", "nullable": true },
+        { "nom": "inverse", "position": 4, "type_brut": "varchar(max)", "type_normalise": "texte", "nullable": true },
+        { "nom": "positif", "position": 5, "type_brut": "varchar(max)", "type_normalise": "texte", "nullable": true },
+        { "nom": "valeur", "position": 6, "type_brut": "varchar(max)", "type_normalise": "texte", "nullable": true, "commentaire": "VALUE admet un scalaire, qui ne se relit pas en tableau : non reconnu" },
+        { "nom": "borne", "position": 7, "type_brut": "varchar(max)", "type_normalise": "texte", "nullable": true, "commentaire": "Vérification qui dit autre chose en plus : non reconnue" },
+        { "nom": "limite", "position": 8, "type_brut": "varchar(200)", "type_normalise": "texte", "longueur": 200, "nullable": true, "commentaire": "Longueur déclarée, que json recréerait en VARCHAR(MAX) : non reconnu" },
+        { "nom": "unicode", "position": 9, "type_brut": "nvarchar(max)", "type_normalise": "texte", "nullable": true, "commentaire": "Texte Unicode : reste en chaîne, json se propose dans le fichier de décisions" },
+        { "nom": "unicode_force", "position": 10, "type_brut": "nvarchar(max)", "type_normalise": "texte", "nullable": true, "commentaire": "json forcé par décision : l'avertissement le suit" },
+        { "nom": "unicode_force_sans_verification", "position": 11, "type_brut": "nvarchar(max)", "type_normalise": "texte", "nullable": true, "commentaire": "json forcé sans vérification : même avertissement" }
+      ],
+      "cle_primaire": { "nom": "document_pkey", "colonnes": ["id"] },
+      "verifications": [
+        { "nom": "ck_borne", "expression": "(isjson([borne])=(1) AND len([borne])<(4000))" },
+        { "nom": "ck_contenu", "expression": "([contenu] IS NULL OR isjson([contenu])=(1))" },
+        { "nom": "ck_inverse", "expression": "((1)=isjson([inverse]))" },
+        { "nom": "ck_limite", "expression": "(isjson([limite])=(1))" },
+        { "nom": "ck_objet", "expression": "(isjson([objet],OBJECT)=(1))" },
+        { "nom": "ck_positif", "expression": "(isjson([positif])>(0))" },
+        { "nom": "ck_unicode", "expression": "([unicode] IS NULL OR isjson([unicode])=(1))" },
+        { "nom": "ck_unicode_force", "expression": "(isjson([unicode_force])=(1))" },
+        { "nom": "ck_valeur", "expression": "(isjson([valeur],VALUE)=(1))" }
+      ]
+    }
+  ]
+}

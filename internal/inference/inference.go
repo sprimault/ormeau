@@ -253,7 +253,7 @@ func inferrerEntite(t *calque.Table, d *Decisions, prefixes []string, schema *sc
 			continue
 		}
 
-		propriete, avs := inferrerPropriete(&t.Colonnes[i], cible, d, schema.sgbd)
+		propriete, avs := inferrerPropriete(&t.Colonnes[i], cible, d, schema)
 		avertissements = append(avertissements, avs...)
 
 		// Le type PHP d'une propriété énumérée est l'enum lui-même, pas la
@@ -357,15 +357,26 @@ func nomEntite(t *calque.Table, d *Decisions, prefixes []string) (string, calque
 }
 
 // inferrerPropriete traduit une colonne. Le type Doctrine apparaît ici, et pas
-// dans le physique : il suppose la destination. Le SGBD décide de la lecture
-// d'un défaut calculé, écrit dans la langue de son catalogue.
-func inferrerPropriete(c *calque.Colonne, cibleTable string, d *Decisions, sgbd string) (calque.Propriete, []calque.Avertissement) {
+// dans le physique : il suppose la destination. Le schéma porte ce qui ne se
+// lit pas sur la colonne seule : le SGBD, dont le catalogue écrit les défauts
+// calculés, et les vérifications qui déclarent un texte JSON.
+func inferrerPropriete(c *calque.Colonne, cibleTable string, d *Decisions, schema *schemaLogique) (calque.Propriete, []calque.Avertissement) {
 	cible := cibleTable + "." + c.Nom
 	var avertissements []calque.Avertissement
 
 	corr, sur := typerColonne(c)
 	origine := calque.OrigineContrainte
 	requalifiee := false
+
+	// Un texte non Unicode garanti JSON par sa vérification se recrée à
+	// l'identique en json, et se lit en tableau. Le texte Unicode reste en
+	// chaîne : json s'y recrée en VARCHAR(MAX), et seul l'utilisateur sait si
+	// une autre application y écrit en clair.
+	jsonVerifie := schema.jsons[cible]
+	if jsonVerifie && !texteUnicodeSansLongueur(c) {
+		corr = parTypeNormalise[calque.TypeJSON]
+		origine = calque.OrigineVerification
+	}
 
 	if force, decide := d.TypesForces[cible]; decide {
 		avant := corr.php
@@ -389,13 +400,31 @@ func inferrerPropriete(c *calque.Colonne, cibleTable string, d *Decisions, sgbd 
 			Confiance:  0.3,
 		})
 	} else if texteUnicodeSansLongueur(c) {
+		message := "type " + c.TypeBrut + " sans équivalent Doctrine : rendu en chaîne, que schema:create recrée en NVARCHAR(255) " +
+			"et que migrations:diff proposera de réduire ; en text, il serait recréé en VARCHAR(MAX), sans Unicode"
+		if jsonVerifie {
+			message += " ; sa vérification le déclare JSON, et le fichier de décisions propose de le forcer en json, avec ce que cela coûte"
+		}
 		avertissements = append(avertissements, calque.Avertissement{
-			Code:  calque.CodeTexteUnicodeSansEquivalent,
-			Cible: cible,
-			Message: "type " + c.TypeBrut + " sans équivalent Doctrine : rendu en chaîne, que schema:create recrée en NVARCHAR(255) " +
-				"et que migrations:diff proposera de réduire ; en text, il serait recréé en VARCHAR(MAX), sans Unicode",
+			Code:       calque.CodeTexteUnicodeSansEquivalent,
+			Cible:      cible,
+			Message:    message,
 			Resolution: calque.ResolutionParDefaut,
 			Confiance:  0.5,
+		})
+	}
+	// Après la décision : c'est elle qui mène un texte Unicode en json, avec
+	// ou sans vérification.
+	if corr.doctrine == "json" && texteUnicodeSansLongueur(c) {
+		avertissements = append(avertissements, calque.Avertissement{
+			Code:  calque.CodeJSONSansUnicode,
+			Cible: cible,
+			Message: "type " + c.TypeBrut + " rendu en json, que Doctrine recrée en VARCHAR(MAX) : migrations:diff proposera " +
+				"ALTER COLUMN … VARCHAR(MAX), à ne pas appliquer — refusé tant qu'une vérification dépend de la colonne, il remplace " +
+				"sinon sans erreur tout caractère hors de la page de code ; ce que Doctrine écrit reste juste, échappé en \\uXXXX, " +
+				"mais une base recréée perd l'Unicode qu'une autre application y écrit en clair",
+			Resolution: calque.ResolutionForceeParDecision,
+			Confiance:  1,
 		})
 	}
 	// Après la décision : un type forcé en datetimetz échoue tout autant.
@@ -457,7 +486,7 @@ func inferrerPropriete(c *calque.Colonne, cibleTable string, d *Decisions, sgbd 
 		propriete.Defaut = &valeur
 	}
 	if c.Defaut != nil && c.Defaut.Genre == calque.DefautExpression && !estDefautNul(c.Defaut.Valeur) {
-		if sens, reconnu := sensDuDefaut(sgbd, c); reconnu {
+		if sens, reconnu := sensDuDefaut(schema.sgbd, c); reconnu {
 			propriete.DefautExpression = sens
 		} else {
 			avertissements = append(avertissements, calque.Avertissement{

@@ -1,6 +1,6 @@
 {
   "version_ri": 1,
-  "empreinte_physique": "sha256:de6d35355c6d21f5be85f38127f8bad9ea695828d00d26af785a665a03a8b82c",
+  "empreinte_physique": "sha256:e6634c9400230cfd68a0b18fb3bf66bc31249b31398f698059abe30f961f458d",
   "sgbd": "postgres",
   "espace_de_noms": "App\\Entity",
   "entites": [
@@ -579,6 +579,14 @@
           "colonne": "cmd_notes",
           "type_php": "?string",
           "type_doctrine": "text",
+          "nullable": true,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "cmdTrace",
+          "colonne": "cmd_trace",
+          "type_php": "?array",
+          "type_doctrine": "json",
           "nullable": true,
           "origine": "contrainte"
         }

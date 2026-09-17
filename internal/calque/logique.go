@@ -324,6 +324,10 @@ const (
 	// VARCHAR(MAX) : rendu en chaîne plutôt qu'en text, qui perdrait l'Unicode
 	// en silence.
 	CodeTexteUnicodeSansEquivalent = "texte_unicode_sans_equivalent"
+	// Un texte Unicode illimité rendu en json par décision : Doctrine le
+	// recrée en VARCHAR(MAX), juste pour ce qu'il écrit, pas pour ce qu'une
+	// autre application y écrit en clair.
+	CodeJSONSansUnicode = "json_sans_unicode"
 	// Un horodatage avec fuseau à plus de six décimales : Doctrine n'en lit
 	// que six, et la lecture échoue tant que la colonne n'est pas réduite.
 	CodeFuseauPrecisionNonLue = "fuseau_precision_non_lue"

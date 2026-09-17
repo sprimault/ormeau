@@ -349,6 +349,7 @@ const fr = {
   'warning.heritage_deduit': 'Héritage possible',
   'warning.sequence_non_reconnue': 'Séquence non reconnue',
   'warning.texte_unicode_sans_equivalent': 'Texte Unicode sans équivalent Doctrine',
+  'warning.json_sans_unicode': 'JSON recréé sans Unicode',
   'warning.fuseau_precision_non_lue': 'Horodatage avec fuseau trop précis pour Doctrine',
   'warning.reference_hors_identifiant': 'Clé étrangère hors identifiant',
 
@@ -680,6 +681,7 @@ const en: Record<MessageKey, string> = {
   'warning.heritage_deduit': 'Possible inheritance',
   'warning.sequence_non_reconnue': 'Unrecognized sequence',
   'warning.texte_unicode_sans_equivalent': 'Unicode text without a Doctrine equivalent',
+  'warning.json_sans_unicode': 'JSON recreated without Unicode',
   'warning.fuseau_precision_non_lue': 'Time zone timestamp too precise for Doctrine',
   'warning.reference_hors_identifiant': 'Foreign key outside the identifier',
 
