@@ -24,9 +24,9 @@ use Ormeau\Doctrine\Calque\Propriete;
  * DBAL 3.8, sous lequel binary en chaîne empêche de charger l'entité
  * (TypeError) et bigint en entier la fait croire modifiée.
  *
- * Le champ type_php du calque n'est lu que pour un type absent de cette table,
- * typiquement un type personnalisé forcé par décision : seul son auteur sait ce
- * qu'il hydrate, et le calque porte au moins ce que la colonne suggérait.
+ * Un type absent de cette table — typiquement un type personnalisé forcé par
+ * décision — se déclare mixed : seul son auteur sait ce qu'il hydrate, et le
+ * type de la colonne d'origine lèverait une TypeError dès qu'il rend un objet.
  */
 final class TypesPhp
 {
@@ -90,11 +90,10 @@ final class TypesPhp
     /**
      * Rend le type PHP sans sa nullabilité.
      *
-     * Hors table, le type_php du calque est repris, débarrassé d'un « ? » que
-     * la nullabilité de la propriété redira.
+     * Hors table, mixed : voir la classe.
      */
     public static function nu(Propriete $propriete, Cible $cible): string
     {
-        return self::TABLE[$propriete->typeDoctrine][$cible->hydrateCommeDbal4() ? 4 : 3] ?? ltrim($propriete->typePhp, '?');
+        return self::TABLE[$propriete->typeDoctrine][$cible->hydrateCommeDbal4() ? 4 : 3] ?? 'mixed';
     }
 }

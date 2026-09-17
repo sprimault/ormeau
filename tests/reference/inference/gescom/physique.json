@@ -1,12 +1,12 @@
 {
-  "version_ri": 1,
+  "version_ri": 2,
   "source": {
     "sgbd": "postgres",
     "version": "17.11",
     "catalogue": "gescom",
     "schema": "gescom",
-    "extrait_le": "2026-09-17T01:09:24Z",
-    "empreinte": "sha256:e6634c9400230cfd68a0b18fb3bf66bc31249b31398f698059abe30f961f458d"
+    "extrait_le": "2026-09-17T01:57:14Z",
+    "empreinte": "sha256:0c8ef3b1f7528c8f7eab03e557eb7a9edca6045f1ee4699ba41302ba138070de"
   },
   "tables": [
     {

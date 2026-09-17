@@ -1,5 +1,5 @@
 {
-  "version_ri": 1,
+  "version_ri": 2,
   "empreinte_physique": "sha256:000000000000000000000000000000000000000000000000000000000000000c",
   "sgbd": "postgres",
   "espace_de_noms": "App\\Entity",
@@ -20,7 +20,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -28,7 +27,6 @@
         {
           "nom": "statut",
           "colonne": "statut",
-          "type_php": "StatutClient",
           "type_doctrine": "string",
           "nullable": false,
           "enumeration": "StatutClient",
@@ -38,7 +36,6 @@
         {
           "nom": "canal",
           "colonne": "canal",
-          "type_php": "ClientCanal",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 20,
@@ -49,7 +46,6 @@
         {
           "nom": "actif",
           "colonne": "actif",
-          "type_php": "ClientActif",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 1,
@@ -61,7 +57,6 @@
         {
           "nom": "solde",
           "colonne": "solde",
-          "type_php": "string",
           "type_doctrine": "decimal",
           "nullable": false,
           "precision": 12,
@@ -87,7 +82,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -95,7 +89,6 @@
         {
           "nom": "etat",
           "colonne": "etat",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 20,
@@ -104,7 +97,6 @@
         {
           "nom": "motif",
           "colonne": "motif",
-          "type_php": "?string",
           "type_doctrine": "string",
           "nullable": true,
           "longueur": 60,

@@ -73,6 +73,15 @@ abstract class EventailBase
     #[ORM\Column(name: 'code_pays', type: 'string', length: 2, nullable: true, options: ['fixed' => true])]
     protected ?string $codePays = null;
 
+    /** Forcé par décision vers un type Doctrine du projet, que le générateur ne connaît pas : déclaré mixed. */
+    #[ORM\Column(
+        name: 'arbre',
+        type: 'hierarchy_id',
+        nullable: true,
+        options: ['comment' => 'Forcé par décision vers un type Doctrine du projet, que le générateur ne connaît pas : déclaré mixed'],
+    )]
+    protected mixed $arbre = null;
+
     public function getCle(): string
     {
         return $this->cle;
@@ -268,6 +277,18 @@ abstract class EventailBase
     public function setCodePays(?string $codePays): static
     {
         $this->codePays = $codePays;
+
+        return $this;
+    }
+
+    public function getArbre(): mixed
+    {
+        return $this->arbre;
+    }
+
+    public function setArbre(mixed $arbre): static
+    {
+        $this->arbre = $arbre;
 
         return $this;
     }

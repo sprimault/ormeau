@@ -1,5 +1,5 @@
 {
-  "version_ri": 1,
+  "version_ri": 2,
   "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000008",
   "sgbd": "sqlserver",
   "espace_de_noms": "App\\Entity",
@@ -20,7 +20,6 @@
         {
           "nom": "nCommande",
           "colonne": "N° Commande",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -28,7 +27,6 @@
         {
           "nom": "dateDeCréation",
           "colonne": "Date de création",
-          "type_php": "\\DateTimeImmutable",
           "type_doctrine": "datetime_immutable",
           "nullable": false,
           "origine": "contrainte"
@@ -36,7 +34,6 @@
         {
           "nom": "caTtc",
           "colonne": "CA TTC",
-          "type_php": "?string",
           "type_doctrine": "decimal",
           "nullable": true,
           "precision": 12,
@@ -63,7 +60,6 @@
         {
           "nom": "libellé",
           "colonne": "Libellé",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 120,
@@ -107,7 +103,6 @@
         {
           "nom": "nCommande",
           "colonne": "N° Commande",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -115,7 +110,6 @@
         {
           "nom": "quantité",
           "colonne": "Quantité",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"

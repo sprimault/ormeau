@@ -107,6 +107,12 @@ the version; everything else increments it — renaming, removal, change of
 meaning, a new value in a closed vocabulary. The generator refuses a version
 higher than the one it knows.
 
+The two layers do not age the same way. A physical layer from an earlier
+version is still read: extracting it again would mean going back to the
+database. A logical layer from an earlier version is refused, with the command
+that recomputes it: it comes from an earlier inference, and is recomputed
+offline from the physical layer and the decisions.
+
 The `empreinte` field has two distinct roles: in `source` it identifies a
 database state; in the logical layer, `empreinte_physique` says which
 observation this judgement derives from — which is how "the database moved since

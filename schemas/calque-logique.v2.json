@@ -1,0 +1,275 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/sprimault/ormeau/schemas/calque-logique.v2.json",
+  "title": "Calque logique",
+  "description": "Modèle objet inféré à partir d'un calque physique et d'un fichier de décisions. Parle le vocabulaire de la famille Hibernate : entités, associations avec côté propriétaire, héritage. Ce biais est assumé.",
+  "type": "object",
+  "required": ["version_ri", "empreinte_physique", "espace_de_noms", "entites"],
+  "additionalProperties": false,
+  "properties": {
+    "version_ri": { "type": "integer", "const": 2 },
+    "empreinte_physique": {
+      "description": "Empreinte du calque physique dont découle ce jugement. Permet de détecter que la base a bougé sans relire les entités.",
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "sgbd": {
+      "description": "SGBD du calque physique dont découle ce jugement. Le rendu dépend de la plateforme DBAL : une clé par séquence ne se génère pas de la même façon d'un SGBD à l'autre. Absent d'un calque produit avant ce champ : inconnu.",
+      "type": "string"
+    },
+    "espace_de_noms": { "type": "string" },
+    "entites": { "type": "array", "items": { "$ref": "#/$defs/entite" } },
+    "enumerations": { "type": "array", "items": { "$ref": "#/$defs/enumeration" } },
+    "traits": { "type": "array", "items": { "$ref": "#/$defs/trait" } },
+    "avertissements": { "type": "array", "items": { "$ref": "#/$defs/avertissement" } }
+  },
+  "$defs": {
+    "origine": {
+      "description": "D'où vient la décision. Sans ce champ, l'outil n'est pas auditable. Aucune version ne produit encore cardinalite, qui attend l'échantillonnage.",
+      "enum": ["contrainte", "verification", "cardinalite", "nommage", "decision"]
+    },
+    "entite": {
+      "type": "object",
+      "required": ["nom", "table", "proprietes"],
+      "additionalProperties": false,
+      "properties": {
+        "nom": { "type": "string" },
+        "table": { "$ref": "#/$defs/referenceTable" },
+        "heritage": { "$ref": "#/$defs/heritage" },
+        "valeur_discriminante": {
+          "description": "Valeur de la colonne discriminante pour cette classe, racine comprise. Présente seulement dans une hiérarchie déclarée par décision : la colonne est dans heritage.colonne_discriminante des enfants.",
+          "type": "string"
+        },
+        "traits": { "type": "array", "items": { "type": "string" } },
+        "identifiant": { "$ref": "#/$defs/identifiant" },
+        "proprietes": { "type": "array", "items": { "$ref": "#/$defs/propriete" } },
+        "associations": { "type": "array", "items": { "$ref": "#/$defs/association" } },
+        "index": {
+          "description": "Reporté depuis le physique pour que la régénération du schéma soit fidèle.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/indexEntite" }
+        },
+        "commentaire": {
+          "description": "Commentaire de la table, tel que le catalogue le rend. Reporté pour que la régénération du schéma le recrée, et pour documenter la classe.",
+          "type": "string"
+        },
+        "origine": {
+          "description": "Origine du nom de classe, seule inférence que l'entité porte en propre : son existence est un constat, son héritage et ses associations portent la leur.",
+          "$ref": "#/$defs/origine"
+        }
+      }
+    },
+    "referenceTable": {
+      "type": "object",
+      "required": ["nom", "schema"],
+      "additionalProperties": false,
+      "properties": {
+        "nom": { "type": "string" },
+        "schema": { "type": "string" }
+      }
+    },
+    "heritage": {
+      "type": "object",
+      "required": ["strategie", "parent"],
+      "additionalProperties": false,
+      "properties": {
+        "strategie": { "enum": ["jointe", "table_unique"] },
+        "parent": { "type": "string" },
+        "colonne_discriminante": { "type": "string" },
+        "origine": { "$ref": "#/$defs/origine" }
+      }
+    },
+    "identifiant": {
+      "type": "object",
+      "required": ["proprietes", "strategie"],
+      "additionalProperties": false,
+      "properties": {
+        "proprietes": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "strategie": {
+          "description": "Qui produit la valeur de la clé. Une table sans clé primaire n'a pas d'identifiant du tout.",
+          "enum": ["identite", "sequence", "assignee"]
+        },
+        "sequence": { "type": "string" },
+        "sequence_increment": {
+          "description": "Incrément de la séquence, tel que le catalogue le déclare. Présent seulement quand la séquence a été retrouvée dans le calque physique. Un fait, pas un réglage : un incrément supérieur à 1 peut réserver des blocs ou séparer les identifiants de plusieurs nœuds, et la base ne dit pas lequel.",
+          "type": "integer"
+        },
+        "sequence_depart": {
+          "description": "Valeur de départ de la séquence, telle que le catalogue la déclare. Présente seulement quand la séquence a été retrouvée dans le calque physique et que celui-ci porte le départ.",
+          "type": "integer"
+        },
+        "sequence_minimum": {
+          "description": "Valeur minimale de la séquence, tel que le catalogue la déclare. Présente seulement quand la séquence a été retrouvée dans le calque physique.",
+          "type": "integer"
+        }
+      }
+    },
+    "propriete": {
+      "type": "object",
+      "description": "Pas de type PHP : il dépend de la version de DBAL du projet, qu'un calque ne connaît pas. Un générateur le déduit de type_doctrine, nullable et enumeration.",
+      "required": ["nom", "colonne", "type_doctrine", "nullable"],
+      "additionalProperties": false,
+      "not": { "required": ["defaut", "defaut_expression"] },
+      "properties": {
+        "nom": { "type": "string" },
+        "colonne": { "type": "string" },
+        "type_doctrine": { "type": "string" },
+        "nullable": { "type": "boolean" },
+        "longueur": { "type": "integer", "minimum": 0 },
+        "precision": { "type": "integer", "minimum": 0 },
+        "echelle": { "type": "integer" },
+        "collation": {
+          "description": "Collation explicite de la colonne, sous son nom de catalogue non cité. Absente pour la collation par défaut de la base ; une collation hors du schéma système n'est pas reportée et produit l'avertissement collation_non_reportee.",
+          "type": "string"
+        },
+        "longueur_fixe": {
+          "description": "Chaîne ou binaire de longueur fixe : la base complète ses valeurs jusqu'à la longueur (d'espaces pour une chaîne, d'octets nuls pour un binaire). Un fait de colonne, absent pour une longueur variable, et retiré quand une décision force un autre type.",
+          "type": "boolean"
+        },
+        "enumeration": { "type": "string" },
+        "defaut": {
+          "description": "Valeur par défaut littérale de la colonne, telle que la base la stocke. Un défaut calculé est dans defaut_expression, ou n'est pas reporté.",
+          "type": "string"
+        },
+        "defaut_expression": {
+          "description": "Sens d'un défaut calculé reconnu, jamais son texte : now() et CURRENT_TIMESTAMP disent la même chose. L'instant est celui que la base donne à CURRENT_TIMESTAMP : le début de la transaction sous PostgreSQL, l'instruction sous SQL Server. Exclusif de defaut ; un défaut calculé non reconnu n'est pas reporté et produit l'avertissement defaut_non_reporte.",
+          "enum": ["horodatage_courant", "date_courante", "heure_courante"]
+        },
+        "generee": {
+          "description": "Colonne calculée par la base, reprise du calque physique : expression verbatim, jamais interprétée, et calcul matérialisé ou non. Un générateur relit la valeur après écriture ; l'expression est propre au dialecte d'origine.",
+          "type": "object",
+          "required": ["expression", "stockee"],
+          "additionalProperties": false,
+          "properties": {
+            "expression": { "type": "string" },
+            "stockee": { "type": "boolean" }
+          }
+        },
+        "insertable": { "type": "boolean", "default": true },
+        "modifiable": { "type": "boolean", "default": true },
+        "unique": { "type": "boolean" },
+        "commentaire": { "type": "string" },
+        "origine": {
+          "description": "Origine du type, pas du nom : la colonne existe, seule sa traduction en type PHP et Doctrine est un jugement.",
+          "$ref": "#/$defs/origine"
+        }
+      }
+    },
+    "association": {
+      "type": "object",
+      "required": ["nom", "genre", "cible", "proprietaire", "origine"],
+      "additionalProperties": false,
+      "properties": {
+        "nom": { "type": "string" },
+        "genre": {
+          "enum": ["un_vers_un", "plusieurs_vers_un", "un_vers_plusieurs", "plusieurs_vers_plusieurs"]
+        },
+        "cible": { "type": "string" },
+        "proprietaire": { "type": "boolean" },
+        "inversee_par": {
+          "description": "Nom de la propriété inverse. Présent sur le côté propriétaire.",
+          "type": "string"
+        },
+        "mappee_par": {
+          "description": "Nom de la propriété propriétaire. Présent sur le côté inverse.",
+          "type": "string"
+        },
+        "jointure": { "type": "array", "items": { "$ref": "#/$defs/colonneJointure" } },
+        "table_jointure": { "$ref": "#/$defs/tableJointure" },
+        "origine": { "$ref": "#/$defs/origine" }
+      }
+    },
+    "colonneJointure": {
+      "type": "object",
+      "required": ["colonne", "colonne_referencee", "nullable"],
+      "additionalProperties": false,
+      "properties": {
+        "colonne": { "type": "string" },
+        "colonne_referencee": { "type": "string" },
+        "nullable": { "type": "boolean" },
+        "a_la_suppression": { "enum": ["aucune", "cascade", "set_null", "set_default", "restrict"] }
+      }
+    },
+    "tableJointure": {
+      "type": "object",
+      "required": ["nom", "schema", "jointure", "jointure_inverse"],
+      "additionalProperties": false,
+      "properties": {
+        "nom": { "type": "string" },
+        "schema": { "type": "string" },
+        "jointure": { "type": "array", "items": { "$ref": "#/$defs/colonneJointure" } },
+        "jointure_inverse": { "type": "array", "items": { "$ref": "#/$defs/colonneJointure" } },
+        "commentaire": {
+          "description": "Commentaire de la table de jointure, tel que le catalogue le rend. Elle ne devient pas une entité : sans ce champ, la régénération du schéma le perdrait.",
+          "type": "string"
+        }
+      }
+    },
+    "indexEntite": {
+      "type": "object",
+      "required": ["colonnes", "unique"],
+      "additionalProperties": false,
+      "properties": {
+        "nom": { "type": "string" },
+        "colonnes": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "unique": { "type": "boolean" },
+        "predicat": {
+          "description": "Condition d'un index partiel, verbatim du calque physique, jamais interprétée. Sans elle, l'index serait recréé complet, et une unicité partielle plus stricte que la base.",
+          "type": "string"
+        }
+      }
+    },
+    "enumeration": {
+      "type": "object",
+      "required": ["nom", "type_support", "cas", "origine"],
+      "additionalProperties": false,
+      "properties": {
+        "nom": { "type": "string" },
+        "type_support": {
+          "description": "Type sur lequel l'énumération s'adosse. Aucune version ne produit encore que string : la détection ne reconnaît que des littéraux chaîne.",
+          "enum": ["string", "int"]
+        },
+        "cas": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["nom", "valeur"],
+            "additionalProperties": false,
+            "properties": {
+              "nom": { "type": "string" },
+              "valeur": { "type": ["string", "integer"] }
+            }
+          }
+        },
+        "origine": { "$ref": "#/$defs/origine" }
+      }
+    },
+    "trait": {
+      "type": "object",
+      "required": ["nom", "proprietes"],
+      "additionalProperties": false,
+      "properties": {
+        "nom": { "type": "string" },
+        "proprietes": { "type": "array", "items": { "$ref": "#/$defs/propriete" } }
+      }
+    },
+    "avertissement": {
+      "description": "Sortie de premier ordre, pas un journal. Ce qui n'est pas résolu n'est jamais inventé.",
+      "type": "object",
+      "required": ["code", "cible", "message", "resolution", "confiance"],
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "description": "Stable entre versions : sert de filtre en CI.",
+          "type": "string",
+          "pattern": "^[a-z0-9_]+$"
+        },
+        "cible": { "type": "string" },
+        "message": { "type": "string" },
+        "resolution": { "enum": ["ignoree", "aucune", "par_defaut", "forcee_par_decision"] },
+        "confiance": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    }
+  }
+}

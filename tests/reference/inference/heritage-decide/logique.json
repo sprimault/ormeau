@@ -1,5 +1,5 @@
 {
-  "version_ri": 1,
+  "version_ri": 2,
   "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000015",
   "sgbd": "postgres",
   "espace_de_noms": "App\\Entity",
@@ -21,7 +21,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -29,7 +28,6 @@
         {
           "nom": "nom",
           "colonne": "nom",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 80,
@@ -38,7 +36,6 @@
         {
           "nom": "nature",
           "colonne": "nature",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 1,
@@ -92,7 +89,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -100,7 +96,6 @@
         {
           "nom": "matricule",
           "colonne": "matricule",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 20,
@@ -136,7 +131,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -144,7 +138,6 @@
         {
           "nom": "societe",
           "colonne": "societe",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 120,
@@ -188,7 +181,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -196,7 +188,6 @@
         {
           "nom": "personneId",
           "colonne": "personne_id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -204,7 +195,6 @@
         {
           "nom": "ville",
           "colonne": "ville",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 60,
@@ -248,7 +238,6 @@
         {
           "nom": "salarieId",
           "colonne": "salarie_id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "commentaire": "Salarié affecté",
@@ -257,7 +246,6 @@
         {
           "nom": "debut",
           "colonne": "debut",
-          "type_php": "\\DateTimeImmutable",
           "type_doctrine": "date_immutable",
           "nullable": false,
           "origine": "contrainte"
@@ -265,7 +253,6 @@
         {
           "nom": "service",
           "colonne": "service",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 60,

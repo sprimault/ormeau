@@ -1,5 +1,5 @@
 {
-  "version_ri": 1,
+  "version_ri": 2,
   "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000024",
   "sgbd": "postgres",
   "espace_de_noms": "App\\Entity",
@@ -20,7 +20,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -28,7 +27,6 @@
         {
           "nom": "horodate",
           "colonne": "horodate",
-          "type_php": "\\DateTimeImmutable",
           "type_doctrine": "datetimetz_immutable",
           "nullable": false,
           "defaut_expression": "horodatage_courant",
@@ -37,7 +35,6 @@
         {
           "nom": "horodateSql",
           "colonne": "horodate_sql",
-          "type_php": "?\\DateTimeImmutable",
           "type_doctrine": "datetimetz_immutable",
           "nullable": true,
           "defaut_expression": "horodatage_courant",
@@ -46,7 +43,6 @@
         {
           "nom": "horodateTransaction",
           "colonne": "horodate_transaction",
-          "type_php": "?\\DateTimeImmutable",
           "type_doctrine": "datetimetz_immutable",
           "nullable": true,
           "defaut_expression": "horodatage_courant",
@@ -55,7 +51,6 @@
         {
           "nom": "horodateLocal",
           "colonne": "horodate_local",
-          "type_php": "?\\DateTimeImmutable",
           "type_doctrine": "datetime_immutable",
           "nullable": true,
           "defaut_expression": "horodatage_courant",
@@ -64,7 +59,6 @@
         {
           "nom": "horodateLocalFuseau",
           "colonne": "horodate_local_fuseau",
-          "type_php": "?\\DateTimeImmutable",
           "type_doctrine": "datetimetz_immutable",
           "nullable": true,
           "commentaire": "Heure locale convertie selon le fuseau de la session : non reconnu",
@@ -73,7 +67,6 @@
         {
           "nom": "horloge",
           "colonne": "horloge",
-          "type_php": "?\\DateTimeImmutable",
           "type_doctrine": "datetimetz_immutable",
           "nullable": true,
           "commentaire": "Instant de l'horloge, pas de la transaction : non reconnu",
@@ -82,7 +75,6 @@
         {
           "nom": "horodateArrondi",
           "colonne": "horodate_arrondi",
-          "type_php": "?\\DateTimeImmutable",
           "type_doctrine": "datetimetz_immutable",
           "nullable": true,
           "origine": "contrainte"
@@ -90,7 +82,6 @@
         {
           "nom": "horodateJour",
           "colonne": "horodate_jour",
-          "type_php": "?\\DateTimeImmutable",
           "type_doctrine": "datetime_immutable",
           "nullable": true,
           "commentaire": "Minuit du jour : non reconnu",
@@ -99,7 +90,6 @@
         {
           "nom": "jour",
           "colonne": "jour",
-          "type_php": "\\DateTimeImmutable",
           "type_doctrine": "date_immutable",
           "nullable": false,
           "defaut_expression": "date_courante",
@@ -108,7 +98,6 @@
         {
           "nom": "jourMaintenant",
           "colonne": "jour_maintenant",
-          "type_php": "?\\DateTimeImmutable",
           "type_doctrine": "date_immutable",
           "nullable": true,
           "defaut_expression": "date_courante",
@@ -117,7 +106,6 @@
         {
           "nom": "jourLocal",
           "colonne": "jour_local",
-          "type_php": "?\\DateTimeImmutable",
           "type_doctrine": "date_immutable",
           "nullable": true,
           "defaut_expression": "date_courante",
@@ -126,7 +114,6 @@
         {
           "nom": "jourForce",
           "colonne": "jour_force",
-          "type_php": "?string",
           "type_doctrine": "string",
           "nullable": true,
           "commentaire": "Type forcé par décision : le défaut tombe",
@@ -135,7 +122,6 @@
         {
           "nom": "heure",
           "colonne": "heure",
-          "type_php": "?\\DateTimeImmutable",
           "type_doctrine": "time_immutable",
           "nullable": true,
           "defaut_expression": "heure_courante",
@@ -144,7 +130,6 @@
         {
           "nom": "heureLocale",
           "colonne": "heure_locale",
-          "type_php": "?\\DateTimeImmutable",
           "type_doctrine": "time_immutable",
           "nullable": true,
           "defaut_expression": "heure_courante",
@@ -153,7 +138,6 @@
         {
           "nom": "heureMaintenant",
           "colonne": "heure_maintenant",
-          "type_php": "?\\DateTimeImmutable",
           "type_doctrine": "time_immutable",
           "nullable": true,
           "origine": "contrainte"
@@ -161,7 +145,6 @@
         {
           "nom": "libelle",
           "colonne": "libelle",
-          "type_php": "?string",
           "type_doctrine": "string",
           "nullable": true,
           "longueur": 20,
@@ -171,7 +154,6 @@
         {
           "nom": "reference",
           "colonne": "reference",
-          "type_php": "string",
           "type_doctrine": "guid",
           "nullable": false,
           "origine": "contrainte"
@@ -199,7 +181,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -227,7 +208,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -254,7 +234,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -282,7 +261,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -298,7 +276,6 @@
         {
           "nom": "createdAt",
           "colonne": "created_at",
-          "type_php": "\\DateTimeImmutable",
           "type_doctrine": "datetimetz_immutable",
           "nullable": false,
           "origine": "contrainte"
@@ -311,7 +288,6 @@
         {
           "nom": "createdAt",
           "colonne": "created_at",
-          "type_php": "\\DateTimeImmutable",
           "type_doctrine": "datetimetz_immutable",
           "nullable": false,
           "defaut_expression": "horodatage_courant",

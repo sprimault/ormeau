@@ -1,5 +1,5 @@
 {
-  "version_ri": 1,
+  "version_ri": 2,
   "empreinte_physique": "sha256:000000000000000000000000000000000000000000000000000000000000001a",
   "sgbd": "postgres",
   "espace_de_noms": "App\\Entity",
@@ -20,7 +20,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -28,7 +27,6 @@
         {
           "nom": "numero",
           "colonne": "numero",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 20,
@@ -54,7 +52,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -107,7 +104,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -141,7 +137,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -149,7 +144,6 @@
         {
           "nom": "select",
           "colonne": "select",
-          "type_php": "?string",
           "type_doctrine": "string",
           "nullable": true,
           "longueur": 20,
@@ -175,7 +169,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -200,7 +193,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"

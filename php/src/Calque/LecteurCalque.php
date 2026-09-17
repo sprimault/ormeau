@@ -26,17 +26,17 @@ final class LecteurCalque
      * annoncent toujours la même, une divergence est un défaut et non un
      * décalage temporaire.
      */
-    public const VERSION_CONNUE = 1;
+    public const VERSION_CONNUE = 2;
 
     /**
      * Charge un calque logique depuis un fichier.
      *
      * Un calque de version supérieure est refusé plutôt que lu au mieux : il
      * peut porter des champs dont l'absence de traitement produirait des
-     * entités silencieusement fausses. L'inverse est accepté — une version
-     * antérieure ne contient rien d'inconnu —, mais pas en deçà de 1 : aucun
-     * calque n'a jamais porté 0 ni une version négative, et le JSON Schema le
-     * refuse comme les lecteurs Go.
+     * entités silencieusement fausses. Une version antérieure l'est aussi : elle
+     * vient d'une inférence antérieure, sans ses corrections, et ce paquet ne
+     * peut pas la recalculer — il n'a ni le binaire ni le droit de lire le
+     * calque physique. Le message donne la commande qui le fait, hors ligne.
      *
      * @throws CalqueInvalide fichier illisible, document sans objet racine,
      *                        version absente ou non gérée, champ requis
@@ -71,6 +71,18 @@ final class LecteurCalque
                 'Calque en version %d, ce paquet ne connaît que la version %d',
                 $version,
                 self::VERSION_CONNUE,
+            ));
+        }
+
+        if ($version < self::VERSION_CONNUE) {
+            $base = preg_replace('/\.logique\.json$/', '', basename($chemin));
+            throw new CalqueInvalide(sprintf(
+                'Calque logique en version %d, ce paquet ne lit que la version %d : le recalculer par « ormeau inferer %s.calque.json --decisions %s.decisions.yaml --sortie %s.logique.json »',
+                $version,
+                self::VERSION_CONNUE,
+                $base,
+                $base,
+                $base,
             ));
         }
 

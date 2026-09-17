@@ -260,7 +260,6 @@ final class RenduMembres
         return new Propriete(
             $p->nom,
             $p->colonne,
-            $p->typePhp,
             $p->typeDoctrine,
             $p->nullable,
             $p->longueur,

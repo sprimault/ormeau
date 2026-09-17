@@ -1,5 +1,5 @@
 {
-  "version_ri": 1,
+  "version_ri": 2,
   "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000014",
   "sgbd": "postgres",
   "espace_de_noms": "App\\Entity",
@@ -20,7 +20,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -28,7 +27,6 @@
         {
           "nom": "nom",
           "colonne": "nom",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 80,
@@ -63,7 +61,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -71,7 +68,6 @@
         {
           "nom": "clientRef",
           "colonne": "client_ref",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -79,7 +75,6 @@
         {
           "nom": "fournisseurId",
           "colonne": "fournisseur_id",
-          "type_php": "?int",
           "type_doctrine": "integer",
           "nullable": true,
           "origine": "contrainte"
@@ -87,7 +82,6 @@
         {
           "nom": "vendeurId",
           "colonne": "vendeur_id",
-          "type_php": "?int",
           "type_doctrine": "integer",
           "nullable": true,
           "origine": "contrainte"
@@ -144,7 +138,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -152,7 +145,6 @@
         {
           "nom": "utilisateurRef",
           "colonne": "utilisateur_ref",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "unique": true,
@@ -161,7 +153,6 @@
         {
           "nom": "parrainId",
           "colonne": "parrain_id",
-          "type_php": "?int",
           "type_doctrine": "integer",
           "nullable": true,
           "origine": "contrainte"
@@ -211,7 +202,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -219,7 +209,6 @@
         {
           "nom": "email",
           "colonne": "email",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 120,

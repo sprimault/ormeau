@@ -1,5 +1,5 @@
 {
-  "version_ri": 1,
+  "version_ri": 2,
   "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000031",
   "sgbd": "sqlserver",
   "espace_de_noms": "App\\Entity",
@@ -20,7 +20,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -28,7 +27,6 @@
         {
           "nom": "contenu",
           "colonne": "contenu",
-          "type_php": "?array",
           "type_doctrine": "json",
           "nullable": true,
           "origine": "verification"
@@ -36,7 +34,6 @@
         {
           "nom": "objet",
           "colonne": "objet",
-          "type_php": "?array",
           "type_doctrine": "json",
           "nullable": true,
           "origine": "verification"
@@ -44,7 +41,6 @@
         {
           "nom": "inverse",
           "colonne": "inverse",
-          "type_php": "?array",
           "type_doctrine": "json",
           "nullable": true,
           "origine": "verification"
@@ -52,7 +48,6 @@
         {
           "nom": "positif",
           "colonne": "positif",
-          "type_php": "?array",
           "type_doctrine": "json",
           "nullable": true,
           "origine": "verification"
@@ -60,7 +55,6 @@
         {
           "nom": "valeur",
           "colonne": "valeur",
-          "type_php": "?string",
           "type_doctrine": "text",
           "nullable": true,
           "commentaire": "VALUE admet un scalaire, qui ne se relit pas en tableau : non reconnu",
@@ -69,7 +63,6 @@
         {
           "nom": "borne",
           "colonne": "borne",
-          "type_php": "?string",
           "type_doctrine": "text",
           "nullable": true,
           "commentaire": "Vérification qui dit autre chose en plus : non reconnue",
@@ -78,7 +71,6 @@
         {
           "nom": "limite",
           "colonne": "limite",
-          "type_php": "?string",
           "type_doctrine": "string",
           "nullable": true,
           "longueur": 200,
@@ -88,7 +80,6 @@
         {
           "nom": "unicode",
           "colonne": "unicode",
-          "type_php": "?string",
           "type_doctrine": "string",
           "nullable": true,
           "commentaire": "Texte Unicode : reste en chaîne, json se propose dans le fichier de décisions",
@@ -97,7 +88,6 @@
         {
           "nom": "unicodeForce",
           "colonne": "unicode_force",
-          "type_php": "?array",
           "type_doctrine": "json",
           "nullable": true,
           "commentaire": "json forcé par décision : l'avertissement le suit",
@@ -106,7 +96,6 @@
         {
           "nom": "unicodeForceSansVerification",
           "colonne": "unicode_force_sans_verification",
-          "type_php": "?array",
           "type_doctrine": "json",
           "nullable": true,
           "commentaire": "json forcé sans vérification : même avertissement",

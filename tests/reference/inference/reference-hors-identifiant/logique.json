@@ -1,5 +1,5 @@
 {
-  "version_ri": 1,
+  "version_ri": 2,
   "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000019",
   "sgbd": "postgres",
   "espace_de_noms": "App\\Entity",
@@ -21,7 +21,6 @@
         {
           "nom": "code",
           "colonne": "code",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 20,
@@ -30,7 +29,6 @@
         {
           "nom": "version",
           "colonne": "version",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -64,7 +62,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -72,7 +69,6 @@
         {
           "nom": "code",
           "colonne": "code",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 10,
@@ -108,7 +104,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -116,7 +111,6 @@
         {
           "nom": "clientCode",
           "colonne": "client_code",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 10,
@@ -125,7 +119,6 @@
         {
           "nom": "payeurCode",
           "colonne": "payeur_code",
-          "type_php": "?string",
           "type_doctrine": "string",
           "nullable": true,
           "longueur": 10,
@@ -134,7 +127,6 @@
         {
           "nom": "livreA",
           "colonne": "livre_a",
-          "type_php": "?string",
           "type_doctrine": "string",
           "nullable": true,
           "longueur": 80,
@@ -160,7 +152,6 @@
         {
           "nom": "clientCode",
           "colonne": "client_code",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 10,
@@ -169,7 +160,6 @@
         {
           "nom": "note",
           "colonne": "note",
-          "type_php": "?string",
           "type_doctrine": "text",
           "nullable": true,
           "origine": "contrainte"
@@ -194,7 +184,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -202,7 +191,6 @@
         {
           "nom": "articleVersion",
           "colonne": "article_version",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -210,7 +198,6 @@
         {
           "nom": "articleCode",
           "colonne": "article_code",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 20,
@@ -258,7 +245,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -293,7 +279,6 @@
         {
           "nom": "produitId",
           "colonne": "produit_id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -301,7 +286,6 @@
         {
           "nom": "tagLibelle",
           "colonne": "tag_libelle",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 30,
@@ -344,7 +328,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -352,7 +335,6 @@
         {
           "nom": "libelle",
           "colonne": "libelle",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 30,

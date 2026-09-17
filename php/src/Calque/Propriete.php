@@ -12,7 +12,8 @@ namespace Ormeau\Doctrine\Calque;
  *
  * Le type Doctrine apparaît ici et pas dans le calque physique : il suppose la
  * destination. L'origine porte celle du type, pas celle du nom — la colonne
- * existe, seule sa traduction en type est un jugement.
+ * existe, seule sa traduction en type est un jugement. Le type PHP n'y est
+ * pas : il dépend de la version de DBAL du projet, et TypesPhp le déduit.
  *
  * Longueur, précision et échelle restent nulles quand le calque ne les porte
  * pas : decimal(10,0) n'est pas un entier, et zéro n'est pas une absence. Même
@@ -23,9 +24,6 @@ final class Propriete
     /**
      * @param string       $nom          nom de la propriété PHP, en camelCase
      * @param string       $colonne      colonne d'origine, telle que le catalogue l'écrit
-     * @param string       $typePhp      obsolète : ne vaut que pour une version d'ORM. La génération
-     *                                   doit le déduire de $typeDoctrine, $nullable et $enumeration,
-     *                                   et ne le lire que pour un type Doctrine qu'elle ne connaît pas
      * @param string       $typeDoctrine type DBAL, y compris un type personnalisé forcé par décision
      * @param bool         $nullable     reprise du physique ; une propriété facultative se type ?T
      * @param int|null     $longueur     longueur déclarée, absente pour un text
@@ -55,7 +53,6 @@ final class Propriete
     public function __construct(
         public readonly string $nom,
         public readonly string $colonne,
-        public readonly string $typePhp,
         public readonly string $typeDoctrine,
         public readonly bool $nullable,
         public readonly ?int $longueur = null,
@@ -90,7 +87,6 @@ final class Propriete
     {
         $nom = Lecture::chaine($donnees, 'nom', $chemin);
         $colonne = Lecture::chaine($donnees, 'colonne', $chemin);
-        $typePhp = Lecture::chaine($donnees, 'type_php', $chemin);
         $typeDoctrine = Lecture::chaine($donnees, 'type_doctrine', $chemin);
         $nullable = Lecture::booleen($donnees, 'nullable', $chemin);
         $longueur = Lecture::entierOptionnel($donnees, 'longueur', $chemin);
@@ -111,7 +107,6 @@ final class Propriete
         return new self(
             $nom,
             $colonne,
-            $typePhp,
             $typeDoctrine,
             $nullable,
             $longueur,

@@ -1,5 +1,5 @@
 {
-  "version_ri": 1,
+  "version_ri": 2,
   "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000023",
   "sgbd": "postgres",
   "espace_de_noms": "App\\Entity",

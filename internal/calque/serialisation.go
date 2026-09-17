@@ -99,7 +99,8 @@ func (p *Physique) Ecrire(chemin string) error {
 }
 
 // LirePhysique refuse une version plus récente que celle qu'il connaît : mieux
-// vaut un échec net qu'un champ ignoré en silence. Plus ancienne : accepté.
+// vaut un échec net qu'un champ ignoré en silence. Plus ancienne : acceptée à
+// partir de PremiereVersionPhysique.
 //
 // Il refuse aussi ce que le schéma refuse à l'entrée : un champ requis absent,
 // une version inférieure à 1. Un calque logique passé par erreur porte une
@@ -122,7 +123,7 @@ func LirePhysique(chemin string) (*Physique, error) {
 	if err := json.Unmarshal(donnees, &p); err != nil {
 		return nil, err
 	}
-	if err := versionLisible(p.VersionRI); err != nil {
+	if err := versionLisible(p.VersionRI, PremiereVersionPhysique); err != nil {
 		return nil, err
 	}
 	return &p, nil
@@ -147,13 +148,16 @@ func champsRequis(donnees []byte, champs ...string) error {
 }
 
 // versionLisible refuse une version que cet outil ne sait pas lire : plus
-// récente, ou inférieure à la première qui ait existé.
-func versionLisible(version int) error {
+// récente, inférieure à la première qui ait existé, ou antérieure à la plus
+// ancienne que ce niveau accepte encore.
+func versionLisible(version, premiere int) error {
 	switch {
 	case version < 1:
 		return fmt.Errorf("version_ri %d invalide : un calque commence en version 1", version)
 	case version > VersionCourante:
 		return fmt.Errorf("calque en version %d, cet outil ne connaît que la version %d", version, VersionCourante)
+	case version < premiere:
+		return fmt.Errorf("calque en version %d, cet outil ne lit que la version %d : le recalculer depuis le calque physique et les décisions", version, VersionCourante)
 	}
 	return nil
 }
@@ -174,8 +178,9 @@ func (l *Logique) Ecrire(chemin string) error {
 	return os.WriteFile(chemin, donnees, 0o600)
 }
 
-// LireLogique charge un calque logique. Mêmes refus que LirePhysique : champ
-// requis absent, version inférieure à 1 ou plus récente.
+// LireLogique charge un calque logique. Mêmes refus que LirePhysique — champ
+// requis absent, version inférieure à 1 ou plus récente —, et une version
+// antérieure à la courante : voir PremiereVersionPhysique.
 func LireLogique(chemin string) (*Logique, error) {
 	// Le chemin vient de la ligne de commande, comme pour le physique.
 	donnees, err := os.ReadFile(chemin) // #nosec G304
@@ -190,7 +195,7 @@ func LireLogique(chemin string) (*Logique, error) {
 	if err := json.Unmarshal(donnees, &l); err != nil {
 		return nil, err
 	}
-	if err := versionLisible(l.VersionRI); err != nil {
+	if err := versionLisible(l.VersionRI, VersionCourante); err != nil {
 		return nil, err
 	}
 	return &l, nil
@@ -201,4 +206,15 @@ func LireLogique(chemin string) (*Logique, error) {
 //
 // Le JSON Schema, cette constante et le lecteur PHP annoncent la même valeur.
 // Une divergence est un défaut, pas un décalage temporaire.
-const VersionCourante = 1
+const VersionCourante = 2
+
+// PremiereVersionPhysique est la plus ancienne version de calque physique que
+// cet outil lit encore.
+//
+// Le physique et le logique ne vieillissent pas pareil. Un physique périmé
+// coûte un retour sur la base d'un client, parfois impossible : il se lit tant
+// que son contenu garde son sens, et se remonte à la lecture quand il le
+// perd. Un logique se recalcule hors ligne en une commande, et un logique
+// d'une version antérieure vient d'une inférence antérieure, sans ses
+// corrections : il n'est lu qu'en version courante.
+const PremiereVersionPhysique = 1

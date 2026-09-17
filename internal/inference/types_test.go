@@ -296,18 +296,3 @@ func TestCollation(t *testing.T) {
 		t.Errorf("avertissements collation_non_reportee sur %v, attendu seulement public.pays.nom", signalees)
 	}
 }
-
-// TestTypeNullable vérifie le point d'interrogation des propriétés facultatives.
-func TestTypeNullable(t *testing.T) {
-	t.Parallel()
-
-	if obtenu := typeNullable("string", true); obtenu != "?string" {
-		t.Errorf("typeNullable(string, true) = %q, attendu ?string", obtenu)
-	}
-	if obtenu := typeNullable("string", false); obtenu != "string" {
-		t.Errorf("typeNullable(string, false) = %q, attendu string", obtenu)
-	}
-	if obtenu := typeNullable("\\DateTimeImmutable", true); obtenu != "?\\DateTimeImmutable" {
-		t.Errorf("typeNullable sur une classe = %q, attendu ?\\DateTimeImmutable", obtenu)
-	}
-}

@@ -29,9 +29,9 @@ type Origine string
 const (
 	OrigineContrainte   Origine = "contrainte"
 	OrigineVerification Origine = "verification"
-	// Produite par rien en version 1 : elle attend les énumérations par
-	// cardinalité de l'échantillonnage, et se retire au prochain incrément de
-	// version_ri si elles ne l'ont pas produite d'ici là.
+	// Produite par rien : elle attend les énumérations par cardinalité de
+	// l'échantillonnage, et se retire à la fin de la phase qui les livre si
+	// elles ne l'ont pas produite.
 	OrigineCardinalite Origine = "cardinalite"
 	OrigineNommage     Origine = "nommage"
 	OrigineDecision    Origine = "decision"
@@ -115,10 +115,6 @@ type StrategieIdentifiant string
 const (
 	IdentifiantIdentite StrategieIdentifiant = "identite"
 	IdentifiantSequence StrategieIdentifiant = "sequence"
-	// Produite par rien : déclarée en version 1, elle se retire au prochain
-	// incrément de version_ri, et le générateur écarte d'ici là l'entité qui
-	// la porte.
-	IdentifiantAucune   StrategieIdentifiant = "aucune"
 	IdentifiantAssignee StrategieIdentifiant = "assignee"
 )
 
@@ -126,14 +122,15 @@ const (
 // pas dans le physique : il suppose la destination.
 //
 // Origine porte celle du type, pas celle du nom : la colonne existe, seule sa
-// traduction en couple type PHP / type Doctrine est un jugement.
+// traduction en type Doctrine est un jugement.
+//
+// Pas de type PHP : il dépend de la version de DBAL du projet — un bigint est
+// une chaîne sous DBAL 3, un entier sous DBAL 4 —, qu'un calque ne connaît
+// pas. Le générateur le déduit du type Doctrine, de la nullabilité et de
+// l'énumération ; retiré en version 2.
 type Propriete struct {
-	Nom     string `json:"nom"`
-	Colonne string `json:"colonne"`
-	// Obsolète, retiré à la prochaine version du format : le type PHP dépend
-	// de la version de Doctrine du projet, qu'un calque ne connaît pas. Un
-	// générateur ne doit le lire que pour un type Doctrine hors de sa table.
-	TypePHP      string `json:"type_php"`
+	Nom          string `json:"nom"`
+	Colonne      string `json:"colonne"`
 	TypeDoctrine string `json:"type_doctrine"`
 	Nullable     bool   `json:"nullable"`
 	Longueur     *int   `json:"longueur,omitempty"`
@@ -188,21 +185,16 @@ const (
 // Association relie deux entités. Proprietaire décide du côté qui porte la
 // colonne de jointure : s'y tromper produit un mapping que Doctrine accepte et
 // qui n'écrit rien en base.
-//
-// OrphelinsSupprimes n'est produit par aucune heuristique ni décision : déclaré
-// en version 1, il se retire au prochain incrément de version_ri, et le
-// générateur écarte d'ici là l'entité qui le porte.
 type Association struct {
-	Nom                string            `json:"nom"`
-	Genre              GenreAssociation  `json:"genre"`
-	Cible              string            `json:"cible"`
-	Proprietaire       bool              `json:"proprietaire"`
-	InverseePar        string            `json:"inversee_par,omitempty"`
-	MappeePar          string            `json:"mappee_par,omitempty"`
-	Jointure           []ColonneJointure `json:"jointure,omitempty"`
-	TableJointure      *TableJointure    `json:"table_jointure,omitempty"`
-	OrphelinsSupprimes bool              `json:"orphelins_supprimes,omitempty"`
-	Origine            Origine           `json:"origine"`
+	Nom           string            `json:"nom"`
+	Genre         GenreAssociation  `json:"genre"`
+	Cible         string            `json:"cible"`
+	Proprietaire  bool              `json:"proprietaire"`
+	InverseePar   string            `json:"inversee_par,omitempty"`
+	MappeePar     string            `json:"mappee_par,omitempty"`
+	Jointure      []ColonneJointure `json:"jointure,omitempty"`
+	TableJointure *TableJointure    `json:"table_jointure,omitempty"`
+	Origine       Origine           `json:"origine"`
 }
 
 // GenreAssociation est la cardinalité de la relation.
@@ -252,7 +244,7 @@ type IndexEntite struct {
 // Enumeration est un type PHP à générer. Origine dit d'où elle sort — CHECK,
 // type natif ou échantillon — et c'est ce qui permet d'en discuter.
 //
-// TypeSupport vaut toujours "string" en version 1 : la détection ne reconnaît
+// TypeSupport vaut toujours "string" aujourd'hui : la détection ne reconnaît
 // que des littéraux chaîne. "int" est lu et rendu par le générateur, sans
 // producteur avant l'échantillonnage.
 type Enumeration struct {

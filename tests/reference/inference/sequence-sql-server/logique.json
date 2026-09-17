@@ -1,5 +1,5 @@
 {
-  "version_ri": 1,
+  "version_ri": 2,
   "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000029",
   "sgbd": "sqlserver",
   "espace_de_noms": "App\\Entity",
@@ -24,7 +24,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -32,7 +31,6 @@
         {
           "nom": "montant",
           "colonne": "montant",
-          "type_php": "string",
           "type_doctrine": "decimal",
           "nullable": false,
           "precision": 12,
@@ -63,7 +61,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "bigint",
           "nullable": false,
           "origine": "contrainte"
@@ -88,7 +85,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -113,7 +109,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"

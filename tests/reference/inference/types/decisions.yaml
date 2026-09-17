@@ -1,0 +1,5 @@
+# Un type Doctrine personnalisé, propre au projet : ni l'inférence ni le
+# générateur ne savent ce qu'il hydrate.
+
+types_forces:
+  public.eventail.arbre: hierarchy_id

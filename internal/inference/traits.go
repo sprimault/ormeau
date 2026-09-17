@@ -128,7 +128,7 @@ func horodatagesDe(e *calque.Entite) []calque.Propriete {
 func signatureDe(proprietes []calque.Propriete) string {
 	parties := make([]string, 0, len(proprietes))
 	for _, p := range proprietes {
-		partie := p.Nom + ":" + p.TypePHP + ":" + p.TypeDoctrine
+		partie := p.Nom + ":" + p.TypeDoctrine + ":" + p.Enumeration
 		if p.Nullable {
 			partie += ":nullable"
 		}

@@ -46,7 +46,7 @@ final class LecteurCalqueTest extends TestCase
     public function testLitUnCalqueValide(): void
     {
         $chemin = $this->fichier([
-            'version_ri' => 1,
+            'version_ri' => 2,
             'empreinte_physique' => 'sha256:' . str_repeat('a', 64),
             'espace_de_noms' => 'App\\Entity',
             'entites' => [[
@@ -58,7 +58,7 @@ final class LecteurCalqueTest extends TestCase
 
         $calque = (new LecteurCalque())->lire($chemin);
 
-        self::assertSame(1, $calque->versionRi);
+        self::assertSame(2, $calque->versionRi);
         self::assertSame('App\\Entity', $calque->espaceDeNoms);
         self::assertSame('clients', $calque->entites[0]->table->nom);
         self::assertSame([], $calque->avertissements);
@@ -95,15 +95,37 @@ final class LecteurCalqueTest extends TestCase
         ]);
 
         $this->expectException(CalqueInvalide::class);
-        $this->expectExceptionMessageMatches('/version 2/');
+        $this->expectExceptionMessageMatches('/version 3/');
+
+        (new LecteurCalque())->lire($chemin);
+    }
+
+    /**
+     * Une version antérieure est refusée aussi : elle vient d'une inférence
+     * antérieure, et le message donne la commande qui la recalcule, sur le nom
+     * de base du fichier.
+     */
+    public function testRefuseUneVersionAnterieureEnDonnantLaCommande(): void
+    {
+        $chemin = sys_get_temp_dir() . '/ormeau-' . bin2hex(random_bytes(4)) . '.gescom.logique.json';
+        file_put_contents($chemin, json_encode([
+            'version_ri' => 1,
+            'empreinte_physique' => 'sha256:' . str_repeat('a', 64),
+            'espace_de_noms' => 'App\\Entity',
+            'entites' => [],
+        ], JSON_THROW_ON_ERROR));
+        $this->temporaires[] = $chemin;
+        $base = basename($chemin, '.logique.json');
+
+        $this->expectException(CalqueInvalide::class);
+        $this->expectExceptionMessage(sprintf('ormeau inferer %s.calque.json --decisions %s.decisions.yaml --sortie %s.logique.json', $base, $base, $base));
 
         (new LecteurCalque())->lire($chemin);
     }
 
     /**
      * Aucune version antérieure à 1 n'a existé : 0 et les négatifs sont refusés,
-     * comme par le JSON Schema et les lecteurs Go. Tant qu'il n'y a qu'une
-     * version, c'est tout ce qu'« antérieure » peut vouloir dire.
+     * comme par le JSON Schema et les lecteurs Go.
      */
     public function testRefuseUneVersionInferieureAUn(): void
     {

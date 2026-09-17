@@ -107,6 +107,12 @@ change pas la version ; tout le reste l'incrémente — renommage, suppression,
 changement de sémantique, nouvelle valeur dans un vocabulaire fermé. Le
 générateur refuse une version supérieure à celle qu'il connaît.
 
+Les deux niveaux ne vieillissent pas pareil. Un calque physique d'une version
+antérieure se lit encore : l'extraire à nouveau demanderait de retourner sur la
+base. Un calque logique d'une version antérieure est refusé, avec la commande
+qui le recalcule : il vient d'une inférence antérieure, et se recalcule hors
+ligne à partir du physique et des décisions.
+
 Le champ `empreinte` a deux rôles distincts : dans `source`, il identifie un
 état de base ; dans le calque logique, `empreinte_physique` indique de quel
 constat découle ce jugement — ce qui permet de détecter « la base a bougé depuis

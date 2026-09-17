@@ -1,5 +1,5 @@
 {
-  "version_ri": 1,
+  "version_ri": 2,
   "source": {
     "sgbd": "postgres",
     "version": "17.11",

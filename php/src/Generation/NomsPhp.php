@@ -9,8 +9,8 @@ namespace Ormeau\Doctrine\Generation;
 
 /**
  * Dit si un nom lu dans le calque logique peut être écrit là où la génération
- * l'écrit : déclaration de classe, cas d'énumération, propriété, type, espace
- * de noms.
+ * l'écrit : déclaration de classe, cas d'énumération, propriété, espace de
+ * noms. Le calque ne porte plus de type PHP : la génération le déduit.
  *
  * Le calque logique n'est pas une source sûre. Il se modifie à la main, vient
  * d'une autre version de l'outil, se recopie d'un autre projet ; et les noms
@@ -95,21 +95,6 @@ final class NomsPhp
             $raison = self::raison($segment, self::RESERVES_D_ESPACE);
             if ($raison !== null) {
                 return sprintf('« %s » n\'est pas un espace de noms PHP : %s', $espace, $raison);
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Dit pourquoi un type PHP lu dans le calque ne peut pas être déclaré, ou
-     * null. Un type simple, facultatif ou qualifié : ?int, \DateTimeImmutable.
-     */
-    public static function raisonType(string $type): ?string
-    {
-        foreach (explode('\\', ltrim(ltrim($type, '?'), '\\')) as $segment) {
-            if (preg_match(self::IDENTIFIANT, $segment) !== 1) {
-                return sprintf('« %s » n\'est pas un type PHP', $type);
             }
         }
 

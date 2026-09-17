@@ -11,19 +11,15 @@ import (
 
 // horodatage construit une propriété d'horodatage pour les tests.
 func horodatage(nom, colonne string, nullable bool) calque.Propriete {
-	php := "\\DateTimeImmutable"
-	if nullable {
-		php = "?" + php
-	}
 	return calque.Propriete{
 		Nom: nom, Colonne: colonne,
-		TypePHP: php, TypeDoctrine: "datetimetz_immutable", Nullable: nullable,
+		TypeDoctrine: "datetimetz_immutable", Nullable: nullable,
 	}
 }
 
 // entiteHorodatee construit une entité avec sa clé et ses horodatages.
 func entiteHorodatee(nom string, horodatages ...calque.Propriete) calque.Entite {
-	proprietes := []calque.Propriete{{Nom: "id", Colonne: "id", TypePHP: "int", TypeDoctrine: "integer"}}
+	proprietes := []calque.Propriete{{Nom: "id", Colonne: "id", TypeDoctrine: "integer"}}
 	proprietes = append(proprietes, horodatages...)
 
 	return calque.Entite{

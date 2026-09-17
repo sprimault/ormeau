@@ -145,40 +145,6 @@ final class GenerateurEntiteTest extends TestCase
     }
 
     /**
-     * Une stratégie d'identifiant `aucune` et une association qui porte
-     * `orphelins_supprimes` écartent leur entité : le contrat v1 les déclare,
-     * aucune version d'Ormeau ne les produit, et leur rendu n'a jamais été
-     * essayé — `orphanRemoval` supprime des lignes, et Doctrine le refuse sur
-     * un plusieurs-vers-un. Seul un calque retouché à la main les porte.
-     */
-    public function testEcarteUneValeurQueLOutilNeProduitPas(): void
-    {
-        $sortie = Repertoires::creer();
-        try {
-            $rapport = (new GenerateurEntite())->generer(self::calque([
-                self::entite('Client', ['associations' => [[
-                    'nom' => 'commandes', 'genre' => 'un_vers_plusieurs', 'cible' => 'Commande', 'proprietaire' => false, 'mappee_par' => 'client', 'origine' => 'contrainte',
-                ]]]),
-                self::entite('Commande', ['associations' => [[
-                    'nom' => 'client', 'genre' => 'plusieurs_vers_un', 'cible' => 'Client', 'proprietaire' => true, 'inversee_par' => 'commandes', 'orphelins_supprimes' => true, 'origine' => 'contrainte',
-                ]]]),
-                self::entite('Journal', ['identifiant' => ['proprietes' => ['id'], 'strategie' => 'aucune']]),
-                self::entite('Article'),
-            ]), $sortie, Cible::forcer(3), 'gescom');
-
-            self::assertSame([
-                'Commande' => 'l\'association client porte orphelins_supprimes, qu\'aucune version d\'Ormeau ne produit : calque retouché, à recalculer par ormeau inferer',
-                'Journal' => 'la stratégie d\'identifiant aucune n\'est produite par aucune version d\'Ormeau (une table sans clé n\'a pas d\'identifiant) : calque retouché, à recalculer par ormeau inferer',
-            ], array_column(array_map(static fn($e): array => [$e->nom, $e->raison], $rapport->ecartees), 1, 0));
-            $fichiers = Repertoires::lire($sortie);
-            self::assertSame(['Article.php', 'Base/ArticleBase.php', 'Base/ClientBase.php', 'Client.php'], array_keys($fichiers));
-            self::assertStringNotContainsString('orphanRemoval', implode('', $fichiers));
-        } finally {
-            Repertoires::supprimer($sortie);
-        }
-    }
-
-    /**
      * Un défaut sur une colonne énumérée initialise la propriété avec le cas
      * qui porte cette valeur, y compris pour une énumération adossée à des
      * entiers, où le calque écrit le défaut en texte. La colonne garde le
@@ -244,8 +210,8 @@ final class GenerateurEntiteTest extends TestCase
     public function testLesTypesSeReplientSurDbal(): void
     {
         $client = self::entite('Client');
-        $client['proprietes'][] = self::propriete('options', 'jsonb', ['type_php' => '?array', 'nullable' => true]);
-        $client['proprietes'][] = self::propriete('taux', 'smallfloat', ['type_php' => 'float']);
+        $client['proprietes'][] = self::propriete('options', 'jsonb', ['nullable' => true]);
+        $client['proprietes'][] = self::propriete('taux', 'smallfloat');
         $client['proprietes'][] = self::propriete('pays', 'string', ['longueur' => 2, 'longueur_fixe' => true]);
 
         foreach ([
@@ -345,7 +311,6 @@ final class GenerateurEntiteTest extends TestCase
                 self::entite('Die'),
                 self::entite('Enum'),
                 self::entite('Client', ['proprietes' => [self::propriete('id', 'integer'), self::propriete('nom; system(\'id\')', 'string')]]),
-                self::entite('Facture', ['proprietes' => [self::propriete('id', 'integer'), self::propriete('total', 'inconnu', ['type_php' => 'int; system(\'id\')'])]]),
                 self::entite('Commande', ['associations' => [self::jointure('client; system(\'id\')', 'plusieurs_vers_un', 'Enum', 'client_id')]]),
                 self::entite('Ligne', ['associations' => [[
                     'nom' => 'fantome', 'genre' => 'un_vers_plusieurs', 'cible' => 'X::class); system(\'id\'); (Y', 'proprietaire' => false,
@@ -360,7 +325,6 @@ final class GenerateurEntiteTest extends TestCase
                 '../../public/index' => '« ../../public/index » n\'est pas un identifiant PHP, à renommer dans renommages',
                 'Die' => 'Die est un mot réservé de PHP, à renommer dans renommages',
                 'Client' => 'propriété refusée : « nom; system(\'id\') » n\'est pas un identifiant PHP',
-                'Facture' => 'propriété refusée : « int; system(\'id\') » n\'est pas un type PHP',
                 'Commande' => 'association refusée : « client; system(\'id\') » n\'est pas un identifiant PHP',
                 'Adresse' => 'le trait Suivi n\'est pas généré : l\'énumération Y;system(\'id\');use \\Foo de la propriété etat est absente du calque',
             ], array_column(array_map(static fn($e): array => [$e->nom, $e->raison], $rapport->ecartees), 1, 0));
@@ -386,7 +350,7 @@ final class GenerateurEntiteTest extends TestCase
         $sortie = Repertoires::creer();
         try {
             $calque = CalqueLogique::depuisTableau([
-                'version_ri' => 1,
+                'version_ri' => 2,
                 'empreinte_physique' => 'sha256:' . str_repeat('b', 64),
                 'espace_de_noms' => 'App\\Entity;system(\'id\')',
                 'entites' => [self::entite('Client')],
@@ -676,7 +640,7 @@ final class GenerateurEntiteTest extends TestCase
     private static function calque(array $entites, array $enumerations = [], array $traits = []): CalqueLogique
     {
         return CalqueLogique::depuisTableau([
-            'version_ri' => 1,
+            'version_ri' => 2,
             'empreinte_physique' => 'sha256:' . str_repeat('b', 64),
             'espace_de_noms' => 'App\\Entity',
             'entites' => $entites,
@@ -696,7 +660,7 @@ final class GenerateurEntiteTest extends TestCase
     private static function propriete(string $nom, string $typeDoctrine, array $modifications = []): array
     {
         return array_merge(
-            ['nom' => $nom, 'colonne' => $nom, 'type_php' => 'string', 'type_doctrine' => $typeDoctrine, 'nullable' => false],
+            ['nom' => $nom, 'colonne' => $nom, 'type_doctrine' => $typeDoctrine, 'nullable' => false],
             $modifications,
         );
     }
@@ -715,7 +679,7 @@ final class GenerateurEntiteTest extends TestCase
             'nom' => $nom,
             'table' => ['nom' => strtolower($nom), 'schema' => 'public'],
             'identifiant' => ['proprietes' => ['id'], 'strategie' => 'identite'],
-            'proprietes' => [['nom' => 'id', 'colonne' => 'id', 'type_php' => 'int', 'type_doctrine' => 'integer', 'nullable' => false]],
+            'proprietes' => [['nom' => 'id', 'colonne' => 'id', 'type_doctrine' => 'integer', 'nullable' => false]],
         ], $modifications);
 
         return array_filter($entite, static fn($valeur): bool => $valeur !== null);

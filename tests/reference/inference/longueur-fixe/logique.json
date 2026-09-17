@@ -1,5 +1,5 @@
 {
-  "version_ri": 1,
+  "version_ri": 2,
   "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000027",
   "sgbd": "sqlserver",
   "espace_de_noms": "App\\Entity",
@@ -20,7 +20,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -28,7 +27,6 @@
         {
           "nom": "code",
           "colonne": "code",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 2,
@@ -38,7 +36,6 @@
         {
           "nom": "codeAscii",
           "colonne": "code_ascii",
-          "type_php": "?string",
           "type_doctrine": "string",
           "nullable": true,
           "longueur": 3,
@@ -48,7 +45,6 @@
         {
           "nom": "libelle",
           "colonne": "libelle",
-          "type_php": "?string",
           "type_doctrine": "string",
           "nullable": true,
           "longueur": 40,
@@ -58,7 +54,6 @@
         {
           "nom": "empreinte",
           "colonne": "empreinte",
-          "type_php": "?string",
           "type_doctrine": "binary",
           "nullable": true,
           "longueur": 16,
@@ -69,7 +64,6 @@
         {
           "nom": "jeton",
           "colonne": "jeton",
-          "type_php": "?string",
           "type_doctrine": "binary",
           "nullable": true,
           "longueur": 16,
@@ -79,7 +73,6 @@
         {
           "nom": "document",
           "colonne": "document",
-          "type_php": "?string",
           "type_doctrine": "blob",
           "nullable": true,
           "commentaire": "Binaire sans longueur : blob",
@@ -88,7 +81,6 @@
         {
           "nom": "niveau",
           "colonne": "niveau",
-          "type_php": "?int",
           "type_doctrine": "smallint",
           "nullable": true,
           "commentaire": "Sans type Doctrine : smallint, le plus proche",
@@ -114,7 +106,6 @@
         {
           "nom": "code",
           "colonne": "code",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 2,
@@ -124,7 +115,6 @@
         {
           "nom": "ancienCode",
           "colonne": "ancien_code",
-          "type_php": "?string",
           "type_doctrine": "string",
           "nullable": true,
           "longueur": 3,
@@ -135,7 +125,6 @@
         {
           "nom": "nom",
           "colonne": "nom",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "longueur": 40,
@@ -144,7 +133,6 @@
         {
           "nom": "drapeau",
           "colonne": "drapeau",
-          "type_php": "?string",
           "type_doctrine": "blob",
           "nullable": true,
           "commentaire": "Sans longueur : blob",

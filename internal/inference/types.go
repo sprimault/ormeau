@@ -14,9 +14,10 @@ import (
 // C'est ici que le calque cesse d'être neutre : le type Doctrine suppose la
 // destination, et c'est pour cette raison qu'il vit dans le logique.
 
-// typePHP et typeDoctrine sont appariés, jamais choisis séparément : un
-// type_php qui ne correspond pas à son type_doctrine produit une entité que
-// Doctrine accepte et qui échoue à l'hydratation.
+// correspondance apparie un type Doctrine et la famille PHP dans laquelle il
+// s'hydrate. Le type PHP ne va pas au calque — il dépend de la version de DBAL
+// du projet, que le générateur connaît —, mais sa famille décide ici si un type
+// forcé rend caducs la longueur et le défaut de la colonne.
 type correspondance struct {
 	php      string
 	doctrine string
@@ -221,34 +222,26 @@ var phpParTypeDoctrine = map[string]string{
 	"simple_array": "array",
 }
 
-// TypesDoctrine rend, triés, les types Doctrine dont l'inférence connaît le
-// type PHP. Ce sont ceux que l'interface suggère : un type absent de la liste
-// se force quand même, et garde le type PHP que la colonne avait produit.
+// TypesDoctrine rend, triés, les types Doctrine dont l'inférence connaît la
+// famille PHP. Ce sont ceux que l'interface suggère : un type absent de la liste
+// se force quand même, et le générateur le déclare mixed.
 func TypesDoctrine() []string {
 	return slices.Sorted(maps.Keys(phpParTypeDoctrine))
 }
 
-// forcer applique un type Doctrine décidé, et met le type PHP en accord.
+// forcer applique un type Doctrine décidé, et met la famille PHP en accord.
 //
-// Les deux ne se choisissent jamais séparément : forcer decimal en laissant un
-// type PHP de \DateTimeImmutable donne une entité que Doctrine accepte et qui
-// échoue à l'hydratation, sans que rien ne l'ait signalé avant l'exécution.
+// La famille décide si la décision change la nature de la colonne : forcer un
+// char(1) en boolean rend caducs sa longueur et son défaut, forcer varchar en
+// text non.
 //
-// Un type personnalisé — inconnu de la table — garde le type PHP que la colonne
-// avait produit. C'est presque toujours juste, et l'inventer serait pire :
-// personne d'autre que l'auteur du type ne sait ce qu'il hydrate.
+// Un type personnalisé — inconnu de la table — garde la famille que la colonne
+// avait produite : rien ne dit ce qu'il hydrate. Le générateur, lui, le déclare
+// mixed plutôt que de supposer.
 func forcer(corr correspondance, doctrine string) correspondance {
 	php := corr.php
 	if connu, trouve := phpParTypeDoctrine[doctrine]; trouve {
 		php = connu
 	}
 	return correspondance{php, doctrine}
-}
-
-// typeNullable rend la déclaration PHP d'une propriété facultative.
-func typeNullable(php string, nullable bool) string {
-	if !nullable {
-		return php
-	}
-	return "?" + php
 }

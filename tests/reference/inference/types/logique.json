@@ -1,5 +1,5 @@
 {
-  "version_ri": 1,
+  "version_ri": 2,
   "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000002",
   "sgbd": "postgres",
   "espace_de_noms": "App\\Entity",
@@ -20,7 +20,6 @@
         {
           "nom": "cle",
           "colonne": "cle",
-          "type_php": "string",
           "type_doctrine": "guid",
           "nullable": false,
           "origine": "contrainte"
@@ -28,7 +27,6 @@
         {
           "nom": "compteurCourt",
           "colonne": "compteur_court",
-          "type_php": "int",
           "type_doctrine": "smallint",
           "nullable": false,
           "origine": "contrainte"
@@ -36,7 +34,6 @@
         {
           "nom": "compteurLong",
           "colonne": "compteur_long",
-          "type_php": "int",
           "type_doctrine": "bigint",
           "nullable": false,
           "origine": "contrainte"
@@ -44,7 +41,6 @@
         {
           "nom": "noteLibre",
           "colonne": "note_libre",
-          "type_php": "?string",
           "type_doctrine": "text",
           "nullable": true,
           "origine": "contrainte"
@@ -52,7 +48,6 @@
         {
           "nom": "instantLocal",
           "colonne": "instant_local",
-          "type_php": "?\\DateTimeImmutable",
           "type_doctrine": "datetime_immutable",
           "nullable": true,
           "origine": "contrainte"
@@ -60,7 +55,6 @@
         {
           "nom": "instantAbsolu",
           "colonne": "instant_absolu",
-          "type_php": "?\\DateTimeImmutable",
           "type_doctrine": "datetimetz_immutable",
           "nullable": true,
           "origine": "contrainte"
@@ -68,7 +62,6 @@
         {
           "nom": "jour",
           "colonne": "jour",
-          "type_php": "?\\DateTimeImmutable",
           "type_doctrine": "date_immutable",
           "nullable": true,
           "origine": "contrainte"
@@ -76,7 +69,6 @@
         {
           "nom": "duree",
           "colonne": "duree",
-          "type_php": "?\\DateInterval",
           "type_doctrine": "dateinterval",
           "nullable": true,
           "origine": "contrainte"
@@ -84,7 +76,6 @@
         {
           "nom": "chargeUtile",
           "colonne": "charge_utile",
-          "type_php": "?array",
           "type_doctrine": "jsonb",
           "nullable": true,
           "origine": "contrainte"
@@ -92,7 +83,6 @@
         {
           "nom": "empreinte",
           "colonne": "empreinte",
-          "type_php": "?string",
           "type_doctrine": "blob",
           "nullable": true,
           "origine": "contrainte"
@@ -100,7 +90,6 @@
         {
           "nom": "adresseIp",
           "colonne": "adresse_ip",
-          "type_php": "?string",
           "type_doctrine": "string",
           "nullable": true,
           "origine": "contrainte"
@@ -108,7 +97,6 @@
         {
           "nom": "typeMaison",
           "colonne": "type_maison",
-          "type_php": "?string",
           "type_doctrine": "string",
           "nullable": true,
           "origine": "contrainte"
@@ -116,7 +104,6 @@
         {
           "nom": "totalLigne",
           "colonne": "total_ligne",
-          "type_php": "string",
           "type_doctrine": "decimal",
           "nullable": false,
           "precision": 14,
@@ -132,7 +119,6 @@
         {
           "nom": "quantites",
           "colonne": "quantites",
-          "type_php": "?string",
           "type_doctrine": "string",
           "nullable": true,
           "origine": "contrainte"
@@ -140,7 +126,6 @@
         {
           "nom": "etiquettes",
           "colonne": "etiquettes",
-          "type_php": "string",
           "type_doctrine": "string",
           "nullable": false,
           "defaut": "{}",
@@ -149,7 +134,6 @@
         {
           "nom": "taux",
           "colonne": "taux",
-          "type_php": "?float",
           "type_doctrine": "smallfloat",
           "nullable": true,
           "origine": "contrainte"
@@ -157,12 +141,19 @@
         {
           "nom": "codePays",
           "colonne": "code_pays",
-          "type_php": "?string",
           "type_doctrine": "string",
           "nullable": true,
           "longueur": 2,
           "longueur_fixe": true,
           "origine": "contrainte"
+        },
+        {
+          "nom": "arbre",
+          "colonne": "arbre",
+          "type_doctrine": "hierarchy_id",
+          "nullable": true,
+          "commentaire": "Forcé par décision vers un type Doctrine du projet, que le générateur ne connaît pas : déclaré mixed",
+          "origine": "decision"
         }
       ],
       "origine": "nommage"

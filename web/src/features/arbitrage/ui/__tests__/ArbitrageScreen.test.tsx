@@ -115,7 +115,7 @@ function detail(table: string): ReponseEntite {
         nom: 'TLog',
         table: { schema: 'public', nom: 't_log' },
         proprietes: [
-          { nom: 'ligne', colonne: 'ligne', type_php: 'string', type_doctrine: 'text', nullable: true },
+          { nom: 'ligne', colonne: 'ligne', type_doctrine: 'text', nullable: true },
         ],
       },
       table_physique: {
@@ -133,19 +133,17 @@ function detail(table: string): ReponseEntite {
       nom: 'Clients',
       table: { schema: 'public', nom: 'clients' },
       proprietes: [
-        { nom: 'id', colonne: 'id', type_php: 'int', type_doctrine: 'integer', nullable: false },
-        { nom: 'position', colonne: 'position', type_php: 'string', type_doctrine: 'string', nullable: false },
+        { nom: 'id', colonne: 'id', type_doctrine: 'integer', nullable: false },
+        { nom: 'position', colonne: 'position', type_doctrine: 'string', nullable: false },
         {
           nom: 'encours',
           colonne: 'encours',
-          type_php: '?int',
           type_doctrine: 'bigint',
           nullable: true,
         },
         {
           nom: 'statut',
           colonne: 'statut',
-          type_php: 'Statut',
           type_doctrine: 'string',
           nullable: false,
           enumeration: 'Statut',

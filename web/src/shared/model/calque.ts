@@ -43,9 +43,9 @@ export const OrigineContrainte: Origine = "contrainte";
  */
 export const OrigineVerification: Origine = "verification";
 /**
- * Produite par rien en version 1 : elle attend les énumérations par
- * cardinalité de l'échantillonnage, et se retire au prochain incrément de
- * version_ri si elles ne l'ont pas produite d'ici là.
+ * Produite par rien : elle attend les énumérations par cardinalité de
+ * l'échantillonnage, et se retire à la fin de la phase qui les livre si
+ * elles ne l'ont pas produite.
  */
 export const OrigineCardinalite: Origine = "cardinalite";
 /**
@@ -156,12 +156,6 @@ export const IdentifiantIdentite: StrategieIdentifiant = "identite";
  */
 export const IdentifiantSequence: StrategieIdentifiant = "sequence";
 /**
- * Produite par rien : déclarée en version 1, elle se retire au prochain
- * incrément de version_ri, et le générateur écarte d'ici là l'entité qui
- * la porte.
- */
-export const IdentifiantAucune: StrategieIdentifiant = "aucune";
-/**
  * Stratégies d'identifiant. Une table sans clé primaire n'a pas d'Identifiant
  * du tout, et un avertissement le signale.
  */
@@ -170,17 +164,15 @@ export const IdentifiantAssignee: StrategieIdentifiant = "assignee";
  * Propriete est une colonne devenue attribut. Le type Doctrine apparaît ici, et
  * pas dans le physique : il suppose la destination.
  * Origine porte celle du type, pas celle du nom : la colonne existe, seule sa
- * traduction en couple type PHP / type Doctrine est un jugement.
+ * traduction en type Doctrine est un jugement.
+ * Pas de type PHP : il dépend de la version de DBAL du projet — un bigint est
+ * une chaîne sous DBAL 3, un entier sous DBAL 4 —, qu'un calque ne connaît
+ * pas. Le générateur le déduit du type Doctrine, de la nullabilité et de
+ * l'énumération ; retiré en version 2.
  */
 export interface Propriete {
   nom: string;
   colonne: string;
-  /**
-   * Obsolète, retiré à la prochaine version du format : le type PHP dépend
-   * de la version de Doctrine du projet, qu'un calque ne connaît pas. Un
-   * générateur ne doit le lire que pour un type Doctrine hors de sa table.
-   */
-  type_php: string;
   type_doctrine: string;
   nullable: boolean;
   longueur?: number /* int */;
@@ -259,9 +251,6 @@ export const DefautHeureCourante: ExpressionDefaut = "heure_courante";
  * Association relie deux entités. Proprietaire décide du côté qui porte la
  * colonne de jointure : s'y tromper produit un mapping que Doctrine accepte et
  * qui n'écrit rien en base.
- * OrphelinsSupprimes n'est produit par aucune heuristique ni décision : déclaré
- * en version 1, il se retire au prochain incrément de version_ri, et le
- * générateur écarte d'ici là l'entité qui le porte.
  */
 export interface Association {
   nom: string;
@@ -272,7 +261,6 @@ export interface Association {
   mappee_par?: string;
   jointure?: ColonneJointure[];
   table_jointure?: TableJointure;
-  orphelins_supprimes?: boolean;
   origine: Origine;
 }
 /**
@@ -339,7 +327,7 @@ export interface IndexEntite {
 /**
  * Enumeration est un type PHP à générer. Origine dit d'où elle sort — CHECK,
  * type natif ou échantillon — et c'est ce qui permet d'en discuter.
- * TypeSupport vaut toujours "string" en version 1 : la détection ne reconnaît
+ * TypeSupport vaut toujours "string" aujourd'hui : la détection ne reconnaît
  * que des littéraux chaîne. "int" est lu et rendu par le générateur, sans
  * producteur avant l'échantillonnage.
  */

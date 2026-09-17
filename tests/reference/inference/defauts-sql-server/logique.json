@@ -1,5 +1,5 @@
 {
-  "version_ri": 1,
+  "version_ri": 2,
   "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000030",
   "sgbd": "sqlserver",
   "espace_de_noms": "App\\Entity",
@@ -20,7 +20,6 @@
         {
           "nom": "id",
           "colonne": "id",
-          "type_php": "int",
           "type_doctrine": "integer",
           "nullable": false,
           "origine": "contrainte"
@@ -28,7 +27,6 @@
         {
           "nom": "horodate",
           "colonne": "horodate",
-          "type_php": "\\DateTimeImmutable",
           "type_doctrine": "datetime_immutable",
           "nullable": false,
           "defaut_expression": "horodatage_courant",
@@ -38,7 +36,6 @@
         {
           "nom": "horodatePrecis",
           "colonne": "horodate_precis",
-          "type_php": "?\\DateTimeImmutable",
           "type_doctrine": "datetime_immutable",
           "nullable": true,
           "defaut_expression": "horodatage_courant",
@@ -47,7 +44,6 @@
         {
           "nom": "horodateFuseau",
           "colonne": "horodate_fuseau",
-          "type_php": "?\\DateTimeImmutable",
           "type_doctrine": "datetimetz_immutable",
           "nullable": true,
           "commentaire": "Instant exact, mais aucune expression Doctrine ne l'écrit : non reconnu",
@@ -56,7 +52,6 @@
         {
           "nom": "horodateLocalFuseau",
           "colonne": "horodate_local_fuseau",
-          "type_php": "?\\DateTimeImmutable",
           "type_doctrine": "datetimetz_immutable",
           "nullable": true,
           "commentaire": "Heure locale étiquetée +00:00 : non reconnu",
@@ -65,7 +60,6 @@
         {
           "nom": "horodateSysteme",
           "colonne": "horodate_systeme",
-          "type_php": "?\\DateTimeImmutable",
           "type_doctrine": "datetime_immutable",
           "nullable": true,
           "commentaire": "Précision plus fine que getdate() : non reconnu",
@@ -74,7 +68,6 @@
         {
           "nom": "horodateUtc",
           "colonne": "horodate_utc",
-          "type_php": "?\\DateTimeImmutable",
           "type_doctrine": "datetime_immutable",
           "nullable": true,
           "commentaire": "Heure UTC, pas l'heure locale : non reconnu",
@@ -83,7 +76,6 @@
         {
           "nom": "jour",
           "colonne": "jour",
-          "type_php": "\\DateTimeImmutable",
           "type_doctrine": "date_immutable",
           "nullable": false,
           "defaut_expression": "date_courante",
@@ -92,7 +84,6 @@
         {
           "nom": "jourConverti",
           "colonne": "jour_converti",
-          "type_php": "?\\DateTimeImmutable",
           "type_doctrine": "date_immutable",
           "nullable": true,
           "defaut_expression": "date_courante",
@@ -102,7 +93,6 @@
         {
           "nom": "heure",
           "colonne": "heure",
-          "type_php": "?\\DateTimeImmutable",
           "type_doctrine": "time_immutable",
           "nullable": true,
           "defaut_expression": "heure_courante",
@@ -111,7 +101,6 @@
         {
           "nom": "heureConvertie",
           "colonne": "heure_convertie",
-          "type_php": "?\\DateTimeImmutable",
           "type_doctrine": "time_immutable",
           "nullable": true,
           "defaut_expression": "heure_courante",
@@ -120,7 +109,6 @@
         {
           "nom": "formePostgres",
           "colonne": "forme_postgres",
-          "type_php": "?\\DateTimeImmutable",
           "type_doctrine": "datetime_immutable",
           "nullable": true,
           "commentaire": "Forme d'un autre dialecte : non reconnue sous SQL Server",

@@ -22,7 +22,7 @@ var majAttendus = flag.Bool("maj-attendus", false, "réécrit les fichiers de r�
 const cheminReference = "../../tests/reference/exemple.calque.json"
 
 // Ce fichier est le pont entre les deux moitiés du projet : la CI le valide
-// contre schemas/calque-physique.v1.json, et le lecteur PHP le lira. Un champ
+// contre schemas/calque-physique.v2.json, et le lecteur PHP le lira. Un champ
 // ajouté aux structures Go sans l'être au schéma se voit ici, pas six mois
 // plus tard chez un intégrateur.
 func TestCalqueDeReferenceSurDisque(t *testing.T) {

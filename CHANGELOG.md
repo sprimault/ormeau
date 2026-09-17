@@ -36,6 +36,18 @@ préambule reste en français : il n'est jamais publié.
 
 ## [Non publié]
 
+**`version_ri` passe à 2.** Un calque physique déjà enregistré se lit
+toujours. Un calque logique en version 1 est refusé par le paquet PHP : il se
+recalcule hors ligne par `ormeau inferer <base>.calque.json --decisions
+<base>.decisions.yaml --sortie <base>.logique.json`, que le message donne. Le
+calque logique perd `type_php`, la stratégie d'identifiant `aucune` et
+`orphelins_supprimes`, que rien ne produisait ; un générateur tiers déduit le
+type PHP de `type_doctrine`.
+
+**Un type Doctrine forcé que le générateur ne connaît pas se déclare `mixed`**
+dans `Base/`, au lieu du type PHP de la colonne d'origine, qui levait une
+`TypeError` dès que le type rendait un objet.
+
 ### Corrigé
 
 - **Un texte Unicode forcé en `json` est signalé.** Doctrine le recrée en
@@ -138,6 +150,18 @@ préambule reste en français : il n'est jamais publié.
   sous le nouveau code `texte_unicode_json_propose`.
 
 ***
+
+**`version_ri` moves to 2.** A physical layer already saved is still read. A
+version 1 logical layer is refused by the PHP package: it is recomputed offline
+with `ormeau inferer <base>.calque.json --decisions <base>.decisions.yaml
+--sortie <base>.logique.json`, which the message gives. The logical layer loses
+`type_php`, the `aucune` identifier strategy and `orphelins_supprimes`, which
+nothing produced; a third-party generator derives the PHP type from
+`type_doctrine`.
+
+**A forced Doctrine type the generator does not know is declared `mixed`** in
+`Base/`, instead of the source column's PHP type, which raised a `TypeError` as
+soon as the type returned an object.
 
 ### Fixed
 
