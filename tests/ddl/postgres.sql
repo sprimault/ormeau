@@ -58,6 +58,9 @@ CREATE INDEX ix_cli_actifs ON t_client (cli_com_id) WHERE cli_statut = 'ACTIF';
 CREATE INDEX ix_cli_nom_prefixe ON t_client (cli_nom text_pattern_ops);
 -- index descendant : recréé ascendant, il ne sert plus les mêmes tris.
 CREATE INDEX ix_cli_nom_desc ON t_client (cli_nom DESC);
+-- NULL en tête d'un ordre ascendant : SQL Server ne sait pas le déclarer, et
+-- Doctrine ne l'écrit pas.
+CREATE INDEX ix_cli_siret_nulls ON t_client (cli_siret NULLS FIRST);
 
 -- Identité BY DEFAULT, à côté des ALWAYS : une valeur explicite y est acceptée,
 -- et le calque doit les distinguer.

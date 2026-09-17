@@ -244,6 +244,13 @@ var tolerances = []tolerance{
 		},
 	},
 	{
+		code: "nulls_d_index", categorie: impossible,
+		pourquoi: "Doctrine ne porte pas la place des NULL d'une colonne d'index : un index NULLS FIRST est recréé avec la place par défaut de son sens",
+		couvre: func(e diff.Ecart, _ contexte) bool {
+			return e.Objet == diff.ObjetIndex && e.Propriete == "nulls" && e.Apres == ""
+		},
+	},
+	{
 		code: "position_identite_derivee", categorie: impossible, cibles: []string{"orm3-dbal4"},
 		pourquoi: "SchemaTool place une colonne de jointure sans propriété, clé d'une identité dérivée, après les champs",
 		couvre:   positionIdentiteDerivee,

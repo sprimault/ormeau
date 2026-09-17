@@ -153,14 +153,13 @@ func (p *Physique) validerTable(t *Table) []Anomalie {
 	return a
 }
 
-// validerOrdres contrôle les sens de tri d'un index : un par colonne quand ils
-// sont présents, faute de quoi on ne sait plus lequel va à quelle colonne.
+// validerOrdres contrôle les sens de tri d'un index et la place de ses NULL :
+// un par colonne quand ils sont présents, faute de quoi on ne sait plus lequel
+// va à quelle colonne. La place des NULL est un ordre aussi, et partage son
+// code d'anomalie.
 func validerOrdres(idx *Index, cible string) []Anomalie {
-	if len(idx.Ordres) == 0 {
-		return nil
-	}
 	var a []Anomalie
-	if len(idx.Ordres) != len(idx.Colonnes) {
+	if len(idx.Ordres) != 0 && len(idx.Ordres) != len(idx.Colonnes) {
 		a = append(a, anomalie(CodeAriteIncoherente, cible,
 			"index %s : %d ordre(s) pour %d colonne(s)", idx.Nom, len(idx.Ordres), len(idx.Colonnes)))
 	}
@@ -168,6 +167,16 @@ func validerOrdres(idx *Index, cible string) []Anomalie {
 		if !ordresIndex[o] {
 			a = append(a, anomalie(CodeOrdreInconnu, cible,
 				"index %s : ordre %q hors du vocabulaire", idx.Nom, o))
+		}
+	}
+	if len(idx.Nulls) != 0 && len(idx.Nulls) != len(idx.Colonnes) {
+		a = append(a, anomalie(CodeAriteIncoherente, cible,
+			"index %s : %d place(s) des NULL pour %d colonne(s)", idx.Nom, len(idx.Nulls), len(idx.Colonnes)))
+	}
+	for _, n := range idx.Nulls {
+		if !positionsNulls[n] {
+			a = append(a, anomalie(CodeOrdreInconnu, cible,
+				"index %s : place des NULL %q hors du vocabulaire", idx.Nom, n))
 		}
 	}
 	return a
@@ -377,6 +386,11 @@ var naturesIdentite = map[NatureIdentite]bool{
 // Sens de tri reconnus.
 var ordresIndex = map[OrdreIndex]bool{
 	OrdreAscendant: true, OrdreDescendant: true,
+}
+
+// Places des NULL reconnues.
+var positionsNulls = map[PositionNulls]bool{
+	NullsPremiers: true, NullsDerniers: true,
 }
 
 // Actions référentielles reconnues.

@@ -230,6 +230,11 @@
           "description": "Sens de tri de chaque colonne, dans le même ordre. Absent quand toutes sont ascendantes, complet sinon. Absent d'un calque extrait par un pilote qui ne le lit pas : sens inconnu.",
           "type": "array",
           "items": { "enum": ["asc", "desc"] }
+        },
+        "nulls": {
+          "description": "Place des NULL de chaque colonne, dans le même ordre. Absent quand toutes suivent la règle du SGBD pour leur sens de tri (PostgreSQL : en fin en ascendant, en tête en descendant), complet sinon. Absent d'un calque extrait par un pilote qui ne le lit pas : place inconnue.",
+          "type": "array",
+          "items": { "enum": ["premiers", "derniers"] }
         }
       }
     },

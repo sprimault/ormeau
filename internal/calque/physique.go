@@ -227,6 +227,12 @@ type Index struct {
 	// colonnes sont ascendantes, complet sinon. Un index recréé ascendant ne
 	// sert pas les tris que l'original servait.
 	Ordres []OrdreIndex `json:"ordres,omitempty"`
+	// Nulls dit où chaque colonne range ses NULL, dans le même ordre. Absent
+	// quand toutes suivent la règle du SGBD pour leur sens de tri — sous
+	// PostgreSQL, en fin en ascendant et en tête en descendant —, complet
+	// sinon. Absent d'un calque extrait par un pilote qui ne le lit pas :
+	// position inconnue.
+	Nulls []PositionNulls `json:"nulls,omitempty"`
 }
 
 // OrdreIndex est le sens de tri d'une colonne d'index. Vocabulaire fermé.
@@ -236,6 +242,16 @@ type OrdreIndex string
 const (
 	OrdreAscendant  OrdreIndex = "asc"
 	OrdreDescendant OrdreIndex = "desc"
+)
+
+// PositionNulls est la place des NULL dans une colonne d'index. Vocabulaire
+// fermé.
+type PositionNulls string
+
+// Places des NULL.
+const (
+	NullsPremiers PositionNulls = "premiers"
+	NullsDerniers PositionNulls = "derniers"
 )
 
 // Verification est un CHECK, verbatim parce que sa syntaxe dépend du dialecte.

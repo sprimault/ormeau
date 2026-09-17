@@ -25,6 +25,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Index(name: 'ix_cli_nom', columns: ['cli_nom'])]
 #[ORM\Index(name: 'ix_cli_nom_desc', columns: ['cli_nom'])]
 #[ORM\Index(name: 'ix_cli_nom_prefixe', columns: ['cli_nom'])]
+#[ORM\Index(name: 'ix_cli_siret_nulls', columns: ['cli_siret'])]
 #[ORM\UniqueConstraint(name: 'uq_cli_siret', columns: ['cli_siret'])]
 abstract class TClientBase
 {

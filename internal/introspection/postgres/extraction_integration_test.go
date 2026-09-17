@@ -482,6 +482,21 @@ func TestExtraireLesCasTordus(t *testing.T) {
 		}
 	})
 
+	// La place des NULL ne sort que si une colonne quitte le défaut de son
+	// sens : NULLS FIRST en ascendant, pas DESC seul.
+	t.Run("NULL en tête", func(t *testing.T) {
+		nulls := map[string][]calque.PositionNulls{}
+		for _, idx := range tableOuEchouer(t, p, "t_client").Index {
+			nulls[idx.Nom] = idx.Nulls
+		}
+		if n, ok := nulls["ix_cli_siret_nulls"]; !ok || len(n) != 1 || n[0] != calque.NullsPremiers {
+			t.Errorf("nulls de ix_cli_siret_nulls : %v (present %v), attendu [premiers]", n, ok)
+		}
+		if n := nulls["ix_cli_nom_desc"]; n != nil {
+			t.Errorf("nulls %v sur un index descendant sans NULLS LAST", n)
+		}
+	})
+
 	// Le départ est lu pour toute séquence, celles d'une identité comprises.
 	t.Run("depart des sequences", func(t *testing.T) {
 		departs := map[string]*int64{}

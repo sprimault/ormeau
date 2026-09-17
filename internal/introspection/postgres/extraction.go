@@ -447,7 +447,7 @@ type cleIndex struct {
 // d'expression est écarté : il n'a aucune colonne exploitable, et le garder
 // produirait une contrainte vide que la validation refuserait.
 func (p *pilote) lireIndex(ctx context.Context, schemas []string, jeu *jeuDeTables) error {
-	colonnes, operateurs, ordres, err := p.lireColonnesIndex(ctx, schemas)
+	colonnes, operateurs, ordres, nulls, err := p.lireColonnesIndex(ctx, schemas)
 	if err != nil {
 		return err
 	}
@@ -487,6 +487,7 @@ func (p *pilote) lireIndex(ctx context.Context, schemas []string, jeu *jeuDeTabl
 		}
 		idx.Operateurs = operateurs[cle]
 		idx.Ordres = ordres[cle]
+		idx.Nulls = nulls[cle]
 		// Un index d'expression n'a aucune colonne exploitable. Le garder sans
 		// colonne produirait une contrainte vide, que la validation refuserait.
 		if len(idx.Colonnes) == 0 {
@@ -503,31 +504,35 @@ func (p *pilote) lireIndex(ctx context.Context, schemas []string, jeu *jeuDeTabl
 // Les classes ne sont rendues que si l'index en porte au moins une explicite ;
 // elles le sont alors toutes, y compris les implicites, pour rester appariées
 // aux colonnes rang par rang. Les sens de tri suivent la même règle, sur la
-// présence d'une colonne descendante.
-func (p *pilote) lireColonnesIndex(ctx context.Context, schemas []string) (colonnes, classes map[cleIndex][]string, ordres map[cleIndex][]calque.OrdreIndex, err error) {
+// présence d'une colonne descendante, et la place des NULL sur celle d'une
+// colonne qui ne suit pas le défaut de son sens.
+func (p *pilote) lireColonnesIndex(ctx context.Context, schemas []string) (colonnes, classes map[cleIndex][]string, ordres map[cleIndex][]calque.OrdreIndex, nulls map[cleIndex][]calque.PositionNulls, err error) {
 	ctx, annuler := context.WithTimeout(ctx, delaiRequete)
 	defer annuler()
 
 	lignes, err := p.conn.Query(ctx, requeteColonnesIndex, schemas)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("lecture des colonnes d'index: %w", err)
+		return nil, nil, nil, nil, fmt.Errorf("lecture des colonnes d'index: %w", err)
 	}
 	defer lignes.Close()
 
 	colonnes = map[cleIndex][]string{}
 	classes = map[cleIndex][]string{}
 	ordres = map[cleIndex][]calque.OrdreIndex{}
+	nulls = map[cleIndex][]calque.PositionNulls{}
 	explicite := map[cleIndex]bool{}
+	// PostgreSQL range les NULL en fin en ascendant, en tête en descendant.
+	horsDefaut := map[cleIndex]bool{}
 
 	for lignes.Next() {
 		var schema, table, index string
 		var colonne, classe *string
 		var parDefaut *bool
-		var descendant bool
+		var descendant, nullsPremiers bool
 		var ordinalite int64
 
-		if err := lignes.Scan(&schema, &table, &index, &colonne, &classe, &parDefaut, &descendant, &ordinalite); err != nil {
-			return nil, nil, nil, fmt.Errorf("lecture d'une colonne d'index: %w", err)
+		if err := lignes.Scan(&schema, &table, &index, &colonne, &classe, &parDefaut, &descendant, &nullsPremiers, &ordinalite); err != nil {
+			return nil, nil, nil, nil, fmt.Errorf("lecture d'une colonne d'index: %w", err)
 		}
 		if colonne == nil {
 			continue
@@ -540,6 +545,14 @@ func (p *pilote) lireColonnesIndex(ctx context.Context, schemas []string) (colon
 			sens = calque.OrdreDescendant
 		}
 		ordres[cle] = append(ordres[cle], sens)
+		place := calque.NullsDerniers
+		if nullsPremiers {
+			place = calque.NullsPremiers
+		}
+		nulls[cle] = append(nulls[cle], place)
+		if nullsPremiers != descendant {
+			horsDefaut[cle] = true
+		}
 
 		nom := ""
 		if classe != nil {
@@ -551,7 +564,7 @@ func (p *pilote) lireColonnesIndex(ctx context.Context, schemas []string) (colon
 		}
 	}
 	if err := lignes.Err(); err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 
 	for cle := range classes {
@@ -564,7 +577,12 @@ func (p *pilote) lireColonnesIndex(ctx context.Context, schemas []string) (colon
 			delete(ordres, cle)
 		}
 	}
-	return colonnes, classes, ordres, nil
+	for cle := range nulls {
+		if !horsDefaut[cle] {
+			delete(nulls, cle)
+		}
+	}
+	return colonnes, classes, ordres, nulls, nil
 }
 
 // lireSequences collecte les séquences du schéma, y compris celles qu'un SERIAL
