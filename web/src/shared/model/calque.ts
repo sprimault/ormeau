@@ -473,6 +473,12 @@ export const CodeSequenceNonReconnue = "sequence_non_reconnue";
  */
 export const CodeTexteUnicodeSansEquivalent = "texte_unicode_sans_equivalent";
 /**
+ * Un texte Unicode illimité rendu en json par décision : Doctrine le
+ * recrée en VARCHAR(MAX), juste pour ce qu'il écrit, pas pour ce qu'une
+ * autre application y écrit en clair.
+ */
+export const CodeJSONSansUnicode = "json_sans_unicode";
+/**
  * Un horodatage avec fuseau à plus de six décimales : Doctrine n'en lit
  * que six, et la lecture échoue tant que la colonne n'est pas réduite.
  */

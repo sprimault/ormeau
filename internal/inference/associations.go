@@ -61,6 +61,10 @@ type schemaLogique struct {
 	// sgbd est celui du physique : un défaut calculé ne se lit que dans la
 	// forme de son dialecte.
 	sgbd string
+
+	// jsons marque, par colonne qualifiée, les textes illimités qu'une
+	// vérification déclare JSON.
+	jsons map[string]bool
 }
 
 // jointurePure décrit une table qui n'existe que pour relier deux autres.
@@ -84,6 +88,7 @@ func analyser(p *calque.Physique, d *Decisions, prefixes []string) *schemaLogiqu
 		heritages:    map[string]heritageRetenu{},
 		sequences:    p.Sequences,
 		sgbd:         p.Source.SGBD,
+		jsons:        textesJSON(p),
 	}
 
 	ignorees := ensemble(d.TablesIgnorees)

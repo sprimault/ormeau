@@ -146,6 +146,17 @@ var tolerancesSQLServer = []tolerance{
 		},
 	},
 	{
+		code: "commentaire_de_type_json", categorie: impossible, cibles: []string{"orm2-dbal3"},
+		pourquoi: "SQL Server n'a pas de type JSON avant 2025 : DBAL 3 écrit json en VARCHAR(MAX) et le signale par un commentaire (DC2Type:json)",
+		couvre: func(e diff.Ecart, c contexte) bool {
+			if e.Objet != diff.ObjetColonne || e.Propriete != "commentaire" {
+				return false
+			}
+			p := proprieteLogique(c, e.Schema, e.Table, e.Nom)
+			return p != nil && p.TypeDoctrine == "json" && e.Apres == e.Avant+"(DC2Type:json)"
+		},
+	},
+	{
 		code: "jour_courant_ecrit_par_convert", categorie: impossible, cibles: []string{"orm2-dbal3"},
 		pourquoi: "avant 4.4, DBAL n'écrit la date ou l'heure du jour qu'en CONVERT(date, GETDATE()) : même valeur, texte différent, et le générateur le signale (DefautRepropose)",
 		couvre: func(e diff.Ecart, c contexte) bool {

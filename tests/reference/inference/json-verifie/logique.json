@@ -1,0 +1,143 @@
+{
+  "version_ri": 1,
+  "empreinte_physique": "sha256:0000000000000000000000000000000000000000000000000000000000000031",
+  "sgbd": "sqlserver",
+  "espace_de_noms": "App\\Entity",
+  "entites": [
+    {
+      "nom": "Document",
+      "table": {
+        "nom": "document",
+        "schema": "dbo"
+      },
+      "identifiant": {
+        "proprietes": [
+          "id"
+        ],
+        "strategie": "identite"
+      },
+      "proprietes": [
+        {
+          "nom": "id",
+          "colonne": "id",
+          "type_php": "int",
+          "type_doctrine": "integer",
+          "nullable": false,
+          "origine": "contrainte"
+        },
+        {
+          "nom": "contenu",
+          "colonne": "contenu",
+          "type_php": "?array",
+          "type_doctrine": "json",
+          "nullable": true,
+          "origine": "verification"
+        },
+        {
+          "nom": "objet",
+          "colonne": "objet",
+          "type_php": "?array",
+          "type_doctrine": "json",
+          "nullable": true,
+          "origine": "verification"
+        },
+        {
+          "nom": "inverse",
+          "colonne": "inverse",
+          "type_php": "?array",
+          "type_doctrine": "json",
+          "nullable": true,
+          "origine": "verification"
+        },
+        {
+          "nom": "positif",
+          "colonne": "positif",
+          "type_php": "?array",
+          "type_doctrine": "json",
+          "nullable": true,
+          "origine": "verification"
+        },
+        {
+          "nom": "valeur",
+          "colonne": "valeur",
+          "type_php": "?string",
+          "type_doctrine": "text",
+          "nullable": true,
+          "commentaire": "VALUE admet un scalaire, qui ne se relit pas en tableau : non reconnu",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "borne",
+          "colonne": "borne",
+          "type_php": "?string",
+          "type_doctrine": "text",
+          "nullable": true,
+          "commentaire": "Vérification qui dit autre chose en plus : non reconnue",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "limite",
+          "colonne": "limite",
+          "type_php": "?string",
+          "type_doctrine": "string",
+          "nullable": true,
+          "longueur": 200,
+          "commentaire": "Longueur déclarée, que json recréerait en VARCHAR(MAX) : non reconnu",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "unicode",
+          "colonne": "unicode",
+          "type_php": "?string",
+          "type_doctrine": "string",
+          "nullable": true,
+          "commentaire": "Texte Unicode : reste en chaîne, json se propose dans le fichier de décisions",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "unicodeForce",
+          "colonne": "unicode_force",
+          "type_php": "?array",
+          "type_doctrine": "json",
+          "nullable": true,
+          "commentaire": "json forcé par décision : l'avertissement le suit",
+          "origine": "decision"
+        },
+        {
+          "nom": "unicodeForceSansVerification",
+          "colonne": "unicode_force_sans_verification",
+          "type_php": "?array",
+          "type_doctrine": "json",
+          "nullable": true,
+          "commentaire": "json forcé sans vérification : même avertissement",
+          "origine": "decision"
+        }
+      ],
+      "commentaire": "Textes qu'une vérification déclare JSON, sous les formes que rend sys.check_constraints : seul un objet ou un tableau garanti devient un tableau PHP",
+      "origine": "nommage"
+    }
+  ],
+  "avertissements": [
+    {
+      "code": "texte_unicode_sans_equivalent",
+      "cible": "dbo.document.unicode",
+      "message": "type nvarchar(max) sans équivalent Doctrine : rendu en chaîne, que schema:create recrée en NVARCHAR(255) et que migrations:diff proposera de réduire ; en text, il serait recréé en VARCHAR(MAX), sans Unicode ; sa vérification le déclare JSON, et le fichier de décisions propose de le forcer en json, avec ce que cela coûte",
+      "resolution": "par_defaut",
+      "confiance": 0.5
+    },
+    {
+      "code": "json_sans_unicode",
+      "cible": "dbo.document.unicode_force",
+      "message": "type nvarchar(max) rendu en json, que Doctrine recrée en VARCHAR(MAX) : migrations:diff proposera ALTER COLUMN … VARCHAR(MAX), à ne pas appliquer — refusé tant qu'une vérification dépend de la colonne, il remplace sinon sans erreur tout caractère hors de la page de code ; ce que Doctrine écrit reste juste, échappé en \\uXXXX, mais une base recréée perd l'Unicode qu'une autre application y écrit en clair",
+      "resolution": "forcee_par_decision",
+      "confiance": 1
+    },
+    {
+      "code": "json_sans_unicode",
+      "cible": "dbo.document.unicode_force_sans_verification",
+      "message": "type nvarchar(max) rendu en json, que Doctrine recrée en VARCHAR(MAX) : migrations:diff proposera ALTER COLUMN … VARCHAR(MAX), à ne pas appliquer — refusé tant qu'une vérification dépend de la colonne, il remplace sinon sans erreur tout caractère hors de la page de code ; ce que Doctrine écrit reste juste, échappé en \\uXXXX, mais une base recréée perd l'Unicode qu'une autre application y écrit en clair",
+      "resolution": "forcee_par_decision",
+      "confiance": 1
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+# Forcer json sur un texte Unicode illimité : Doctrine le recrée en
+# VARCHAR(MAX), avec ou sans vérification, et l'avertissement le dit.
+
+types_forces:
+  dbo.document.unicode_force: json
+  dbo.document.unicode_force_sans_verification: json

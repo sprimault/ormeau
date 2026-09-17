@@ -218,8 +218,12 @@ CREATE TABLE ventes.t_commande (
     -- Texte illimité sans Unicode : Doctrine le recrée à l'identique en text,
     -- là où nvarchar(max) n'a pas d'équivalent.
     cmd_notes varchar(max) NULL,
+    -- JSON sans Unicode : rendu en json, que Doctrine recrée à l'identique.
+    -- cmd_options, Unicode, reste en chaîne.
+    cmd_trace varchar(max) NULL,
     CONSTRAINT ck_cmd_canal CHECK (cmd_canal IN ('web', 'telephone', 'agence')),
-    CONSTRAINT ck_cmd_options CHECK (cmd_options IS NULL OR ISJSON(cmd_options) = 1)
+    CONSTRAINT ck_cmd_options CHECK (cmd_options IS NULL OR ISJSON(cmd_options) = 1),
+    CONSTRAINT ck_cmd_trace CHECK (ISJSON(cmd_trace) = 1)
 );
 GO
 

@@ -5,8 +5,8 @@
     "version": "17.11",
     "catalogue": "gescom",
     "schema": "gescom",
-    "extrait_le": "2026-09-16T17:45:10Z",
-    "empreinte": "sha256:de6d35355c6d21f5be85f38127f8bad9ea695828d00d26af785a665a03a8b82c"
+    "extrait_le": "2026-09-17T01:09:24Z",
+    "empreinte": "sha256:e6634c9400230cfd68a0b18fb3bf66bc31249b31398f698059abe30f961f458d"
   },
   "tables": [
     {
@@ -561,6 +561,13 @@
           "type_normalise": "texte",
           "nullable": true,
           "collation": "default"
+        },
+        {
+          "nom": "cmd_trace",
+          "position": 9,
+          "type_brut": "json",
+          "type_normalise": "json",
+          "nullable": true
         }
       ],
       "cle_primaire": {

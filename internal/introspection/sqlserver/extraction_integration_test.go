@@ -344,9 +344,13 @@ func TestExtraireLeCatalogue(t *testing.T) {
 	// Forme réécrite par le serveur : IN devenu OR, dans l'ordre inverse.
 	t.Run("verifications", func(t *testing.T) {
 		v := tableOuEchouer(t, p, "t_commande").Verifications
-		if len(v) != 2 || v[0].Nom != "ck_cmd_canal" ||
+		if len(v) != 3 || v[0].Nom != "ck_cmd_canal" ||
 			v[0].Expression != "([cmd_canal]='agence' OR [cmd_canal]='telephone' OR [cmd_canal]='web')" {
 			t.Errorf("verifications de t_commande : %+v", v)
+		}
+		// ISJSON(cmd_trace) = 1 se relit sous la forme que l'inférence reconnaît.
+		if len(v) == 3 && (v[2].Nom != "ck_cmd_trace" || v[2].Expression != "(isjson([cmd_trace])=(1))") {
+			t.Errorf("verification ISJSON : %+v", v[2])
 		}
 	})
 

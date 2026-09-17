@@ -49,6 +49,10 @@ abstract class TCommandeBase
     #[ORM\Column(name: 'cmd_notes', type: 'text', nullable: true)]
     protected ?string $cmdNotes = null;
 
+    /** @var array<mixed>|null */
+    #[ORM\Column(name: 'cmd_trace', type: 'json', nullable: true)]
+    protected ?array $cmdTrace = null;
+
     #[ORM\ManyToOne(targetEntity: TPays::class, inversedBy: 'tcommande')]
     #[ORM\JoinColumn(name: 'cmd_pay_code', referencedColumnName: 'pay_code')]
     protected ?TPays $cmdPay = null;
@@ -133,6 +137,20 @@ abstract class TCommandeBase
     public function setCmdNotes(?string $cmdNotes): static
     {
         $this->cmdNotes = $cmdNotes;
+
+        return $this;
+    }
+
+    /** @return array<mixed>|null */
+    public function getCmdTrace(): ?array
+    {
+        return $this->cmdTrace;
+    }
+
+    /** @param array<mixed>|null $cmdTrace */
+    public function setCmdTrace(?array $cmdTrace): static
+    {
+        $this->cmdTrace = $cmdTrace;
 
         return $this;
     }
