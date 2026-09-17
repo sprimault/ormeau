@@ -113,6 +113,22 @@
           "nullable": true,
           "commentaire": "Forme d'un autre dialecte : non reconnue sous SQL Server",
           "origine": "contrainte"
+        },
+        {
+          "nom": "reference",
+          "colonne": "reference",
+          "type_doctrine": "guid",
+          "nullable": false,
+          "defaut_expression": "uuid_genere",
+          "origine": "contrainte"
+        },
+        {
+          "nom": "referenceSequentielle",
+          "colonne": "reference_sequentielle",
+          "type_doctrine": "guid",
+          "nullable": true,
+          "defaut_expression": "uuid_genere",
+          "origine": "contrainte"
         }
       ],
       "commentaire": "Défauts calculés, sous les formes que rend sys.default_constraints : l'instant est celui de l'instruction, à l'heure locale du serveur",
@@ -167,6 +183,20 @@
       "cible": "dbo.evenement.horodate_utc",
       "message": "défaut (getutcdate()) non reconnu, non reporté : la valeur est à fournir par l'application",
       "resolution": "ignoree",
+      "confiance": 1
+    },
+    {
+      "code": "uuid_a_fournir",
+      "cible": "dbo.evenement.reference",
+      "message": "défaut (newid()) : la base tire un UUID, que Doctrine ne sait pas écrire ; l'application fournit la valeur à la création, et migrations:diff proposera de supprimer le défaut, à ne pas appliquer",
+      "resolution": "par_defaut",
+      "confiance": 1
+    },
+    {
+      "code": "uuid_a_fournir",
+      "cible": "dbo.evenement.reference_sequentielle",
+      "message": "défaut (newsequentialid()) : la base tire un UUID, que Doctrine ne sait pas écrire ; l'application fournit la valeur à la création, et migrations:diff proposera de supprimer le défaut, à ne pas appliquer",
+      "resolution": "par_defaut",
       "confiance": 1
     }
   ]

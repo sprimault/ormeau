@@ -101,6 +101,12 @@ dans `Base/`, au lieu du type PHP de la colonne d'origine, qui levait une
 
 ### Ajouté
 
+- **Un UUID tiré par la base est reconnu.** `gen_random_uuid()`, `newid()` et
+  `newsequentialid()` donnent `defaut_expression: uuid_genere` au lieu de
+  `defaut_non_reporte`. Doctrine ne sait pas écrire ce défaut : l'entité le
+  laisse à l'application, et l'avertissement `uuid_a_fournir` comme le rapport
+  de génération disent de fournir la valeur et de ne pas appliquer la
+  suppression du défaut que `migrations:diff` propose.
 - **Un texte SQL Server que sa vérification déclare JSON se lit en tableau.**
   Un `varchar(max)` validé par `ISJSON` est rendu en `json`. Un
   `nvarchar(max)` reste en chaîne, Doctrine le recréant en `VARCHAR(MAX)` : le
@@ -213,6 +219,12 @@ soon as the type returned an object.
 
 ### Added
 
+- **A UUID drawn by the database is recognized.** `gen_random_uuid()`,
+  `newid()` and `newsequentialid()` yield `defaut_expression: uuid_genere`
+  instead of `defaut_non_reporte`. Doctrine cannot write this default: the
+  entity leaves it to the application, and both the `uuid_a_fournir` warning and
+  the generation report say to supply the value and not to apply the default
+  removal `migrations:diff` offers.
 - **SQL Server text declared JSON by its check constraint is read as an
   array.** A `varchar(max)` validated by `ISJSON` is rendered as `json`. An
   `nvarchar(max)` stays a string, since Doctrine recreates it as

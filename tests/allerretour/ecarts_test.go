@@ -301,16 +301,14 @@ var tolerances = []tolerance{
 		},
 	},
 	{
-		code: "defaut_calcule_non_reconnu", categorie: voulu,
-		pourquoi: "un défaut calculé dont le sens n'est pas reconnu n'est pas reporté, avec l'avertissement defaut_non_reporte",
+		code: "uuid_genere_non_reproduit", categorie: voulu,
+		pourquoi: "un UUID tiré par la base est reconnu mais non écrit, DBAL n'ayant aucune expression pour lui : l'application fournit la valeur, et le rapport de génération le dit (DefautNonReproduit)",
 		couvre: func(e diff.Ecart, c contexte) bool {
 			if e.Objet != diff.ObjetColonne || e.Propriete != "defaut" || e.Apres != "" {
 				return false
 			}
-			cible := e.Schema + "." + e.Table + "." + e.Nom
-			return slices.ContainsFunc(c.logique.Avertissements, func(a calque.Avertissement) bool {
-				return a.Code == calque.CodeDefautNonReporte && a.Cible == cible
-			})
+			p := proprieteLogique(c, e.Schema, e.Table, e.Nom)
+			return p != nil && p.DefautExpression == calque.DefautUUIDGenere
 		},
 	},
 	{

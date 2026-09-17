@@ -13,6 +13,7 @@ use Ormeau\Doctrine\Calque\Association;
 use Ormeau\Doctrine\Calque\CalqueLogique;
 use Ormeau\Doctrine\Calque\Entite;
 use Ormeau\Doctrine\Calque\Enumeration;
+use Ormeau\Doctrine\Calque\ExpressionDefaut;
 use Ormeau\Doctrine\Calque\IndexEntite;
 use Ormeau\Doctrine\Calque\Propriete;
 use Ormeau\Doctrine\Calque\StrategieIdentifiant;
@@ -280,22 +281,29 @@ final class GenerateurEntite
     }
 
     /**
-     * Relève les défauts de date ou d'heure du jour que DBAL ne sait écrire,
-     * sous SQL Server avant 4.4, que sous une forme qu'il relit autrement.
+     * Relève les défauts que la génération ne reproduit pas fidèlement : un
+     * UUID tiré par la base, que DBAL ne sait pas écrire, et, sous SQL Server
+     * avant DBAL 4.4, la date ou l'heure du jour, écrites sous une forme qu'il
+     * relit autrement.
      *
-     * @param string                $classe     entité ou trait qui porte les propriétés
-     * @param list<Propriete>       $proprietes propriétés écrites dans sa classe de base ou son trait
-     * @param string|null           $sgbd       SGBD du calque
-     * @param Cible                 $cible      cible de la génération
-     * @param list<DefautRepropose> $defauts    défauts relevés, complété ici
+     * @param string                                   $classe     entité ou trait qui porte les propriétés
+     * @param list<Propriete>                          $proprietes propriétés écrites dans sa classe de base ou
+     *                                                             son trait
+     * @param string|null                              $sgbd       SGBD du calque
+     * @param Cible                                    $cible      cible de la génération
+     * @param list<DefautRepropose|DefautNonReproduit> $defauts    défauts relevés, complété ici
      */
     private static function signalerDefautsReproposes(string $classe, array $proprietes, ?string $sgbd, Cible $cible, array &$defauts): void
     {
-        if ($sgbd !== 'sqlserver' || $cible->defautParExpression()) {
-            return;
-        }
         foreach ($proprietes as $propriete) {
-            $defaut = $propriete->defautExpression === null ? null : RenduMembres::defautConvertiSqlServer($propriete->defautExpression);
+            if ($propriete->defautExpression === ExpressionDefaut::UuidGenere) {
+                $defauts[] = new DefautNonReproduit($classe, $propriete->nom, $propriete->colonne);
+                continue;
+            }
+            if ($sgbd !== 'sqlserver' || $cible->defautParExpression() || $propriete->defautExpression === null) {
+                continue;
+            }
+            $defaut = RenduMembres::defautConvertiSqlServer($propriete->defautExpression);
             if ($defaut !== null && $propriete->defaut === null) {
                 $defauts[] = new DefautRepropose($classe, $propriete->nom, $propriete->colonne, $defaut);
             }

@@ -10,3 +10,4 @@ créé Base/RetourBase.php
 créé Retour.php
 créé Base/AvoirBase.php
 créé Avoir.php
+défaut Evenement::reference : la base tire un UUID pour la colonne reference, et Doctrine ne sait pas écrire ce défaut. Fournir la valeur avant la première insertion, par exemple dans le constructeur de la classe. schema:update et migrations:diff proposeront de supprimer le défaut : ne pas l'appliquer.

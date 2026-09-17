@@ -72,6 +72,10 @@ func sensPostgres(c *calque.Colonne) (calque.ExpressionDefaut, bool) {
 		if expression == "CURRENT_TIME" || expression == "LOCALTIME" {
 			return calque.DefautHeureCourante, true
 		}
+	case calque.TypeUUID:
+		if expression == "gen_random_uuid()" {
+			return calque.DefautUUIDGenere, true
+		}
 	}
 	return "", false
 }
@@ -99,6 +103,12 @@ func sensSQLServer(c *calque.Colonne) (calque.ExpressionDefaut, bool) {
 	case calque.TypeHeure:
 		if expression == instantSQLServer || expression == heureConvertieSQLServer {
 			return calque.DefautHeureCourante, true
+		}
+	case calque.TypeUUID:
+		// newsequentialid() tire des valeurs croissantes, pour l'index : un
+		// UUID généré tout de même, que l'application peut remplacer.
+		if expression == "(newid())" || expression == "(newsequentialid())" {
+			return calque.DefautUUIDGenere, true
 		}
 	}
 	return "", false

@@ -25,7 +25,9 @@
         { "nom": "jour_converti", "position": 9, "type_brut": "date", "type_normalise": "date", "nullable": true, "defaut": { "genre": "expression", "valeur": "(CONVERT([date],getdate()))" }, "commentaire": "Forme qu'écrit Doctrine sous DBAL 3" },
         { "nom": "heure", "position": 10, "type_brut": "time(7)", "type_normalise": "heure", "precision_fractionnaire": 7, "nullable": true, "defaut": { "genre": "expression", "valeur": "(getdate())" } },
         { "nom": "heure_convertie", "position": 11, "type_brut": "time(7)", "type_normalise": "heure", "precision_fractionnaire": 7, "nullable": true, "defaut": { "genre": "expression", "valeur": "(CONVERT([time],getdate()))" } },
-        { "nom": "forme_postgres", "position": 12, "type_brut": "datetime", "type_normalise": "horodatage", "nullable": true, "defaut": { "genre": "expression", "valeur": "now()" }, "commentaire": "Forme d'un autre dialecte : non reconnue sous SQL Server" }
+        { "nom": "forme_postgres", "position": 12, "type_brut": "datetime", "type_normalise": "horodatage", "nullable": true, "defaut": { "genre": "expression", "valeur": "now()" }, "commentaire": "Forme d'un autre dialecte : non reconnue sous SQL Server" },
+        { "nom": "reference", "position": 13, "type_brut": "uniqueidentifier", "type_normalise": "uuid", "nullable": false, "defaut": { "genre": "expression", "valeur": "(newid())" } },
+        { "nom": "reference_sequentielle", "position": 14, "type_brut": "uniqueidentifier", "type_normalise": "uuid", "nullable": true, "defaut": { "genre": "expression", "valeur": "(newsequentialid())" } }
       ],
       "cle_primaire": { "nom": "evenement_pkey", "colonnes": ["id"] }
     }

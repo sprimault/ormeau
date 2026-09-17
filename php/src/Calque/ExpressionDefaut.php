@@ -27,4 +27,11 @@ enum ExpressionDefaut: string
 
     /** L'heure courante, sur une heure. */
     case HeureCourante = 'heure_courante';
+
+    /**
+     * Un UUID aléatoire tiré par la base à l'insertion. DBAL n'a aucune
+     * expression pour l'écrire : la génération ne le reproduit pas, et le
+     * rapport dit de fournir la valeur (DefautNonReproduit).
+     */
+    case UuidGenere = 'uuid_genere';
 }
