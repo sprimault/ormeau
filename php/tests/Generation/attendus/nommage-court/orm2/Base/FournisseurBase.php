@@ -10,6 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\MappedSuperclass]
 #[ORM\UniqueConstraint(name: 'uq_fournisseur_pays_libelle', columns: ['code_pays', 'libelle'])]
+#[ORM\UniqueConstraint(name: 'uq_fournisseur_libelle', columns: ['libelle'])]
 abstract class FournisseurBase
 {
     #[ORM\Id]

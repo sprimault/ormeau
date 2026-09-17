@@ -123,6 +123,8 @@ FROM pg_index ix
          LEFT JOIN pg_attribute a ON a.attrelid = ix.indrelid AND a.attnum = k.attnum
          LEFT JOIN pg_opclass o ON o.oid = ix.indclass[k.ordinalite - 1]
 WHERE NOT ix.indisprimary
+  AND NOT EXISTS (SELECT 1 FROM pg_constraint con
+                  WHERE con.conrelid = ix.indrelid AND con.conindid = ix.indexrelid AND con.contype = 'u')
   AND n.nspname = ANY ($1)
 ORDER BY n.nspname, c.relname, i.relname, k.ordinalite
 `
@@ -241,8 +243,11 @@ WHERE n.nspname = ANY ($1)
 ORDER BY n.nspname, c.relname, con.conname
 `
 
-// L'index de clé primaire est exclu, les contraintes le rendent déjà. Prédicat
-// et méthode d'accès n'existent que dans le catalogue natif.
+// L'index de clé primaire est exclu, les contraintes le rendent déjà, et depuis
+// la version 2 celui qui soutient une contrainte d'unicité aussi : reporté deux
+// fois, un DDL reconstruit créerait la contrainte puis un index de même nom.
+// conindid désigne aussi l'index visé par une clé étrangère, d'où contype et
+// conrelid. Prédicat et méthode d'accès n'existent que dans le catalogue natif.
 const requeteIndex = `
 SELECT n.nspname                                   AS table_schema,
        c.relname                                   AS table_nom,
@@ -257,6 +262,8 @@ FROM pg_index ix
          JOIN pg_namespace n ON n.oid = c.relnamespace
          JOIN pg_am am ON am.oid = i.relam
 WHERE NOT ix.indisprimary
+  AND NOT EXISTS (SELECT 1 FROM pg_constraint con
+                  WHERE con.conrelid = ix.indrelid AND con.conindid = ix.indexrelid AND con.contype = 'u')
   AND n.nspname = ANY ($1)
 ORDER BY n.nspname, c.relname, i.relname
 `

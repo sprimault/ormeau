@@ -59,6 +59,13 @@
             "libelle"
           ],
           "unique": true
+        },
+        {
+          "nom": "uq_fournisseur_libelle",
+          "colonnes": [
+            "libelle"
+          ],
+          "unique": true
         }
       ],
       "origine": "decision"

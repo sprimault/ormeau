@@ -42,7 +42,9 @@ recalcule hors ligne par `ormeau inferer <base>.calque.json --decisions
 <base>.decisions.yaml --sortie <base>.logique.json`, que le message donne. Le
 calque logique perd `type_php`, la stratégie d'identifiant `aucune` et
 `orphelins_supprimes`, que rien ne produisait ; un générateur tiers déduit le
-type PHP de `type_doctrine`.
+type PHP de `type_doctrine`. Le calque physique ne reporte plus l'index qui
+soutient une contrainte d'unicité, que la contrainte dit déjà : il est retiré à
+la lecture d'un calque en version 1.
 
 **Un type Doctrine forcé que le générateur ne connaît pas se déclare `mixed`**
 dans `Base/`, au lieu du type PHP de la colonne d'origine, qui levait une
@@ -164,7 +166,9 @@ with `ormeau inferer <base>.calque.json --decisions <base>.decisions.yaml
 --sortie <base>.logique.json`, which the message gives. The logical layer loses
 `type_php`, the `aucune` identifier strategy and `orphelins_supprimes`, which
 nothing produced; a third-party generator derives the PHP type from
-`type_doctrine`.
+`type_doctrine`. The physical layer no longer reports the index backing a
+unique constraint, which the constraint already states: it is removed when a
+version 1 layer is read.
 
 **A forced Doctrine type the generator does not know is declared `mixed`** in
 `Base/`, instead of the source column's PHP type, which raised a `TypeError` as

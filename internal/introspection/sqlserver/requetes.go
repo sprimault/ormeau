@@ -236,8 +236,9 @@ WHERE t.is_ms_shipped = 0 AND s.name = @p1
 ORDER BY t.name, ck.name`
 
 	// requeteIndex rend une ligne par colonne de clé des index ordinaires,
-	// clé primaire exclue, comme sous PostgreSQL : l'index qui soutient une
-	// contrainte d'unicité reste, sous le même nom.
+	// clé primaire et contraintes d'unicité exclues, comme sous PostgreSQL :
+	// leur index est rendu par la contrainte, et le reporter deux fois ferait
+	// créer un index de même nom par un DDL reconstruit.
 	//
 	// Seuls les index en arbre (type 1 et 2) sont lus. XML, spatial et
 	// columnstore n'ont pas de colonnes de clé au sens du calque, comme un
@@ -256,7 +257,7 @@ JOIN sys.tables t ON t.object_id = i.object_id
 JOIN sys.schemas s ON s.schema_id = t.schema_id
 JOIN sys.index_columns ic ON ic.object_id = i.object_id AND ic.index_id = i.index_id
 JOIN sys.columns c ON c.object_id = ic.object_id AND c.column_id = ic.column_id
-WHERE i.type IN (1, 2) AND i.is_primary_key = 0 AND i.is_hypothetical = 0
+WHERE i.type IN (1, 2) AND i.is_primary_key = 0 AND i.is_unique_constraint = 0 AND i.is_hypothetical = 0
   AND ic.key_ordinal > 0 AND t.is_ms_shipped = 0 AND s.name = @p1
 ORDER BY t.name, i.name, ic.key_ordinal`
 

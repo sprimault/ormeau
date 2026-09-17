@@ -5,8 +5,8 @@
     "version": "16.0.4295.3",
     "catalogue": "gescom",
     "schema": "ventes",
-    "extrait_le": "2026-09-17T01:57:35Z",
-    "empreinte": "sha256:2c624c0f3f4850a07756e10f11ac440e67e974be043afa160d40afb9c97b94dc"
+    "extrait_le": "2026-09-17T02:58:23Z",
+    "empreinte": "sha256:fc2175ba363c71de400500ffce34ac1e5d46b6399e1b1b2495d47cd9c77a3db8"
   },
   "tables": [
     {
@@ -247,14 +247,6 @@
           "ordres": [
             "desc"
           ]
-        },
-        {
-          "nom": "uq_cli_siret",
-          "colonnes": [
-            "cli_siret"
-          ],
-          "unique": true,
-          "methode": "nonclustered"
         }
       ],
       "verifications": [
@@ -320,16 +312,6 @@
           "colonnes": [
             "cli_id"
           ]
-        }
-      ],
-      "index": [
-        {
-          "nom": "uq_adresse_client",
-          "colonnes": [
-            "cli_id"
-          ],
-          "unique": true,
-          "methode": "nonclustered"
         }
       ]
     },

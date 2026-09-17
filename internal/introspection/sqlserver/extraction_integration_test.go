@@ -365,12 +365,13 @@ func TestExtraireLeCatalogue(t *testing.T) {
 		if idx := par["ix_cli_nom_desc"]; !slices.Equal(idx.Ordres, []calque.OrdreIndex{calque.OrdreDescendant}) {
 			t.Errorf("index descendant : %+v", idx)
 		}
-		// L'index qui soutient la contrainte reste, comme sous PostgreSQL.
-		if idx, ok := par["uq_cli_siret"]; !ok || !idx.Unique {
-			t.Errorf("index de la contrainte d'unicite : %+v", idx)
+		// L'index qui soutient la contrainte n'y est pas : la contrainte le
+		// rend, comme la clé primaire le sien.
+		if idx, ok := par["uq_cli_siret"]; ok {
+			t.Errorf("index de la contrainte d'unicite reporte deux fois : %+v", idx)
 		}
-		// Quatre, la clé primaire n'en fait pas partie.
-		if len(par) != 4 {
+		// Trois, ni la clé primaire ni la contrainte d'unicité n'en font partie.
+		if len(par) != 3 {
 			t.Errorf("index de t_client : %v", par)
 		}
 		if ref := tableOuEchouer(t, p, "t_référence").Index; len(ref) != 2 {
