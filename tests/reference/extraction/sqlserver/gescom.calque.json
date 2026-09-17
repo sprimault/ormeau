@@ -4,9 +4,8 @@
     "sgbd": "sqlserver",
     "version": "16.0.4295.3",
     "catalogue": "gescom",
-    "schema": "ventes",
-    "extrait_le": "2026-09-17T02:58:23Z",
-    "empreinte": "sha256:fc2175ba363c71de400500ffce34ac1e5d46b6399e1b1b2495d47cd9c77a3db8"
+    "extrait_le": "2026-09-17T13:44:37Z",
+    "empreinte": "sha256:80f73fd885bc4ea930fd4eff6cd57fb5d4f29391f8b3539820aab82a9a73baa4"
   },
   "tables": [
     {

@@ -282,7 +282,6 @@ func renommerSchema(p *calque.Physique, depuis, vers string) {
 			*s = vers
 		}
 	}
-	renommer(&p.Source.Schema)
 	for i := range p.Tables {
 		renommer(&p.Tables[i].Schema)
 		for j := range p.Tables[i].ClesEtrangeres {

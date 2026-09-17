@@ -93,7 +93,7 @@ func TestLesDecisionsRecuesNeSontPasModifiees(t *testing.T) {
 		Enumerations:     []EnumerationForcee{{Colonne: "public.client.actif", Nom: "OuiNon", Cas: map[string]string{"N": "class"}}},
 	}
 
-	retenues, avertissements := sansNomsInvalides(d, "public")
+	retenues, avertissements := sansNomsInvalides(d)
 
 	if len(avertissements) != 3 {
 		t.Errorf("%d avertissements, attendu 3 : %v", len(avertissements), avertissements)

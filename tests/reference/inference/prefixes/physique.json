@@ -4,7 +4,6 @@
     "sgbd": "sqlserver",
     "version": "15.0",
     "catalogue": "GESCOM",
-    "schema": "dbo",
     "extrait_le": "2026-01-01T00:00:00Z",
     "empreinte": "sha256:0000000000000000000000000000000000000000000000000000000000000006"
   },

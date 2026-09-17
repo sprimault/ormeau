@@ -96,7 +96,6 @@ func validerSource(s *Source) []Anomalie {
 	for champ, valeur := range map[string]string{
 		"source.version":   s.Version,
 		"source.catalogue": s.Catalogue,
-		"source.schema":    s.Schema,
 	} {
 		if valeur == "" {
 			a = append(a, anomalie(CodeChampRequisVide, champ, "champ requis vide"))

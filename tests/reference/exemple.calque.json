@@ -4,9 +4,8 @@
     "sgbd": "postgres",
     "version": "16.2",
     "catalogue": "gescom",
-    "schema": "public",
     "extrait_le": "2026-01-01T00:00:00Z",
-    "empreinte": "sha256:108a254c6c7469481ba2819644eb1ab506b4f7b455f755bc501fcf3a62da844a"
+    "empreinte": "sha256:912c64fbac07bf498d39d2823b047331806e16b29ae4dfe5a47dde76d79f4786"
   },
   "tables": [
     {

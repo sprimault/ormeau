@@ -42,7 +42,7 @@ func (p *pilote) Extraire(ctx context.Context, portee introspection.Portee) (*ca
 
 	err := introspection.Derouler(ctx,
 		introspection.Passe{Etape: introspection.EtapeSource, Lire: func(ctx context.Context) (err error) {
-			physique.Source, err = p.lireSource(ctx, schemas)
+			physique.Source, err = p.lireSource(ctx)
 			return err
 		}},
 		introspection.Passe{Etape: introspection.EtapeTables, Lire: func(ctx context.Context) (err error) {
@@ -190,16 +190,11 @@ func ensemble(valeurs []string) map[string]bool {
 
 // lireSource renseigne l'en-tête du calque. Ni empreinte ni horodatage ici :
 // l'une se calcule à l'écriture, l'autre est posé par la commande.
-func (p *pilote) lireSource(ctx context.Context, schemas []string) (calque.Source, error) {
+func (p *pilote) lireSource(ctx context.Context) (calque.Source, error) {
 	ctx, annuler := context.WithTimeout(ctx, delaiRequete)
 	defer annuler()
 
-	var s calque.Source
-	s.SGBD = "postgres"
-	// Le schéma du calque en porte un seul : le premier demandé fait foi, les
-	// autres restent lisibles table par table.
-	s.Schema = schemas[0]
-
+	s := calque.Source{SGBD: "postgres"}
 	if err := p.conn.QueryRow(ctx, requeteSource).Scan(&s.Version, &s.Catalogue); err != nil {
 		return s, fmt.Errorf("lecture de la source: %w", err)
 	}

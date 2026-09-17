@@ -95,7 +95,7 @@
   "avertissements": [
     {
       "code": "prefixe_detecte",
-      "cible": "dbo",
+      "cible": "prefixes_a_retirer",
       "message": "préfixe T_ commun aux 3 tables, conservé ; prefixes_a_retirer le retirerait des noms de classes",
       "resolution": "aucune",
       "confiance": 0.8

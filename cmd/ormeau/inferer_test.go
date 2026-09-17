@@ -23,7 +23,7 @@ func calqueDEssai(t *testing.T, nom string) string {
 		VersionRI: calque.VersionCourante,
 		Source: calque.Source{
 			SGBD: "postgres", Version: "16.2",
-			Catalogue: "gescom", Schema: "public",
+			Catalogue: "gescom",
 		},
 		Tables: []calque.Table{{
 			Nom: "t_client", Schema: "public",

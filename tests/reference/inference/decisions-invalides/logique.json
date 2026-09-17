@@ -170,7 +170,7 @@
   "avertissements": [
     {
       "code": "decision_invalide",
-      "cible": "public",
+      "cible": "espace_de_noms",
       "message": "espace_de_noms refusé : « App\\Entity;system('id') » n'est pas un espace de noms PHP : « Entity;system('id') » n'est pas un identifiant PHP ; App\\Entity conservé",
       "resolution": "ignoree",
       "confiance": 1
