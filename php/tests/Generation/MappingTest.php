@@ -21,6 +21,7 @@ use Ormeau\Doctrine\Calque\LecteurCalque;
 use Ormeau\Doctrine\Calque\StrategieIdentifiant;
 use Ormeau\Doctrine\Generation\Cible;
 use Ormeau\Doctrine\Generation\GenerateurEntite;
+use Ormeau\Doctrine\Generation\IndexOmis;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
@@ -197,10 +198,11 @@ final class MappingTest extends TestCase
                     self::assertSame($calque->espaceDeNoms . '\\' . $association->cible, $meta->getAssociationTargetClass($association->nom));
                 }
                 // Un index dont DBAL refuse le nom n'est pas mappé, et le
-                // rapport le déclare : le compte se fait sur ce qui reste.
+                // rapport le déclare : le compte se fait sur ce qui reste. Un
+                // index filtré sous SQL Server reste mappé, sans son filtre.
                 $refuses = array_map(
-                    static fn($i): string => $i->nom,
-                    array_filter($rapport->index, static fn($i): bool => $i->entite === $entite->nom),
+                    static fn(IndexOmis $i): string => $i->nom,
+                    array_filter($rapport->index, static fn($i): bool => $i instanceof IndexOmis && $i->entite === $entite->nom),
                 );
                 $retenus = array_filter($entite->index, static fn($i): bool => !in_array($i->nom, $refuses, true));
                 self::assertCount(
@@ -214,13 +216,15 @@ final class MappingTest extends TestCase
                     $classe . ' : index',
                 );
                 // Le prédicat arrive à Doctrine tel que le calque le porte :
-                // un échappement faux le changerait sans rien refuser.
+                // un échappement faux le changerait sans rien refuser. Sous
+                // SQL Server, il n'arrive pas, DBAL ne sachant pas l'écrire.
                 foreach ($retenus as $index) {
                     if ($index->predicat === null || $index->nom === null) {
                         continue;
                     }
                     $mappe = $meta->table[$index->unique ? 'uniqueConstraints' : 'indexes'][$index->nom] ?? [];
-                    self::assertSame($index->predicat, $mappe['options']['where'] ?? null, $classe . ' : prédicat de ' . $index->nom);
+                    $attendu = $calque->sgbd === 'sqlserver' ? null : $index->predicat;
+                    self::assertSame($attendu, $mappe['options']['where'] ?? null, $classe . ' : prédicat de ' . $index->nom);
                 }
 
                 foreach ($entite->proprietes as $propriete) {

@@ -1,0 +1,4 @@
+créé Base/CommercialBase.php
+créé Commercial.php
+index Commercial : l'index ix_commercial_actifs porte le filtre ([actif]=(1)), que DBAL n'écrit pas sous SQL Server. Une base créée par Doctrine l'aura sans filtre : le recréer à la main dans la migration.
+index Commercial : l'unicité uq_commercial_email_actif porte le filtre ([actif]=(1)), que DBAL n'écrit pas sous SQL Server. Une base créée par Doctrine l'aura sans filtre, et refusera des lignes que la base d'origine accepte : le recréer à la main dans la migration.

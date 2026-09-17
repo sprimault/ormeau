@@ -64,6 +64,12 @@ dans `Base/`, au lieu du type PHP de la colonne d'origine, qui levait une
 
 ### Corrigé
 
+- **Un index filtré de SQL Server ne fait plus proposer sa suppression.**
+  DBAL n'écrit pas le filtre sous SQL Server : déclaré dans l'entité, il
+  faisait proposer à `migrations:diff`, à chaque passage, de supprimer l'index
+  puis de le recréer sans filtre, ce qui étendait une unicité filtrée à toutes
+  les lignes. L'index est rendu sans filtre, et le rapport de génération dit de
+  le recréer à la main dans une base créée par Doctrine.
 - **Un texte Unicode forcé en `json` est signalé.** Doctrine le recrée en
   `VARCHAR(MAX)`, et la décision passait sans avertissement :
   `json_sans_unicode` dit que la conversion proposée par `migrations:diff` ne
@@ -200,6 +206,12 @@ soon as the type returned an object.
 
 ### Fixed
 
+- **A SQL Server filtered index no longer gets dropped by the diff.** DBAL
+  does not write the filter under SQL Server: declared in the entity, it made
+  `migrations:diff` propose, on every run, to drop the index and recreate it
+  without its filter, extending a filtered uniqueness to every row. The index
+  is rendered without the filter, and the generation report says to recreate
+  it by hand in a database created by Doctrine.
 - **Unicode text forced to `json` is flagged.** Doctrine recreates it as
   `VARCHAR(MAX)`, and the decision went through without a warning:
   `json_sans_unicode` says the conversion `migrations:diff` offers must not be
