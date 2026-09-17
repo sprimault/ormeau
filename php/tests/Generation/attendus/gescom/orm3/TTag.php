@@ -10,5 +10,5 @@ use App\Entity\Base\TTagBase;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
-#[ORM\Table(name: 't_tag')]
+#[ORM\Table(name: 't_tag', schema: 'gescom')]
 class TTag extends TTagBase {}

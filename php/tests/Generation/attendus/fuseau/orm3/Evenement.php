@@ -13,6 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity]
 #[ORM\Table(
     name: 'evenement',
+    schema: 'ventes',
     options: ['comment' => 'Fuseau sous les formes de SQL Server : le fait vient du champ fuseau, pas du nom du type'],
 )]
 class Evenement extends EvenementBase {}

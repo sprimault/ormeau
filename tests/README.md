@@ -79,10 +79,6 @@ Driver 18 for SQL Server — and the dependencies of `php/` installed.
 installed ORM version selects the list of differences. The report of the last
 run is written to `.tmp/allerretour/ecarts.txt`.
 
-Under SQL Server, Doctrine recreates the tables in `dbo`: its platform puts the
-comments of an unqualified table there, whatever the session's default schema.
-The test therefore renames that schema to `ventes` before comparing.
-
 Two targets have their list, both ends of the promised range, for each DBMS:
 ORM 3 with DBAL 4, from `composer.lock`, and ORM 2.14 with DBAL 3, which CI
 resolves without the lock (jobs `aller-retour-orm2` and

@@ -11,9 +11,5 @@ use Doctrine\ORM\Mapping as ORM;
 
 /** forme restaurée d'une base antérieure à PostgreSQL 8.1. */
 #[ORM\Entity]
-#[ORM\Table(
-    name: 'ancienne',
-    schema: 'public',
-    options: ['comment' => 'forme restaurée d\'une base antérieure à PostgreSQL 8.1'],
-)]
+#[ORM\Table(name: 'ancienne', options: ['comment' => 'forme restaurée d\'une base antérieure à PostgreSQL 8.1'])]
 class Ancienne extends AncienneBase {}

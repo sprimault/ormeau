@@ -13,7 +13,6 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity]
 #[ORM\Table(
     name: '`Majuscule`',
-    schema: 'public',
     options: ['comment' => 'bigserial au nom en majuscules : PostgreSQL cite le nom de la séquence'],
 )]
 class Majuscule extends MajusculeBase {}

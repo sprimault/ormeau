@@ -4,7 +4,7 @@
   "title": "Calque logique",
   "description": "Modèle objet inféré à partir d'un calque physique et d'un fichier de décisions. Parle le vocabulaire de la famille Hibernate : entités, associations avec côté propriétaire, héritage. Ce biais est assumé.",
   "type": "object",
-  "required": ["version_ri", "empreinte_physique", "espace_de_noms", "entites"],
+  "required": ["version_ri", "empreinte_physique", "sgbd", "espace_de_noms", "entites"],
   "additionalProperties": false,
   "properties": {
     "version_ri": { "type": "integer", "const": 2 },
@@ -14,7 +14,7 @@
       "pattern": "^sha256:[0-9a-f]{64}$"
     },
     "sgbd": {
-      "description": "SGBD du calque physique dont découle ce jugement. Le rendu dépend de la plateforme DBAL : une clé par séquence ne se génère pas de la même façon d'un SGBD à l'autre. Absent d'un calque produit avant ce champ : inconnu.",
+      "description": "SGBD du calque physique dont découle ce jugement. Le rendu dépend de la plateforme : le schéma par défaut d'une table ne s'écrit pas, une clé par séquence ne se génère pas de la même façon d'un SGBD à l'autre.",
       "type": "string"
     },
     "espace_de_noms": { "type": "string" },

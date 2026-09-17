@@ -130,6 +130,7 @@ final class CalqueLogiqueTest extends TestCase
     public static function champsRequis(): iterable
     {
         yield 'racine' => [['empreinte_physique'], 'empreinte_physique'];
+        yield 'sgbd' => [['sgbd'], 'sgbd'];
         yield 'entite' => [['entites', 0, 'table'], 'entites[0].table'];
         yield 'table' => [['entites', 0, 'table', 'schema'], 'entites[0].table.schema'];
         yield 'propriete' => [['entites', 0, 'proprietes', 1, 'type_doctrine'], 'entites[0].proprietes[1].type_doctrine'];
@@ -249,6 +250,7 @@ final class CalqueLogiqueTest extends TestCase
         return [
             'version_ri' => 2,
             'empreinte_physique' => 'sha256:' . str_repeat('c', 64),
+            'sgbd' => 'postgres',
             'espace_de_noms' => 'App\\Entity',
             'entites' => [[
                 'nom' => 'Client',

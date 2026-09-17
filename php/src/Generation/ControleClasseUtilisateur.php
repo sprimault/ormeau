@@ -126,6 +126,17 @@ final class ControleClasseUtilisateur
                     $en050,
                 ));
             }
+            // Le schéma par défaut ne s'écrit pas : DBAL 3 propose sinon de
+            // supprimer la table puis de la recréer. Une classe générée quand
+            // la règle était autre le porte encore.
+            if ($table['schema'] === null && $this->valeur($attribut, 'schema', 1) !== null) {
+                $divergences[] = new Divergence(
+                    $chemin,
+                    $attribut->getStartLine(),
+                    $actuel,
+                    'la table est dans le schéma par défaut, schema à retirer : DBAL 3 proposerait de la supprimer puis de la recréer',
+                );
+            }
             $commentaire = $table['options']['comment'] ?? null;
             if ($this->commentaire($attribut) !== $commentaire) {
                 $divergences[] = new Divergence($chemin, $attribut->getStartLine(), $actuel, $commentaire === null

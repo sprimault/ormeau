@@ -13,7 +13,6 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity]
 #[ORM\Table(
     name: 'doublon',
-    schema: 'public',
     options: ['comment' => 'calque ancien : nom nu d\'une séquence présente dans deux schémas, rien n\'est rattaché'],
 )]
 class Doublon extends DoublonBase {}

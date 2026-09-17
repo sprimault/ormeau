@@ -13,7 +13,6 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity]
 #[ORM\Table(
     name: 'note',
-    schema: 'dbo',
     options: ['comment' => 'Séquence du schéma par défaut, qui part de 1000 : le départ n\'est pas le minimum'],
 )]
 class Note extends NoteBase {}

@@ -40,26 +40,22 @@ final class RenduEntite
      *                                                 chaque fichier
      * @param string                     $espaceDeNoms espace de noms des classes de l'utilisateur ;
      *                                                 Base, Enum et Trait s'y ajoutent
-     * @param bool                       $avecSchema   écrire le schéma dans #[ORM\Table] ; vrai quand
-     *                                                 les entités du calque viennent de plusieurs
-     *                                                 schémas, faute de quoi deux tables de même nom
-     *                                                 se confondraient
+     * @param string                     $sgbd         SGBD du calque : il décide si le schéma d'une table
+     *                                                 s'écrit (SchemaParDefaut), et une clé par séquence ne
+     *                                                 se rend pas de la même façon sous chaque plateforme DBAL
      * @param array<string, Enumeration> $enumerations énumérations du calque par nom
      * @param ClassesUtilisateur|null    $classes      où vivent les classes de l'utilisateur ; sans elle,
      *                                                 chacune est supposée à la racine
-     * @param string|null                $sgbd         SGBD du calque : une clé par séquence ne se rend pas
-     *                                                 de la même façon sous chaque plateforme DBAL
      */
     public function __construct(
         private readonly Cible $cible,
         private readonly string $base,
         private readonly string $espaceDeNoms,
-        private readonly bool $avecSchema,
+        private readonly string $sgbd,
         array $enumerations = [],
         private readonly ?ClassesUtilisateur $classes = null,
-        private readonly ?string $sgbd = null,
     ) {
-        $this->membres = new RenduMembres($cible, $espaceDeNoms, $enumerations, $avecSchema, $classes, $sgbd);
+        $this->membres = new RenduMembres($cible, $espaceDeNoms, $enumerations, $sgbd, $classes);
     }
 
     /**
@@ -146,13 +142,13 @@ final class RenduEntite
     public function argumentsTable(Entite $entite): array
     {
         return [
-            ...IdentifiantsSql::table($entite->table->nom, $this->avecSchema ? $entite->table->schema : null),
+            ...IdentifiantsSql::table($entite->table->nom, SchemaParDefaut::ecrit($this->sgbd, $entite->table->schema)),
             'options' => $entite->commentaire === null ? null : ['comment' => $entite->commentaire],
         ];
     }
 
     /**
-     * Rend name et schema de #[ORM\Table] tels que la 0.5.0 les écrivait.
+     * Rend name et schema de #[ORM\Table] cités comme la 0.5.0 les citait.
      *
      * Rétro-compatibilité datée, pour le seul message de divergence : une
      * classe de l'utilisateur créée en 0.5.0 dans un schéma à citer porte des
@@ -161,15 +157,20 @@ final class RenduEntite
      * était inutilisable, et non que la régénération casse ce qui marchait. À
      * retirer quand plus aucun projet ne garde de classe générée en 0.5.0.
      *
+     * Le schéma y est écrit selon la règle courante, pas celle de la 0.5.0 :
+     * seule la citation distingue les deux formes, et un schéma absent n'a
+     * jamais rendu une table inutilisable.
+     *
      * @return array{name: string, schema: string|null}
      */
     public function argumentsTableEn050(Entite $entite): array
     {
         $ancien = static fn(string $nom): string => preg_match('/^[a-z_][a-z0-9_]*$/', $nom) === 1 ? $nom : '`' . $nom . '`';
+        $schema = SchemaParDefaut::ecrit($this->sgbd, $entite->table->schema);
 
         return [
             'name' => $ancien($entite->table->nom),
-            'schema' => $this->avecSchema ? $ancien($entite->table->schema) : null,
+            'schema' => $schema === null ? null : $ancien($schema),
         ];
     }
 

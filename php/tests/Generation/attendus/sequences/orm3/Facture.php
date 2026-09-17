@@ -11,9 +11,5 @@ use Doctrine\ORM\Mapping as ORM;
 
 /** serial dans le search_path de l'extraction : nom nu. */
 #[ORM\Entity]
-#[ORM\Table(
-    name: 'facture',
-    schema: 'public',
-    options: ['comment' => 'serial dans le search_path de l\'extraction : nom nu'],
-)]
+#[ORM\Table(name: 'facture', options: ['comment' => 'serial dans le search_path de l\'extraction : nom nu'])]
 class Facture extends FactureBase {}

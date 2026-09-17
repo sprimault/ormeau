@@ -13,6 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity]
 #[ORM\Table(
     name: 'fiche',
+    schema: 'ventes',
     options: ['comment' => 'Textes sans longueur déclarée : text quand Doctrine sait le recréer, chaîne et avertissement quand il le recréerait sans Unicode'],
 )]
 class Fiche extends FicheBase {}

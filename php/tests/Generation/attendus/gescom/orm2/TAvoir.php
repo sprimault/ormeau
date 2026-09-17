@@ -10,5 +10,5 @@ use App\Entity\Base\TAvoirBase;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
-#[ORM\Table(name: 't_avoir')]
+#[ORM\Table(name: 't_avoir', schema: 'gescom')]
 class TAvoir extends TAvoirBase {}

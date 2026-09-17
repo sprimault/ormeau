@@ -352,6 +352,7 @@ final class GenerateurEntiteTest extends TestCase
             $calque = CalqueLogique::depuisTableau([
                 'version_ri' => 2,
                 'empreinte_physique' => 'sha256:' . str_repeat('b', 64),
+                'sgbd' => 'postgres',
                 'espace_de_noms' => 'App\\Entity;system(\'id\')',
                 'entites' => [self::entite('Client')],
             ]);
@@ -642,6 +643,7 @@ final class GenerateurEntiteTest extends TestCase
         return CalqueLogique::depuisTableau([
             'version_ri' => 2,
             'empreinte_physique' => 'sha256:' . str_repeat('b', 64),
+            'sgbd' => 'postgres',
             'espace_de_noms' => 'App\\Entity',
             'entites' => $entites,
             'enumerations' => $enumerations,

@@ -10,5 +10,5 @@ use App\Entity\Base\TClientContactBase;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
-#[ORM\Table(name: 't_client_contact')]
+#[ORM\Table(name: 't_client_contact', schema: 'gescom')]
 class TClientContact extends TClientContactBase {}

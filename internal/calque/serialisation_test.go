@@ -613,6 +613,8 @@ func TestLireLogiqueRefuseUnDocumentIncomplet(t *testing.T) {
 		{"version plus récente", `{"version_ri": 3, ` + empreinte + `, "espace_de_noms": "App", "entites": []}`, "version"},
 		// Une inférence d'une version antérieure, sans ses corrections.
 		{"version antérieure", `{"version_ri": 1, ` + empreinte + `, "espace_de_noms": "App", "entites": []}`, "recalculer"},
+		// Sans lui, le générateur ne sait pas quel schéma est celui par défaut.
+		{"sgbd absent", `{"version_ri": 2, ` + empreinte + `, "espace_de_noms": "App", "entites": []}`, "sgbd"},
 		{"entités absentes", `{"version_ri": 2, ` + empreinte + `, "espace_de_noms": "App"}`, "entites"},
 		{"entités nulles", `{"version_ri": 2, ` + empreinte + `, "espace_de_noms": "App", "entites": null}`, "entites"},
 		{"calque physique", `{"version_ri": 2, "source": {}, "tables": []}`, "empreinte_physique"},
@@ -638,7 +640,7 @@ func TestLireLogiqueRefuseUnDocumentIncomplet(t *testing.T) {
 func TestLireLogiqueAccepteUnCalqueSansEntite(t *testing.T) {
 	t.Parallel()
 
-	contenu := `{"version_ri": 2, "empreinte_physique": "sha256:` + strings.Repeat("0", 64) + `", "espace_de_noms": "App", "entites": []}`
+	contenu := `{"version_ri": 2, "empreinte_physique": "sha256:` + strings.Repeat("0", 64) + `", "sgbd": "postgres", "espace_de_noms": "App", "entites": []}`
 	l, err := LireLogique(fichierDeTest(t, contenu))
 	if err != nil {
 		t.Fatalf("lecture : %v", err)

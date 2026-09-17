@@ -28,24 +28,23 @@ final class CalqueLogique
      *                                               découle ; elle dit si la base a bougé sans
      *                                               relire les entités
      * @param string              $espaceDeNoms      espace de noms des entités générées
+     * @param string              $sgbd              SGBD du calque physique : le rendu dépend de la plateforme
+     *                                               DBAL, pas seulement des versions — schéma écrit d'une table,
+     *                                               clé par séquence, défaut calculé
      * @param list<Entite>        $entites           classes à générer, dans l'ordre du calque
      * @param list<Enumeration>   $enumerations      énumérations PHP que des propriétés désignent
      * @param list<TraitPartage>  $traits            traits que des entités nomment
      * @param list<Avertissement> $avertissements    ce que l'inférence n'a pas résolu
-     * @param string|null         $sgbd              SGBD du calque physique : le rendu d'une clé par séquence
-     *                                               dépend de la plateforme DBAL, pas seulement des versions ;
-     *                                               absent d'un calque produit avant ce champ, où il vaut
-     *                                               inconnu ; après les autres pour ne rien décaler chez un appelant
      */
     public function __construct(
         public readonly int $versionRi,
         public readonly string $empreintePhysique,
         public readonly string $espaceDeNoms,
+        public readonly string $sgbd,
         public readonly array $entites,
         public readonly array $enumerations = [],
         public readonly array $traits = [],
         public readonly array $avertissements = [],
-        public readonly ?string $sgbd = null,
     ) {}
 
     /**
@@ -65,13 +64,13 @@ final class CalqueLogique
         $versionRi = Lecture::entier($donnees, 'version_ri', '');
         $empreintePhysique = Lecture::chaine($donnees, 'empreinte_physique', '');
         $espaceDeNoms = Lecture::chaine($donnees, 'espace_de_noms', '');
+        $sgbd = Lecture::chaine($donnees, 'sgbd', '');
         $entites = Lecture::objets($donnees, 'entites', '', Entite::depuisTableau(...), requise: true);
         $enumerations = Lecture::objets($donnees, 'enumerations', '', Enumeration::depuisTableau(...));
         $traits = Lecture::objets($donnees, 'traits', '', TraitPartage::depuisTableau(...));
         $avertissements = Lecture::objets($donnees, 'avertissements', '', Avertissement::depuisTableau(...));
-        $sgbd = Lecture::chaineOptionnelle($donnees, 'sgbd', '');
 
-        return new self($versionRi, $empreintePhysique, $espaceDeNoms, $entites, $enumerations, $traits, $avertissements, $sgbd);
+        return new self($versionRi, $empreintePhysique, $espaceDeNoms, $sgbd, $entites, $enumerations, $traits, $avertissements);
     }
 
     /**

@@ -65,14 +65,12 @@ const (
 // inférence, génération, comparaison — est le même, et c'est ce que le test
 // vérifie.
 type dialecte struct {
-	sgbd   string // nom du pilote, passé à recreer.php
-	ddl    string // DDL dont la base d'origine doit venir
-	schema string // schéma du DDL, seul extrait
-	// schemaRecree est celui où Doctrine recrée les tables. Sous SQL Server,
-	// dbo : DBAL y pose les commentaires d'une table non qualifiée, quel que
-	// soit le schéma par défaut de la session.
-	schemaRecree string
-	port         int // port par défaut, quand le DSN n'en nomme pas
+	sgbd string // nom du pilote, passé à recreer.php
+	ddl  string // DDL dont la base d'origine doit venir
+	// schema est celui du DDL, seul extrait. Hors du schéma par défaut, les
+	// entités l'écrivent, et Doctrine y recrée les tables.
+	schema string
+	port   int // port par défaut, quand le DSN n'en nomme pas
 	// lireEmpreinte rend l'empreinte du DDL posée dans la base, nil si elle
 	// n'en porte pas.
 	lireEmpreinte func(ctx context.Context, dsn string) (*string, error)
@@ -83,7 +81,7 @@ type dialecte struct {
 // dialectes est indexé par le préfixe du DSN.
 var dialectes = map[string]dialecte{
 	"postgres": {
-		sgbd: "postgres", ddl: "../ddl/postgres.sql", schema: "gescom", schemaRecree: "gescom", port: 5432,
+		sgbd: "postgres", ddl: "../ddl/postgres.sql", schema: "gescom", port: 5432,
 		lireEmpreinte: empreintePostgres,
 		recreee: func(u url.URL) url.URL {
 			u.Path = "/" + baseRecreee
@@ -91,7 +89,7 @@ var dialectes = map[string]dialecte{
 		},
 	},
 	"sqlserver": {
-		sgbd: "sqlserver", ddl: "../ddl/sqlserver.sql", schema: "ventes", schemaRecree: "dbo", port: 1433,
+		sgbd: "sqlserver", ddl: "../ddl/sqlserver.sql", schema: "ventes", port: 1433,
 		lireEmpreinte: empreinteSQLServer,
 		// La base d'un DSN SQL Server est un paramètre : le chemin y désigne
 		// l'instance nommée.
@@ -251,51 +249,13 @@ func TestAllerRetour(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Le schéma de l'origine aussi : une séquence que le calque logique
-	// qualifie y est recréée, là où les tables non qualifiées vont dans
-	// schemaRecree.
-	schemasRecrees := []string{d.schemaRecree}
-	if d.schemaRecree != d.schema {
-		schemasRecrees = append(schemasRecrees, d.schema)
-	}
-	recree := extraire(t, d, recreee.String(), schemasRecrees...)
-	renommerSchema(recree, d.schemaRecree, d.schema)
+	recree := extraire(t, d, recreee.String(), d.schema)
 	ecarts := diff.Comparer(origine, recree, diff.Options{})
 
 	c := contexte{origine: origine, recree: recree, logique: logique, php: sortie}
 	couverture := confronter(t, d.sgbd, cible, ecarts, c)
 	if err := os.WriteFile(filepath.Join(travail, nomDesEcarts), []byte(couverture), 0o600); err != nil {
 		t.Errorf("écriture de %s : %v", nomDesEcarts, err)
-	}
-}
-
-// renommerSchema rend au calque recréé le schéma de l'origine, pour que la
-// comparaison ne voie pas chaque objet comme retiré puis ajouté. Toutes les
-// références d'un schéma à l'autre le suivent : tables, cibles des clés
-// étrangères, séquences, vues.
-func renommerSchema(p *calque.Physique, depuis, vers string) {
-	if depuis == vers {
-		return
-	}
-	renommer := func(s *string) {
-		if *s == depuis {
-			*s = vers
-		}
-	}
-	for i := range p.Tables {
-		renommer(&p.Tables[i].Schema)
-		for j := range p.Tables[i].ClesEtrangeres {
-			renommer(&p.Tables[i].ClesEtrangeres[j].SchemaCible)
-		}
-	}
-	for i := range p.Sequences {
-		renommer(&p.Sequences[i].Schema)
-	}
-	for i := range p.TypesEnumeres {
-		renommer(&p.TypesEnumeres[i].Schema)
-	}
-	for i := range p.Vues {
-		renommer(&p.Vues[i].Schema)
 	}
 }
 

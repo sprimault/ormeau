@@ -13,7 +13,6 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity]
 #[ORM\Table(
     name: '`Journal`',
-    schema: 'public',
     options: ['comment' => 'schéma public écrit entre guillemets, forme que PostgreSQL ne rend pas : rien n\'est retiré'],
 )]
 class Journal extends JournalBase {}

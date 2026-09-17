@@ -47,7 +47,16 @@ soutient une contrainte d'unicité, que la contrainte dit déjà : il est retir�
 la lecture d'un calque en version 1. Il perd aussi `source.schema`, qui ne
 nommait que le premier schéma extrait : chaque objet porte le sien.
 `prefixe_detecte` et un `espace_de_noms` refusé visent désormais la clé de
-décision qui les règle.
+décision qui les règle. Le calque logique exige `sgbd`.
+
+**Une table hors du schéma par défaut écrit son schéma.** Une entité d'un
+calque à un seul schéma, `ventes` par exemple, ne le portait pas :
+l'application ne trouvait la table que si l'utilisateur de connexion y avait
+son schéma par défaut, et `migrations:diff` proposait de la recréer ailleurs
+puis de supprimer l'originale. À l'inverse, `public` et `dbo` ne s'écrivent
+plus, même sur un calque à plusieurs schémas : DBAL 3 proposait de supprimer
+la table puis de la recréer. La classe de l'utilisateur n'étant jamais
+réécrite, la régénération signale chaque `#[ORM\Table]` à corriger à la main.
 
 **Un type Doctrine forcé que le générateur ne connaît pas se déclare `mixed`**
 dans `Base/`, au lieu du type PHP de la colonne d'origine, qui levait une
@@ -173,7 +182,17 @@ nothing produced; a third-party generator derives the PHP type from
 unique constraint, which the constraint already states: it is removed when a
 version 1 layer is read. It also loses `source.schema`, which named only the
 first schema extracted: each object carries its own. `prefixe_detecte` and an
-invalid `espace_de_noms` now target the decision key that settles them.
+invalid `espace_de_noms` now target the decision key that settles them. The
+logical layer requires `sgbd`.
+
+**A table outside the default schema writes its schema.** An entity from a
+single-schema layer, `ventes` for instance, did not carry it: the application
+only found the table when the connection user had it as default schema, and
+`migrations:diff` proposed to recreate it elsewhere and drop the original.
+Conversely, `public` and `dbo` are no longer written, even on a multi-schema
+layer: DBAL 3 proposed to drop the table and recreate it. Since the user's
+class is never rewritten, regeneration reports each `#[ORM\Table]` to fix by
+hand.
 
 **A forced Doctrine type the generator does not know is declared `mixed`** in
 `Base/`, instead of the source column's PHP type, which raised a `TypeError` as

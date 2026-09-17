@@ -136,6 +136,7 @@ final class GenererCommandeTest extends TestCase
             file_put_contents($calque, json_encode([
                 'version_ri' => 2,
                 'empreinte_physique' => 'sha256:' . str_repeat('b', 64),
+                'sgbd' => 'postgres',
                 'espace_de_noms' => 'App\\Entity',
                 'entites' => [[
                     'nom' => '</info>',

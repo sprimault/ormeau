@@ -80,10 +80,10 @@ final class Recreation
         if (PHP_VERSION_ID >= 80400 && method_exists($configuration, 'enableNativeLazyObjects')) {
             $configuration->enableNativeLazyObjects(true);
         }
-        // Le calque ne couvre qu'un schéma : le générateur n'écrit alors pas
-        // schema:, et Doctrine crée tout dans le schéma courant. Chaque
-        // préparation rend ce schéma vide et courant, pour que la base recréée
-        // se compare à l'originale sans traduction.
+        // Le schéma du calque n'est pas celui par défaut : les entités
+        // l'écrivent, et Doctrine le crée avec les tables. Chaque préparation
+        // rend la base vierge de ce schéma, pour que la base recréée se compare
+        // à l'originale sans traduction.
         $connexion = match ($p['sgbd']) {
             'postgres' => self::preparerPostgres($p, $configuration),
             'sqlserver' => self::preparerSqlServer($p, $configuration),
@@ -107,8 +107,10 @@ final class Recreation
     }
 
     /**
-     * Ouvre la base recréée PostgreSQL, créée par le DDL de test, et y rend le
-     * schéma vide et courant par search_path.
+     * Ouvre la base recréée PostgreSQL, créée par le DDL de test, et en retire
+     * le schéma d'un passage précédent. search_path reste celui par défaut :
+     * c'est la situation d'une application, et un schéma courant inexistant
+     * fait échouer schema:create sous DBAL 4.
      *
      * @param array{base: string, schema: string, hote: string, port: int, utilisateur: string, mot_de_passe: string} $p paramètres du test Go
      * @param Configuration                                                                                             $configuration configuration de l'ORM, partagée avec l'EntityManager
@@ -128,21 +130,12 @@ final class Recreation
 
         $schema = $connexion->quoteIdentifier($p['schema']);
         $connexion->executeStatement('DROP SCHEMA IF EXISTS ' . $schema . ' CASCADE');
-        $connexion->executeStatement('CREATE SCHEMA ' . $schema);
-        $connexion->executeStatement('SET search_path TO ' . $schema);
 
         return $connexion;
     }
 
     /**
      * Recrée la base SQL Server vide.
-     *
-     * Les tables y atterrissent dans dbo, et non dans le schéma du calque :
-     * SQL Server n'a pas de search_path, et la plateforme SQL Server de DBAL
-     * tient dbo pour le schéma d'une table non qualifiée — elle y pose les
-     * commentaires de table, même quand le schéma par défaut de la session est
-     * un autre (essai du 2026-09-16). Le test Go renomme le schéma de la base
-     * recréée avant de comparer.
      *
      * La base est supprimée et recréée plutôt que vidée : SQL Server n'a pas de
      * DROP SCHEMA … CASCADE, et vider un schéma demanderait de défaire les
