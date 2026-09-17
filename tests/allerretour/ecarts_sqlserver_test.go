@@ -41,6 +41,28 @@ var tolerancesSQLServer = []tolerance{
 		},
 	},
 	{
+		code: "nom_de_defaut_genere", categorie: impossible,
+		pourquoi: "Doctrine ne nomme pas un défaut à sa façon : DBAL 3 le nomme DF_ suivi de deux hachages, DBAL 4 laisse SQL Server le nommer DF__ suivi d'un suffixe tiré à la création",
+		couvre: func(e diff.Ecart, _ contexte) bool {
+			return e.Objet == diff.ObjetColonne && e.Propriete == "defaut.nom" && e.Avant != "" && nomDeDefautGenere.MatchString(e.Apres)
+		},
+	},
+	{
+		code: "nom_de_defaut_non_recree", categorie: impossible,
+		pourquoi: "un défaut que la base recréée ne porte pas n'a plus de nom : l'écart du défaut lui-même est couvert par sa propre entrée",
+		couvre: func(e diff.Ecart, c contexte) bool {
+			if e.Objet != diff.ObjetColonne || e.Propriete != "defaut.nom" || e.Apres != "" {
+				return false
+			}
+			table := c.recree.TableParNom(e.Schema, e.Table)
+			if table == nil {
+				return false
+			}
+			col := table.ColonneParNom(e.Nom)
+			return col != nil && col.Defaut == nil
+		},
+	},
+	{
 		code: "nom_de_cle_etrangere_genere", categorie: impossible,
 		pourquoi: "Doctrine nomme ses clés étrangères FK_ suivi d'un hachage",
 		couvre:   cleEtrangereNommeeParDoctrine(nomGenereSQLServer, "FK_"),
@@ -270,6 +292,11 @@ var nomClePrimaireSQLServer = regexp.MustCompile(`^PK__.+__[0-9A-F]{16}$`)
 // nomGenereSQLServer reconnaît un nom que Doctrine forme d'un préfixe et d'un
 // hachage : SQL Server garde la casse que PostgreSQL replie.
 var nomGenereSQLServer = regexp.MustCompile(`^[A-Z]+_[0-9A-F]{16}$`)
+
+// nomDeDefautGenere reconnaît le nom d'un défaut recréé par Doctrine : celui
+// de DBAL 3 (DF_, hachage de la table, hachage de la colonne) ou celui que
+// SQL Server attribue sous DBAL 4 (DF__, débuts des noms, suffixe).
+var nomDeDefautGenere = regexp.MustCompile(`^DF_[0-9A-F]{8}_[0-9A-F]{8}$|^DF__.+__[0-9A-F]{8}$`)
 
 // filtreNonNul reconnaît le prédicat que DBAL ajoute à un index unique.
 var filtreNonNul = regexp.MustCompile(`^\((\[[^\]]+\] IS NOT NULL)( AND \[[^\]]+\] IS NOT NULL)*\)$`)

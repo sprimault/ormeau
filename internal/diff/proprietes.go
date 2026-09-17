@@ -70,6 +70,14 @@ var proprietesColonne = []propriete[calque.Colonne]{
 		}
 		return rendu
 	}},
+	// À part du défaut : un renommage se voit seul, et une tolérance ne
+	// couvre que lui.
+	{"defaut.nom", func(c *calque.Colonne) string {
+		if c.Defaut == nil {
+			return ""
+		}
+		return c.Defaut.Nom
+	}},
 	{"generee", func(c *calque.Colonne) string {
 		if c.Generee == nil {
 			return ""

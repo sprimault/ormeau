@@ -172,6 +172,15 @@ func TestComparer(t *testing.T) {
 			},
 		},
 		{
+			"défaut renommé, valeur inchangée",
+			func(b *calque.Physique) {
+				b.Tables[0].Colonnes[2].Defaut = &calque.Defaut{Genre: calque.DefautLitteral, Valeur: "ACTIF", Nom: "DF_client_statut"}
+			},
+			[]Ecart{
+				{Genre: Modification, Objet: ObjetColonne, Schema: "public", Table: "client", Nom: "statut", Propriete: "defaut.nom", Avant: "", Apres: "DF_client_statut"},
+			},
+		},
+		{
 			"ordre des colonnes de la clé primaire",
 			func(b *calque.Physique) {
 				b.Tables[0].ClePrimaire = &calque.ClePrimaire{Nom: "client_pkey", Colonnes: []string{"id", "nom"}}
@@ -402,6 +411,7 @@ func TestChaqueChampEstCompareOuExclu(t *testing.T) {
 		reflect.TypeFor[calque.TypeEnumere](): {"nom": "identité", "schema": "identité"},
 		reflect.TypeFor[calque.Defaut](): {
 			"genre": "rendu dans defaut", "valeur": "rendu dans defaut", "sequence": "rendu dans defaut",
+			"nom": "comparé comme defaut.nom",
 		},
 		reflect.TypeFor[calque.ReferenceSequence](): {"schema": "rendu dans defaut", "nom": "rendu dans defaut"},
 		reflect.TypeFor[calque.Generee]():           {"expression": "rendu dans generee", "stockee": "rendu dans generee"},
@@ -440,7 +450,7 @@ func TestChaqueChampEstCompareOuExclu(t *testing.T) {
 			}
 		}
 		for _, nom := range compares[typ] {
-			if !champs[nom] && !strings.HasPrefix(nom, "options.") {
+			if !champs[nom] && !strings.HasPrefix(nom, "options.") && !strings.HasPrefix(nom, "defaut.") {
 				t.Errorf("%s.%s comparé, mais le champ n'existe pas", typ.Name(), nom)
 			}
 		}

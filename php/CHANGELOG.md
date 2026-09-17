@@ -165,6 +165,9 @@ dans `Base/`, au lieu du type PHP de la colonne d'origine, qui levait une
   calques**, optionnels : `defaut.sequence` au calque physique, lu dans les
   dépendances du catalogue ; `sequence_depart` et `sgbd` au calque logique, le
   rendu d'une clé par séquence dépendant de la plateforme.
+- **Le nom de la contrainte d'un défaut dans le calque physique**, optionnel :
+  `defaut.nom`, lu par le pilote SQL Server, où un défaut est une contrainte
+  nommée. PostgreSQL ne nomme pas ses défauts.
 
 ### Modifié
 
@@ -305,6 +308,9 @@ soon as the type returned an object.
   optional: `defaut.sequence` in the physical layer, read from the catalog's
   dependencies; `sequence_depart` and `sgbd` in the logical layer, since the
   rendering of a sequence key depends on the platform.
+- **The name of a default's constraint in the physical layer**, optional:
+  `defaut.nom`, read by the SQL Server driver, where a default is a named
+  constraint. PostgreSQL does not name its defaults.
 
 ### Changed
 

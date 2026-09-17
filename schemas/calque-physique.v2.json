@@ -148,6 +148,10 @@
       "properties": {
         "genre": { "enum": ["litteral", "expression", "sequence"] },
         "valeur": { "type": "string" },
+        "nom": {
+          "description": "Nom de la contrainte qui porte le défaut, pour un SGBD qui en fait une contrainte nommée (SQL Server), choisi ou attribué par le serveur. Absent quand le SGBD ne nomme pas ses défauts, ou d'un calque extrait avant ce champ.",
+          "type": "string"
+        },
         "sequence": {
           "description": "Séquence que tire un défaut de genre sequence, lue dans les dépendances du catalogue, nom non cité. Absente quand le catalogue n'en désigne pas une seule, ou d'un calque extrait avant ce champ.",
           "type": "object",
