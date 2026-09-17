@@ -289,11 +289,17 @@ const fr = {
 
   'help.label': 'Aide',
   'arbitrage.help.entities':
-    'Une entité par table extraite : la classe PHP que la génération produira. Le nombre en orange compte les avertissements à traiter.',
+    'Une entité par table extraite : la classe PHP que la génération produira. Le nombre en orange compte les avertissements qui se règlent dans cet écran.',
   'arbitrage.help.className':
     'Nom de la classe PHP générée pour cette table. Laissé vide, c’est le nom affiché en gris qui s’applique. Le nom saisi est enregistré dans le fichier de décisions et rejoué à chaque génération.',
   'arbitrage.help.warnings':
-    'Ce que l’outil n’a pas pu décider seul pour cette entité. En orange, ce qui demande une action ; en gris, une simple information.',
+    'Ce que l’outil n’a pas pu décider seul pour cette entité. En orange, ce qui se règle ici ; en gris, ce qui se fait ailleurs, avec l’endroit en tête, ou une simple information.',
+  'arbitrage.lieu.selection': 'À faire dans la sélection des tables :',
+  'arbitrage.lieu.fichier': 'À faire dans le fichier de décisions :',
+  'arbitrage.lieu.base': 'À faire dans la base :',
+  'arbitrage.lieu.application': 'À faire dans le code de l’application :',
+  'arbitrage.lieu.information': 'Pour information :',
+  'arbitrage.forceJson': 'Forcer en json',
   'arbitrage.help.forceType':
     'L’outil ne connaît pas le type de cette colonne. Le champ propose le type qu’il a retenu faute de mieux : « Forcer » le confirme et fait disparaître l’avertissement. Un autre type Doctrine peut être saisi, y compris un type propre au projet.',
   'arbitrage.help.nameCases':
@@ -350,6 +356,7 @@ const fr = {
   'warning.sequence_non_reconnue': 'Séquence non reconnue',
   'warning.texte_unicode_sans_equivalent': 'Texte Unicode sans équivalent Doctrine',
   'warning.json_sans_unicode': 'JSON recréé sans Unicode',
+  'warning.texte_unicode_json_propose': 'Texte Unicode déclaré JSON',
   'warning.fuseau_precision_non_lue': 'Horodatage avec fuseau trop précis pour Doctrine',
   'warning.reference_hors_identifiant': 'Clé étrangère hors identifiant',
 
@@ -622,11 +629,17 @@ const en: Record<MessageKey, string> = {
 
   'help.label': 'Help',
   'arbitrage.help.entities':
-    'One entity per extracted table: the PHP class generation will produce. The orange number counts the warnings to handle.',
+    'One entity per extracted table: the PHP class generation will produce. The orange number counts the warnings settled on this screen.',
   'arbitrage.help.className':
     'Name of the PHP class generated for this table. Left empty, the name shown in grey applies. A typed name is saved in the decisions file and replayed at each generation.',
   'arbitrage.help.warnings':
-    'What the tool could not decide on its own for this entity. Orange needs an action; grey is information only.',
+    'What the tool could not decide on its own for this entity. Orange is settled here; grey is done elsewhere, with the place first, or is information only.',
+  'arbitrage.lieu.selection': 'To do in the table selection:',
+  'arbitrage.lieu.fichier': 'To do in the decisions file:',
+  'arbitrage.lieu.base': 'To do in the database:',
+  'arbitrage.lieu.application': 'To do in the application code:',
+  'arbitrage.lieu.information': 'For information:',
+  'arbitrage.forceJson': 'Force to json',
   'arbitrage.help.forceType':
     'The tool does not know this column’s type. The field suggests the type it fell back on: “Force” confirms it and clears the warning. Another Doctrine type can be typed, including one specific to the project.',
   'arbitrage.help.nameCases':
@@ -682,6 +695,7 @@ const en: Record<MessageKey, string> = {
   'warning.sequence_non_reconnue': 'Unrecognized sequence',
   'warning.texte_unicode_sans_equivalent': 'Unicode text without a Doctrine equivalent',
   'warning.json_sans_unicode': 'JSON recreated without Unicode',
+  'warning.texte_unicode_json_propose': 'Unicode text declared JSON',
   'warning.fuseau_precision_non_lue': 'Time zone timestamp too precise for Doctrine',
   'warning.reference_hors_identifiant': 'Foreign key outside the identifier',
 

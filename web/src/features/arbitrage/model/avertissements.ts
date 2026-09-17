@@ -2,12 +2,30 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import {
+  CodeCasEnumerationOpaque,
+  CodeCibleHorsPortee,
   CodeClePrimaireComposite,
+  CodeClePrimaireGardee,
+  CodeCollationNonReportee,
+  CodeCollision,
   CodeColonneIgnoree,
+  CodeDecisionInvalide,
+  CodeDecisionOrpheline,
+  CodeDefautIncompatible,
+  CodeDefautNonReporte,
+  CodeFuseauPrecisionNonLue,
   CodeHeritageDeduit,
   CodeJointurePure,
+  CodeJSONSansUnicode,
+  CodePrefixeDetecte,
+  CodeReferenceHorsIdentifiant,
+  CodeSequenceNonReconnue,
   CodeTableIgnoree,
+  CodeTableSansClePrimaire,
+  CodeTexteUnicodeJSONPropose,
+  CodeTexteUnicodeSansEquivalent,
   CodeTraitDeduit,
+  CodeTypeNonReconnu,
   type Avertissement,
 } from '@/shared/model';
 
@@ -19,20 +37,65 @@ import {
 const RAPPELS = new Set<string>([CodeTableIgnoree, CodeColonneIgnoree]);
 
 /**
- * Codes qui informent sans rien demander. Tout autre code compte comme à
- * traiter, y compris un code ajouté plus tard côté Go : il se voit plutôt que
- * de passer inaperçu.
+ * Où un avertissement se traite. Seul `ecran` a une action dans l'arbitrage ;
+ * les autres disent où aller, et ne comptent pas comme à traiter ici.
  */
-const INFORMATIFS = new Set<string>([
-  CodeTraitDeduit,
-  CodeJointurePure,
-  CodeHeritageDeduit,
-  CodeClePrimaireComposite,
-]);
+export type Lieu = 'ecran' | 'selection' | 'fichier' | 'base' | 'application' | 'information';
 
-/** Dit si un avertissement demande qu'on s'en occupe. */
+/**
+ * Le lieu de chaque code d'avertissement.
+ *
+ * Écrit à la main et contrôlé par un test qui échoue sur un code sans lieu :
+ * ranger un code, c'est dire où l'utilisateur agit, et la réponse ne se déduit
+ * ni du code ni de son message.
+ */
+export const LIEUX: Readonly<Record<string, Lieu>> = {
+  [CodeTypeNonReconnu]: 'ecran',
+  [CodeCasEnumerationOpaque]: 'ecran',
+  [CodeCollision]: 'ecran',
+  [CodeTexteUnicodeJSONPropose]: 'ecran',
+
+  // Une clé visée par colonnes_ignorees reste : la sélection se reprend.
+  [CodeClePrimaireGardee]: 'selection',
+  [CodeTableSansClePrimaire]: 'selection',
+  [CodeCibleHorsPortee]: 'selection',
+
+  [CodeDecisionOrpheline]: 'fichier',
+  [CodeDecisionInvalide]: 'fichier',
+  [CodePrefixeDetecte]: 'fichier',
+
+  [CodeFuseauPrecisionNonLue]: 'base',
+  [CodeReferenceHorsIdentifiant]: 'base',
+  [CodeCollationNonReportee]: 'base',
+  // Conséquence d'une décision prise : ce qui reste à faire, c'est ne pas
+  // appliquer la migration que Doctrine proposera.
+  [CodeJSONSansUnicode]: 'base',
+
+  [CodeDefautNonReporte]: 'application',
+  [CodeSequenceNonReconnue]: 'application',
+
+  [CodeTraitDeduit]: 'information',
+  [CodeJointurePure]: 'information',
+  [CodeHeritageDeduit]: 'information',
+  [CodeClePrimaireComposite]: 'information',
+  [CodeDefautIncompatible]: 'information',
+  [CodeTexteUnicodeSansEquivalent]: 'information',
+  [CodeTableIgnoree]: 'information',
+  [CodeColonneIgnoree]: 'information',
+};
+
+/**
+ * Rend le lieu d'un avertissement. Un code inconnu, ajouté côté Go sans être
+ * rangé ici, compte comme à traiter à l'écran : il se voit plutôt que de passer
+ * inaperçu, et le test de rangement échoue de toute façon.
+ */
+export function lieu(avertissement: Avertissement): Lieu {
+  return LIEUX[avertissement.code] ?? 'ecran';
+}
+
+/** Dit si un avertissement se traite dans l'écran d'arbitrage. */
 export function estATraiter(avertissement: Avertissement): boolean {
-  return !INFORMATIFS.has(avertissement.code);
+  return lieu(avertissement) === 'ecran';
 }
 
 /**

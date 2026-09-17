@@ -14,7 +14,9 @@ import {
   CodeTypeNonReconnu,
   type Avertissement,
 } from '@/shared/model';
-import { avertissementsParTable, estATraiter, trierAvertissements } from '../avertissements';
+import { messages } from '@/shared/i18n';
+import * as model from '@/shared/model';
+import { LIEUX, avertissementsParTable, estATraiter, trierAvertissements } from '../avertissements';
 
 /** Fabrique un avertissement réduit à ce que le rangement regarde. */
 function avertissement(code: string, cible: string, confiance = 1): Avertissement {
@@ -71,10 +73,25 @@ describe('avertissements', () => {
     expect(parTable.size).toBe(0);
   });
 
-  it('compte comme à traiter tout ce qui n’est pas purement informatif, codes inconnus compris', () => {
+  it('ne compte comme à traiter que ce qui se règle dans l’écran, codes inconnus compris', () => {
     expect(estATraiter(avertissement(CodeTypeNonReconnu, 'public.a.b'))).toBe(true);
     expect(estATraiter(avertissement('code_de_demain', 'public.a'))).toBe(true);
     expect(estATraiter(avertissement(CodeTraitDeduit, 'public.a'))).toBe(false);
     expect(estATraiter(avertissement(CodeJointurePure, 'public.a'))).toBe(false);
+    expect(estATraiter(avertissement(CodeTableSansClePrimaire, 'public.a'))).toBe(false);
+  });
+
+  it('range chaque code d’avertissement du calque à un endroit', () => {
+    // Par l'index de shared/model, dont un test vérifie qu'il réexporte chaque
+    // code généré : un code ajouté côté Go échoue là ou ici.
+    const avertissements = Object.entries(model)
+      .filter(([nom, valeur]) => nom.startsWith('Code') && typeof valeur === 'string')
+      .map(([nom, valeur]) => [nom, valeur as string])
+      .filter(([, code]) => (messages.fr as Record<string, string>)[`warning.${code}`]);
+
+    expect(avertissements.length).toBeGreaterThan(0);
+    for (const [nom, code] of avertissements) {
+      expect(LIEUX[code], `${nom} (« ${code} ») n'a pas d'endroit où se traiter`).toBeDefined();
+    }
   });
 });

@@ -400,13 +400,17 @@ func inferrerPropriete(c *calque.Colonne, cibleTable string, d *Decisions, schem
 			Confiance:  0.3,
 		})
 	} else if texteUnicodeSansLongueur(c) {
+		code := calque.CodeTexteUnicodeSansEquivalent
 		message := "type " + c.TypeBrut + " sans équivalent Doctrine : rendu en chaîne, que schema:create recrée en NVARCHAR(255) " +
 			"et que migrations:diff proposera de réduire ; en text, il serait recréé en VARCHAR(MAX), sans Unicode"
+		// Un code à part, parce qu'une décision le règle : l'interface y pose
+		// l'action, là où le texte sans vérification n'en a aucune.
 		if jsonVerifie {
-			message += " ; sa vérification le déclare JSON, et le fichier de décisions propose de le forcer en json, avec ce que cela coûte"
+			code = calque.CodeTexteUnicodeJSONPropose
+			message += " ; sa vérification le déclare JSON : forcé en json, il se lit en tableau, mais Doctrine le recrée en VARCHAR(MAX)"
 		}
 		avertissements = append(avertissements, calque.Avertissement{
-			Code:       calque.CodeTexteUnicodeSansEquivalent,
+			Code:       code,
 			Cible:      cible,
 			Message:    message,
 			Resolution: calque.ResolutionParDefaut,
