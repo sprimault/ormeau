@@ -53,7 +53,10 @@
         "cle_primaire": { "$ref": "#/$defs/clePrimaire" },
         "cles_etrangeres": { "type": "array", "items": { "$ref": "#/$defs/cleEtrangere" } },
         "unicites": { "type": "array", "items": { "$ref": "#/$defs/contrainteColonnes" } },
-        "index": { "type": "array", "items": { "$ref": "#/$defs/index" } },
+        "index": {
+          "description": "Sans l'index qui soutient une contrainte d'unicité ou la clé primaire : la contrainte le dit déjà. Une version 1 reportait celui d'une unicité ; il est retiré à la lecture.",
+          "type": "array", "items": { "$ref": "#/$defs/index" }
+        },
         "verifications": { "type": "array", "items": { "$ref": "#/$defs/verification" } },
         "options": { "$ref": "#/$defs/optionsTable" }
       }

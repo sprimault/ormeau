@@ -5,8 +5,8 @@
     "version": "17.11",
     "catalogue": "gescom",
     "schema": "gescom",
-    "extrait_le": "2026-09-17T01:57:14Z",
-    "empreinte": "sha256:0c8ef3b1f7528c8f7eab03e557eb7a9edca6045f1ee4699ba41302ba138070de"
+    "extrait_le": "2026-09-17T02:58:00Z",
+    "empreinte": "sha256:93007e1745b7310a39bba876b4ec3be85a64d22150aca2b5c84c4ed112177ca4"
   },
   "tables": [
     {
@@ -256,14 +256,6 @@
           "operateurs": [
             "text_pattern_ops"
           ]
-        },
-        {
-          "nom": "uq_cli_siret",
-          "colonnes": [
-            "cli_siret"
-          ],
-          "unique": true,
-          "methode": "btree"
         }
       ],
       "verifications": [
@@ -329,16 +321,6 @@
           "colonnes": [
             "cli_id"
           ]
-        }
-      ],
-      "index": [
-        {
-          "nom": "uq_adresse_client",
-          "colonnes": [
-            "cli_id"
-          ],
-          "unique": true,
-          "methode": "btree"
         }
       ]
     },

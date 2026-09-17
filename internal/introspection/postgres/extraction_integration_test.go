@@ -394,6 +394,12 @@ func TestExtraireLesCasTordus(t *testing.T) {
 		if len(tbl.Unicites) != 1 || tbl.Unicites[0].Nom != "uq_cli_siret" {
 			t.Errorf("unicites %+v", tbl.Unicites)
 		}
+		// L'index qui la soutient n'est pas reporté une seconde fois.
+		for _, idx := range tbl.Index {
+			if idx.Nom == "uq_cli_siret" {
+				t.Errorf("index de la contrainte d'unicite reporte deux fois : %+v", idx)
+			}
+		}
 	})
 
 	t.Run("collation et son schema hors de pg_catalog", func(t *testing.T) {

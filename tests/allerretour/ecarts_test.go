@@ -206,19 +206,25 @@ var tolerances = []tolerance{
 	},
 	{
 		code: "unicite_recreee_en_index", categorie: impossible,
-		pourquoi: "Doctrine crée un index unique, pas une contrainte UNIQUE : l'index reste, la contrainte disparaît",
+		pourquoi: "Doctrine crée un index unique, pas une contrainte UNIQUE : la contrainte disparaît, un index apparaît à sa place",
 		couvre: func(e diff.Ecart, c contexte) bool {
-			if e.Objet != diff.ObjetUnicite || e.Genre != diff.Suppression {
-				return false
-			}
-			table := c.recree.TableParNom(e.Schema, e.Table)
-			if table == nil {
-				return false
-			}
-			for _, idx := range table.Index {
-				if idx.Unique && idx.Nom == e.Nom {
-					return true
+			switch {
+			case e.Objet == diff.ObjetUnicite && e.Genre == diff.Suppression:
+				table := c.recree.TableParNom(e.Schema, e.Table)
+				return table != nil && slices.ContainsFunc(table.Index, func(idx calque.Index) bool {
+					return idx.Unique && idx.Nom == e.Nom
+				})
+			case e.Objet == diff.ObjetIndex && e.Genre == diff.Ajout:
+				// Depuis la version 2, l'origine ne reporte plus l'index qui
+				// soutient une contrainte : il n'apparaît que dans la recréée.
+				origine, recree := c.origine.TableParNom(e.Schema, e.Table), c.recree.TableParNom(e.Schema, e.Table)
+				if origine == nil || recree == nil {
+					return false
 				}
+				i := slices.IndexFunc(recree.Index, func(idx calque.Index) bool { return idx.Nom == e.Nom })
+				return i >= 0 && recree.Index[i].Unique && slices.ContainsFunc(origine.Unicites, func(u calque.Contrainte) bool {
+					return u.Nom == e.Nom && slices.Equal(u.Colonnes, recree.Index[i].Colonnes)
+				})
 			}
 			return false
 		},

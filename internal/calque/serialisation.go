@@ -126,6 +126,7 @@ func LirePhysique(chemin string) (*Physique, error) {
 	if err := versionLisible(p.VersionRI, PremiereVersionPhysique); err != nil {
 		return nil, err
 	}
+	p.remonter()
 	return &p, nil
 }
 

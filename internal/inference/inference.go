@@ -666,7 +666,12 @@ func reporterIndex(t *calque.Table, ecartees map[string]bool, parties map[string
 }
 
 // indexReportables rend ce que le physique déclare d'indexable sur la table :
-// ses index, puis ses unicités composites qu'il n'expose pas déjà comme index.
+// ses index, puis ses unicités qu'il n'expose pas déjà comme index.
+//
+// Mono-colonne comprises : depuis la version 2, le physique ne reporte plus
+// l'index qui soutient une contrainte d'unicité, et c'est lui qui donnait le
+// #[UniqueConstraint] au nom de la base — sans lui, Doctrine en inventerait un
+// UNIQ_… que migrations:diff proposerait de renommer.
 func indexReportables(t *calque.Table) []calque.IndexEntite {
 	var index []calque.IndexEntite
 	connus := make(map[string]bool, len(t.Index))
@@ -682,7 +687,7 @@ func indexReportables(t *calque.Table) []calque.IndexEntite {
 	}
 
 	for _, u := range t.Unicites {
-		if len(u.Colonnes) < 2 || connus[u.Nom] {
+		if connus[u.Nom] {
 			continue
 		}
 		index = append(index, calque.IndexEntite{
