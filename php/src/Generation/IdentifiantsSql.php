@@ -17,8 +17,8 @@ namespace Ormeau\Doctrine\Generation;
  * réservé (order, user) refusé. Les autres restent nus, comme on les écrirait à
  * la main.
  *
- * Le calque logique ne porte pas le SGBD : la liste des mots réservés est
- * celle des SGBD dont Ormeau extrait les calques, PostgreSQL seul aujourd'hui.
+ * La liste des mots réservés est celle des SGBD dont Ormeau extrait les
+ * calques, PostgreSQL seul aujourd'hui, et non celle du SGBD du calque.
  * Citer un nom exact qui n'en avait pas besoin ne casse rien : l'union des
  * listes suffira donc quand un autre SGBD arrivera.
  *

@@ -13,7 +13,6 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity]
 #[ORM\Table(
     name: 'apostrophe',
-    schema: 'public',
     options: ['comment' => 'séquence libre dont le nom porte une apostrophe, doublée dans le littéral'],
 )]
 class Apostrophe extends ApostropheBase {}

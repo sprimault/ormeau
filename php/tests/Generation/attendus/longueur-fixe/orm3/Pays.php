@@ -11,5 +11,5 @@ use Doctrine\ORM\Mapping as ORM;
 
 /** Les mêmes cas sous les formes de PostgreSQL. */
 #[ORM\Entity]
-#[ORM\Table(name: 'pays', options: ['comment' => 'Les mêmes cas sous les formes de PostgreSQL'])]
+#[ORM\Table(name: 'pays', schema: 'ventes', options: ['comment' => 'Les mêmes cas sous les formes de PostgreSQL'])]
 class Pays extends PaysBase {}

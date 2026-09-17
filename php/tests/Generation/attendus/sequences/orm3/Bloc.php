@@ -13,7 +13,6 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity]
 #[ORM\Table(
     name: 'bloc',
-    schema: 'public',
     options: ['comment' => 'séquence incrémentée de 10 à partir de 5 : blocs réservés ou nœuds décalés, la base ne dit pas lequel'],
 )]
 class Bloc extends BlocBase {}

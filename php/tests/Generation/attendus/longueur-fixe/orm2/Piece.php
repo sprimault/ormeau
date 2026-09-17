@@ -13,6 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity]
 #[ORM\Table(
     name: 'piece',
+    schema: 'ventes',
     options: ['comment' => 'Longueur fixe et binaires sous les formes de SQL Server : le fait vient du champ longueur_fixe, pas du nom du type'],
 )]
 class Piece extends PieceBase {}

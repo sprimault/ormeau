@@ -13,7 +13,6 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity]
 #[ORM\Table(
     name: 'reglement',
-    schema: 'public',
     options: ['comment' => 'serial extrait sous un search_path vide : public qualifié, retiré par l\'inférence'],
 )]
 class Reglement extends ReglementBase {}

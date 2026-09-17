@@ -10,5 +10,5 @@ use App\Entity\Base\TClientAdresseBase;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
-#[ORM\Table(name: 't_client_adresse')]
+#[ORM\Table(name: 't_client_adresse', schema: 'gescom')]
 class TClientAdresse extends TClientAdresseBase {}

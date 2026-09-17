@@ -78,10 +78,6 @@ commande `docker run` qui monte le dépôt au même chemin —, et la version d'
 installée choisit la liste d'écarts. Le relevé du dernier passage est écrit dans
 `.tmp/allerretour/ecarts.txt`.
 
-Sous SQL Server, Doctrine recrée les tables dans `dbo` : sa plateforme y pose
-les commentaires d'une table non qualifiée, quel que soit le schéma par défaut
-de la session. Le test renomme donc ce schéma en `ventes` avant de comparer.
-
 Deux cibles ont leur liste, les deux bouts de la plage promise, pour chaque
 SGBD : ORM 3 avec DBAL 4, depuis `composer.lock`, et ORM 2.14 avec DBAL 3, que
 la CI résout sans le lock (jobs `aller-retour-orm2` et

@@ -10,5 +10,5 @@ use App\Entity\Base\TCommandeBase;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
-#[ORM\Table(name: 't_commande')]
+#[ORM\Table(name: 't_commande', schema: 'gescom')]
 class TCommande extends TCommandeBase {}

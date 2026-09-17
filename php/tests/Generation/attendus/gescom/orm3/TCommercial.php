@@ -11,5 +11,5 @@ use Doctrine\ORM\Mapping as ORM;
 
 /** Force de vente. */
 #[ORM\Entity]
-#[ORM\Table(name: 't_commercial', options: ['comment' => 'Force de vente'])]
+#[ORM\Table(name: 't_commercial', schema: 'gescom', options: ['comment' => 'Force de vente'])]
 class TCommercial extends TCommercialBase {}

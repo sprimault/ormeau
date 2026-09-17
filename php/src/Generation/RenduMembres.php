@@ -64,20 +64,18 @@ final class RenduMembres
      *                                                 vivent dans \Enum sous lui
      * @param array<string, Enumeration> $enumerations énumérations du calque par nom, pour typer une
      *                                                 propriété et retrouver le cas de son défaut
-     * @param bool                       $avecSchema   écrire le schéma d'une table de jointure
+     * @param string                     $sgbd         SGBD du calque, qui décide de la valeur initiale d'une
+     *                                                 séquence, de la forme d'un défaut calculé et du schéma
+     *                                                 écrit d'une table de jointure
      * @param ClassesUtilisateur|null    $classes      où vivent les classes de l'utilisateur, que les
      *                                                 associations importent ; sans elle, à la racine
-     * @param string|null                $sgbd         SGBD du calque, qui décide de la valeur initiale d'une
-     *                                                 séquence et de la forme d'un défaut calculé ; inconnu,
-     *                                                 la règle de PostgreSQL s'applique
      */
     public function __construct(
         private readonly Cible $cible,
         private readonly string $espaceDeNoms,
         private readonly array $enumerations,
-        private readonly bool $avecSchema = false,
+        private readonly string $sgbd,
         private readonly ?ClassesUtilisateur $classes = null,
-        private readonly ?string $sgbd = null,
     ) {}
 
     /**
@@ -493,7 +491,7 @@ final class RenduMembres
             $table = $association->tableJointure;
             // La table de jointure n'a pas d'entité : son commentaire va sur
             // #[JoinTable], accepté par ORM 2.14 comme par ORM 3.
-            $argumentsTable = IdentifiantsSql::table($table->nom, $this->avecSchema ? $table->schema : null);
+            $argumentsTable = IdentifiantsSql::table($table->nom, SchemaParDefaut::ecrit($this->sgbd, $table->schema));
             $argumentsTable['options'] = $table->commentaire === null ? null : ['comment' => $table->commentaire];
             $lignes[] = Emetteur::attribut('ORM\JoinTable', $argumentsTable, $i);
             foreach ($table->jointure as $jointure) {

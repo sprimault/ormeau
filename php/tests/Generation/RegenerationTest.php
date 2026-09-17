@@ -168,6 +168,7 @@ final class RegenerationTest extends TestCase
         $calque = static fn(): CalqueLogique => CalqueLogique::depuisTableau([
             'version_ri' => 2,
             'empreinte_physique' => 'sha256:' . str_repeat('a', 64),
+            'sgbd' => 'postgres',
             'espace_de_noms' => 'App\\Entity',
             'entites' => [[
                 'nom' => 'Commande',
@@ -522,6 +523,48 @@ final class RegenerationTest extends TestCase
     }
 
     /**
+     * Une table hors du schéma par défaut porte son schéma, et une classe qui
+     * ne l'écrit pas — générée quand seul un calque à plusieurs schémas
+     * l'écrivait — se signale sans être réécrite.
+     */
+    public function testUnSchemaAttenduAbsentSeSignale(): void
+    {
+        $calque = static fn(): CalqueLogique => self::calque('t_client', schema: 'ventes');
+        $this->generer($calque());
+        $client = $this->sortie . '/Client.php';
+        self::assertStringContainsString("#[ORM\\Table(name: 't_client', schema: 'ventes')]", (string) file_get_contents($client));
+
+        file_put_contents($client, str_replace(", schema: 'ventes'", '', (string) file_get_contents($client)));
+        $avant = (string) file_get_contents($client);
+
+        $rapport = $this->generer($calque());
+
+        self::assertSame($avant, file_get_contents($client));
+        self::assertSame(
+            [$client . " ligne 13 : #[ORM\\Table(name: 't_client')], la table est dans le schéma ventes"],
+            array_map(static fn($d): string => $d->message(), $rapport->divergences),
+        );
+    }
+
+    /**
+     * Le schéma par défaut ne s'écrit pas, même sur un calque à plusieurs
+     * schémas ; une classe qui le porte encore se signale.
+     */
+    public function testUnSchemaParDefautEcritSeSignale(): void
+    {
+        $this->generer(self::schemas());
+        $client = $this->sortie . '/Client.php';
+        self::assertStringContainsString("#[ORM\\Table(name: 'client')]", (string) file_get_contents($client));
+
+        file_put_contents($client, str_replace("#[ORM\\Table(name: 'client')]", "#[ORM\\Table(name: 'client', schema: 'public')]", (string) file_get_contents($client)));
+
+        self::assertSame(
+            [$client . " ligne 13 : #[ORM\\Table(name: 'client', schema: 'public')], la table est dans le schéma par défaut, schema à retirer : DBAL 3 proposerait de la supprimer puis de la recréer"],
+            array_map(static fn($d): string => $d->message(), $this->generer(self::schemas())->divergences),
+        );
+    }
+
+    /**
      * Une colonne discriminante dont le nom ou la longueur ont changé dans la
      * classe de la racine se signale, avec l'attribut attendu en entier.
      */
@@ -567,6 +610,7 @@ final class RegenerationTest extends TestCase
         return CalqueLogique::depuisTableau([
             'version_ri' => 2,
             'empreinte_physique' => 'sha256:' . str_repeat('a', 64),
+            'sgbd' => 'postgres',
             'espace_de_noms' => 'App\\Entity',
             'entites' => [
                 [
@@ -600,6 +644,7 @@ final class RegenerationTest extends TestCase
         return CalqueLogique::depuisTableau([
             'version_ri' => 2,
             'empreinte_physique' => 'sha256:' . str_repeat('a', 64),
+            'sgbd' => 'postgres',
             'espace_de_noms' => 'App\\Entity',
             'entites' => [
                 [
@@ -651,6 +696,7 @@ final class RegenerationTest extends TestCase
         return CalqueLogique::depuisTableau([
             'version_ri' => 2,
             'empreinte_physique' => 'sha256:' . str_repeat('a', 64),
+            'sgbd' => 'postgres',
             'espace_de_noms' => 'App\\Entity',
             'entites' => $entites,
         ]);
@@ -658,9 +704,9 @@ final class RegenerationTest extends TestCase
 
     /**
      * Un calque d'une entité Client sur la table donnée, avec ou sans colonne
-     * email.
+     * email, dans public à défaut.
      */
-    private static function calque(string $table, bool $avecEmail = false, ?string $commentaire = null): CalqueLogique
+    private static function calque(string $table, bool $avecEmail = false, ?string $commentaire = null, string $schema = 'public'): CalqueLogique
     {
         $proprietes = [['nom' => 'id', 'colonne' => 'id', 'type_doctrine' => 'integer', 'nullable' => false]];
         if ($avecEmail) {
@@ -670,10 +716,11 @@ final class RegenerationTest extends TestCase
         return CalqueLogique::depuisTableau([
             'version_ri' => 2,
             'empreinte_physique' => 'sha256:' . str_repeat('a', 64),
+            'sgbd' => 'postgres',
             'espace_de_noms' => 'App\\Entity',
             'entites' => [array_filter([
                 'nom' => 'Client',
-                'table' => ['nom' => $table, 'schema' => 'public'],
+                'table' => ['nom' => $table, 'schema' => $schema],
                 'identifiant' => ['proprietes' => ['id'], 'strategie' => 'identite'],
                 'proprietes' => $proprietes,
                 'commentaire' => $commentaire,

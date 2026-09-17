@@ -10,5 +10,5 @@ use App\Entity\Base\LigneCommandeBase;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
-#[ORM\Table(name: 'ligne_commande', schema: 'public')]
+#[ORM\Table(name: 'ligne_commande')]
 class LigneCommande extends LigneCommandeBase {}

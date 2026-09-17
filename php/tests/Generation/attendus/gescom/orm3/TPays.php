@@ -10,5 +10,5 @@ use App\Entity\Base\TPaysBase;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
-#[ORM\Table(name: 't_pays')]
+#[ORM\Table(name: 't_pays', schema: 'gescom')]
 class TPays extends TPaysBase {}

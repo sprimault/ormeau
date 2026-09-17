@@ -48,6 +48,7 @@ final class LecteurCalqueTest extends TestCase
         $chemin = $this->fichier([
             'version_ri' => 2,
             'empreinte_physique' => 'sha256:' . str_repeat('a', 64),
+            'sgbd' => 'postgres',
             'espace_de_noms' => 'App\\Entity',
             'entites' => [[
                 'nom' => 'Client',

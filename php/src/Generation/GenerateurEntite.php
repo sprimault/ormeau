@@ -136,8 +136,7 @@ final class GenerateurEntite
             array_map(static fn(Entite $e): string => $e->nom, $calque->entites),
         );
 
-        $schemas = array_unique(array_map(static fn(Entite $e): string => $e->table->schema, $calque->entites));
-        $rendu = new RenduEntite($cible, $base, $calque->espaceDeNoms, count($schemas) > 1, $enumerations, $classes, $calque->sgbd);
+        $rendu = new RenduEntite($cible, $base, $calque->espaceDeNoms, $calque->sgbd, $enumerations, $classes);
         $controle = new ControleClasseUtilisateur();
 
         $fichiers = [];
@@ -216,7 +215,7 @@ final class GenerateurEntite
             }
             $generees[] = $this->sansCotesInversesOrphelins($entite, $calque->entites, $raisons, $omises);
         }
-        $generees = self::sansJointuresEnSchemaCite($generees, count($schemas) > 1, $omises);
+        $generees = self::sansJointuresEnSchemaCite($generees, $calque->sgbd, $omises);
         $indexOmis = [];
         $generees = self::sansIndexAuNomRefuse($generees, $indexOmis);
 
@@ -289,11 +288,11 @@ final class GenerateurEntite
      * @param string                                   $classe     entité ou trait qui porte les propriétés
      * @param list<Propriete>                          $proprietes propriétés écrites dans sa classe de base ou
      *                                                             son trait
-     * @param string|null                              $sgbd       SGBD du calque
+     * @param string                                   $sgbd       SGBD du calque
      * @param Cible                                    $cible      cible de la génération
      * @param list<DefautRepropose|DefautNonReproduit> $defauts    défauts relevés, complété ici
      */
-    private static function signalerDefautsReproposes(string $classe, array $proprietes, ?string $sgbd, Cible $cible, array &$defauts): void
+    private static function signalerDefautsReproposes(string $classe, array $proprietes, string $sgbd, Cible $cible, array &$defauts): void
     {
         foreach ($proprietes as $propriete) {
             if ($propriete->defautExpression === ExpressionDefaut::UuidGenere) {
@@ -574,23 +573,20 @@ final class GenerateurEntite
      * association qui échoue à l'exécution vaut moins que son absence
      * expliquée. Sans schéma écrit, la question ne se pose pas.
      *
-     * @param list<Entite>           $entites    entités générées
-     * @param bool                   $avecSchema le schéma est écrit dans les attributs
-     * @param list<AssociationOmise> $omises     omissions notées jusqu'ici, complétées
+     * @param list<Entite>           $entites entités générées
+     * @param string                 $sgbd    SGBD du calque, qui dit si le schéma s'écrit
+     * @param list<AssociationOmise> $omises  omissions notées jusqu'ici, complétées
      *
      * @return list<Entite>
      */
-    private static function sansJointuresEnSchemaCite(array $entites, bool $avecSchema, array &$omises): array
+    private static function sansJointuresEnSchemaCite(array $entites, string $sgbd, array &$omises): array
     {
-        if (!$avecSchema) {
-            return $entites;
-        }
-
         $retirees = [];
         foreach ($entites as $entite) {
             foreach ($entite->associations as $association) {
                 $jointure = $association->tableJointure;
-                if ($association->proprietaire && $jointure !== null && IdentifiantsSql::schemaACiter($jointure->schema)) {
+                $schema = $jointure === null ? null : SchemaParDefaut::ecrit($sgbd, $jointure->schema);
+                if ($association->proprietaire && $jointure !== null && $schema !== null && IdentifiantsSql::schemaACiter($schema)) {
                     $retirees[$entite->nom . '::' . $association->nom] = sprintf(
                         'table de jointure %s.%s dans un schéma à citer, que Doctrine n\'écrit pas cité',
                         $jointure->schema,

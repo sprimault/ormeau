@@ -10,5 +10,5 @@ use App\Entity\Base\TRéférenceBase;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
-#[ORM\Table(name: '`t_référence`')]
+#[ORM\Table(name: '`t_référence`', schema: 'gescom')]
 class TRéférence extends TRéférenceBase {}

@@ -18,11 +18,12 @@ export interface Logique {
   empreinte_physique: string;
   /**
    * Sgbd recopie celui du physique. Le rendu d'une même entité dépend de la
-   * plateforme DBAL, et pas seulement des versions d'ORM et de DBAL : une clé
-   * par séquence ne se génère pas de la même façon sous SQL Server et sous
-   * PostgreSQL. Absent d'un calque produit avant ce champ : inconnu.
+   * plateforme, et pas seulement des versions d'ORM et de DBAL : le schéma
+   * par défaut d'une table ne s'écrit pas, et une clé par séquence ne se
+   * génère pas de la même façon sous SQL Server et sous PostgreSQL. Requis :
+   * sans lui, le générateur ne saurait pas quel schéma est le défaut.
    */
-  sgbd?: string;
+  sgbd: string;
   espace_de_noms: string;
   entites: Entite[];
   enumerations?: Enumeration[];

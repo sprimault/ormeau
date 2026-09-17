@@ -10,5 +10,5 @@ use App\Entity\Base\TFactureBase;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
-#[ORM\Table(name: 't_facture')]
+#[ORM\Table(name: 't_facture', schema: 'gescom')]
 class TFacture extends TFactureBase {}

@@ -11,5 +11,5 @@ use Doctrine\ORM\Mapping as ORM;
 
 /** schéma par défaut : rien ne change. */
 #[ORM\Entity]
-#[ORM\Table(name: 'client', schema: 'public', options: ['comment' => 'schéma par défaut : rien ne change'])]
+#[ORM\Table(name: 'client', options: ['comment' => 'schéma par défaut : rien ne change'])]
 class Client extends ClientBase {}

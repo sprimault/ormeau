@@ -11,9 +11,5 @@ use Doctrine\ORM\Mapping as ORM;
 
 /** séquence choisie à l'exécution : aucun nom à lire. */
 #[ORM\Entity]
-#[ORM\Table(
-    name: 'dynamique',
-    schema: 'public',
-    options: ['comment' => 'séquence choisie à l\'exécution : aucun nom à lire'],
-)]
+#[ORM\Table(name: 'dynamique', options: ['comment' => 'séquence choisie à l\'exécution : aucun nom à lire'])]
 class Dynamique extends DynamiqueBase {}

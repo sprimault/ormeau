@@ -10,5 +10,5 @@ use App\Entity\Base\TCategorieBase;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
-#[ORM\Table(name: 't_categorie')]
+#[ORM\Table(name: 't_categorie', schema: 'gescom')]
 class TCategorie extends TCategorieBase {}

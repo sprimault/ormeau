@@ -199,6 +199,11 @@ func LireLogique(chemin string) (*Logique, error) {
 	if err := versionLisible(l.VersionRI, VersionCourante); err != nil {
 		return nil, err
 	}
+	// Après la version : un logique antérieur, qui peut ne pas le porter, doit
+	// recevoir la commande qui le recalcule plutôt qu'un champ manquant.
+	if err := champsRequis(donnees, "sgbd"); err != nil {
+		return nil, err
+	}
 	return &l, nil
 }
 

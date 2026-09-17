@@ -11,5 +11,5 @@ use Doctrine\ORM\Mapping as ORM;
 
 /** Les mêmes cas sous les formes de PostgreSQL. */
 #[ORM\Entity]
-#[ORM\Table(name: 'journal', options: ['comment' => 'Les mêmes cas sous les formes de PostgreSQL'])]
+#[ORM\Table(name: 'journal', schema: 'ventes', options: ['comment' => 'Les mêmes cas sous les formes de PostgreSQL'])]
 class Journal extends JournalBase {}

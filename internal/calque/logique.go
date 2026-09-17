@@ -10,10 +10,11 @@ type Logique struct {
 	VersionRI         int    `json:"version_ri"`
 	EmpreintePhysique string `json:"empreinte_physique"`
 	// Sgbd recopie celui du physique. Le rendu d'une même entité dépend de la
-	// plateforme DBAL, et pas seulement des versions d'ORM et de DBAL : une clé
-	// par séquence ne se génère pas de la même façon sous SQL Server et sous
-	// PostgreSQL. Absent d'un calque produit avant ce champ : inconnu.
-	Sgbd           string          `json:"sgbd,omitempty"`
+	// plateforme, et pas seulement des versions d'ORM et de DBAL : le schéma
+	// par défaut d'une table ne s'écrit pas, et une clé par séquence ne se
+	// génère pas de la même façon sous SQL Server et sous PostgreSQL. Requis :
+	// sans lui, le générateur ne saurait pas quel schéma est le défaut.
+	Sgbd           string          `json:"sgbd"`
 	EspaceDeNoms   string          `json:"espace_de_noms"`
 	Entites        []Entite        `json:"entites"`
 	Enumerations   []Enumeration   `json:"enumerations,omitempty"`
