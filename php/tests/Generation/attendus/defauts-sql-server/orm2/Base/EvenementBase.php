@@ -105,6 +105,12 @@ abstract class EvenementBase
     )]
     protected ?\DateTimeImmutable $formePostgres = null;
 
+    #[ORM\Column(name: 'reference', type: 'guid')]
+    protected string $reference;
+
+    #[ORM\Column(name: 'reference_sequentielle', type: 'guid', nullable: true)]
+    protected ?string $referenceSequentielle = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -238,6 +244,30 @@ abstract class EvenementBase
     public function setFormePostgres(?\DateTimeImmutable $formePostgres): static
     {
         $this->formePostgres = $formePostgres;
+
+        return $this;
+    }
+
+    public function getReference(): string
+    {
+        return $this->reference;
+    }
+
+    public function setReference(string $reference): static
+    {
+        $this->reference = $reference;
+
+        return $this;
+    }
+
+    public function getReferenceSequentielle(): ?string
+    {
+        return $this->referenceSequentielle;
+    }
+
+    public function setReferenceSequentielle(?string $referenceSequentielle): static
+    {
+        $this->referenceSequentielle = $referenceSequentielle;
 
         return $this;
     }

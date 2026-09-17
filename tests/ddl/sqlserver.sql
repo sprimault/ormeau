@@ -207,8 +207,8 @@ CREATE TABLE ventes.t_commande (
     -- Pas de type énuméré nommé sous SQL Server : la forme idiomatique est un
     -- CHECK IN, que l'inférence sait déjà lire pour produire une énumération.
     cmd_canal varchar(10) NOT NULL,
-    -- uniqueidentifier avec son défaut calculé : newid() n'a aujourd'hui aucune
-    -- place dans defaut_expression et tombe en defaut_non_reporte.
+    -- uniqueidentifier avec son défaut calculé : newid() est reconnu, mais
+    -- Doctrine ne sait pas l'écrire, et l'application fournit la valeur.
     cmd_ref   uniqueidentifier NOT NULL CONSTRAINT DF_commande_ref DEFAULT newid(),
     cmd_heure time NULL CONSTRAINT DF_commande_heure DEFAULT getdate(),
     cmd_pay_code nchar(2) NULL CONSTRAINT t_commande_cmd_pay_code_fkey REFERENCES ventes.t_pays (pay_code),

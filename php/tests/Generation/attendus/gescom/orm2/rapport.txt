@@ -25,3 +25,4 @@ créé TRéférence.php
 créé Base/TTagBase.php
 créé TTag.php
 écartée TLogImport : la table n'a pas de clé primaire, et Doctrine exige un identifiant
+défaut TCommande::cmdRef : la base tire un UUID pour la colonne cmd_ref, et Doctrine ne sait pas écrire ce défaut. Fournir la valeur avant la première insertion, par exemple dans le constructeur de la classe. schema:update et migrations:diff proposeront de supprimer le défaut : ne pas l'appliquer.

@@ -26,6 +26,7 @@ import {
   CodeTexteUnicodeSansEquivalent,
   CodeTraitDeduit,
   CodeTypeNonReconnu,
+  CodeUUIDAFournir,
   type Avertissement,
 } from '@/shared/model';
 
@@ -73,6 +74,7 @@ export const LIEUX: Readonly<Record<string, Lieu>> = {
 
   [CodeDefautNonReporte]: 'application',
   [CodeSequenceNonReconnue]: 'application',
+  [CodeUUIDAFournir]: 'application',
 
   [CodeTraitDeduit]: 'information',
   [CodeJointurePure]: 'information',

@@ -525,6 +525,20 @@ func inferrerPropriete(c *calque.Colonne, cibleTable string, d *Decisions, schem
 		}
 	}
 
+	// Après la requalification, qui peut avoir écarté le défaut. Le sens est
+	// reporté, mais Doctrine ne sait pas l'écrire : sans ce signal,
+	// l'arbitrage ne dirait rien d'une insertion qui échouera.
+	if propriete.DefautExpression == calque.DefautUUIDGenere {
+		avertissements = append(avertissements, calque.Avertissement{
+			Code:  calque.CodeUUIDAFournir,
+			Cible: cible,
+			Message: "défaut " + c.Defaut.Valeur + " : la base tire un UUID, que Doctrine ne sait pas écrire ; l'application " +
+				"fournit la valeur à la création, et migrations:diff proposera de supprimer le défaut, à ne pas appliquer",
+			Resolution: calque.ResolutionParDefaut,
+			Confiance:  1,
+		})
+	}
+
 	return propriete, avertissements
 }
 

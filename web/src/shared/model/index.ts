@@ -81,6 +81,7 @@ export {
   CodeTexteUnicodeSansEquivalent,
   CodeTraitDeduit,
   CodeTypeNonReconnu,
+  CodeUUIDAFournir,
 } from './calque';
 export {
   CodeActionInconnue,

@@ -770,7 +770,10 @@ final class RenduMembres
      */
     private function defautCalcule(Propriete $propriete): Code|string|null
     {
-        if ($propriete->defautExpression === null) {
+        // Aucune forme DBAL : une chaîne serait écrite en littéral, que
+        // PostgreSQL refuse et que SQL Server stocke en texte. Le rapport le
+        // dit (DefautNonReproduit).
+        if ($propriete->defautExpression === null || $propriete->defautExpression === ExpressionDefaut::UuidGenere) {
             return null;
         }
         if ($this->sgbd === 'sqlserver') {
@@ -806,7 +809,7 @@ final class RenduMembres
     public static function defautConvertiSqlServer(ExpressionDefaut $expression): ?string
     {
         return match ($expression) {
-            ExpressionDefaut::HorodatageCourant => null,
+            ExpressionDefaut::HorodatageCourant, ExpressionDefaut::UuidGenere => null,
             ExpressionDefaut::DateCourante => 'CONVERT(date, GETDATE())',
             ExpressionDefaut::HeureCourante => 'CONVERT(time, GETDATE())',
         };

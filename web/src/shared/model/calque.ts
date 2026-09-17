@@ -248,6 +248,12 @@ export const DefautDateCourante: ExpressionDefaut = "date_courante";
  */
 export const DefautHeureCourante: ExpressionDefaut = "heure_courante";
 /**
+ * Un UUID aléatoire tiré par la base à l'insertion : gen_random_uuid(),
+ * newid(). Un sens que tout générateur ne sait pas écrire — DBAL n'a pas
+ * d'expression pour lui —, reporté quand même : c'est un fait de la base.
+ */
+export const DefautUUIDGenere: ExpressionDefaut = "uuid_genere";
+/**
  * Association relie deux entités. Proprietaire décide du côté qui porte la
  * colonne de jointure : s'y tromper produit un mapping que Doctrine accepte et
  * qui n'écrit rien en base.
@@ -494,6 +500,11 @@ export const CodeHeritageDeduit = "heritage_deduit";
  * sans lui, et l'application doit fournir la valeur.
  */
 export const CodeDefautNonReporte = "defaut_non_reporte";
+/**
+ * Un UUID tiré par la base, reconnu mais que Doctrine ne sait pas écrire :
+ * l'application fournit la valeur.
+ */
+export const CodeUUIDAFournir = "uuid_a_fournir";
 /**
  * Une collation hors du schéma système : un générateur ne sait pas
  * toujours l'écrire qualifiée, et son nom seul dépendrait du chemin de

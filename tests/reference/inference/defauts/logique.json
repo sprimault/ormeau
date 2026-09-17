@@ -156,6 +156,7 @@
           "colonne": "reference",
           "type_doctrine": "guid",
           "nullable": false,
+          "defaut_expression": "uuid_genere",
           "origine": "contrainte"
         }
       ],
@@ -354,10 +355,10 @@
       "confiance": 1
     },
     {
-      "code": "defaut_non_reporte",
+      "code": "uuid_a_fournir",
       "cible": "public.evenement.reference",
-      "message": "défaut gen_random_uuid() non reconnu, non reporté : la valeur est à fournir par l'application",
-      "resolution": "ignoree",
+      "message": "défaut gen_random_uuid() : la base tire un UUID, que Doctrine ne sait pas écrire ; l'application fournit la valeur à la création, et migrations:diff proposera de supprimer le défaut, à ne pas appliquer",
+      "resolution": "par_defaut",
       "confiance": 1
     },
     {

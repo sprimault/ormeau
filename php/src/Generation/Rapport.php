@@ -16,8 +16,8 @@ namespace Ormeau\Doctrine\Generation;
  * propres classes, qu'est-ce qui appartient à une autre base, qu'est-ce que
  * son outil de migration lui proposera à tort sur une séquence, qu'est-ce que
  * la version d'ORM installée empêchera d'enregistrer, quel index de la base ne
- * se retrouve pas dans les entités, et quel défaut son outil de migration
- * reproposera sans effet. Aucune ne bloque la génération du reste ; seul un
+ * se retrouve pas dans les entités, et quel défaut la génération ne reproduit
+ * pas fidèlement. Aucune ne bloque la génération du reste ; seul un
  * refus d'écrasement dit que la génération demandée n'a pas eu lieu, et fait
  * échouer la commande.
  */
@@ -40,8 +40,9 @@ final class Rapport
      *                                                 à 2.16 n'enregistrera pas, à cause d'une colonne
      *                                                 calculée par la base sur la racine
      * @param list<IndexOmis>               $index     index laissés de côté, DBAL refusant leur nom
-     * @param list<DefautRepropose>         $defauts   défauts justes que chaque diff de schéma proposera
-     *                                                 de recréer, sans effet
+     * @param list<DefautRepropose|DefautNonReproduit> $defauts défauts que chaque diff de schéma proposera
+     *                                                          de recréer sans effet, ou que la génération
+     *                                                          n'écrit pas et que l'application doit fournir
      */
     public function __construct(
         public readonly array $fichiers,

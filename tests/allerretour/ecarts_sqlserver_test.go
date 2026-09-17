@@ -167,7 +167,20 @@ var tolerancesSQLServer = []tolerance{
 
 	// VOULU : décisions de l'outil, tolérées seulement quand elles sont prises.
 	reprise("table_ecartee_par_le_generateur"),
-	reprise("defaut_calcule_non_reconnu"),
+	{
+		code: "defaut_calcule_non_reconnu", categorie: voulu,
+		pourquoi: "un défaut calculé dont le sens n'est pas reconnu n'est pas reporté, avec l'avertissement defaut_non_reporte",
+		couvre: func(e diff.Ecart, c contexte) bool {
+			if e.Objet != diff.ObjetColonne || e.Propriete != "defaut" || e.Apres != "" {
+				return false
+			}
+			cible := e.Schema + "." + e.Table + "." + e.Nom
+			return slices.ContainsFunc(c.logique.Avertissements, func(a calque.Avertissement) bool {
+				return a.Code == calque.CodeDefautNonReporte && a.Cible == cible
+			})
+		},
+	},
+	reprise("uuid_genere_non_reproduit"),
 	reprise("colonne_generee_non_recreee"),
 	reprise("commentaire_de_type_immutable"),
 	{

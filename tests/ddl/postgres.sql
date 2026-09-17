@@ -155,7 +155,8 @@ CREATE TABLE t_commande (
     cmd_canal canal NOT NULL,
     -- tableau : aucun type Doctrine ne lit son littéral {…}
     cmd_etiquettes text[],
-    -- expression sans équivalent Doctrine : non reportée, avec avertissement
+    -- UUID tiré par la base : reconnu, mais sans équivalent Doctrine ; le
+    -- rapport de génération dit de fournir la valeur
     cmd_ref   uuid NOT NULL DEFAULT gen_random_uuid(),
     cmd_heure time DEFAULT LOCALTIME,
     cmd_pay_code char(2) REFERENCES t_pays (pay_code),

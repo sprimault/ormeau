@@ -180,6 +180,10 @@ const (
 	DefautHorodatageCourant ExpressionDefaut = "horodatage_courant"
 	DefautDateCourante      ExpressionDefaut = "date_courante"
 	DefautHeureCourante     ExpressionDefaut = "heure_courante"
+	// Un UUID aléatoire tiré par la base à l'insertion : gen_random_uuid(),
+	// newid(). Un sens que tout générateur ne sait pas écrire — DBAL n'a pas
+	// d'expression pour lui —, reporté quand même : c'est un fait de la base.
+	DefautUUIDGenere ExpressionDefaut = "uuid_genere"
 )
 
 // Association relie deux entités. Proprietaire décide du côté qui porte la
@@ -338,6 +342,9 @@ const (
 	// Un défaut calculé dont le sens n'est pas reconnu : l'entité est générée
 	// sans lui, et l'application doit fournir la valeur.
 	CodeDefautNonReporte = "defaut_non_reporte"
+	// Un UUID tiré par la base, reconnu mais que Doctrine ne sait pas écrire :
+	// l'application fournit la valeur.
+	CodeUUIDAFournir = "uuid_a_fournir"
 	// Une collation hors du schéma système : un générateur ne sait pas
 	// toujours l'écrire qualifiée, et son nom seul dépendrait du chemin de
 	// recherche de l'application. La propriété est rendue sans collation.
