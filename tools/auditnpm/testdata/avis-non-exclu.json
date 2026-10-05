@@ -1,0 +1,37 @@
+{
+  "auditReportVersion": 2,
+  "vulnerabilities": {
+    "paquet-touche": {
+      "name": "paquet-touche",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1234567,
+          "name": "paquet-touche",
+          "dependency": "paquet-touche",
+          "title": "avis inventé pour le cas de référence",
+          "url": "https://github.com/advisories/GHSA-0000-0000-0000",
+          "severity": "high",
+          "range": "<1.2.3"
+        }
+      ],
+      "effects": [],
+      "range": "<1.2.3",
+      "nodes": [
+        "node_modules/paquet-touche"
+      ],
+      "fixAvailable": true
+    }
+  },
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 1,
+      "critical": 0,
+      "total": 1
+    }
+  }
+}

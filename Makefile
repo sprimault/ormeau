@@ -1,4 +1,4 @@
-.PHONY: dev test cover maj-attendus maj-calque-gescom maj-calque-sqlserver aller-retour aller-retour-sqlserver lint outils vulncheck sec build binaries web-deps web-build web-types web-types-check web-lint web-test php-changelog php-test php-lint image image-tags image-push clean
+.PHONY: dev test cover maj-attendus maj-calque-gescom maj-calque-sqlserver aller-retour aller-retour-sqlserver lint outils vulncheck sec build binaries web-deps web-build web-types web-types-check web-lint web-test web-audit php-changelog php-test php-lint image image-tags image-push clean
 
 # Répertoire de travail local, ignoré par git : sorties de `make build`,
 # profils de couverture, tout ce qui ne se publie pas.
@@ -253,7 +253,24 @@ web-lint: web-deps
 
 web-test: web-deps
 	@if [ ! -f web/package.json ]; then echo "web/ absent, rien a tester"; exit 0; fi; \
-	cd web && npm run audit:high && npm run test:run
+	cd web && npm run test:run
+
+# L'audit a sa cible, hors des tests : il interroge la base d'avis en direct,
+# donc un lint vert le matin peut etre rouge l'apres-midi sans qu'une ligne ait
+# bouge, et un avis publie en amont ne doit pas empecher les tests de tourner.
+#
+# Le seuil ne change que le code de retour de npm, pas le rapport : a critical,
+# npm echoue seul sur un avis critique, et auditnpm juge les avis high selon la
+# liste d'exclusions de tools/auditnpm/exclusions.go. npm n'offre aucun moyen
+# d'ecarter un avis, d'ou ce detour.
+# --package-lock-only : l'audit se lit dans le lock, donc sans dependre de
+# node_modules ni de web-deps. Rapport identique a celui d'un arbre installe
+# (verifie sous npm 10.9.8), et c'est la meme commande en CI : les deux cotes
+# doivent rendre le meme verdict.
+web-audit:
+	@if [ ! -f web/package.json ]; then echo "web/ absent, rien a auditer"; exit 0; fi; \
+	(cd web && npm audit --json --audit-level=critical --package-lock-only > "$(TMP)/audit-npm.json") \
+	&& go run ./tools/auditnpm < "$(TMP)/audit-npm.json"
 
 # web-types régénère les types TypeScript de l'API à partir des
 # structures Go de internal/calque et internal/introspection via tygo.

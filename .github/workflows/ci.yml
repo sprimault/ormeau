@@ -215,6 +215,30 @@ jobs:
       - name: Vulnérabilités
         run: govulncheck ./...
 
+      # Le front finit dans le binaire : une dépendance de production
+      # vulnérable y voyage avec lui, et une dépendance de construction
+      # fabrique ce qui y voyage. Les deux comptent, sur le poste de quelqu'un
+      # qui manipule des identifiants de base de données — d'où un audit de
+      # l'arbre entier, dev compris.
+      #
+      # Ici et non dans le job du front : l'échec d'un audit ne doit pas se
+      # lire comme « ta contribution est cassée », et placé avant les tests il
+      # les empêchait de tourner.
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # Le seuil ne change que le code de retour de npm, pas le rapport : à
+      # critical, npm échoue seul sur un avis critique, et auditnpm juge les
+      # avis « high » selon tools/auditnpm/exclusions.go. npm n'offre aucun
+      # moyen d'écarter un avis nommément (npm/cli#8886), et un avis sans
+      # version corrigée publiée rendrait sinon la validation rouge pour
+      # toujours.
+      - name: Vulnérabilités des dépendances du front
+        run: |
+          (cd web && npm audit --json --audit-level=critical --package-lock-only > "$RUNNER_TEMP/audit-npm.json") \
+            && go run ./tools/auditnpm < "$RUNNER_TEMP/audit-npm.json"
+
   securite:
     name: Analyse statique de sécurité
     runs-on: ubuntu-latest
@@ -277,13 +301,6 @@ jobs:
       # une API publique se corrige, il ne se met pas en liste d'exception.
       - name: Découpage FSD
         run: npx steiger ./src
-        working-directory: web
-
-      # Le front finit dans le binaire : une dépendance vulnérable y voyage
-      # avec lui, sur le poste de quelqu'un qui manipule des identifiants de
-      # base de données.
-      - name: Vulnérabilités des dépendances
-        run: npm run audit:high
         working-directory: web
 
       - name: Tests

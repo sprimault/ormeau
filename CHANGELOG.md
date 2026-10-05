@@ -36,6 +36,20 @@ préambule reste en français : il n'est jamais publié.
 
 ## [Non publié]
 
+### Sécurité
+
+- **Trois avis de `brace-expansion` corrigés** dans l'outillage du front.
+- **L'audit du front juge chaque avis contre des exclusions motivées.**
+  `braces` (GHSA-vfj7-8cjw-p6xm) y figure : sans correctif, hors du binaire.
+
+***
+
+### Security
+
+- **Three `brace-expansion` advisories fixed** in the front-end tooling.
+- **The front-end audit judges each advisory against motivated exclusions.**
+  `braces` (GHSA-vfj7-8cjw-p6xm) is one: no published fix, outside the binary.
+
 ## [0.7.0] — 2026-09-17 — Introspection SQL Server
 
 **`version_ri` passe à 2.** Un calque physique déjà enregistré se lit

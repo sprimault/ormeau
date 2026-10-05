@@ -1,0 +1,21 @@
+{
+  "auditReportVersion": 2,
+  "vulnerabilities": {
+    "paquet-tiede": {
+      "name": "paquet-tiede",
+      "severity": "moderate",
+      "via": [
+        {
+          "name": "paquet-tiede",
+          "title": "avis de gravité moyenne, hors de ce que le contrôle juge",
+          "url": "https://github.com/advisories/GHSA-1111-1111-1111",
+          "severity": "moderate",
+          "range": "<2.0.0"
+        }
+      ],
+      "range": "<2.0.0",
+      "nodes": ["node_modules/paquet-tiede"],
+      "fixAvailable": false
+    }
+  }
+}
