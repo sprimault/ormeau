@@ -36,6 +36,8 @@ préambule reste en français : il n'est jamais publié.
 
 ## [Non publié]
 
+## [0.7.1] — 2026-10-06 — Ce qu'un avis ne dit pas
+
 ### Sécurité
 
 - **Trois avis de `brace-expansion` corrigés** dans l'outillage du front.
