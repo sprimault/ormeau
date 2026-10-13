@@ -71,10 +71,10 @@ jobs:
 
       # Version épinglée, la même que le Makefile : un lint qui change de règles
       # tout seul transforme une PR verte en PR rouge sans que rien n'ait bougé
-      # côté code. Pas en deçà de v2.13.0, qui est la première à embarquer un
-      # staticcheck capable d'analyser la stdlib Go 1.27.
+      # côté code. Pas en deçà de v2.14.0, qui est la première à embarquer un
+      # x/tools sachant lire l'export data unifiée en V5, écrite par Go 1.27.2.
       - name: Installer golangci-lint
-        run: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.13.0
+        run: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.14.0
 
       # make lint régénère les types TypeScript et refuse toute dérive : sans
       # tygo, le contrôle ne tourne pas et les deux moitiés du projet peuvent
@@ -245,9 +245,18 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # Go épinglé à 1.27.1, et non la version de go.mod : depuis 1.27.2, la
+      # toolchain écrit l'export data unifiée en V5, que le x/tools v0.49.0 de
+      # gosec v2.29.0 — la dernière publiée — ne lit pas. Tout import échoue
+      # alors, et gosec sort en erreur après avoir rapporté « Issues : 0 ».
+      #
+      # À retirer dès qu'un gosec paraît avec x/tools >= v0.50.0 ; son master y
+      # est passé le 2026-10-09, sans tag depuis le 26/08. Ce job n'analyse que
+      # du source et ne publie aucun binaire : les avis de la stdlib que 1.27.2
+      # corrige ne l'exposent pas.
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version-file: go.mod
+          go-version: '1.27.1'
           cache: true
 
       # gosec compile ce qu'il analyse : sans le bundle, internal/interface ne
