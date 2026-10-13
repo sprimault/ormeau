@@ -148,11 +148,11 @@ lint: web-build web-types-check
 # golangci-lint est épinglé, et la CI installe la même version : deux versions
 # différentes rendraient un verdict différent sur un code identique.
 #
-# Pas en deçà de v2.13.0 : les versions antérieures embarquent staticcheck
-# v0.7.0, qui panique en analysant internal/poll de la stdlib Go 1.27. Sous
-# Linux seulement — le code de ce paquet diffère sous Windows, où le défaut ne
-# se manifeste pas.
-GOLANGCI_VERSION ?= v2.13.0
+# Pas en deçà de v2.14.0 : c'est la première à embarquer un x/tools v0.50.0,
+# donc le premier lecteur d'export data unifiée qui connaisse V5, écrite par
+# Go 1.27.2. En deçà, chaque import échoue — stdlib comprise — et le lint ne
+# rend plus que des erreurs typecheck.
+GOLANGCI_VERSION ?= v2.14.0
 
 # govulncheck et gosec sont épinglés aussi, et la CI installe les mêmes : en
 # @latest, un outil adopté le jour de sa sortie tourne dans des jobs dont le
