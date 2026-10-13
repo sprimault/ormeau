@@ -159,6 +159,11 @@ GOLANGCI_VERSION ?= v2.14.0
 # cache Go est partagé. La plus ancienne version qui analyse du Go 1.27 sans
 # erreur, sous Linux comme sous Windows (essai du 2026-09-14). Épingler
 # govulncheck ne fige pas sa base d'avis, qu'il interroge en direct.
+#
+# Réserve sur gosec : aucune version publiée ne lit l'export data unifiée en
+# V5, qu'écrit Go 1.27.2, et l'erreur porte alors sur chaque import plutôt
+# que sur la cause. La CI épingle Go 1.27.1 pour ce job ; sur un poste passé
+# en 1.27.2, make sec échoue jusqu'à un gosec en x/tools >= v0.50.0.
 GOVULNCHECK_VERSION ?= v1.7.0
 GOSEC_VERSION ?= v2.28.0
 

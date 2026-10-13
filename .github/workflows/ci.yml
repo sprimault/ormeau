@@ -245,9 +245,18 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # Go épinglé à 1.27.1, et non la version de go.mod : depuis 1.27.2, la
+      # toolchain écrit l'export data unifiée en V5, que le x/tools v0.49.0 de
+      # gosec v2.29.0 — la dernière publiée — ne lit pas. Tout import échoue
+      # alors, et gosec sort en erreur après avoir rapporté « Issues : 0 ».
+      #
+      # À retirer dès qu'un gosec paraît avec x/tools >= v0.50.0 ; son master y
+      # est passé le 2026-10-09, sans tag depuis le 26/08. Ce job n'analyse que
+      # du source et ne publie aucun binaire : les avis de la stdlib que 1.27.2
+      # corrige ne l'exposent pas.
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version-file: go.mod
+          go-version: '1.27.1'
           cache: true
 
       # gosec compile ce qu'il analyse : sans le bundle, internal/interface ne
