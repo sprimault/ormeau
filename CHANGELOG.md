@@ -36,6 +36,16 @@ préambule reste en français : il n'est jamais publié.
 
 ## [Non publié]
 
+### Sécurité
+
+- **Un avis de `source-map-js` corrigé** dans l'outillage du front.
+
+***
+
+### Security
+
+- **One `source-map-js` advisory fixed** in the front-end tooling.
+
 ## [0.7.1] — 2026-10-06 — Ce qu'un avis ne dit pas
 
 ### Sécurité
