@@ -36,6 +36,8 @@ préambule reste en français : il n'est jamais publié.
 
 ## [Non publié]
 
+## [0.7.2] — 2026-10-13 — Ce qui casse sans qu'on y touche
+
 ### Sécurité
 
 - **Un avis de `source-map-js` corrigé** dans l'outillage du front.
