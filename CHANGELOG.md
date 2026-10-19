@@ -36,6 +36,18 @@ préambule reste en français : il n'est jamais publié.
 
 ## [Non publié]
 
+### Sécurité
+
+- **Un avis de `symfony/http-foundation` corrigé** dans les dépendances du
+  paquet PHP.
+
+***
+
+### Security
+
+- **One `symfony/http-foundation` advisory fixed** in the PHP package's
+  dependencies.
+
 ## [0.7.2] — 2026-10-13 — Ce qui casse sans qu'on y touche
 
 ### Sécurité
