@@ -41,6 +41,8 @@ préambule reste en français : il n'est jamais publié.
 - **Un avis de `symfony/http-foundation` corrigé** dans les dépendances du
   paquet PHP.
 - **Un avis de `vite` corrigé** dans l'outillage du front.
+- **Un avis de `zod` corrigé** dans l'outillage du front, par la montée de
+  `steiger` qui l'amène.
 
 ***
 
@@ -49,6 +51,8 @@ préambule reste en français : il n'est jamais publié.
 - **One `symfony/http-foundation` advisory fixed** in the PHP package's
   dependencies.
 - **One `vite` advisory fixed** in the front-end tooling.
+- **One `zod` advisory fixed** in the front-end tooling, through the `steiger`
+  upgrade that brings it.
 
 ## [0.7.2] — 2026-10-13 — Ce qui casse sans qu'on y touche
 

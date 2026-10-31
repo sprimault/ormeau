@@ -73,10 +73,11 @@ fichiers sont le vrai jeu de tests du projet.
 
 ## Mise en route
 
-Il faut Go (la version épinglée dans `go.mod`), Node 22 pour l'interface
-embarquée, et Docker pour les conteneurs de test. Le premier `make test` installe
-lui-même les dépendances du front, par `npm ci`, quand `web/node_modules` est
-absent ; après une modification de `web/package-lock.json`, lancer
+Il faut Go (la version épinglée dans `go.mod`), Node 22.18 ou plus pour
+l'interface embarquée, et Docker pour les conteneurs de test. Le premier
+`make test` installe lui-même les dépendances du front, par `npm ci`, quand
+`web/node_modules` est absent ; après une modification de
+`web/package-lock.json`, lancer
 `cd web && npm ci`. PHP 8.1 et Composer ne servent que pour travailler sur `php/`, qui se
 publie en miroir dans `sprimault/ormeau-doctrine` : c'est ici qu'on y contribue,
 jamais sur le miroir, réécrit à chaque fusion. Le mécanisme et la publication
