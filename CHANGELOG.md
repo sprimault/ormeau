@@ -36,6 +36,8 @@ préambule reste en français : il n'est jamais publié.
 
 ## [Non publié]
 
+## [0.7.3] — 2026-10-31 — Ce que l'outillage traînait
+
 ### Sécurité
 
 - **Un avis de `symfony/http-foundation` corrigé** dans les dépendances du
