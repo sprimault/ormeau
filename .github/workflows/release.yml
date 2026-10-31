@@ -24,7 +24,7 @@ permissions:
 
 env:
   # La même que ci.yml : le front publié doit être celui que la CI a validé.
-  NODE_VERSION: '22'
+  NODE_VERSION: '24'
 
 jobs:
   # Le titre et les notes viennent de la section du CHANGELOG qui porte cette

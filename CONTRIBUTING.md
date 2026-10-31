@@ -69,10 +69,11 @@ project's real test suite.
 
 ## Getting set up
 
-You need Go (the version pinned in `go.mod`), Node 22.18 or newer for the
-embedded interface, and Docker for the test containers. The first `make test`
-installs the front-end dependencies itself, with `npm ci`, when
-`web/node_modules` is absent; after a change to `web/package-lock.json`, run `cd web && npm ci`.
+You need Go (the version pinned in `go.mod`), Node 24 or newer for the embedded
+interface — npm 11, without which updating the lock fails —, and Docker for the
+test containers. The first `make test` installs the front-end dependencies
+itself, with `npm ci`, when `web/node_modules` is absent; after a change to
+`web/package-lock.json`, run `cd web && npm ci`.
 PHP 8.1 and Composer are only needed to work on `php/`, which is
 published as a mirror to `sprimault/ormeau-doctrine`: contributions to it happen
 here, never on the mirror, which is rewritten on every merge. The mechanism and

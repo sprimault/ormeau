@@ -32,7 +32,10 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: '22'
+  # 24 et non 22 : npm 10, livré avec Node 22, échoue à résoudre le graphe de
+  # pairs du front (« Cannot read properties of null (reading 'edgesOut') »).
+  # Seul `npm ci` y survit, donc la CI passait là où tout `npm install` cassait.
+  NODE_VERSION: '24'
   # Doit rester égale à TYGO_VERSION dans le Makefile : le contrôle de dérive
   # compare une génération locale à une génération CI, et deux versions
   # différentes le feraient échouer sans qu'aucun type Go n'ait bougé.
