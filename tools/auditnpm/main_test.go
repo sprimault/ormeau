@@ -15,10 +15,30 @@ import (
 // trouve.
 var aucuneExclusion = map[string]Exclusion{}
 
+// exclusionBracesFigee reprend le rôle que tenait l'unique entrée réelle de la
+// liste jusqu'au retrait de son avis en amont. Les trois cas qui exercent les
+// deux mécanismes d'exclusion — une exclusion qui couvre un avis, une exclusion
+// que plus aucun avis ne rencontre — ont besoin d'une entrée qui rencontre
+// quelque chose dans rapport-reel.json ; la liste de production est vide, et
+// c'est son état normal.
+var exclusionBracesFigee = map[string]Exclusion{
+	"GHSA-vfj7-8cjw-p6xm": {
+		Raison:  "rapport figé : l'avis a été retiré en amont le 2026-10-23",
+		Retrait: "avec rapport-reel.json, si un jour il cesse de porter cet avis",
+	},
+}
+
 // TestControler exerce les deux refus et les cas qui passent, sur des rapports
 // figés. Les rapports inventés sont réduits aux champs que le contrôle lit ;
-// rapport-reel.json est la sortie entière de `npm audit --json` sur le lock du
-// dépôt, pour qu'un cas au moins ne teste pas la fidélité d'un faux.
+// rapport-reel.json est la sortie entière de `npm audit --json` sur un état du
+// lock du dépôt, pour qu'un cas au moins ne teste pas la fidélité d'un faux.
+//
+// Cet état est celui qui portait encore un avis « high » et sa chaîne de
+// propagation. Il est conservé tel quel : régénéré depuis un lock sans avis, le
+// fichier ne porterait plus rien à exclure ni à propager, et les trois cas qui
+// s'appuient dessus ne prouveraient plus rien. Que la liste de production, elle,
+// soit à jour est contrôlé en CI, où une exclusion orpheline fait échouer
+// l'audit.
 func TestControler(t *testing.T) {
 	t.Parallel()
 
@@ -30,9 +50,9 @@ func TestControler(t *testing.T) {
 		fragment string
 	}{
 		{
-			nom:      "le rapport du dépôt passe avec ses exclusions",
+			nom:      "un rapport passe quand une exclusion couvre son avis",
 			fichier:  "rapport-reel.json",
-			nommees:  exclusions,
+			nommees:  exclusionBracesFigee,
 			fragment: "GHSA-vfj7-8cjw-p6xm",
 		},
 		{
@@ -45,14 +65,14 @@ func TestControler(t *testing.T) {
 		{
 			nom:      "une exclusion que plus aucun avis ne rencontre est refusée",
 			fichier:  "sans-avis.json",
-			nommees:  exclusions,
+			nommees:  exclusionBracesFigee,
 			echoue:   true,
 			fragment: "exclusion sans avis correspondant",
 		},
 		{
 			nom:      "un avis que la liste ne nomme pas est refusé",
 			fichier:  "avis-non-exclu.json",
-			nommees:  exclusions,
+			nommees:  exclusionBracesFigee,
 			echoue:   true,
 			fragment: "GHSA-0000-0000-0000",
 		},
@@ -113,8 +133,8 @@ func TestControler(t *testing.T) {
 
 // TestControlerNeCompteQueLesAvisPropres vérifie qu'un paquet qui ne fait que
 // propager l'avis d'une dépendance n'est pas signalé pour lui-même. Le rapport
-// du dépôt porte cinq paquets « high » pour un seul avis : un contrôle indexé
-// par paquet en signalerait cinq, dont quatre qu'aucune exclusion ne pourrait
+// figé porte cinq paquets « high » pour un seul avis : un contrôle indexé par
+// paquet en signalerait cinq, dont quatre qu'aucune exclusion ne pourrait
 // nommer puisqu'ils n'ont pas d'identifiant.
 func TestControlerNeCompteQueLesAvisPropres(t *testing.T) {
 	t.Parallel()
@@ -134,16 +154,59 @@ func TestControlerNeCompteQueLesAvisPropres(t *testing.T) {
 // TestChaqueExclusionEstMotivee refuse une exclusion sans raison ni condition
 // de retrait : une ligne muette se reconduit indéfiniment, et c'est précisément
 // ce que la liste doit empêcher.
+//
+// Il ne boucle sur rien tant que la liste est vide, ce qui est son état normal :
+// c'est TestMotivee qui tient la règle, et celui-ci qui l'applique aux entrées
+// du jour.
 func TestChaqueExclusionEstMotivee(t *testing.T) {
 	t.Parallel()
 
 	for id, e := range exclusions {
-		if strings.TrimSpace(e.Raison) == "" {
-			t.Errorf("%s : raison vide", id)
+		if !e.motivee() {
+			t.Errorf("%s : raison ou condition de retrait vide", id)
 		}
-		if strings.TrimSpace(e.Retrait) == "" {
-			t.Errorf("%s : condition de retrait vide", id)
-		}
+	}
+}
+
+// TestMotivee éprouve la règle elle-même, que la liste de production ne
+// déclenche plus depuis qu'elle est vide. Sans ce test, rien ne dirait qu'une
+// ligne muette serait refusée le jour où quelqu'un en ajoute une.
+func TestMotivee(t *testing.T) {
+	t.Parallel()
+
+	cas := []struct {
+		nom     string
+		e       Exclusion
+		motivee bool
+	}{
+		{
+			nom:     "les deux champs renseignés",
+			e:       Exclusion{Raison: "exposition nulle", Retrait: "à la publication d'un correctif"},
+			motivee: true,
+		},
+		{
+			nom: "sans raison",
+			e:   Exclusion{Retrait: "à la publication d'un correctif"},
+		},
+		{
+			nom: "sans condition de retrait",
+			e:   Exclusion{Raison: "exposition nulle"},
+		},
+		{
+			// Des champs blancs passeraient une comparaison à la chaîne vide.
+			nom: "des champs qui ne portent que des blancs",
+			e:   Exclusion{Raison: "  ", Retrait: "\t\n"},
+		},
+	}
+
+	for _, c := range cas {
+		t.Run(c.nom, func(t *testing.T) {
+			t.Parallel()
+
+			if got := c.e.motivee(); got != c.motivee {
+				t.Errorf("motivee() = %v, attendu %v", got, c.motivee)
+			}
+		})
 	}
 }
 
