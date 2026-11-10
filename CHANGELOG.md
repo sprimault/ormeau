@@ -36,6 +36,8 @@ préambule reste en français : il n'est jamais publié.
 
 ## [Non publié]
 
+## [0.7.4] — 2026-11-10 — Ce que l'audit voit et que le code n'appelle pas
+
 ### Sécurité
 
 - **Neuf avis de Symfony corrigés** dans les dépendances du paquet PHP :
